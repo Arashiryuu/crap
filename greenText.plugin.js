@@ -1,4 +1,4 @@
-//META{"name":"gGreenText"}*//
+//META{"name":"greenText"}*//
 
 var greenText = function(){};
 var greenTextInterval;
