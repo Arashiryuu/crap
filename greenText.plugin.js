@@ -8,7 +8,6 @@ var greenTextMainFunction = function(){
 		if(!$(this).find('.greenText').length) {
 			var strBase = $(this).text();
 			if(strBase.substr(0,1) == ">") {
-				$(this).text(strBase.substr(1, strBase.length-1));
 				$(this).addClass("greenText");
 			}
 		}
@@ -22,8 +21,8 @@ greenText.prototype.getAuthor = function(){ return "Arash"; };
 
 greenText.prototype.load = function(){
 	BdApi.injectCSS("greenText-InjectedStyleSheet", ".markup.greenText{color:#709900!important;}\
-.markup.greenText::before{content:'>'!important;}.markup.greenText:hover{font-weight:bold;}.mark\
-up.greenText:hover::before{content:'>'!important;font-weight: bold;}");
+.markup.greenText:hover{font-weight:bold;}\
+");
 };
 
 greenText.prototype.start = function(){
