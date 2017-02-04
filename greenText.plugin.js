@@ -4,7 +4,7 @@ var greenText = function(){};
 var greenTextInterval;
 
 var greenTextMainFunction = function(){
-	$(".message-text>.markup").each(function() {
+	$(".message-text>.markup, .message-text>.markup>.message-content").each(function() {
 		if(!$(this).find('.greenText').length) {
 			var strBase = $(this).text();
 			if(strBase.substr(0,1) == ">") {
