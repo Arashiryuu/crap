@@ -5,7 +5,7 @@ function hashTagging() {}
 function processChat() {
 	setTimeout(function() {
 		$(".comment .body .markup:not(.line-scanned), .comment .markup>span:not(.line-scanned)").each(function() {
-			var tagRegex = /#[^\s]+/igm;
+			var tagRegex = /#[A-Z0-9a-z_-]+/igm;
 			var html = $(this).html();
 			$(this).html(html.replace(tagRegex, `<span style='color: #3898FF;'>$&</span>`));
 		}).addClass("line-scanned");
