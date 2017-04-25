@@ -33,7 +33,7 @@ hashTagging.prototype.getDescription = function () {
 };
 
 hashTagging.prototype.getVersion = function () {
-    return "1.0.1";
+    return "1.0.6";
 };
 
 hashTagging.prototype.getAuthor = function () {
