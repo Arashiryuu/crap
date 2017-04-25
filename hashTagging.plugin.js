@@ -5,7 +5,7 @@ function hashTagging() {}
 function processChat() {
 	setTimeout(function() {
 		$(".comment .body .markup:not(.line-scanned), .comment .markup>span:not(.line-scanned)").each(function() {
-			var tagRegex = /#\w+/igm;
+			var tagRegex = /#[^\s]+/igm;
 			var html = $(this).html();
 			$(this).html(html.replace(tagRegex, `<span style='color: #3898FF;'>$&</span>`));
 		}).addClass("line-scanned");
@@ -29,11 +29,11 @@ hashTagging.prototype.getName = function () {
 };
 
 hashTagging.prototype.getDescription = function () {
-    return "Send a message with \"#\" at the start to hashtag.";
+    return "Send a message with \"#\" at the start of a word to hashtag.";
 };
 
 hashTagging.prototype.getVersion = function () {
-    return "1.0a";
+    return "1.0.1";
 };
 
 hashTagging.prototype.getAuthor = function () {
