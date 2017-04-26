@@ -16,11 +16,11 @@ hashTagging.prototype.load = function() {};
 
 hashTagging.prototype.unload = function() {};
 
-hashTagging.prototype.start = processChat;
-	
-hashTagging.prototype.onMessage = processChat;
+hashTagging.prototype.start = function () { processChat(); };	
 
-hashTagging.prototype.onSwitch = processChat;
+hashTagging.prototype.onMessage = function () { processChat(); };	
+
+hashTagging.prototype.onSwitch = function () { processChat(); };	
 
 hashTagging.prototype.stop = function () {};
 
