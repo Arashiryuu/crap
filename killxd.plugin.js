@@ -4,12 +4,12 @@ class killxd {
  constructor() {
   this.processChat = () => {
 	setTimeout(function() {
-		$(".comment .markup, .comment .markup>span").each(function() {
-			var tagRegex = /(XD)/igm;
+		$(".chat .content .messages-wrapper .messages .message-group .comment .message .message-text .markup:not(pre), .chat .content .messages-wrapper .messages .message-group .comment .message .message-text .markup:not(code)").each(function() {
+			var tagRegex = /(?:\bXD\b)/igm;
 			var html = $(this).html();
 			$(this).html(html.replace(tagRegex, 'I\'m a retard lol.'));
 		});
-	 },100);
+	 }, 100);
    }
  };
 
