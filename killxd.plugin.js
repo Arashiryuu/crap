@@ -28,7 +28,7 @@ class killxd {
   getName		        () { return 'killxd'; }
   getDescription    	() { return 'replaces shitty xds.'; }
   getAuthor		      	() { return 'Arashiryuu'; }
-  getVersion		    () { return '0.0.2'; }
+  getVersion		    () { return '0.0.6'; }
   getSettingsPanel		() { return 'Go away!'; }
 };
 /*@end@*/
