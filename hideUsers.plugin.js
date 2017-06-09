@@ -10,14 +10,14 @@ class hideUsers {
 		};
 
 		this.hidUsers = {
-			users: [] /* example: '723504703284987254', '384793740543700787' */
-			// add users to array to hide them, only accepts user IDs which look like '252456997457231873'
+			users: []
 		};
 	};
 
 	userPush(save) {
 		var nUser = $('#hUTEXT').val();
-		if(nUser === undefined || nUser === null) return $('#hUTEXT').val('Invalid entry.').css({"color":"red", "opacity":"1"});
+		if(isNaN(nUser)) return $('#hUTEXT').val('Invalid entry.');
+		if(nUser.length === 0 || nUser === undefined) return $('#hUTEXT').val('Invalid entry.');
 		this.hidUsers.users.push(nUser);
 		console.log(`%c[${this.getName()}]%c\t${this.hidUsers.users.join(', ')}`, 'color: #9653AD', '');
 		this.start();
