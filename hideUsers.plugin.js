@@ -10,7 +10,7 @@ class hideUsers {
 		};
 
 		this.hidUsers = {
-			users: []
+			users: [] // User IDs only, they look like '238108500109033472'
 		};
 	};
 
@@ -18,6 +18,7 @@ class hideUsers {
 		var nUser = $('#hUTEXT').val();
 		if(isNaN(nUser)) return $('#hUTEXT').val('Invalid entry.');
 		if(nUser.length === 0 || nUser === undefined) return $('#hUTEXT').val('Invalid entry.');
+		if(nUser.length < 18) return $('#hUTEXT').val('Invalid entry.');
 		this.hidUsers.users.push(nUser);
 		console.log(`%c[${this.getName()}]%c\t${this.hidUsers.users.join(', ')}`, 'color: #9653AD', '');
 		this.start();
