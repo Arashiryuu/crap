@@ -6,6 +6,7 @@ class hideUsers {
 			if(!this.hidUsers.users[0]) return console.warn('%c[hideUsers]%c\tNo users found.', 'color: #9653AD', '');
 			for(let user of this.hidUsers.users) {
 				$(`[style*='${user}']`).parent().hide();
+				$(`.avatarContainer-303pFz [style*='${user}']`).parent().parent().parent().hide();
  			}
 		};
 
@@ -51,7 +52,7 @@ class hideUsers {
 
 	getAuthor() { return 'Arashiryuu'; };
 	getName() { return 'hideUsers'; };
-	getVersion() { return '1.1.0'; };
+	getVersion() { return '1.1.1'; };
 	getDescription() { return 'Hides any users listed in the array of words.'; };
 	getSettingsPanel() { 
 		let html = '<h3>hideUsers Plugin</h3><br/>'; 
