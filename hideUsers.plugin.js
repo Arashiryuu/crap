@@ -60,7 +60,8 @@ class hideUsers {
 		html += '<button class="hUBTNx" onclick=BdApi.getPlugin("'+ this.getName() +'").userClear()>remove</button>';
 		html += '<button class="hUBTNy" onclick=BdApi.getPlugin("'+ this.getName() +'").saveSettings()>save</button>';
 		html += '<button class="hUBTNz" onclick=BdApi.getPlugin("'+ this.getName() +'").loadSettings()>load</button><br/>';
-		html += '<br/>How to use:';
+		html += '<br/>How to use:<br/>';
+		html += '0) Go to user settings -> Appearance, and enable Developer Mode, then right-click a user and "Copy ID"<br/>';
 		html += '<br/>1) Insert a user\'s ID.<br/>';
 		html += '2) Click "apply."<br/>';
 		html += '3) To remove the last-added user, click the "remove" button.<br/>';
