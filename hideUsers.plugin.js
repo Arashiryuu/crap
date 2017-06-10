@@ -54,7 +54,7 @@ class hideUsers {
 	getVersion() { return '1.0.1'; };
 	getDescription() { return 'Hides any users listed in the array of words.'; };
 	getSettingsPanel() { 
-		let html = '<h3>soon™</h3><br/>'; 
+		let html = '<h3>hideUsers Plugin</h3><br/>'; 
 		html += '<input id="hUTEXT" type="text" placeholder="ID" style="resize: none; width: 80%;" /><br/><br/>';
 		html += '<br/><button class="hUBTNw" onclick=BdApi.getPlugin("'+ this.getName() +'").userPush()>apply</button>';
 		html += '<button class="hUBTNx" onclick=BdApi.getPlugin("'+ this.getName() +'").userClear()>remove</button>';
