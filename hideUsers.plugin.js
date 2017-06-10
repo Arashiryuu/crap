@@ -59,7 +59,7 @@ class hideUsers {
 		html += '<br/><button class="hUBTNw" onclick=BdApi.getPlugin("'+ this.getName() +'").userPush()>apply</button>';
 		html += '<button class="hUBTNx" onclick=BdApi.getPlugin("'+ this.getName() +'").userClear()>remove</button>';
 		html += '<button class="hUBTNy" onclick=BdApi.getPlugin("'+ this.getName() +'").saveSettings()>save</button>';
-		html += '<button class="hUBTNy" onclick=BdApi.getPlugin("'+ this.getName() +'").loadSettings()>load</button><br/>';
+		html += '<button class="hUBTNz" onclick=BdApi.getPlugin("'+ this.getName() +'").loadSettings()>load</button><br/>';
 		html += '<br/>How to use:';
 		html += '<br/>1) Insert a user\'s ID.<br/>';
 		html += '2) Click "apply."<br/>';
