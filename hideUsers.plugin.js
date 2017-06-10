@@ -5,7 +5,7 @@ class hideUsers {
 		this.hideUser = () => {
 			if(!this.hidUsers.users[0]) return console.warn('%c[hideUsers]%c\tNo users found.', 'color: #9653AD', '');
 			for(let user of this.hidUsers.users) {
-  			$(`[style*='${user}']`).parent().hide();
+				$(`[style*='${user}']`).parent().hide();
  			}
 		};
 
@@ -42,7 +42,7 @@ class hideUsers {
 		console.log('%c[hideUsers]%c\tLoaded settings.', 'color: #9653AD', '');
 	};
 
-	start() { this.hideUser(); console.log('%c[hideUsers]%c\tWorking...', 'color: #9653AD', ''); };
+	start() { console.log('%c[hideUsers]%c\tWorking...', 'color: #9653AD', ''); this.hideUser(); };
 	stop() { console.log('%c[hideUsers]%c\tStopped.', 'color: #9653AD', ''); };
 	load() { console.log('%c[hideUsers]%c\tBooting-Up.', 'color: #9653AD', ''); };
 	unload() {};
@@ -51,7 +51,7 @@ class hideUsers {
 
 	getAuthor() { return 'Arashiryuu'; };
 	getName() { return 'hideUsers'; };
-	getVersion() { return '1.0.0'; };
+	getVersion() { return '1.0.1'; };
 	getDescription() { return 'Hides any users listed in the array of words.'; };
 	getSettingsPanel() { 
 		let html = '<h3>soon™</h3><br/>'; 
