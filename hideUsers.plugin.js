@@ -10,12 +10,12 @@ class hideUsers {
 		};
 
 		this.hidUsers = {
-			users: [] // User IDs only, they look like '238108500109033472'
+			users: [] /* Users must be set by ID such as '252456997457231873' */
 		};
 	};
 
-	userPush(save) {
-		var nUser = $('#hUTEXT').val();
+	userPush() {
+		let nUser = $('#hUTEXT').val();
 		if(isNaN(nUser)) return $('#hUTEXT').val('Invalid entry.');
 		if(nUser.length === 0 || nUser === undefined) return $('#hUTEXT').val('Invalid entry.');
 		if(nUser.length < 18) return $('#hUTEXT').val('Invalid entry.');
@@ -31,6 +31,17 @@ class hideUsers {
 		this.start();		
 	};
 
+	saveSettings(save) {
+		bdPluginStorage.set('hideUsers', 'users', JSON.stringify(this.hidUsers.users));
+		save = true;
+		console.log('%c[hideUsers]%c\tSaved settings.', 'color: #9653AD', '');
+	};
+
+	loadSettings() {
+		this.hidUsers.users = JSON.parse(bdPluginStorage.get('hideUsers', 'users'));
+		console.log('%c[hideUsers]%c\tLoaded settings.', 'color: #9653AD', '');
+	};
+
 	start() { this.hideUser(); console.log('%c[hideUsers]%c\tWorking...', 'color: #9653AD', ''); };
 	stop() { console.log('%c[hideUsers]%c\tStopped.', 'color: #9653AD', ''); };
 	load() { console.log('%c[hideUsers]%c\tBooting-Up.', 'color: #9653AD', ''); };
@@ -40,13 +51,15 @@ class hideUsers {
 
 	getAuthor() { return 'Arashiryuu'; };
 	getName() { return 'hideUsers'; };
-	getVersion() { return '0.1.5'; };
+	getVersion() { return '1.0.0'; };
 	getDescription() { return 'Hides any users listed in the array of words.'; };
 	getSettingsPanel() { 
 		let html = '<h3>soon™</h3><br/>'; 
 		html += '<input id="hUTEXT" type="text" placeholder="ID" style="resize: none; width: 80%;" /><br/><br/>';
 		html += '<br/><button class="hUBTNw" onclick=BdApi.getPlugin("'+ this.getName() +'").userPush()>apply</button>';
-		html += '<button class="hUBTNx" onclick=BdApi.getPlugin("'+ this.getName() +'").userClear()>remove</button><br/>';
+		html += '<button class="hUBTNx" onclick=BdApi.getPlugin("'+ this.getName() +'").userClear()>remove</button>';
+		html += '<button class="hUBTNy" onclick=BdApi.getPlugin("'+ this.getName() +'").saveSettings()>save</button>';
+		html += '<button class="hUBTNy" onclick=BdApi.getPlugin("'+ this.getName() +'").loadSettings()>load</button><br/>';
 		html += '<br/>How to use:';
 		html += '<br/>1) Insert a user\'s ID.<br/>';
 		html += '2) Click "apply."<br/>';
