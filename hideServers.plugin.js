@@ -5,7 +5,7 @@ class hideServers {
 		this.hideServer = () => {
 			if(!this.hidServers.servers[0]) return console.warn('%c[hideServers]%c\tNo servers found.', 'color: #AAF', '');
 			for(let server of this.hidServers.servers) {
-  			$(`[style*='${server}']`).parent().parent().parent().hide();
+  			$(`[href*='${server}']`).parent().parent().parent().hide();
  			}
 		};
 
@@ -52,7 +52,7 @@ class hideServers {
 
 	getAuthor() { return 'Arashiryuu'; };
 	getName() { return 'hideServers'; };
-	getVersion() { return '1.0.0'; };
+	getVersion() { return '1.0.1'; };
 	getDescription() { return 'Hides any servers listed in the array of names.'; };
 	getSettingsPanel() { 
 		let stff = '<h3>hideServers Plugin</h3><br/>'; 
