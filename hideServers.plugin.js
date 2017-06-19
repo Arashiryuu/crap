@@ -56,7 +56,7 @@ class hideServers {
 	getDescription() { return 'Hides any servers listed in the array of names.'; };
 	getSettingsPanel() { 
 		let stff = '<h3>hideServers Plugin</h3><br/>'; 
-		stff += '<input id="SeverHideField" type="text" placeholder="ID" style="resize: none; width: 80%;" /><br/><br/>';
+		stff += '<input id="ServerHideField" type="text" placeholder="ID" style="resize: none; width: 80%;" /><br/><br/>';
 		stff += '<br/><button class="ShU-btn0" onclick=BdApi.getPlugin("'+ this.getName() +'").servPush()>apply</button>';
 		stff += '<button class="ShU-btn1" onclick=BdApi.getPlugin("'+ this.getName() +'").servClear()>remove</button>';
 		stff += '<button class="ShU-btn2" onclick=BdApi.getPlugin("'+ this.getName() +'").saveSettings()>save</button>';
