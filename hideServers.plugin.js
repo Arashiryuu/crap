@@ -53,7 +53,7 @@ class hideServers {
 	getAuthor() { return 'Arashiryuu'; };
 	getName() { return 'hideServers'; };
 	getVersion() { return '1.0.1'; };
-	getDescription() { return 'Hides any servers listed in the array of names.'; };
+	getDescription() { return 'Hides any servers listed in the array of IDs.'; };
 	getSettingsPanel() { 
 		let stff = '<h3>hideServers Plugin</h3><br/>'; 
 		stff += '<input id="ServerHideField" type="text" placeholder="ID" style="resize: none; width: 80%;" /><br/><br/>';
