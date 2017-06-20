@@ -25,10 +25,10 @@ class killxd {
 	 
   onSwitch() { this.processChat(); }
 
-  getName		        () { return 'killxd'; }
-  getDescription    	() { return 'replaces shitty xds.'; }
-  getAuthor		      	() { return 'Arashiryuu'; }
-  getVersion		    () { return '0.0.6'; }
-  getSettingsPanel		() { return 'Go away!'; }
+  getName		()    {	 return 'ki'		+ 'llxd'; }
+  getDescription	 ()  {	 return     'r'		+ 'eplaces shitty xds.'; }
+  getAuthor		  (){	 return      'A'	+ 'rashiryuu'; }
+  getVersion		 ()  {	 return     '0'		+ '.0.6'; }
+  getSettingsPanel	()    {	 return 'Go'		+ ' away!'; }
 };
 /*@end@*/
