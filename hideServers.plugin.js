@@ -41,9 +41,14 @@ class hideServers {
 		this.hidServers.servers = JSON.parse(bdPluginStorage.get('hideServers', 'servers'));
 		console.info('%c[hideServers]%c\tLoaded settings.', 'color: #AAF', '');
 		console.info('%c[hideServers]%c\t' + this.hidServers.servers.join(', '), 'color: #AAF', '');
+		this.hideServer();
 	};
 
-	start() { console.info('%c[hideServers]%c\tWorking...', 'color: #AAF', ''); this.hideServer();  };
+	start() { 
+		console.info('%c[hideServers]%c\tWorking...', 'color: #AAF', ''); 
+		this.loadSettings();
+		this.hideServer();
+	};
 	stop() { console.info('%c[hideServers]%c\tStopped.', 'color: #AAF', ''); };
 	load() { console.info('%c[hideServers]%c\tBooting-Up.', 'color: #AAF', ''); };
 	unload() {};
