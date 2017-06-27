@@ -16,9 +16,9 @@ class hideServers {
 
 	servPush() {
 		let nServer = $('#ServerHideField').val();
-		if(isNaN(nServer)) return $('#ServerHideField').val('Invalid entry.');
-		if(nServer.length === 0 || nServer === undefined) return $('#ServerHideField').val('Invalid entry.');
-		if(nServer.length < 18) return $('#ServerHideField').val('Invalid entry.');
+		if(isNaN(nServer)) return $('#ServerHideField').val('Invalid entry. (NaN)');
+		if(nServer.length === 0 || nServer === undefined) return $('#ServerHideField').val('Invalid entry. (empty server)');
+		if (nServer.match(/^[0-9]{16,18}$/) == null) return $('#ServerHideField').val('Invalid entry. (Invalid length or non digit)');
 		this.hidServers.servers.push(nServer);
 		console.info(`%c[${this.getName()}]%c\t${this.hidServers.servers.join(', ')}`, 'color: #AAF', '');
 		this.start();
