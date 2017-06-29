@@ -20,14 +20,14 @@ class hideChannels {
 		if(newUser.length === 0 || newUser === undefined) return $('#ChanblockField').val('Invalid entry.');
 		this.hidChannels.chans.push(newUser);
 		console.info(`%c[${this.getName()}]%c\t${this.hidChannels.chans.join(', ')}`, 'color: #F2F', '');
-		this.start();
+		this.hideChannel();
 	};
 	
 	chanClear() {
 		this.hidChannels.chans.pop();
 		console.info(`%c[${this.getName()}]%c\t${this.hidChannels.chans.join(', ')}`, 'color: #F2F', '');
 		alert('Successfully removed!');
-		this.start();		
+		this.hideChannel();		
 	};
 
 	saveSettings(save) {
