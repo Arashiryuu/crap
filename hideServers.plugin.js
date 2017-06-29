@@ -56,14 +56,14 @@ class hideServers {
 		let pluginName = this.getName();
 		if ($('#hsplugin-settings-div').length === 0) {
 			var that = this;
-			setTimeout(function() { that.updateSettingsPanel(); }, 250); // try again later
+			setTimeout(function() { that.updateSettingsPanel(); }, 500); // try again later
 			return;
 		}
 		let stff = `<h3>hideServers Plugin</h3><br/>
-		<div>`;
+		<div class="hsplugin-subcontainer" style="display: flex; flex: 1 1 auto; flex-flow: wrap row; position: relative; margin-bottom: 4ex; width: 70%;">`;
 		for(let server of this.hidServers.servers) {
 			let style = $(`[href*='${server}']`).attr('style');
-			stff += `<button class='avatar-small' onclick='BdApi.getPlugin("${pluginName}").servRemove(${server})' style='${style}; background-size: cover;'></button>`;
+			stff += `<button class='avatar-small' onclick='BdApi.getPlugin("${pluginName}").servRemove(${server})' style='${style}; background-size: cover; background-position: center; flex: 1 0 20%; margin-left: 1px; max-width: 13%; min-height: 4vh;'></button>`;
  		}
 		stff += `</div>
 			<input id="ServerHideField" type="text" placeholder="ID" style="resize: none; width: 80%;" /><br/><br/>
@@ -102,7 +102,7 @@ class hideServers {
 
 	getAuthor() { return 'Arashiryuu'; };
 	getName() { return 'hideServers'; };
-	getVersion() { return '1.2.0'; };
+	getVersion() { return '1.2.3'; };
 	getDescription() { return 'Hides any servers listed in the array of IDs.'; };
 	getSettingsPanel() { 
 		let pluginName = this.getName();
@@ -111,7 +111,7 @@ class hideServers {
 			Loading...
 			</div>`;
 		var that = this;
-		setTimeout(function() { that.updateSettingsPanel(); }, 250);
+		setTimeout(function() { that.updateSettingsPanel(); }, 500);
 		return stff;
 	};
 };
