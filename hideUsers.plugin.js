@@ -22,14 +22,14 @@ class hideUsers {
 		if(nUser.length < 18) return $('#hUTEXT').val('Invalid entry.');
 		this.hidUsers.users.push(nUser);
 		console.log(`%c[${this.getName()}]%c\t${this.hidUsers.users.join(', ')}`, 'color: #9653AD', '');
-		this.start();
+		this.hideUser();
 	};
 	
 	userClear() {
 		this.hidUsers.users.pop();
 		console.log(`%c[${this.getName()}]%c\t${this.hidUsers.users.join(', ')}`, 'color: #9653AD', '');
 		alert('Successfully removed!');
-		this.start();		
+		this.hideUser();		
 	};
 
 	saveSettings(save) {
