@@ -81,16 +81,28 @@ class hideServers {
 		$('#hsplugin-settings-div').html(stff);
 	};
 
-	start() { console.info('%c[hideServers]%c\tWorking...', 'color: #AAF', ''); this.hideServer(); this.updateSettingsPanel(); };
+	start() { 
+		console.info('%c[hideServers]%c\tWorking...', 'color: #AAF', '');
+		var settings = bdPluginStorage.get('hideServers', 'servers');
+		if(settings === null) {
+			console.info('%c[hideServers]%c\t' + 'No settings found.', 'color: #AAF', '');
+		}
+		else {
+			this.hidServers.servers = JSON.parse(settings);
+			console.info('%c[hideServers]%c\t' + this.hidServers.servers.join(', '), 'color: #AAF', '');
+		}
+		this.hideServer(); 
+		this.updateSettingsPanel(); 
+	};
 	stop() { console.info('%c[hideServers]%c\tStopped.', 'color: #AAF', ''); };
-	load() { console.info('%c[hideServers]%c\tBooting-Up.', 'color: #AAF', ''); this.loadSettings(); };
+	load() { console.info('%c[hideServers]%c\tBooting-Up.', 'color: #AAF', ''); };
 	unload() {};
 	onMessage() {};
 	onSwitch() { this.hideServer(); };
 
 	getAuthor() { return 'Arashiryuu'; };
 	getName() { return 'hideServers'; };
-	getVersion() { return '1.1.0'; };
+	getVersion() { return '1.2.0'; };
 	getDescription() { return 'Hides any servers listed in the array of IDs.'; };
 	getSettingsPanel() { 
 		let pluginName = this.getName();
