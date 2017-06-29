@@ -43,7 +43,18 @@ class hideChannels {
 		console.info('%c[hideChannels]%c\t' + this.hidChannels.chans.join(', '), 'color: #F2F', '');
 	};
 
-	start() { console.info('%c[hideChannels]%c\tWorking...', 'color: #F2F', ''); this.hideChannel();  };
+	start() {
+		console.info('%c[hideChannels]%c\tWorking...', 'color: #F2F', '');
+		var settings = bdPluginStorage.get('hideChannels', 'chans');
+		if(settings === null) {
+			console.info('%c[hideChannels]%c\tNo settings found.', 'color: #F2F', '');
+		}
+		else {
+			this.hidChannels.chans = JSON.parse(settings);
+			console.info('%c[hideChannels]%c\t' + this.hidChannels.chans.join(', '), 'color: #F2F', '');
+		}
+		this.hideChannel();
+	};
 	stop() { console.info('%c[hideChannels]%c\tStopped.', 'color: #F2F', ''); };
 	load() { console.info('%c[hideChannels]%c\tBooting-Up.', 'color: #F2F', ''); };
 	unload() {};
@@ -52,7 +63,7 @@ class hideChannels {
 
 	getAuthor() { return 'Arashiryuu'; };
 	getName() { return 'hideChannels'; };
-	getVersion() { return '1.0.0'; };
+	getVersion() { return '1.1.0'; };
 	getDescription() { return 'Hides any channels listed in the array of names.'; };
 	getSettingsPanel() { 
 		let htmls = '<h3>hideChannels Plugin</h3><br/>'; 
