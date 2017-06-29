@@ -43,9 +43,20 @@ class hideUsers {
 		console.log('%c[hideUsers]%c\tLoaded settings.', 'color: #9653AD', '');
 	};
 
-	start() { console.log('%c[hideUsers]%c\tWorking...', 'color: #9653AD', ''); this.hideUser(); };
-	stop() { console.log('%c[hideUsers]%c\tStopped.', 'color: #9653AD', ''); };
-	load() { console.log('%c[hideUsers]%c\tBooting-Up.', 'color: #9653AD', ''); };
+	start() { 
+		console.info('%c[hideUsers]%c\tWorking...', 'color: #9653AD', '');
+		var settings = bdPluginStorage.get('hideUsers', 'users');
+		if(settings === null) {
+			console.info('%c[hideUsers]%c\tNo settings found.', 'color: #9653AD', '');
+		}
+		else {
+			this.hidUsers.users = JSON.parse(settings);
+			console.info('%c[hideUsers]%c\t' + this.hidUsers.users.join(', '), 'color: #9653AD', '');
+		}
+	 	this.hideUser();  
+	};
+	stop() { console.info('%c[hideUsers]%c\tStopped.', 'color: #9653AD', ''); };
+	load() { console.info('%c[hideUsers]%c\tBooting-Up.', 'color: #9653AD', ''); };
 	unload() {};
 	onMessage() { this.hideUser(); };
 	onSwitch() { this.hideUser(); };
