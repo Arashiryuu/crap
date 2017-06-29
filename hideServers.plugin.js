@@ -21,7 +21,7 @@ class hideServers {
 		if (nServer.match(/^[0-9]{16,18}$/) === null) return $('#ServerHideField').val('Invalid entry. (Invalid length or non digit)');
 		this.hidServers.servers.push(nServer);
 		console.info(`%c[${this.getName()}]%c\t${this.hidServers.servers.join(', ')}`, 'color: #AAF', '');
-		this.start();
+		this.hideServer();
 	};
 	
 	servClear() {
@@ -36,7 +36,7 @@ class hideServers {
 		$(`[href*='${servId}']`).parent().parent().parent().show();
 		console.info(`%c[${this.getName()}]%c\t${this.hidServers.servers.join(', ')}`, 'color: #AAF', '');
 		alert('Successfully removed!');
-		this.start();		
+		this.hideServer();		
 	};
 
 	saveSettings() {
