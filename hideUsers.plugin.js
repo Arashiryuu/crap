@@ -63,7 +63,7 @@ class hideUsers {
 
 	getAuthor() { return 'Arashiryuu'; };
 	getName() { return 'hideUsers'; };
-	getVersion() { return '1.1.1'; };
+	getVersion() { return '1.2.0'; };
 	getDescription() { return 'Hides any users listed in the array.'; };
 	getSettingsPanel() { 
 		let html = '<h3>hideUsers Plugin</h3><br/>'; 
