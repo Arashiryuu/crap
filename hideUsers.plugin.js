@@ -58,6 +58,7 @@ class hideUsers {
 	stop() { console.info('%c[hideUsers]%c\tStopped.', 'color: #9653AD', ''); };
 	load() { console.info('%c[hideUsers]%c\tBooting-Up.', 'color: #9653AD', ''); };
 	unload() {};
+	observer(e) { this.hideUser(); };
 	onMessage() { this.hideUser(); };
 	onSwitch() { this.hideUser(); };
 
