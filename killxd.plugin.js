@@ -20,10 +20,20 @@ class killxd {
   load() {}
 	
   unload() {}
+	
+	observer(exd) {
+    if(exd.addedNodes.length && exd.addedNodes[0].classList && exd.addedNodes[0].classList.contains('message-group')) {
+      this.processChat();
+    }
+    else if(exd.addedNodes.length && exd.addedNodes[0].classList && exd.addedNodes[0].classList.contains('markup')) {
+      this.processChat();
+    } else
+        return;
+  }
 	 
   onMessage() { this.processChat(); }
 	 
-  onSwitch() { this.processChat(); }
+  onSwitch() { setTimeout(() => this.processChat(), 250); }
 
   getName		        () { return 'killxd'; }
   getDescription    	() { return 'replaces shitty xds.'; }
