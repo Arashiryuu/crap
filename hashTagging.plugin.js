@@ -20,10 +20,20 @@ class hashTagging {
   load() {}
 	
   unload() {}
+	
+	observer(eht) {
+    if(eht.addedNodes.length && eht.addedNodes[0].classList && eht.addedNodes[0].classList.contains('message-group')) {
+      this.processChat();
+    }
+    else if(eht.addedNodes.length && eht.addedNodes[0].classList && eht.addedNodes[0].classList.contains('markup')) {
+      this.processChat();
+    } else
+        return;
+  };
 	 
   onMessage() { this.processChat(); }
 	 
-  onSwitch() { this.processChat(); }
+  onSwitch() { setTimeout(() => this.processChat(), 250); }
 
   getName() { return 'hashTagging'; }
   getDescription() { return 'Start a word or sentence with a \"#\" to hashtag.'; }
