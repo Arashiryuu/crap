@@ -493,12 +493,15 @@ class JSMaterialThemeCodeblocks {
 	stop() { this.log('Stopped.'); };
 	load() { this.log('Loaded.'); };
 	unload() {};
-	observer(e) {
-		setTimeout(() => this.createThisClass(), 200);
+	observer(ejs) {
+		if(ejs.addedNodes.length && ejs.addedNodes[0].classList && ejs.addedNodes[0].classList.contains('markup'))
+			setTimeout(() => this.createThisClass(), 250);
+		else
+			return;
 	};
 	onMessage() {};
 	onSwitch() { 
-		setTimeout(() => this.createThisClass(), 200); 
+		setTimeout(() => this.createThisClass(), 250); 
 		setTimeout(() => this.log('MaterialTheme classes integrated.'), 500);
 	};
 
