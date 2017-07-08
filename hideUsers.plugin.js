@@ -32,9 +32,8 @@ class hideUsers {
 		this.hideUser();		
 	};
 
-	saveSettings(save) {
+	saveSettings() {
 		bdPluginStorage.set('hideUsers', 'users', JSON.stringify(this.hidUsers.users));
-		save = true;
 		console.log('%c[hideUsers]%c\tSaved settings.', 'color: #9653AD', '');
 	};
 
@@ -58,8 +57,17 @@ class hideUsers {
 	stop() { console.info('%c[hideUsers]%c\tStopped.', 'color: #9653AD', ''); };
 	load() { console.info('%c[hideUsers]%c\tBooting-Up.', 'color: #9653AD', ''); };
 	unload() {};
-	observer(e) { this.hideUser(); };
-	onMessage() { this.hideUser(); };
+	observer(ex) { 
+		if(ex.addedNodes.length && ex.addedNodes[0].classList && ex.addedNodes[0].classList.contains('message-group'))
+			this.hideUser();
+		if(ex.addedNodes.length && ex.addedNodes[0].classList && ex.addedNodes[0].classList.contains('markup'))
+			this.hideUser();
+		if(ex.addedNodes.length && ex.addedNodes[0].classList && ex.addedNodes[0].classList.contains('channel-members-wrap'))
+			this.hideUser();
+		else 
+			return; 
+	};
+	onMessage() {};
 	onSwitch() { this.hideUser(); };
 
 	getAuthor() { return 'Arashiryuu'; };
