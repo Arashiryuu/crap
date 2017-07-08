@@ -25,7 +25,7 @@ class killxd {
     if(exd.addedNodes.length && exd.addedNodes[0].classList && exd.addedNodes[0].classList.contains('message-group')) {
       this.processChat();
     }
-    else if(exd.addedNodes.length && exd.addedNodes[0].classList && exd.addedNodes[0].classList.contains('markup')) {
+    if(exd.addedNodes.length && exd.addedNodes[0].classList && exd.addedNodes[0].classList.contains('markup')) {
       this.processChat();
     } else
         return;
@@ -38,7 +38,7 @@ class killxd {
   getName		        () { return 'killxd'; }
   getDescription    	() { return 'replaces shitty xds.'; }
   getAuthor		      	() { return 'Arashiryuu'; }
-  getVersion		    () { return '0.0.6'; }
+  getVersion		    () { return '1.1.0'; }
   getSettingsPanel		() { return 'Go away!'; }
 };
 /*@end@*/
