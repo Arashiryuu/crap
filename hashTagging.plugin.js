@@ -25,7 +25,7 @@ class hashTagging {
     if(eht.addedNodes.length && eht.addedNodes[0].classList && eht.addedNodes[0].classList.contains('message-group')) {
       this.processChat();
     }
-    else if(eht.addedNodes.length && eht.addedNodes[0].classList && eht.addedNodes[0].classList.contains('markup')) {
+    if(eht.addedNodes.length && eht.addedNodes[0].classList && eht.addedNodes[0].classList.contains('markup')) {
       this.processChat();
     } else
         return;
@@ -38,7 +38,7 @@ class hashTagging {
   getName() { return 'hashTagging'; }
   getDescription() { return 'Start a word or sentence with a \"#\" to hashtag.'; }
   getAuthor() { return 'Arashiryuu'; }
-  getVersion() { return '1.1.0'; }
+  getVersion() { return '1.1.1'; }
   getSettingsPanel() { return 'Go away!'; }
 };
 /*@end @*/
