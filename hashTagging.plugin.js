@@ -5,7 +5,7 @@ class hashTagging {
   this.processChat = () => {
 	setTimeout(function() {
 		$(".comment .body .markup:not(.line-scanned), .comment .markup>span:not(.line-scanned)").each(function() {
-			var tagRegex = /#[A-Z0-9a-z_-]+/igm;
+			var tagRegex = /\B#[A-Z0-9a-z_-]+/igm;
 			var html = $(this).html();
 			$(this).html(html.replace(tagRegex, `<span style='color: #3898FF; font-weight: bold;'>$&</span>`));
 		}).addClass("line-scanned");
@@ -38,7 +38,7 @@ class hashTagging {
   getName() { return 'hashTagging'; }
   getDescription() { return 'Start a word or sentence with a \"#\" to hashtag.'; }
   getAuthor() { return 'Arashiryuu'; }
-  getVersion() { return '1.1.1'; }
+  getVersion() { return '1.2.0'; }
   getSettingsPanel() { return 'Go away!'; }
 };
 /*@end @*/
