@@ -1,5 +1,4 @@
-# crap
-***just some stuff***
+# Crap
 
 ### Plugins for the BetterDiscord addon for Discord clients.
 **[greenText](https://github.com/Arashiryuu/crap/blob/master/greenText.plugin.js)** _only works in cozy mode_ ー begin sentences with `>` to turn text green.
