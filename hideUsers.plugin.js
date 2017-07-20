@@ -83,10 +83,10 @@ class hideUsers {
 			<h3>hideUsers Plugin</h3><br/>
 
 			<input id="hUTEXT" type="text" placeholder="ID" style="resize: none; width: 80%;" /><br/><br/>
-			<br/><button class="hUBTNw" onclick=BdApi.getPlugin("'+ this.getName() +'").userPush()>apply</button>
-			<button class="hUBTNx" onclick=BdApi.getPlugin("'+ this.getName() +'").userClear()>remove</button>
-			<button class="hUBTNy" onclick=BdApi.getPlugin("'+ this.getName() +'").saveSettings()>save</button>
-			<button class="hUBTNz" onclick=BdApi.getPlugin("'+ this.getName() +'").loadSettings()>load</button><br/>
+			<br/><button class="hUBTNw" onclick=BdApi.getPlugin("${this.getName()}").userPush()>apply</button>
+			<button class="hUBTNx" onclick=BdApi.getPlugin("${this.getName()}").userClear()>remove</button>
+			<button class="hUBTNy" onclick=BdApi.getPlugin("${this.getName()}").saveSettings()>save</button>
+			<button class="hUBTNz" onclick=BdApi.getPlugin("${this.getName()}").loadSettings()>load</button><br/>
 			
 			<br/>How to use:<br/>
 			0) Go to user settings -> Appearance, and enable Developer Mode, then right-click a user and "Copy ID"<br/>
