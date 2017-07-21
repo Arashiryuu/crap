@@ -34,7 +34,7 @@ class JSMaterialThemeCodeblocks {
 			}*/
 
 			#app-mount .chat > .content .messages .message-group .markup pre code.hljs.js {
-    		background: #1b2327 !important;
+    		background: #212b33 !important;
     		color: #eee !important;
 			}
 
@@ -46,12 +46,13 @@ class JSMaterialThemeCodeblocks {
     		color: #ffcb6b;
 			}
 
-			#app-mount .hljs.js .hljs-bullet, #app-mount .hljs.js .hljs-link, #app-mount .hljs.js .hljs-meta, #app-mount .hljs.js .hljs-meta .hljs-keyword, #app-mount .hljs.js .hljs-selector-attr, #app-mount .hljs.js .hljs-selector-pseudo, #app-mount .hljs.js .hljs-subst, #app-mount .hljs.js .hljs-symbol {
+			#app-mount .hljs.js .hljs-bullet, #app-mount .hljs.js .hljs-link, #app-mount .hljs.js .hljs-meta .hljs-keyword, #app-mount .hljs.js .hljs-selector-attr, #app-mount .hljs.js .hljs-selector-pseudo, #app-mount .hljs.js .hljs-subst, #app-mount .hljs.js .hljs-symbol {
     		color: #89ddf3;
 			}
 
 			#app-mount .hljs.js .hljs-doctag,
-			#app-mount .hljs.js .hljs-meta .hljs-meta-string,
+			#app-mount .hljs.js .hljs-meta,
+			#app-mount .hljs.js .hljs-meta-string,
 			#app-mount .hljs.js .hljs-regexp, #app-mount .hljs.js .hljs-string {
     		color: #c3e88d;
 			}
@@ -96,7 +97,7 @@ class JSMaterialThemeCodeblocks {
 			}*/
 
 			#app-mount .chat > .content .messages .message-group .markup pre code.hljs.javascript {
-    		background: #1b2327 !important;
+    		background: #212b33 !important;
     		color: #eee !important;
 			}
 
@@ -108,12 +109,13 @@ class JSMaterialThemeCodeblocks {
     		color: #ffcb6b;
 			}
 
-			#app-mount .hljs.javascript .hljs-bullet, #app-mount .hljs.javascript .hljs-link, #app-mount .hljs.javascript .hljs-meta, #app-mount .hljs.javascript .hljs-meta .hljs-keyword, #app-mount .hljs.javascript .hljs-selector-attr, #app-mount .hljs.javascript .hljs-selector-pseudo, #app-mount .hljs.javascript .hljs-subst, #app-mount .hljs.javascript .hljs-symbol {
+			#app-mount .hljs.javascript .hljs-bullet, #app-mount .hljs.javascript .hljs-link, #app-mount .hljs.javascript .hljs-meta .hljs-keyword, #app-mount .hljs.javascript .hljs-selector-attr, #app-mount .hljs.javascript .hljs-selector-pseudo, #app-mount .hljs.javascript .hljs-subst, #app-mount .hljs.javascript .hljs-symbol {
     		color: #89ddf3;
 			}
 
 			#app-mount .hljs.javascript .hljs-doctag,
-			#app-mount .hljs.javascript .hljs-meta .hljs-meta-string,
+			#app-mount .hljs.javascript .hljs-meta,
+			#app-mount .hljs.javascript .hljs-meta-string,
 			#app-mount .hljs.javascript .hljs-regexp, #app-mount .hljs.javascript .hljs-string {
     		color: #c3e88d;
 			}
@@ -158,7 +160,7 @@ class JSMaterialThemeCodeblocks {
 			}*/
 
 			#app-mount .chat > .content .messages .message-group .markup pre code.hljs.Javascript {
-    		background: #1b2327 !important;
+    		background: #212b33 !important;
     		color: #eee !important;
 			}
 
@@ -170,12 +172,13 @@ class JSMaterialThemeCodeblocks {
     		color: #ffcb6b;
 			}
 
-			#app-mount .hljs.Javascript .hljs-bullet, #app-mount .hljs.Javascript .hljs-link, #app-mount .hljs.Javascript .hljs-meta, #app-mount .hljs.Javascript .hljs-meta .hljs-keyword, #app-mount .hljs.Javascript .hljs-selector-attr, #app-mount .hljs.Javascript .hljs-selector-pseudo, #app-mount .hljs.Javascript .hljs-subst, #app-mount .hljs.Javascript .hljs-symbol {
+			#app-mount .hljs.Javascript .hljs-bullet, #app-mount .hljs.Javascript .hljs-link, #app-mount .hljs.Javascript .hljs-meta .hljs-keyword, #app-mount .hljs.Javascript .hljs-selector-attr, #app-mount .hljs.Javascript .hljs-selector-pseudo, #app-mount .hljs.Javascript .hljs-subst, #app-mount .hljs.Javascript .hljs-symbol {
     		color: #89ddf3;
 			}
 
 			#app-mount .hljs.Javascript .hljs-doctag,
-			#app-mount .hljs.Javascript .hljs-meta .hljs-meta-string,
+			#app-mount .hljs.Javascript .hljs-meta,
+			#app-mount .hljs.Javascript .hljs-meta-string,
 			#app-mount .hljs.Javascript .hljs-regexp, #app-mount .hljs.Javascript .hljs-string {
     		color: #c3e88d;
 			}
@@ -219,7 +222,7 @@ class JSMaterialThemeCodeblocks {
 			}*/
 
 			#app-mount .chat > .content .messages .message-group .markup pre code.hljs.Js {
-    		background: #1b2327 !important;
+    		background: #212b33 !important;
     		color: #eee !important;
 			}
 
@@ -231,12 +234,13 @@ class JSMaterialThemeCodeblocks {
     		color: #ffcb6b;
 			}
 
-			#app-mount .hljs.Js .hljs-bullet, #app-mount .hljs.Js .hljs-link, #app-mount .hljs.Js .hljs-meta, #app-mount .hljs.Js .hljs-meta .hljs-keyword, #app-mount .hljs.Js .hljs-selector-attr, #app-mount .hljs.Js .hljs-selector-pseudo, #app-mount .hljs.Js .hljs-subst, #app-mount .hljs.Js .hljs-symbol {
+			#app-mount .hljs.Js .hljs-bullet, #app-mount .hljs.Js .hljs-link, #app-mount .hljs.Js .hljs-meta .hljs-keyword, #app-mount .hljs.Js .hljs-selector-attr, #app-mount .hljs.Js .hljs-selector-pseudo, #app-mount .hljs.Js .hljs-subst, #app-mount .hljs.Js .hljs-symbol {
     		color: #89ddf3;
 			}
 
 			#app-mount .hljs.Js .hljs-doctag,
-			#app-mount .hljs.Js .hljs-meta .hljs-meta-string,
+			#app-mount .hljs.Js .hljs-meta,
+			#app-mount .hljs.Js .hljs-meta-string,
 			#app-mount .hljs.Js .hljs-regexp, #app-mount .hljs.Js .hljs-string {
     		color: #c3e88d;
 			}
@@ -280,7 +284,7 @@ class JSMaterialThemeCodeblocks {
 			}*/
 
 			#app-mount .chat > .content .messages .message-group .markup pre code.hljs.JS {
-    		background: #1b2327 !important;
+    		background: #212b33 !important;
     		color: #eee !important;
 			}
 
@@ -292,12 +296,13 @@ class JSMaterialThemeCodeblocks {
     		color: #ffcb6b;
 			}
 
-			#app-mount .hljs.JS .hljs-bullet, #app-mount .hljs.JS .hljs-link, #app-mount .hljs.JS .hljs-meta, #app-mount .hljs.JS .hljs-meta .hljs-keyword, #app-mount .hljs.JS .hljs-selector-attr, #app-mount .hljs.JS .hljs-selector-pseudo, #app-mount .hljs.JS .hljs-subst, #app-mount .hljs.JS .hljs-symbol {
+			#app-mount .hljs.JS .hljs-bullet, #app-mount .hljs.JS .hljs-link, #app-mount .hljs.JS .hljs-meta .hljs-keyword, #app-mount .hljs.JS .hljs-selector-attr, #app-mount .hljs.JS .hljs-selector-pseudo, #app-mount .hljs.JS .hljs-subst, #app-mount .hljs.JS .hljs-symbol {
     		color: #89ddf3;
 			}
 
 			#app-mount .hljs.JS .hljs-doctag,
-			#app-mount .hljs.JS .hljs-meta .hljs-meta-string,
+			#app-mount .hljs.JS .hljs-meta,
+			#app-mount .hljs.JS .hljs-meta-string,
 			#app-mount .hljs.JS .hljs-regexp, #app-mount .hljs.JS .hljs-string {
     		color: #c3e88d;
 			}
@@ -341,7 +346,7 @@ class JSMaterialThemeCodeblocks {
 			}*/
 
 			#app-mount .chat > .content .messages .message-group .markup pre code.hljs.JAVASCRIPT {
-    		background: #1b2327 !important;
+    		background: #212b33 !important;
     		color: #eee !important;
 			}
 
@@ -353,12 +358,13 @@ class JSMaterialThemeCodeblocks {
     		color: #ffcb6b;
 			}
 
-			#app-mount .hljs.JAVASCRIPT .hljs-bullet, #app-mount .hljs.JAVASCRIPT .hljs-link, #app-mount .hljs.JAVASCRIPT .hljs-meta, #app-mount .hljs.JAVASCRIPT .hljs-meta .hljs-keyword, #app-mount .hljs.JAVASCRIPT .hljs-selector-attr, #app-mount .hljs.JAVASCRIPT .hljs-selector-pseudo, #app-mount .hljs.JAVASCRIPT .hljs-subst, #app-mount .hljs.JAVASCRIPT .hljs-symbol {
+			#app-mount .hljs.JAVASCRIPT .hljs-bullet, #app-mount .hljs.JAVASCRIPT .hljs-link, #app-mount .hljs.JAVASCRIPT .hljs-meta .hljs-keyword, #app-mount .hljs.JAVASCRIPT .hljs-selector-attr, #app-mount .hljs.JAVASCRIPT .hljs-selector-pseudo, #app-mount .hljs.JAVASCRIPT .hljs-subst, #app-mount .hljs.JAVASCRIPT .hljs-symbol {
     		color: #89ddf3;
 			}
 
 			#app-mount .hljs.JAVASCRIPT .hljs-doctag,
-			#app-mount .hljs.JAVASCRIPT .hljs-meta .hljs-meta-string,
+			#app-mount .hljs.JAVASCRIPT .hljs-meta,
+			#app-mount .hljs.JAVASCRIPT .hljs-meta-string,
 			#app-mount .hljs.JAVASCRIPT .hljs-regexp, #app-mount .hljs.JAVASCRIPT .hljs-string {
     		color: #c3e88d;
 			}
@@ -402,7 +408,7 @@ class JSMaterialThemeCodeblocks {
 			}*/
 
 			#app-mount .chat > .content .messages .message-group .markup pre code.hljs.JavaScript {
-    		background: #1b2327 !important;
+    		background: #212b33 !important;
     		color: #eee !important;
 			}
 
@@ -414,12 +420,13 @@ class JSMaterialThemeCodeblocks {
     		color: #ffcb6b;
 			}
 
-			#app-mount .hljs.JavaScript .hljs-bullet, #app-mount .hljs.JavaScript .hljs-link, #app-mount .hljs.JavaScript .hljs-meta, #app-mount .hljs.JavaScript .hljs-meta .hljs-keyword, #app-mount .hljs.JavaScript .hljs-selector-attr, #app-mount .hljs.JavaScript .hljs-selector-pseudo, #app-mount .hljs.JavaScript .hljs-subst, #app-mount .hljs.JavaScript .hljs-symbol {
+			#app-mount .hljs.JavaScript .hljs-bullet, #app-mount .hljs.JavaScript .hljs-link, #app-mount .hljs.JavaScript .hljs-meta .hljs-keyword, #app-mount .hljs.JavaScript .hljs-selector-attr, #app-mount .hljs.JavaScript .hljs-selector-pseudo, #app-mount .hljs.JavaScript .hljs-subst, #app-mount .hljs.JavaScript .hljs-symbol {
     		color: #89ddf3;
 			}
 
 			#app-mount .hljs.JavaScript .hljs-doctag,
-			#app-mount .hljs.JavaScript .hljs-meta .hljs-meta-string,
+			#app-mount .hljs.JavaScript .hljs-meta,
+			#app-mount .hljs.JavaScript .hljs-meta-string,
 			#app-mount .hljs.JavaScript .hljs-regexp, #app-mount .hljs.JavaScript .hljs-string {
     		color: #c3e88d;
 			}
@@ -514,7 +521,10 @@ class JSMaterialThemeCodeblocks {
 		this.createThisClass();
 		this.log('MaterialTheme classes integrated.');
 	};
-	stop() { this.log('Stopped.'); };
+	stop() { 
+		this.log('Stopped.');
+		$('.JSMaterialThemeCodeblocks').remove();
+	};
 	load() { this.log('Loaded.'); };
 	unload() {};
 	observer(ejs) {
@@ -529,10 +539,10 @@ class JSMaterialThemeCodeblocks {
 		setTimeout(() => this.log('MaterialTheme classes integrated.'), 500);
 	};
 
-	getName() { return 'JSMaterialThemeCodeblocks'; };
-	getAuthor() { return 'Arashiryuu'; };
-	getVersion() { return '2.0.0'; };
-	getDescription() { return 'Applies the "Material Theme" to JavaScript codeblocks.'; };
+	getName					() { return 'JSMaterialThemeCodeblocks'; };
+	getAuthor				() { return 'Arashiryuu'; };
+	getVersion			() { return '2.0.0'; };
+	getDescription	() { return 'Applies the "Material Theme" to JavaScript codeblocks.'; };
 	getSettingsPanel() { return '<span class="JSMTCBSettings" style="font-family: \'FangSong\'">你已经死了。</span>'; };
 };
 /*@end@*/
