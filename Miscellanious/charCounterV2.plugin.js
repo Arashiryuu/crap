@@ -31,10 +31,11 @@ class charCounterV2 {
     		return $("#charcounter").css("color", "yellow");
     	} else if($(".channel-text-area-default div textarea").val().length <= 1500) {
     		return $("#charcounter").css("color", "orange");
-    	} else if($(".channel-text-area-default div textarea").val().length <= 2000) {
-			$("#charcounter").css("color", "red");
-    		return alert("Cannot send messages over 2000 characters.");
-    	}
+    	} else if($(".channel-text-area-default div textarea").val().length <= 1999) {
+			return $("#charcounter").css("color", "red");
+    	} else if($(".channel-text-area-default div textarea").val().length > 2000) {
+			return alert("Cannot send messages over 2000 characters.");
+		}
     });
 	};
 
