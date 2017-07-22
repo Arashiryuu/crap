@@ -47,7 +47,7 @@ class charCounterV2 {
 	};
 
 	onSwitch() {
-    this.inject();
+    	this.inject();
 	};
 
 	observer(e) {};
