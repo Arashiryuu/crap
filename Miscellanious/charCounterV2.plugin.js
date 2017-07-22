@@ -60,7 +60,7 @@ class charCounterV2 {
 	};
 
 	getDescription() {
-    return "Adds a character counter to channel textarea. \nNow using Class syntax courtesy of Ara.";
+    return "Adds a character counter to channel textarea. \nNow using Class syntax courtesy of Ara. \nUpdated to work with new textarea as of 22\/07\/2017.";
 	};
 
 	getVersion() {
