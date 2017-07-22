@@ -33,6 +33,10 @@ class JSMaterialThemeCodeblocks {
     		border-left: 2.6ch solid rgba(0, 0, 0, .2);
 			}*/
 
+			#app-mount .hljs-built_in.paIn {
+				color: #82AAFF !important;
+			}
+
 			#app-mount .chat > .content .messages .message-group .markup pre code.hljs.js {
     		background: #212b33 !important;
     		color: #eee !important;
@@ -468,10 +472,11 @@ class JSMaterialThemeCodeblocks {
 	};
 
 	createThisClass() {
-		let slef = $('.hljs.js .hljs-keyword:contains(this)');
-		let isNuN = $('.hljs.js .hljs-built_in:contains(isNaN)');
-		let ewn = $('.hljs.js .hljs-keyword:contains(new)');
-		let rqr = $('.hljs.js .hljs-built_in:contains(require)');
+		let slef = $('.hljs.js .hljs-keyword:contains(this)'),
+		isNuN = $('.hljs.js .hljs-built_in:contains(isNaN)'),
+		ewn = $('.hljs.js .hljs-keyword:contains(new)'),
+		paIn = $('.hljs.js .hljs-built_in:contains(parseInt)'),
+	  rqr = $('.hljs.js .hljs-built_in:contains(require)');
 		if(slef || $('.hljs.JS .hljs-keyword:contains(this)') || $('.hljs.Js .hljs-keyword:contains(this)') || $('.hljs.javascript .hljs-keyword:contains(this)') || $('.hljs.Javascript .hljs-keyword:contains(this)') || $('.hljs.JAVASCRIPT .hljs-keyword:contains(this)') || $('.hljs.JavaScript .hljs-keyword:contains(this)')) {
 			slef.addClass('this');
 			$('.hljs.JS .hljs-keyword:contains(this)').addClass('this');
@@ -507,8 +512,17 @@ class JSMaterialThemeCodeblocks {
 			$('.hljs.Javascript .hljs-built_in:contains(require)').addClass('rqr');
 			$('.hljs.JAVASCRIPT .hljs-built_in:contains(require)').addClass('rqr');
 			$('.hljs.JavaScript .hljs-built_in:contains(require)').addClass('rqr');
+		}
+		if(paIn || $('.hljs.Js .hljs-built_in:contains(parseInt)') || $('.hljs.JS .hljs-built_in:contains(parseInt)') || $('.hljs.javascript .hljs-built_in:contains(parseInt)') || $('.hljs.Javascript .hljs-built_in:contains(parseInt)') || $('.hljs.JavaScript .hljs-built_in:contains(parseInt)') || $('.hljs.JAVASCRIPT .hljs-built_in:contains(parseInt)')) {
+			paIn.addClass('paIn');
+			$('.hljs.Js .hljs-built_in:contains(parseInt)').addClass('paIn');
+			$('.hljs.JS .hljs-built_in:contains(parseInt)').addClass('paIn');
+			$('.hljs.javascript .hljs-built_in:contains(parseInt)').addClass('paIn');
+			$('.hljs.Javascript .hljs-built_in:contains(parseInt)').addClass('paIn');
+			$('.hljs.JavaScript .hljs-built_in:contains(parseInt)').addClass('paIn');
+			$('.hljs.JAVASCRIPT .hljs-built_in:contains(parseInt)').addClass('paIn');
 		} else
-			return;
+				return;
 	};
 
 	log(text) {
