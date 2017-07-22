@@ -32,8 +32,8 @@ class charCounterV2 {
     	} else if($(".channel-text-area-default div textarea").val().length <= 1500) {
     		return $("#charcounter").css("color", "orange");
     	} else if($(".channel-text-area-default div textarea").val().length <= 2000) {
-    		$("#charcounter").css("color", "red");
-        return alert("You cannot send messages over 2000 characters.");
+			$("#charcounter").css("color", "red");
+    		return alert("Cannot send messages over 2000 characters.");
     	}
     });
 	};
@@ -60,7 +60,7 @@ class charCounterV2 {
 	};
 
 	getDescription() {
-    return "Adds a character counter to channel textarea. \nNow using Class syntax courtesy of Ara. \nUpdated as of recent textarea changes. 22\/07\/2017";
+    return "Adds a character counter to channel textarea. \nNow using Class syntax courtesy of Ara.";
 	};
 
 	getVersion() {
