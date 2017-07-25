@@ -15,10 +15,10 @@ class hideChannels {
 	};
 
 	chanPush() {
-		let newUser = $('#ChanblockField').val();
-		if(typeof newUser !== 'string') return $('#ChanblockField').val('Invalid entry.');
-		if(newUser.length === 0 || newUser === undefined) return $('#ChanblockField').val('Invalid entry.');
-		this.hidChannels.chans.push(newUser);
+		let nChan = $('#ChanblockField').val();
+		if(typeof nChan !== 'string') return $('#ChanblockField').val('Invalid entry. (Name-only)');
+		if(nChan.length === 0 || nChan === undefined) return $('#ChanblockField').val('Invalid entry. (No-entry)');
+		this.hidChannels.chans.push(nChan);
 		console.info(`%c[${this.getName()}]%c\t${this.hidChannels.chans.join(', ')}`, 'color: #F2F', '');
 		this.hideChannel();
 	};
@@ -30,9 +30,8 @@ class hideChannels {
 		this.hideChannel();		
 	};
 
-	saveSettings(save) {
+	saveSettings() {
 		bdPluginStorage.set('hideChannels', 'chans', JSON.stringify(this.hidChannels.chans));
-		save = true;
 		console.info('%c[hideChannels]%c\tSaved settings.', 'color: #F2F', '');
 		console.info('%c[hideChannels]%c\t' + this.hidChannels.chans.join(', '), 'color: #F2F', '');
 	};
