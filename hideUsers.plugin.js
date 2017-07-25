@@ -19,7 +19,7 @@ class hideUsers {
 		let nUser = $('#hUTEXT').val();
 		if(isNaN(nUser)) return $('#hUTEXT').val('Invalid entry. (NaN)');
 		if(nUser.length === 0 || nUser === undefined) return $('#hUTEXT').val('Invalid entry. (No-entry)');
-		if(!nUser.match(/^\d{17,18}$/)) return $('#hUTEXT').val('Invalid entry. (ID-length)');
+		if(!nUser.match(/^\d{17,18}$/) || nUser.match(/^\d{17,18}$/) === null) return $('#hUTEXT').val('Invalid entry. (ID-length)');
 		this.hidUsers.users.push(nUser);
 		console.log(`%c[${this.getName()}]%c\t${this.hidUsers.users.join(', ')}`, 'color: #9653AD', '');
 		this.hideUser();
