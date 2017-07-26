@@ -13,6 +13,12 @@ class hideUsers {
 		this.hidUsers = {
 			users: []
 		};
+		
+		this.blockCSS = `
+			<style id="hideUsersCSS">
+			.message-group-blocked { display: none; }
+			</style>
+		`;
 	};
 
 	userPush() {
@@ -56,7 +62,8 @@ class hideUsers {
 			this.hidUsers.users = JSON.parse(settings);
 			console.info('%c[hideUsers]%c\t' + this.hidUsers.users.join(', '), 'color: #9653AD', '');
 		}
-	 	this.hideUser();  
+	 	this.hideUser();
+		$('head').append(this.blockCSS);
 	};
 	stop() { console.info('%c[hideUsers]%c\tStopped.', 'color: #9653AD', ''); };
 	load() { console.info('%c[hideUsers]%c\tBooting-Up.', 'color: #9653AD', ''); };
