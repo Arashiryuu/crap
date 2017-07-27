@@ -38,7 +38,7 @@ class hashTagging {
   getName() { return 'hashTagging'; }
   getAuthor() { return 'Arashiryuu'; }
   getVersion() { return '1.2.0'; }
-	getDescription() { return 'Start a word or sentence with a \"#\" to hashtag.'; }
+  getDescription() { return 'Start a word or sentence with a \"#\" to hashtag.'; }
   getSettingsPanel() { return 'Go away!'; }
 };
 /*@end @*/
