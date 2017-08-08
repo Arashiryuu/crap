@@ -13,4 +13,6 @@
 
 **[hideChannels](https://github.com/Arashiryuu/crap/blob/master/hideChannels.plugin.js)** ー removes channels from your lists.
 
+**[hideChannelsPerServer](https://github.com/Arashiryuu/crap/blob/master/hideChannelsPerServer.plugin.js)** ー removes channels from your list via ID.
+
 **[hideServers](https://github.com/Arashiryuu/crap/blob/master/hideServers.plugin.js)** ー removes servers from your list.
