@@ -32,15 +32,16 @@ class hideChannelsPerServer {
 				});
 				return console.warn('%c[hideChannelsPerServer]%c\tNo channels found.', 'color: #F2F', '');
 			}
+			const self = this;
 			if(window.DiscordInternals !== null) {
 				const { getOwnerInstance } = window.DiscordInternals;
 				$('.channels-wrap [class*="containerDefault-"]').each(function() {
-  					bdplugins.hideChannelsPerServer.plugin.hidChannels.chans.some(i => i === getOwnerInstance($(this)[0], {}).props.channel.id) ? $(this).hide() : $(this).show();
+  					self.hidChannels.chans.some(i => i === getOwnerInstance($(this)[0], {}).props.channel.id) ? $(this).hide() : $(this).show();
 				});
 			}
 			else {
 				$('.channels-wrap [class*="containerDefault-"]').each(function() {
-					bdplugins.hideChannelsPerServer.plugin.hidChannels.chans.some(ii => ii === bdplugins.hideChannelsPerServer.plugin.getReactInstance($(this)[0])._currentElement.props.children.props.channel.id) ? $(this).hide() : $(this).show();
+					self.hidChannels.chans.some(ii => ii === self.getReactInstance($(this)[0])._currentElement.props.children.props.channel.id) ? $(this).hide() : $(this).show();
 				});
 			}
 		};
