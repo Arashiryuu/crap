@@ -23,6 +23,13 @@
 	WScript.Quit();
 @else@*/
 
+/**
+ * @author Arashiryuu
+ * @title hideChannelsPerServer
+ * @description Plugin for BetterDiscord -- allows per-server channel hiding via snowflakes. (IDs)
+ * @version ƒ1
+ */
+
 class hideChannelsPerServer {
 	constructor() {
 		this.hideChannel = () => {
