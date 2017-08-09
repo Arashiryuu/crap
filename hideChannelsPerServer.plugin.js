@@ -35,7 +35,7 @@ class hideChannelsPerServer {
 			if(window.DiscordInternals !== null) {
 				const { getOwnerInstance } = window.DiscordInternals;
 				$('.channels-wrap [class*="containerDefault-"]').each(function() {
-  				bdplugins.hideChannelsPerServer.plugin.hidChannels.chans.some(i => i === getOwnerInstance($(this)[0], {}).props.channel.id) ? $(this).hide() : $(this).show();
+  					bdplugins.hideChannelsPerServer.plugin.hidChannels.chans.some(i => i === getOwnerInstance($(this)[0], {}).props.channel.id) ? $(this).hide() : $(this).show();
 				});
 			}
 			else {
