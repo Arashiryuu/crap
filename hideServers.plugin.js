@@ -86,7 +86,7 @@ class hideServers {
 		<div class="hsplugin-subcontainer" style="display: flex; flex: 1 1 auto; flex-flow: wrap row; position: relative; margin-bottom: 4ex; width: 70%;">`;
 		for(let server of this.hidServers.servers) {
 			let style = $(`[href*='${server}']`).attr('style');
-			stff += `<button class='avatar-small' onclick='BdApi.getPlugin("${pluginName}").servRemove(${server})' style='${style}; background-size: cover; background-position: center; flex: 1 0 20%; margin-left: 1px; max-width: 13%; min-height: 4vh;'></button>`;
+			stff += `<button class='avatar-small' onclick='BdApi.getPlugin("${pluginName}").servRemove(${server})' style='${style}; background-size: cover; background-position: center; flex: 1 0 20%; margin-left: 1px; max-width: 13%; min-height: 4vh; border-radius: 3px'></button>`;
  		}
 		stff += `</div>
 			<input id="ServerHideField" type="text" placeholder="ID" style="resize: none; width: 80%;" /><br/><br/>
