@@ -90,10 +90,10 @@ class hideServers {
  		}
 		stff += `</div>
 			<input id="ServerHideField" type="text" placeholder="ID" style="resize: none; width: 80%;" /><br/><br/>
-			<br/><button class="ShU-btn0" onclick=BdApi.getPlugin("${pluginName}").servPush()>apply</button>
-			<button class="ShU-btn1" onclick=BdApi.getPlugin("${pluginName}").servClear()>remove</button>
-			<button class="ShU-btn2" onclick=BdApi.getPlugin("${pluginName}").saveSettings()>save</button>
-			<button class="ShU-btn3" onclick=BdApi.getPlugin("${pluginName}").loadSettings()>load</button><br/>
+			<br/><button class="ShU-btn0" style="min-width: 3vw;" onclick=BdApi.getPlugin("${pluginName}").servPush()>apply</button>
+			<button class="ShU-btn1" style="min-width: 3vw;" onclick=BdApi.getPlugin("${pluginName}").servClear()>remove</button>
+			<button class="ShU-btn2" style="min-width: 3vw;" onclick=BdApi.getPlugin("${pluginName}").saveSettings()>save</button>
+			<button class="ShU-btn3" style="min-width: 3vw;" onclick=BdApi.getPlugin("${pluginName}").loadSettings()>load</button><br/>
 
 			<br/>How to use:<br/>
 				0) Go to user settings -> Appearance, and enable Developer Mode, then right-click a server and "Copy ID"<br/>
