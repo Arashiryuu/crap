@@ -50,7 +50,7 @@ class backtickInsertion {
 		if(!textArea.length) return;
 		textArea.off('keyup.backIn').on('keyup.backIn', (e) => {
 			if(textArea.val().includes('\'\'\'')) {
-				textArea.val(textArea.text().replace(/\'\'\'/g, '```'));
+				textArea.val(textArea.text().replace(/\'\'\'/g, '`'.repeat(3)));
 			}
 		});
 	}
