@@ -5,4 +5,4 @@
 
 **[charCounterV2](https://github.com/Arashiryuu/crap/blob/master/Miscellanious/charCounterV2.plugin.js)** ー Adds a character counter to the textarea; originally made by Jiiks, tweaked and updated by Arashiryuu.
 
-**[statusProfileContainer](https://github.com/Arashiryuu/crap/blob/master/Miscellanious/statusProfileContainer.plugin.js)** ー Colours the profile container to align with your current status.
+**[statusProfileContainer](https://github.com/Arashiryuu/crap/blob/master/Miscellanious/ProfileContainerStatus.plugin.js)** ー Colours the profile container to align with your current status.
