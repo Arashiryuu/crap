@@ -1,6 +1,9 @@
 //META{"name":"backtickInsertion"}*//
 
 class backtickInsertion {
+	constructor() {
+		// construct global variables here
+	}
 	start() {
 		this.log('Started');
 		const textArea = $('.channel-text-area-default div textarea');
@@ -31,7 +34,7 @@ class backtickInsertion {
 		return '1';
 	}
 	getDescription() {
-		return 'Replace any consecutive triple apostrophies <em>\'\'\'</em> with <em>\`\`\`</em> consecutive triple backticks; AKA grave-accents, making markdown for codeblocks slightly simpler to achieve.';
+		return 'Replace any consecutive triple apostrophies \'\'\' with \`\`\` consecutive triple backticks; AKA grave-accents, making markdown for codeblocks slightly simpler to achieve.';
 	}
 	getSettingsPanel() {
 		return;
