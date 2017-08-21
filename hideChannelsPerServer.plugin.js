@@ -24,7 +24,7 @@
 @else@*/
 
 /**
- * @title hideChannelsPerServer
+ * @name hideChannelsPerServer
  * @author Arashiryuu
  * @description Plugin for BetterDiscord -- allows per-server channel hiding via snowflakes. (IDs)
  * @version ƒ1
