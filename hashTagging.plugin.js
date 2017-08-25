@@ -27,7 +27,7 @@ class hashTagging {
  constructor() {
   this.processChat = () => {
 	 setTimeout(function() {
-		$(".comment .body .markup:not(.line-scanned), .comment .markup>span:not(.line-scanned)").each(function(node) {
+		$(".comment .body .markup:not(.line-scanned), .comment .markup>span:not(.line-scanned)").each(function() {
 			var tagRegex = /\B#[A-Z0-9a-z_-]+/igm;
 			var html = $(this).html();
 			if(tagRegex.test(html)) {
