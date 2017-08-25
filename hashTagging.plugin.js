@@ -26,14 +26,16 @@
 class hashTagging {
  constructor() {
   this.processChat = () => {
-	setTimeout(function() {
-		$(".comment .body .markup:not(.line-scanned), .comment .markup>span:not(.line-scanned)").each(function() {
+	 setTimeout(function() {
+		$(".comment .body .markup:not(.line-scanned), .comment .markup>span:not(.line-scanned)").each(function(node) {
 			var tagRegex = /\B#[A-Z0-9a-z_-]+/igm;
 			var html = $(this).html();
-			$(this).html(html.replace(tagRegex, `<span id="hashtag" style='color: #3898FF; font-weight: bold;'>$&</span>`));
+			if(tagRegex.test(html)) {
+				$(this).html(html.replace(tagRegex, `<span id="hashtag" style='color: #3898FF; font-weight: bold;'>$&</span>`));
+			}
 		}).addClass("line-scanned");
-	},250);
-   }
+	 },250);
+  }
  };
 
   start() { this.processChat(); }
