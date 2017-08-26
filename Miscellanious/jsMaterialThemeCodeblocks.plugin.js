@@ -166,7 +166,7 @@ class JSMaterialThemeCodeblocks {
 		isNuN = $('.hljs[class~="js" i] .hljs-built_in:contains(isNaN)'),
 		ewn = $('.hljs[class~="js" i] .hljs-keyword:contains(new)'),
 		paIn = $('.hljs[class~="js" i] .hljs-built_in:contains(parseInt)'),
-	  rqr = $('.hljs[class~="js" i] .hljs-built_in:contains(require)');
+		rqr = $('.hljs[class~="js" i] .hljs-built_in:contains(require)');
 		if(slef || $('.hljs[class~="javascript" i] .hljs-keyword:contains(this)')) {
 			slef.addClass('this');
 			$('.hljs[class~="javascript" i] .hljs-keyword:contains(this)').addClass('this');
@@ -187,7 +187,7 @@ class JSMaterialThemeCodeblocks {
 			paIn.addClass('paIn');
 			$('.hljs[class~="javascript" i] .hljs-built_in:contains(parseInt)').addClass('paIn');
 		} else
-				return;
+			return;
 	};
 	log(text) {
 		return console.log(`%c[JSMaterialThemeCodeblocks]%c ${text}`, 'color: #F95479', '');
