@@ -161,37 +161,65 @@ class JSMaterialThemeCodeblocks {
 
 		</style>`;
 	};
+
 	createThisClass() {
-		let slef = $('.hljs[class~="js" i] .hljs-keyword:contains(this)'),
-		isNuN = $('.hljs[class~="js" i] .hljs-built_in:contains(isNaN)'),
-		ewn = $('.hljs[class~="js" i] .hljs-keyword:contains(new)'),
-		paIn = $('.hljs[class~="js" i] .hljs-built_in:contains(parseInt)'),
-		rqr = $('.hljs[class~="js" i] .hljs-built_in:contains(require)');
-		if(slef || $('.hljs[class~="javascript" i] .hljs-keyword:contains(this)')) {
+		let slef = $('.hljs.js .hljs-keyword:contains(this)'),
+		isNuN = $('.hljs.js .hljs-built_in:contains(isNaN)'),
+		ewn = $('.hljs.js .hljs-keyword:contains(new)'),
+		paIn = $('.hljs.js .hljs-built_in:contains(parseInt)'),
+		rqr = $('.hljs.js .hljs-built_in:contains(require)');
+		if(slef || $('.hljs.JS .hljs-keyword:contains(this)') || $('.hljs.Js .hljs-keyword:contains(this)') || $('.hljs.javascript .hljs-keyword:contains(this)') || $('.hljs.Javascript .hljs-keyword:contains(this)') || $('.hljs.JAVASCRIPT .hljs-keyword:contains(this)') || $('.hljs.JavaScript .hljs-keyword:contains(this)')) {
 			slef.addClass('this');
-			$('.hljs[class~="javascript" i] .hljs-keyword:contains(this)').addClass('this');
+			$('.hljs.JS .hljs-keyword:contains(this)').addClass('this');
+			$('.hljs.Js .hljs-keyword:contains(this)').addClass('this');
+			$('.hljs.javascript .hljs-keyword:contains(this)').addClass('this');
+			$('.hljs.Javascript .hljs-keyword:contains(this)').addClass('this');
+			$('.hljs.JAVASCRIPT .hljs-keyword:contains(this)').addClass('this');
+			$('.hljs.JavaScript .hljs-keyword:contains(this)').addClass('this');
 		}
-		if(isNuN || $('.hljs[class~="javascript" i] .hljs-built_in:contains(isNaN)')) {
+		if(isNuN || $('.hljs.JS .hljs-built_in:contains(isNaN)') || $('.hljs.Js .hljs-built_in:contains(isNaN)') || $('.hljs.javascript .hljs-built_in:contains(isNaN)') || $('.hljs.Javascript .hljs-built_in:contains(isNaN)') || $('.hljs.JAVASCRIPT .hljs-built_in:contains(isNaN)') || $('.hljs.JavaScript .hljs-built_in:contains(isNaN)')) {
 			isNuN.addClass('isN');
-			$('.hljs[class~="javascript" i] .hljs-built_in:contains(isNaN)').addClass('isN');
+			$('.hljs.JS .hljs-built_in:contains(isNaN)').addClass('isN');
+			$('.hljs.Js .hljs-built_in:contains(isNaN)').addClass('isN');
+			$('.hljs.javascript .hljs-built_in:contains(isNaN)').addClass('isN');
+			$('.hljs.Javascript .hljs-built_in:contains(isNaN)').addClass('isN');
+			$('.hljs.JAVASCRIPT .hljs-built_in:contains(isNaN)').addClass('isN');
+			$('.hljs.JavaScript .hljs-built_in:contains(isNaN)').addClass('isN');
 		}
-		if(ewn || $('.hljs[class~="javascript" i] .hljs-keyword:contains(new)')) {
+		if(ewn || $('.hljs.JS .hljs-keyword:contains(new)') || $('.hljs.Js .hljs-keyword:contains(new)') || $('.hljs.javascript .hljs-keyword:contains(new)') || $('.hljs.Javascript .hljs-keyword:contains(new)') || $('.hljs.JAVASCRIPT .hljs-keyword:contains(new)') || $('.hljs.JavaScript .hljs-keyword:contains(new)')) {
 			ewn.addClass('new');
-			$('.hljs[class~="javascript" i] .hljs-keyword:contains(new)').addClass('new');
+			$('.hljs.JS .hljs-keyword:contains(new)').addClass('new');
+			$('.hljs.Js .hljs-keyword:contains(new)').addClass('new');
+			$('.hljs.javascript .hljs-keyword:contains(new)').addClass('new');
+			$('.hljs.Javascript .hljs-keyword:contains(new)').addClass('new');
+			$('.hljs.JAVASCRIPT .hljs-keyword:contains(new)').addClass('new');
+			$('.hljs.JavaScript .hljs-keyword:contains(new)').addClass('new');
 		}
-		if(rqr || $('.hljs[class~="javascript" i] .hljs-built_in:contains(require)')) {
+		if(rqr || $('.hljs.JS .hljs-built_in:contains(require)') || $('.hljs.Js .hljs-built_in:contains(require)') || $('.hljs.javascript .hljs-built_in:contains(require)') || $('.hljs.Javascript .hljs-built_in:contains(require)') || $('.hljs.JAVASCRIPT .hljs-built_in:contains(require)') || $('.hljs.JavaScript .hljs-built_in:contains(require)')) {
 			rqr.addClass('rqr');
-			$('.hljs[class~="javascript" i] .hljs-built_in:contains(require)').addClass('rqr');
+			$('.hljs.JS .hljs-built_in:contains(require)').addClass('rqr');
+			$('.hljs.Js .hljs-built_in:contains(require)').addClass('rqr');
+			$('.hljs.javascript .hljs-built_in:contains(require)').addClass('rqr');
+			$('.hljs.Javascript .hljs-built_in:contains(require)').addClass('rqr');
+			$('.hljs.JAVASCRIPT .hljs-built_in:contains(require)').addClass('rqr');
+			$('.hljs.JavaScript .hljs-built_in:contains(require)').addClass('rqr');
 		}
-		if(paIn || $('.hljs[class~="javascript" i] .hljs-built_in:contains(parseInt)')) {
+		if(paIn || $('.hljs.Js .hljs-built_in:contains(parseInt)') || $('.hljs.JS .hljs-built_in:contains(parseInt)') || $('.hljs.javascript .hljs-built_in:contains(parseInt)') || $('.hljs.Javascript .hljs-built_in:contains(parseInt)') || $('.hljs.JavaScript .hljs-built_in:contains(parseInt)') || $('.hljs.JAVASCRIPT .hljs-built_in:contains(parseInt)')) {
 			paIn.addClass('paIn');
-			$('.hljs[class~="javascript" i] .hljs-built_in:contains(parseInt)').addClass('paIn');
+			$('.hljs.Js .hljs-built_in:contains(parseInt)').addClass('paIn');
+			$('.hljs.JS .hljs-built_in:contains(parseInt)').addClass('paIn');
+			$('.hljs.javascript .hljs-built_in:contains(parseInt)').addClass('paIn');
+			$('.hljs.Javascript .hljs-built_in:contains(parseInt)').addClass('paIn');
+			$('.hljs.JavaScript .hljs-built_in:contains(parseInt)').addClass('paIn');
+			$('.hljs.JAVASCRIPT .hljs-built_in:contains(parseInt)').addClass('paIn');
 		} else
 			return;
 	};
+
 	log(text) {
-		return console.log(`%c[JSMaterialThemeCodeblocks]%c ${text}`, 'color: #F95479', '');
+		return console.log(`%c[JSMaterialThemeCodeblocks]%c ${text}`, 'color: #F95479; text-shadow: 0 0 1px black, 0 0 2px black, 0 0 3px black;', '');
 	};
+
 	start() {
 		this.log('Started.');
 		$('head').append(this.css);
@@ -203,16 +231,19 @@ class JSMaterialThemeCodeblocks {
 		$('.JSMaterialThemeCodeblocks').remove();
 	};
 	load() { this.log('Loaded.'); };
+	unload() {};
 	observer(ejs) {
 		if(ejs.addedNodes.length && ejs.addedNodes[0].classList && ejs.addedNodes[0].classList.contains('markup'))
 			setTimeout(() => this.createThisClass(), 250);
 		else
 			return;
 	};
+	onMessage() {};
 	onSwitch() { 
 		setTimeout(() => this.createThisClass(), 250); 
 		setTimeout(() => this.log('MaterialTheme classes integrated.'), 500);
 	};
+
 	getName			() { return 'JSMaterialThemeCodeblocks'; };
 	getAuthor		() { return 'Arashiryuu'; };
 	getVersion		() { return '2.0.0'; };
