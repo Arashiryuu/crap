@@ -161,7 +161,6 @@ class JSMaterialThemeCodeblocks {
 
 		</style>`;
 	};
-
 	createThisClass() {
 		let slef = $('.hljs[class~="js" i] .hljs-keyword:contains(this)'),
 		isNuN = $('.hljs[class~="js" i] .hljs-built_in:contains(isNaN)'),
@@ -190,11 +189,9 @@ class JSMaterialThemeCodeblocks {
 		} else
 				return;
 	};
-
 	log(text) {
 		return console.log(`%c[JSMaterialThemeCodeblocks]%c ${text}`, 'color: #F95479', '');
 	};
-
 	start() {
 		this.log('Started.');
 		$('head').append(this.css);
@@ -206,22 +203,19 @@ class JSMaterialThemeCodeblocks {
 		$('.JSMaterialThemeCodeblocks').remove();
 	};
 	load() { this.log('Loaded.'); };
-	unload() {};
 	observer(ejs) {
 		if(ejs.addedNodes.length && ejs.addedNodes[0].classList && ejs.addedNodes[0].classList.contains('markup'))
 			setTimeout(() => this.createThisClass(), 250);
 		else
 			return;
 	};
-	onMessage() {};
 	onSwitch() { 
 		setTimeout(() => this.createThisClass(), 250); 
 		setTimeout(() => this.log('MaterialTheme classes integrated.'), 500);
 	};
-
-	getName					() { return 'JSMaterialThemeCodeblocks'; };
-	getAuthor				() { return 'Arashiryuu'; };
-	getVersion			() { return '2.0.0'; };
+	getName			() { return 'JSMaterialThemeCodeblocks'; };
+	getAuthor		() { return 'Arashiryuu'; };
+	getVersion		() { return '2.0.0'; };
 	getDescription	() { return 'Applies the "Material Theme" to JavaScript codeblocks.'; };
 	getSettingsPanel() { return '<span class="JSMTCBSettings" style="font-family: \'FangSong\'">你已经死了。</span>'; };
 };
