@@ -29,7 +29,7 @@ class JSMaterialThemeCodeblocks {
 		this.css = `
 			<style class='JSMaterialThemeCodeblocks'>
 
-			/*.hljs.js .kawaii-linenumbers {
+			/*.hljs[class~="js" i] .kawaii-linenumbers {
     		border-left: 2.6ch solid rgba(0, 0, 0, .2);
 			}*/
 
@@ -37,490 +37,156 @@ class JSMaterialThemeCodeblocks {
 				color: #82AAFF !important;
 			}
 
-			#app-mount .chat > .content .messages .message-group .markup pre code.hljs.js {
-    		background: #212b33 !important;
+			#app-mount .chat > .content .messages .message-group .markup pre code.hljs[class~="js" i] {
+    		background: #263239 !important;
     		color: #eee !important;
 			}
 
-			#app-mount code.hljs.js .hljs-addition, #app-mount code.hljs.js .hljs-keyword, #app-mount code.hljs.js .hljs-selector-tag {
+			#app-mount code.hljs[class~="js" i] .hljs-addition, #app-mount code.hljs[class~="js" i] .hljs-keyword, #app-mount code.hljs[class~="js" i] .hljs-selector-tag {
     		color: #c792ea;
 			}
 
-			#app-mount .hljs.js .hljs-built_in, #app-mount .hljs.js .hljs-deletion, #app-mount .hljs.js .hljs-attribute, #app-mount .hljs.js .hljs-class .hljs-title, #app-mount .hljs.js .hljs-template-variable, #app-mount .hljs.js .hljs-type, #app-mount .hljs.js .hljs-variable {
+			#app-mount .hljs[class~="js" i] .hljs-built_in, #app-mount .hljs[class~="js" i] .hljs-deletion, #app-mount .hljs[class~="js" i] .hljs-attribute, #app-mount .hljs[class~="js" i] .hljs-class .hljs-title, #app-mount .hljs[class~="js" i] .hljs-template-variable, #app-mount .hljs[class~="js" i] .hljs-type, #app-mount .hljs[class~="js" i] .hljs-variable {
     		color: #ffcb6b;
 			}
 
-			#app-mount .hljs.js .hljs-bullet, #app-mount .hljs.js .hljs-link, #app-mount .hljs.js .hljs-meta .hljs-keyword, #app-mount .hljs.js .hljs-selector-attr, #app-mount .hljs.js .hljs-selector-pseudo, #app-mount .hljs.js .hljs-subst, #app-mount .hljs.js .hljs-symbol {
+			#app-mount .hljs[class~="js" i] .hljs-bullet, #app-mount .hljs[class~="js" i] .hljs-link, #app-mount .hljs[class~="js" i] .hljs-meta .hljs-keyword, #app-mount .hljs[class~="js" i] .hljs-selector-attr, #app-mount .hljs[class~="js" i] .hljs-selector-pseudo, #app-mount .hljs[class~="js" i] .hljs-subst, #app-mount .hljs[class~="js" i] .hljs-symbol {
     		color: #89ddf3;
 			}
 
-			#app-mount .hljs.js .hljs-doctag,
-			#app-mount .hljs.js .hljs-meta,
-			#app-mount .hljs.js .hljs-meta-string,
-			#app-mount .hljs.js .hljs-regexp, #app-mount .hljs.js .hljs-string {
+			#app-mount .hljs[class~="js" i] .hljs-doctag,
+			#app-mount .hljs[class~="js" i] .hljs-meta,
+			#app-mount .hljs[class~="js" i] .hljs-meta-string,
+			#app-mount .hljs[class~="js" i] .hljs-regexp, #app-mount .hljs[class~="js" i] .hljs-string {
     		color: #c3e88d;
 			}
 
-			#app-mount .hljs.js .hljs-number,
-			#app-mount .hljs.js .hljs-literal {
+			#app-mount .hljs[class~="js" i] .hljs-number,
+			#app-mount .hljs[class~="js" i] .hljs-literal {
     		color: #f78c6a;
 			}
 
-			#app-mount .hljs.js .hljs-params {
+			#app-mount .hljs[class~="js" i] .hljs-params {
 				color: #eee;
 			}
 
-			#app-mount .hljs.js .hljs-function {
+			#app-mount .hljs[class~="js" i] .hljs-function {
 				color: #c792ea;
 			}
 
-			#app-mount .hljs.js .hljs-keyword.this {
+			#app-mount .hljs[class~="js" i] .hljs-keyword.this {
 				color: #f95479;
 				font-style: italic;
 			}
 
-			#app-mount .hljs.js .hljs-built_in.isN,
-			#app-mount .hljs.js .hljs-attr {
+			#app-mount .hljs[class~="js" i] .hljs-built_in.isN,
+			#app-mount .hljs[class~="js" i] .hljs-attr {
 				color: #82aaff;
 			}
 
-			#app-mount .hljs.js .hljs-built_in.rqr {
+			#app-mount .hljs[class~="js" i] .hljs-built_in.rqr {
 				color: #82aaff;
 			}
 
-			#app-mount .hljs.js .hljs-keyword.new {
+			#app-mount .hljs[class~="js" i] .hljs-keyword.new {
 				color: #89ddf3;
 			}
 
-			.theme-dark .hljs.js .hljs-name, .theme-dark .hljs.js .hljs-section, .theme-dark .hljs.js .hljs-selector-class, .theme-dark .hljs.js .hljs-selector-id, .theme-dark .hljs.js .hljs-title {
+			.theme-dark .hljs[class~="js" i] .hljs-name, .theme-dark .hljs[class~="js" i] .hljs-section, .theme-dark .hljs[class~="js" i] .hljs-selector-class, .theme-dark .hljs[class~="js" i] .hljs-selector-id, .theme-dark .hljs[class~="js" i] .hljs-title {
 				color: #82aaff;
 			}
 			
-			/*.hljs.javascript .kawaii-linenumbers {
+			/*.hljs[class~="javascript" i] .kawaii-linenumbers {
     		border-left: 2.6ch solid rgba(0, 0, 0, .2);
 			}*/
 
-			#app-mount .chat > .content .messages .message-group .markup pre code.hljs.javascript {
-    		background: #212b33 !important;
+			#app-mount .chat > .content .messages .message-group .markup pre code.hljs[class~="javascript" i] {
+    		background: #263239 !important;
     		color: #eee !important;
 			}
 
-			#app-mount code.hljs.javascript .hljs-addition, #app-mount code.hljs.javascript .hljs-keyword, #app-mount code.hljs.javascript .hljs-selector-tag {
+			#app-mount code.hljs[class~="javascript" i] .hljs-addition, #app-mount code.hljs[class~="javascript" i] .hljs-keyword, #app-mount code.hljs[class~="javascript" i] .hljs-selector-tag {
     		color: #c792ea;
 			}
 
-			#app-mount .hljs.javascript .hljs-built_in, #app-mount .hljs.javascript .hljs-deletion, #app-mount .hljs.javascript .hljs-attribute, #app-mount .hljs.javascript .hljs-class .hljs-title, #app-mount .hljs.javascript .hljs-template-variable, #app-mount .hljs.javascript .hljs-type, #app-mount .hljs.javascript .hljs-variable {
+			#app-mount .hljs[class~="javascript" i] .hljs-built_in, #app-mount .hljs[class~="javascript" i] .hljs-deletion, #app-mount .hljs[class~="javascript" i] .hljs-attribute, #app-mount .hljs[class~="javascript" i] .hljs-class .hljs-title, #app-mount .hljs[class~="javascript" i] .hljs-template-variable, #app-mount .hljs[class~="javascript" i] .hljs-type, #app-mount .hljs[class~="javascript" i] .hljs-variable {
     		color: #ffcb6b;
 			}
 
-			#app-mount .hljs.javascript .hljs-bullet, #app-mount .hljs.javascript .hljs-link, #app-mount .hljs.javascript .hljs-meta .hljs-keyword, #app-mount .hljs.javascript .hljs-selector-attr, #app-mount .hljs.javascript .hljs-selector-pseudo, #app-mount .hljs.javascript .hljs-subst, #app-mount .hljs.javascript .hljs-symbol {
+			#app-mount .hljs[class~="javascript" i] .hljs-bullet, #app-mount .hljs[class~="javascript" i] .hljs-link, #app-mount .hljs[class~="javascript" i] .hljs-meta .hljs-keyword, #app-mount .hljs[class~="javascript" i] .hljs-selector-attr, #app-mount .hljs[class~="javascript" i] .hljs-selector-pseudo, #app-mount .hljs[class~="javascript" i] .hljs-subst, #app-mount .hljs[class~="javascript" i] .hljs-symbol {
     		color: #89ddf3;
 			}
 
-			#app-mount .hljs.javascript .hljs-doctag,
-			#app-mount .hljs.javascript .hljs-meta,
-			#app-mount .hljs.javascript .hljs-meta-string,
-			#app-mount .hljs.javascript .hljs-regexp, #app-mount .hljs.javascript .hljs-string {
+			#app-mount .hljs[class~="javascript" i] .hljs-doctag,
+			#app-mount .hljs[class~="javascript" i] .hljs-meta,
+			#app-mount .hljs[class~="javascript" i] .hljs-meta-string,
+			#app-mount .hljs[class~="javascript" i] .hljs-regexp, #app-mount .hljs[class~="javascript" i] .hljs-string {
     		color: #c3e88d;
 			}
 
-			#app-mount .hljs.javascript .hljs-number,
-			#app-mount .hljs.javascript .hljs-literal {
+			#app-mount .hljs[class~="javascript" i] .hljs-number,
+			#app-mount .hljs[class~="javascript" i] .hljs-literal {
     		color: #f78c6a;
 			}
 
-			#app-mount .hljs.javascript .hljs-params {
+			#app-mount .hljs[class~="javascript" i] .hljs-params {
 				color: #eee;
 			}
 
-			#app-mount .hljs.javascript .hljs-function {
+			#app-mount .hljs[class~="javascript" i] .hljs-function {
 				color: #c792ea;
 			}
 
-			#app-mount .hljs.javascript .hljs-keyword.this {
+			#app-mount .hljs[class~="javascript" i] .hljs-keyword.this {
 				color: #f95479;
 				font-style: italic;
 			}
 
-			#app-mount .hljs.javascript .hljs-built_in.isN,
-			#app-mount .hljs.javascript .hljs-attr {
+			#app-mount .hljs[class~="javascript" i] .hljs-built_in.isN,
+			#app-mount .hljs[class~="javascript" i] .hljs-attr {
 				color: #82aaff;
 			}
 
-			#app-mount .hljs.javascript .hljs-built_in.rqr {
+			#app-mount .hljs[class~="javascript" i] .hljs-built_in.rqr {
 				color: #82aaff;
 			}
 
-			#app-mount .hljs.javascript .hljs-keyword.new {
+			#app-mount .hljs[class~="javascript" i] .hljs-keyword.new {
 				color: #89ddf3;
 			}
 
-			.theme-dark .hljs.javascript .hljs-name, .theme-dark .hljs.javascript .hljs-section, .theme-dark .hljs.javascript .hljs-selector-class, .theme-dark .hljs.javascript .hljs-selector-id, .theme-dark .hljs.javascript .hljs-title {
+			.theme-dark .hljs[class~="javascript" i] .hljs-name, .theme-dark .hljs[class~="javascript" i] .hljs-section, .theme-dark .hljs[class~="javascript" i] .hljs-selector-class, .theme-dark .hljs[class~="javascript" i] .hljs-selector-id, .theme-dark .hljs[class~="javascript" i] .hljs-title {
 				color: #82aaff;
 			}
 
-			/*.hljs.Javascript .kawaii-linenumbers {
-    		border-left: 2.6ch solid rgba(0, 0, 0, .2);
-			}*/
-
-			#app-mount .chat > .content .messages .message-group .markup pre code.hljs.Javascript {
-    		background: #212b33 !important;
-    		color: #eee !important;
-			}
-
-			#app-mount code.hljs.Javascript .hljs-addition, #app-mount code.hljs.Javascript .hljs-keyword, #app-mount code.hljs.Javascript .hljs-selector-tag {
-    		color: #c792ea;
-			}
-
-			#app-mount .hljs.Javascript .hljs-built_in, #app-mount .hljs.Javascript .hljs-deletion, #app-mount .hljs.Javascript .hljs-attribute, #app-mount .hljs.Javascript .hljs-class .hljs-title, #app-mount .hljs.Javascript .hljs-template-variable, #app-mount .hljs.Javascript .hljs-type, #app-mount .hljs.Javascript .hljs-variable {
-    		color: #ffcb6b;
-			}
-
-			#app-mount .hljs.Javascript .hljs-bullet, #app-mount .hljs.Javascript .hljs-link, #app-mount .hljs.Javascript .hljs-meta .hljs-keyword, #app-mount .hljs.Javascript .hljs-selector-attr, #app-mount .hljs.Javascript .hljs-selector-pseudo, #app-mount .hljs.Javascript .hljs-subst, #app-mount .hljs.Javascript .hljs-symbol {
-    		color: #89ddf3;
-			}
-
-			#app-mount .hljs.Javascript .hljs-doctag,
-			#app-mount .hljs.Javascript .hljs-meta,
-			#app-mount .hljs.Javascript .hljs-meta-string,
-			#app-mount .hljs.Javascript .hljs-regexp, #app-mount .hljs.Javascript .hljs-string {
-    		color: #c3e88d;
-			}
-
-			#app-mount .hljs.Javascript .hljs-number,
-			#app-mount .hljs.Javascript .hljs-literal {
-    		color: #f78c6a;
-			}
-
-			#app-mount .hljs.Javascript .hljs-params {
-				color: #eee;
-			}
-
-			#app-mount .hljs.Javascript .hljs-function {
-				color: #c792ea;
-			}
-
-			#app-mount .hljs.Javascript .hljs-keyword.this {
-				color: #f95479;
-				font-style: italic;
-			}
-
-			#app-mount .hljs.Javascript .hljs-built_in.isN, #app-mount .hljs.Javascript .hljs-attr {
-				color: #82aaff;
-			}
-
-			#app-mount .hljs.Javascript .hljs-built_in.rqr {
-				color: #82aaff;
-			}
-
-			#app-mount .hljs.Javascript .hljs-keyword.new {
-				color: #89ddf3;
-			}
-
-			.theme-dark .hljs.Javascript .hljs-name, .theme-dark .hljs.Javascript .hljs-section, .theme-dark .hljs.Javascript .hljs-selector-class, .theme-dark .hljs.Javascript .hljs-selector-id, .theme-dark .hljs.Javascript .hljs-title {
-				color: #82aaff;
-			}
-
-			/*.hljs.Js .kawaii-linenumbers {
-    		border-left: 2.6ch solid rgba(0, 0, 0, .2);
-			}*/
-
-			#app-mount .chat > .content .messages .message-group .markup pre code.hljs.Js {
-    		background: #212b33 !important;
-    		color: #eee !important;
-			}
-
-			#app-mount code.hljs.Js .hljs-addition, #app-mount code.hljs.Js .hljs-keyword, #app-mount code.hljs.Js .hljs-selector-tag {
-    		color: #c792ea;
-			}
-
-			#app-mount .hljs.Js .hljs-built_in, #app-mount .hljs.Js .hljs-deletion, #app-mount .hljs.Js .hljs-attribute, #app-mount .hljs.Js .hljs-class .hljs-title, #app-mount .hljs.Js .hljs-template-variable, #app-mount .hljs.Js .hljs-type, #app-mount .hljs.Js .hljs-variable {
-    		color: #ffcb6b;
-			}
-
-			#app-mount .hljs.Js .hljs-bullet, #app-mount .hljs.Js .hljs-link, #app-mount .hljs.Js .hljs-meta .hljs-keyword, #app-mount .hljs.Js .hljs-selector-attr, #app-mount .hljs.Js .hljs-selector-pseudo, #app-mount .hljs.Js .hljs-subst, #app-mount .hljs.Js .hljs-symbol {
-    		color: #89ddf3;
-			}
-
-			#app-mount .hljs.Js .hljs-doctag,
-			#app-mount .hljs.Js .hljs-meta,
-			#app-mount .hljs.Js .hljs-meta-string,
-			#app-mount .hljs.Js .hljs-regexp, #app-mount .hljs.Js .hljs-string {
-    		color: #c3e88d;
-			}
-
-			#app-mount .hljs.Js .hljs-number,
-			#app-mount .hljs.Js .hljs-literal {
-    		color: #f78c6a;
-			}
-
-			#app-mount .hljs.Js .hljs-params {
-				color: #eee;
-			}
-
-			#app-mount .hljs.Js .hljs-function {
-				color: #c792ea;
-			}
-
-			#app-mount .hljs.Js .hljs-keyword.this {
-				color: #f95479;
-				font-style: italic;
-			}
-
-			#app-mount .hljs.Js .hljs-built_in.isN, #app-mount .hljs.Js .hljs-attr {
-				color: #82aaff;
-			}
-
-			#app-mount .hljs.Js .hljs-built_in.rqr {
-				color: #82aaff;
-			}
-
-			#app-mount .hljs.Js .hljs-keyword.new {
-				color: #89ddf3;
-			}
-
-			.theme-dark .hljs.Js .hljs-name, .theme-dark .hljs.Js .hljs-section, .theme-dark .hljs.Js .hljs-selector-class, .theme-dark .hljs.Js .hljs-selector-id, .theme-dark .hljs.Js .hljs-title {
-				color: #82aaff;
-			}
-
-			/*.hljs.JS .kawaii-linenumbers {
-    		border-left: 2.6ch solid rgba(0, 0, 0, .2);
-			}*/
-
-			#app-mount .chat > .content .messages .message-group .markup pre code.hljs.JS {
-    		background: #212b33 !important;
-    		color: #eee !important;
-			}
-
-			#app-mount code.hljs.JS .hljs-addition, #app-mount code.hljs.JS .hljs-keyword, #app-mount code.hljs.JS .hljs-selector-tag {
-    		color: #c792ea;
-			}
-
-			#app-mount .hljs.JS .hljs-built_in, #app-mount .hljs.JS .hljs-deletion, #app-mount .hljs.JS .hljs-attribute, #app-mount .hljs.JS .hljs-class .hljs-title, #app-mount .hljs.JS .hljs-template-variable, #app-mount .hljs.JS .hljs-type, #app-mount .hljs.JS .hljs-variable {
-    		color: #ffcb6b;
-			}
-
-			#app-mount .hljs.JS .hljs-bullet, #app-mount .hljs.JS .hljs-link, #app-mount .hljs.JS .hljs-meta .hljs-keyword, #app-mount .hljs.JS .hljs-selector-attr, #app-mount .hljs.JS .hljs-selector-pseudo, #app-mount .hljs.JS .hljs-subst, #app-mount .hljs.JS .hljs-symbol {
-    		color: #89ddf3;
-			}
-
-			#app-mount .hljs.JS .hljs-doctag,
-			#app-mount .hljs.JS .hljs-meta,
-			#app-mount .hljs.JS .hljs-meta-string,
-			#app-mount .hljs.JS .hljs-regexp, #app-mount .hljs.JS .hljs-string {
-    		color: #c3e88d;
-			}
-
-			#app-mount .hljs.JS .hljs-number,
-			#app-mount .hljs.JS .hljs-literal {
-    		color: #f78c6a;
-			}
-
-			#app-mount .hljs.JS .hljs-params {
-				color: #eee;
-			}
-
-			#app-mount .hljs.JS .hljs-function {
-				color: #c792ea;
-			}
-
-			#app-mount .hljs.JS .hljs-keyword.this {
-				color: #f95479;
-				font-style: italic;
-			}
-
-			#app-mount .hljs.JS .hljs-built_in.isN, #app-mount .hljs.JS .hljs-attr {
-				color: #82aaff;
-			}
-
-			#app-mount .hljs.JS .hljs-built_in.rqr {
-				color: #82aaff;
-			}
-
-			#app-mount .hljs.JS .hljs-keyword.new {
-				color: #89ddf3;
-			}
-
-			.theme-dark .hljs.JS .hljs-name, .theme-dark .hljs.JS .hljs-section, .theme-dark .hljs.JS .hljs-selector-class, .theme-dark .hljs.JS .hljs-selector-id, .theme-dark .hljs.JS .hljs-title {
-				color: #82aaff;
-			}
-
-			/*.hljs.JAVASCRIPT .kawaii-linenumbers {
-    		border-left: 2.6ch solid rgba(0, 0, 0, .2);
-			}*/
-
-			#app-mount .chat > .content .messages .message-group .markup pre code.hljs.JAVASCRIPT {
-    		background: #212b33 !important;
-    		color: #eee !important;
-			}
-
-			#app-mount code.hljs.JAVASCRIPT .hljs-addition, #app-mount code.hljs.JAVASCRIPT .hljs-keyword, #app-mount code.hljs.JAVASCRIPT .hljs-selector-tag {
-    		color: #c792ea;
-			}
-
-			#app-mount .hljs.JAVASCRIPT .hljs-built_in, #app-mount .hljs.JAVASCRIPT .hljs-deletion, #app-mount .hljs.JAVASCRIPT .hljs-attribute, #app-mount .hljs.JAVASCRIPT .hljs-class .hljs-title, #app-mount .hljs.JAVASCRIPT .hljs-template-variable, #app-mount .hljs.JAVASCRIPT .hljs-type, #app-mount .hljs.JAVASCRIPT .hljs-variable {
-    		color: #ffcb6b;
-			}
-
-			#app-mount .hljs.JAVASCRIPT .hljs-bullet, #app-mount .hljs.JAVASCRIPT .hljs-link, #app-mount .hljs.JAVASCRIPT .hljs-meta .hljs-keyword, #app-mount .hljs.JAVASCRIPT .hljs-selector-attr, #app-mount .hljs.JAVASCRIPT .hljs-selector-pseudo, #app-mount .hljs.JAVASCRIPT .hljs-subst, #app-mount .hljs.JAVASCRIPT .hljs-symbol {
-    		color: #89ddf3;
-			}
-
-			#app-mount .hljs.JAVASCRIPT .hljs-doctag,
-			#app-mount .hljs.JAVASCRIPT .hljs-meta,
-			#app-mount .hljs.JAVASCRIPT .hljs-meta-string,
-			#app-mount .hljs.JAVASCRIPT .hljs-regexp, #app-mount .hljs.JAVASCRIPT .hljs-string {
-    		color: #c3e88d;
-			}
-
-			#app-mount .hljs.JAVASCRIPT .hljs-number,
-			#app-mount .hljs.JAVASCRIPT .hljs-literal {
-    		color: #f78c6a;
-			}
-
-			#app-mount .hljs.JAVASCRIPT .hljs-params {
-				color: #eee;
-			}
-
-			#app-mount .hljs.JAVASCRIPT .hljs-function {
-				color: #c792ea;
-			}
-
-			#app-mount .hljs.JAVASCRIPT .hljs-keyword.this {
-				color: #f95479;
-				font-style: italic;
-			}
-
-			#app-mount .hljs.JAVASCRIPT .hljs-built_in.isN, #app-mount .hljs.JAVASCRIPT .hljs-attr {
-				color: #82aaff;
-			}
-
-			#app-mount .hljs.JAVASCRIPT .hljs-built_in.rqr {
-				color: #82aaff;
-			}
-
-			#app-mount .hljs.JAVASCRIPT .hljs-keyword.new {
-				color: #89ddf3;
-			}
-
-			.theme-dark .hljs.JAVASCRIPT .hljs-name, .theme-dark .hljs.JAVASCRIPT .hljs-section, .theme-dark .hljs.JAVASCRIPT .hljs-selector-class, .theme-dark .hljs.JAVASCRIPT .hljs-selector-id, .theme-dark .hljs.JAVASCRIPT .hljs-title {
-				color: #82aaff;
-			}
-
-			/*.hljs.JavaScript .kawaii-linenumbers {
-    		border-left: 2.6ch solid rgba(0, 0, 0, .2);
-			}*/
-
-			#app-mount .chat > .content .messages .message-group .markup pre code.hljs.JavaScript {
-    		background: #212b33 !important;
-    		color: #eee !important;
-			}
-
-			#app-mount code.hljs.JavaScript .hljs-addition, #app-mount code.hljs.JavaScript .hljs-keyword, #app-mount code.hljs.JavaScript .hljs-selector-tag {
-    		color: #c792ea;
-			}
-
-			#app-mount .hljs.JavaScript .hljs-built_in, #app-mount .hljs.JavaScript .hljs-deletion, #app-mount .hljs.JavaScript .hljs-attribute, #app-mount .hljs.JavaScript .hljs-class .hljs-title, #app-mount .hljs.JavaScript .hljs-template-variable, #app-mount .hljs.JavaScript .hljs-type, #app-mount .hljs.JavaScript .hljs-variable {
-    		color: #ffcb6b;
-			}
-
-			#app-mount .hljs.JavaScript .hljs-bullet, #app-mount .hljs.JavaScript .hljs-link, #app-mount .hljs.JavaScript .hljs-meta .hljs-keyword, #app-mount .hljs.JavaScript .hljs-selector-attr, #app-mount .hljs.JavaScript .hljs-selector-pseudo, #app-mount .hljs.JavaScript .hljs-subst, #app-mount .hljs.JavaScript .hljs-symbol {
-    		color: #89ddf3;
-			}
-
-			#app-mount .hljs.JavaScript .hljs-doctag,
-			#app-mount .hljs.JavaScript .hljs-meta,
-			#app-mount .hljs.JavaScript .hljs-meta-string,
-			#app-mount .hljs.JavaScript .hljs-regexp, #app-mount .hljs.JavaScript .hljs-string {
-    		color: #c3e88d;
-			}
-
-			#app-mount .hljs.JavaScript .hljs-number,
-			#app-mount .hljs.JavaScript .hljs-literal {
-    		color: #f78c6a;
-			}
-
-			#app-mount .hljs.JavaScript .hljs-params {
-				color: #eee;
-			}
-
-			#app-mount .hljs.JavaScript .hljs-function {
-				color: #c792ea;
-			}
-
-			#app-mount .hljs.JavaScript .hljs-keyword.this {
-				color: #f95479;
-				font-style: italic;
-			}
-
-			#app-mount .hljs.JavaScript .hljs-built_in.isN, #app-mount .hljs.JavaScript .hljs-attr {
-				color: #82aaff;
-			}
-
-			#app-mount .hljs.JavaScript .hljs-built_in.rqr {
-				color: #82aaff;
-			}
-
-			#app-mount .hljs.JavaScript .hljs-keyword.new {
-				color: #89ddf3;
-			}
-
-			.theme-dark .hljs.JavaScript .hljs-name, .theme-dark .hljs.JavaScript .hljs-section, .theme-dark .hljs.JavaScript .hljs-selector-class, .theme-dark .hljs.JavaScript .hljs-selector-id, .theme-dark .hljs.JavaScript .hljs-title {
-				color: #82aaff;
-			}
 		</style>`;
 	};
 
 	createThisClass() {
-		let slef = $('.hljs.js .hljs-keyword:contains(this)'),
-		isNuN = $('.hljs.js .hljs-built_in:contains(isNaN)'),
-		ewn = $('.hljs.js .hljs-keyword:contains(new)'),
-		paIn = $('.hljs.js .hljs-built_in:contains(parseInt)'),
-	  rqr = $('.hljs.js .hljs-built_in:contains(require)');
-		if(slef || $('.hljs.JS .hljs-keyword:contains(this)') || $('.hljs.Js .hljs-keyword:contains(this)') || $('.hljs.javascript .hljs-keyword:contains(this)') || $('.hljs.Javascript .hljs-keyword:contains(this)') || $('.hljs.JAVASCRIPT .hljs-keyword:contains(this)') || $('.hljs.JavaScript .hljs-keyword:contains(this)')) {
+		let slef = $('.hljs[class~="js" i] .hljs-keyword:contains(this)'),
+		isNuN = $('.hljs[class~="js" i] .hljs-built_in:contains(isNaN)'),
+		ewn = $('.hljs[class~="js" i] .hljs-keyword:contains(new)'),
+		paIn = $('.hljs[class~="js" i] .hljs-built_in:contains(parseInt)'),
+	  rqr = $('.hljs[class~="js" i] .hljs-built_in:contains(require)');
+		if(slef || $('.hljs[class~="javascript" i] .hljs-keyword:contains(this)')) {
 			slef.addClass('this');
-			$('.hljs.JS .hljs-keyword:contains(this)').addClass('this');
-			$('.hljs.Js .hljs-keyword:contains(this)').addClass('this');
-			$('.hljs.javascript .hljs-keyword:contains(this)').addClass('this');
-			$('.hljs.Javascript .hljs-keyword:contains(this)').addClass('this');
-			$('.hljs.JAVASCRIPT .hljs-keyword:contains(this)').addClass('this');
-			$('.hljs.JavaScript .hljs-keyword:contains(this)').addClass('this');
+			$('.hljs[class~="javascript" i] .hljs-keyword:contains(this)').addClass('this');
 		}
-		if(isNuN || $('.hljs.JS .hljs-built_in:contains(isNaN)') || $('.hljs.Js .hljs-built_in:contains(isNaN)') || $('.hljs.javascript .hljs-built_in:contains(isNaN)') || $('.hljs.Javascript .hljs-built_in:contains(isNaN)') || $('.hljs.JAVASCRIPT .hljs-built_in:contains(isNaN)') || $('.hljs.JavaScript .hljs-built_in:contains(isNaN)')) {
+		if(isNuN || $('.hljs[class~="javascript" i] .hljs-built_in:contains(isNaN)')) {
 			isNuN.addClass('isN');
-			$('.hljs.JS .hljs-built_in:contains(isNaN)').addClass('isN');
-			$('.hljs.Js .hljs-built_in:contains(isNaN)').addClass('isN');
-			$('.hljs.javascript .hljs-built_in:contains(isNaN)').addClass('isN');
-			$('.hljs.Javascript .hljs-built_in:contains(isNaN)').addClass('isN');
-			$('.hljs.JAVASCRIPT .hljs-built_in:contains(isNaN)').addClass('isN');
-			$('.hljs.JavaScript .hljs-built_in:contains(isNaN)').addClass('isN');
+			$('.hljs[class~="javascript" i] .hljs-built_in:contains(isNaN)').addClass('isN');
 		}
-		if(ewn || $('.hljs.JS .hljs-keyword:contains(new)') || $('.hljs.Js .hljs-keyword:contains(new)') || $('.hljs.javascript .hljs-keyword:contains(new)') || $('.hljs.Javascript .hljs-keyword:contains(new)') || $('.hljs.JAVASCRIPT .hljs-keyword:contains(new)') || $('.hljs.JavaScript .hljs-keyword:contains(new)')) {
+		if(ewn || $('.hljs[class~="javascript" i] .hljs-keyword:contains(new)')) {
 			ewn.addClass('new');
-			$('.hljs.JS .hljs-keyword:contains(new)').addClass('new');
-			$('.hljs.Js .hljs-keyword:contains(new)').addClass('new');
-			$('.hljs.javascript .hljs-keyword:contains(new)').addClass('new');
-			$('.hljs.Javascript .hljs-keyword:contains(new)').addClass('new');
-			$('.hljs.JAVASCRIPT .hljs-keyword:contains(new)').addClass('new');
-			$('.hljs.JavaScript .hljs-keyword:contains(new)').addClass('new');
+			$('.hljs[class~="javascript" i] .hljs-keyword:contains(new)').addClass('new');
 		}
-		if(rqr || $('.hljs.JS .hljs-built_in:contains(require)') || $('.hljs.Js .hljs-built_in:contains(require)') || $('.hljs.javascript .hljs-built_in:contains(require)') || $('.hljs.Javascript .hljs-built_in:contains(require)') || $('.hljs.JAVASCRIPT .hljs-built_in:contains(require)') || $('.hljs.JavaScript .hljs-built_in:contains(require)')) {
+		if(rqr || $('.hljs[class~="javascript" i] .hljs-built_in:contains(require)')) {
 			rqr.addClass('rqr');
-			$('.hljs.JS .hljs-built_in:contains(require)').addClass('rqr');
-			$('.hljs.Js .hljs-built_in:contains(require)').addClass('rqr');
-			$('.hljs.javascript .hljs-built_in:contains(require)').addClass('rqr');
-			$('.hljs.Javascript .hljs-built_in:contains(require)').addClass('rqr');
-			$('.hljs.JAVASCRIPT .hljs-built_in:contains(require)').addClass('rqr');
-			$('.hljs.JavaScript .hljs-built_in:contains(require)').addClass('rqr');
+			$('.hljs[class~="javascript" i] .hljs-built_in:contains(require)').addClass('rqr');
 		}
-		if(paIn || $('.hljs.Js .hljs-built_in:contains(parseInt)') || $('.hljs.JS .hljs-built_in:contains(parseInt)') || $('.hljs.javascript .hljs-built_in:contains(parseInt)') || $('.hljs.Javascript .hljs-built_in:contains(parseInt)') || $('.hljs.JavaScript .hljs-built_in:contains(parseInt)') || $('.hljs.JAVASCRIPT .hljs-built_in:contains(parseInt)')) {
+		if(paIn || $('.hljs[class~="javascript" i] .hljs-built_in:contains(parseInt)')) {
 			paIn.addClass('paIn');
-			$('.hljs.Js .hljs-built_in:contains(parseInt)').addClass('paIn');
-			$('.hljs.JS .hljs-built_in:contains(parseInt)').addClass('paIn');
-			$('.hljs.javascript .hljs-built_in:contains(parseInt)').addClass('paIn');
-			$('.hljs.Javascript .hljs-built_in:contains(parseInt)').addClass('paIn');
-			$('.hljs.JavaScript .hljs-built_in:contains(parseInt)').addClass('paIn');
-			$('.hljs.JAVASCRIPT .hljs-built_in:contains(parseInt)').addClass('paIn');
+			$('.hljs[class~="javascript" i] .hljs-built_in:contains(parseInt)').addClass('paIn');
 		} else
 				return;
 	};
