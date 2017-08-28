@@ -28,15 +28,13 @@ class hideServers {
 		this.hideServer = () => {
 			if(!this.hidServers.servers[0]) return console.warn('%c[hideServers]%c\tNo servers found.', 'color: #AAF', '');
 			for(let server of this.hidServers.servers) {
-  				$(`[href*='${server}']`).parent().parent().parent().hide();
+  			$(`[href*='${server}']`).parent().parent().parent().hide();
  			}
 		};
-
 		this.hidServers = {
 			servers: []
 		};
 	};
-
 	servPush() {
 		let nServer = $('#ServerHideField').val();
 		if(isNaN(nServer)) return $('#ServerHideField').val('Invalid entry. (NaN)');
@@ -46,14 +44,12 @@ class hideServers {
 		console.info(`%c[${this.getName()}]%c\t${this.hidServers.servers.join(', ')}`, 'color: #AAF', '');
 		this.hideServer();
 	};
-	
 	servClear() {
 		if (this.hidServers.servers.length !== 0)
 			this.servRemove(this.hidServers.servers[this.hidServers.servers.length-1]);
 		else
 			console.info('%c[hideServers]%c There are no servers to remove', 'color: #AAF', '');
 	};
-
 	servRemove(servId) {
 		this.hidServers.servers.splice(this.hidServers.servers.indexOf(servId), 1);
 		$(`[href*='${servId}']`).parent().parent().parent().show();
@@ -61,20 +57,17 @@ class hideServers {
 		alert('Successfully removed!');
 		this.hideServer();		
 	};
-
 	saveSettings() {
 		bdPluginStorage.set('hideServers', 'servers', JSON.stringify(this.hidServers.servers));
 		console.info('%c[hideServers]%c\tSaved settings.', 'color: #AAF', '');
 		console.info('%c[hideServers]%c\t' + this.hidServers.servers.join(', '), 'color: #AAF', '');
 	};
-
 	loadSettings() {
 		this.hidServers.servers = JSON.parse(bdPluginStorage.get('hideServers', 'servers'));
 		console.info('%c[hideServers]%c\tLoaded settings.', 'color: #AAF', '');
 		console.info('%c[hideServers]%c\t' + this.hidServers.servers.join(', '), 'color: #AAF', '');
 		this.hideServer();
 	};
-	
 	updateSettingsPanel() {
 		let pluginName = this.getName();
 		if ($('#hsplugin-settings-div').length === 0) {
@@ -83,17 +76,17 @@ class hideServers {
 			return;
 		}
 		let stff = `<h3>hideServers Plugin</h3><br/>
-		<div class="hsplugin-subcontainer" style="display: flex; flex: 1 1 auto; flex-flow: wrap row; position: relative; margin-bottom: 4ex; width: 70%;">`;
+		<div id="hsplugin-subcontainer" style="display: flex; flex: 1 1 auto; flex-flow: wrap row; position: relative; margin-bottom: 4ex; width: 70%;">`;
 		for(let server of this.hidServers.servers) {
 			let style = $(`[href*='${server}']`).attr('style');
-			stff += `<button class='avatar-small' onclick='BdApi.getPlugin("${pluginName}").servRemove(${server})' style='${style}; background-size: cover; background-position: center; flex: 1 0 20%; margin-left: 1px; max-width: 13%; min-height: 4vh; border-radius: 3px'></button>`;
+			stff += `<button class='avatar-small' onclick='BdApi.getPlugin("${pluginName}").servRemove(${server})' style='${style}; background-size: cover; background-position: center; flex: 1 0 20%; margin-left: 1px; max-width: 13%; min-height: 4vh;'></button>`;
  		}
 		stff += `</div>
 			<input id="ServerHideField" type="text" placeholder="ID" style="resize: none; width: 80%;" /><br/><br/>
-			<br/><button class="ShU-btn0" style="min-width: 3vw;" onclick=BdApi.getPlugin("${pluginName}").servPush()>apply</button>
-			<button class="ShU-btn1" style="min-width: 3vw;" onclick=BdApi.getPlugin("${pluginName}").servClear()>remove</button>
-			<button class="ShU-btn2" style="min-width: 3vw;" onclick=BdApi.getPlugin("${pluginName}").saveSettings()>save</button>
-			<button class="ShU-btn3" style="min-width: 3vw;" onclick=BdApi.getPlugin("${pluginName}").loadSettings()>load</button><br/>
+			<br/><button class="ShU-btn0" onclick=BdApi.getPlugin("${pluginName}").servPush()>apply</button>
+			<button class="ShU-btn1" onclick=BdApi.getPlugin("${pluginName}").servClear()>remove</button>
+			<button class="ShU-btn2" onclick=BdApi.getPlugin("${pluginName}").saveSettings()>save</button>
+			<button class="ShU-btn3" onclick=BdApi.getPlugin("${pluginName}").loadSettings()>load</button><br/>
 
 			<br/>How to use:<br/>
 				0) Go to user settings -> Appearance, and enable Developer Mode, then right-click a server and "Copy ID"<br/>
@@ -103,11 +96,10 @@ class hideServers {
 		`;
 		$('#hsplugin-settings-div').html(stff);
 	};
-
 	start() { 
 		console.info('%c[hideServers]%c\tWorking...', 'color: #AAF', '');
 		var settings = bdPluginStorage.get('hideServers', 'servers');
-		if(settings === null) {
+		if(settings === null || settings === undefined) {
 			console.info('%c[hideServers]%c\t' + 'No settings found.', 'color: #AAF', '');
 		}
 		else {
@@ -117,16 +109,30 @@ class hideServers {
 		this.hideServer(); 
 		this.updateSettingsPanel(); 
 	};
-	stop() { console.info('%c[hideServers]%c\tStopped.', 'color: #AAF', ''); };
-	load() { console.info('%c[hideServers]%c\tBooting-Up.', 'color: #AAF', ''); };
-	unload() {};
-	onMessage() {};
-	onSwitch() { this.hideServer(); };
-
-	getAuthor() { return 'Arashiryuu'; };
-	getName() { return 'hideServers'; };
-	getVersion() { return '1.2.3'; };
-	getDescription() { return 'Hides any servers listed in the array of IDs.'; };
+	stop() {
+		for(let server of this.hidServers.servers) {
+			$(`[href*='${server}']`).parent().parent().parent().show();
+		}
+		console.info('%c[hideServers]%c\tStopped.', 'color: #AAF', '');
+	};
+	load() { 
+		console.info('%c[hideServers]%c\tBooting-Up.', 'color: #AAF', ''); 
+	};
+	onSwitch() {
+		this.hideServer();
+	};
+	getAuthor() {
+		return 'Arashiryuu';
+	};
+	getName() {
+		return 'hideServers';
+	};
+	getVersion() {
+		return '2';
+	};
+	getDescription() {
+		return 'Hides any servers listed in the array of IDs.';
+	};
 	getSettingsPanel() { 
 		let pluginName = this.getName();
 		let stff = `<div id='hsplugin-settings-div'>
@@ -134,7 +140,7 @@ class hideServers {
 			Loading...
 			</div>`;
 		var that = this;
-		setTimeout(function() { that.updateSettingsPanel(); }, 500);
+		setTimeout(function() { that.updateSettingsPanel(); }, 1000);
 		return stff;
 	};
 };
