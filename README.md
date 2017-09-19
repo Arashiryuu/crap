@@ -18,3 +18,6 @@
 **[hideChannelsPerServer](https://github.com/Arashiryuu/crap/blob/master/hideChannelsPerServer.plugin.js)** ー removes channels from your list via ID.
 
 **[hideServers](https://github.com/Arashiryuu/crap/blob/master/hideServers.plugin.js)** ー removes servers from your list.
+
+**[TitleForTitlebar](https://github.com/Arashiryuu/crap/blob/master/TitleForTitlebar.plugin.js)** ー adds a title to the titlebar which changes depending on the channel you enter and the type of channel it is.
+***NOTE: Intended to be used with Beard's Titlebar mini-theme or any theme that uses it.***
