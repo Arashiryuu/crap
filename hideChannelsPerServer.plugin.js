@@ -1,30 +1,55 @@
 //META{"name":"hideChannelsPerServer"}*//
 
+/*@cc_on
+@if (@_jscript)
+	
+	// Offer to self-install for clueless users that try to run this directly.
+	var shell = WScript.CreateObject("WScript.Shell");
+	var fs = new ActiveXObject("Scripting.FileSystemObject");
+	var pathPlugins = shell.ExpandEnvironmentStrings("%APPDATA%\\BetterDiscord\\plugins");
+	var pathSelf = WScript.ScriptFullName;
+	// Put the user at ease by addressing them in the first person
+	shell.Popup("It looks like you've mistakenly tried to run me directly. \n(Don't do that!)", 0, "I'm a plugin for BetterDiscord", 0x30);
+	if (fs.GetParentFolderName(pathSelf) === fs.GetAbsolutePathName(pathPlugins)) {
+		shell.Popup("I'm in the correct folder already.\nJust reload Discord with Ctrl+R.", 0, "I'm already installed", 0x40);
+	} else if (!fs.FolderExists(pathPlugins)) {
+		shell.Popup("I can't find the BetterDiscord plugins folder.\nAre you sure it's even installed?", 0, "Can't install myself", 0x10);
+	} else if (shell.Popup("Should I copy myself to BetterDiscord's plugins folder for you?", 0, "Do you need some help?", 0x34) === 6) {
+		fs.CopyFile(pathSelf, fs.BuildPath(pathPlugins, fs.GetFileName(pathSelf)), true);
+		// Show the user where to put plugins in the future
+		shell.Exec("explorer " + pathPlugins);
+		shell.Popup("I'm installed!\nJust reload Discord with Ctrl+R.", 0, "Successfully installed", 0x40);
+	}
+	WScript.Quit();
+
+@else@*/
+
 class hideChannelsPerServer {
 	constructor() {
-		this.hideChannel = () => {
-			if(!this.hidChannels.chans[0]) {
-				$('.channels-wrap [class*="containerDefault-7RImuF"]').each(function() {
-					if($(this).css('display') === 'none') $(this).show();
-				});
-				return console.warn('%c[hideChannelsPerServer]%c\tNo channels found.', 'color: #F2F', '');
-			}
-			const self = this;
-			if(window.DiscordInternals !== null) {
-				const { getOwnerInstance } = window.DiscordInternals;
-				$('.channels-wrap [class*="containerDefault-7RImuF"]').each(function() {
-  				self.hidChannels.chans.some(i => i === getOwnerInstance($(this)[0], {}).props.channel.id) ? $(this).hide() : $(this).show();
-				});
-			}
-			else {
-				$('.channels-wrap [class*="containerDefault-7RImuF"]').each(function() {
-					self.hidChannels.chans.some(ii => ii === self.getReactInstance($(this)[0])._currentElement.props.children.props.channel.id) ? $(this).hide() : $(this).show();
-				});
-			}
-		};
 		this.hidChannels = {
 			chans: []
 		};
+		this.mo = new MutationObserver(() => {});
+	};
+	hideChannel() {
+		if(!this.hidChannels.chans[0]) {
+			$('.channels-wrap [class*="containerDefault-7RImuF"]').each(function() {
+				if($(this).css('display') === 'none') $(this).show();
+			});
+			return console.warn('%c[hideChannelsPerServer]%c\tNo channels found.', 'color: #F2F', '');
+		}
+		const self = this;
+		if(window.DiscordInternals !== null) {
+			const { getOwnerInstance } = window.DiscordInternals;
+			$('.channels-wrap [class*="containerDefault-7RImuF"]').each(function() {
+				self.hidChannels.chans.some(i => i === getOwnerInstance($(this)[0], {}).props.channel.id) ? $(this).hide() : $(this).show()
+			});
+		}
+		else {
+			$('.channels-wrap [class*="containerDefault-7RImuF"]').each(function() {
+				self.hidChannels.chans.some(ii => ii === self.getReactInstance($(this)[0])._currentElement.props.children.props.channel.id) ? $(this).hide() : $(this).show()
+			});
+		}
 	};
 	getReactInstance(node) {
 		return node[Object.keys(node).find((key) => key.startsWith('__reactInternalInstance'))];
@@ -73,6 +98,23 @@ class hideChannelsPerServer {
 			console.info('%c[hideChannelsPerServer]%c\t' + this.hidChannels.chans.join(', '), 'color: #F2F', '');
 		}
 		this.hideChannel();
+		this.mo = new MutationObserver((changes, _) => {
+			changes.forEach((change, i) => {
+				if(change.addedNodes) {
+					change.addedNodes.forEach((node) => {
+						if(node.className != undefined && node.className === 'containerDefault-7RImuF') {
+							this.hideChannel();
+						}
+					});
+				}
+			});
+		});
+		const self = this;
+		if($('.channels-wrap div[class^="container-"]').length > 0) {
+			$('.channels-wrap div[class^="container-"]').each(function() {
+				self.mo.observe($(this)[0], {childList: true, subtree: true});
+			});
+		}
 	};
 	stop() {
 		$('.channels-wrap [class*="containerDefault-7RImuF"]').each(function() {
@@ -93,10 +135,10 @@ class hideChannelsPerServer {
 		return 'hideChannelsPerServer'; 
 	};
 	getVersion() { 
-		return '1.1'; 
+		return '1.2'; 
 	};
 	getDescription() {
-		return 'Hides any channels listed in the array of IDs.'; 
+		 return 'Hides any channels listed in the array of IDs.'; 
 	};
 	getSettingsPanel() { 
 		let htmls = '<h3>hideChannelsPerServer Plugin</h3><br/>'; 
