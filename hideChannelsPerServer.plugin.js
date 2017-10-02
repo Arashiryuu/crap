@@ -120,6 +120,7 @@ class hideChannelsPerServer {
 		$('.channels-wrap [class*="containerDefault-7RImuF"]').each(function() {
 			if($(this).css('display') === 'none') $(this).show();
 		});
+		this.mo.disconnect();
 		console.info('%c[hideChannelsPerServer]%c\tStopped.', 'color: #F2F', ''); 
 	};
 	load() { 
