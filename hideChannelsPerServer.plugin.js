@@ -142,16 +142,16 @@ class hideChannelsPerServer {
 		 return 'Hides any channels listed in the array of IDs.'; 
 	};
 	getSettingsPanel() { 
-		let htmls = '<h3>hideChannelsPerServer Plugin</h3><br/>'; 
-		htmls += '<input id="ChanblockField" type="text" placeholder="ID" style="resize: none; width: 80%;" /><br/><br/>';
-		htmls += '<br/><button class="ChU-btn0" onclick=BdApi.getPlugin("'+ this.getName() +'").chanPush()>apply</button>';
-		htmls += '<button class="ChU-btn1" onclick=BdApi.getPlugin("'+ this.getName() +'").chanClear()>remove</button>';
-		htmls += '<button class="ChU-btn2" onclick=BdApi.getPlugin("'+ this.getName() +'").saveSettings()>save</button>';
-		htmls += '<button class="ChU-btn3" onclick=BdApi.getPlugin("'+ this.getName() +'").loadSettings()>load</button><br/>';
-		htmls += '<br/>How to use:';
-		htmls += '<br/>1) Insert a channel\'s ID.<br/>';
-		htmls += '2) Click "apply."<br/>';
-		htmls += '3) To remove the last-added channel, click the "remove" button.<br/>';
+		let htmls = `<h3>hideChannelsPerServer Plugin</h3><br/> 
+		<input id="ChanblockField" type="text" placeholder="ID" style="resize: none; width: 80%;" /><br/><br/>
+		<br/><button class="ChU-btn0" onclick=BdApi.getPlugin("${this.getName()}").chanPush()>apply</button>
+		<button class="ChU-btn1" onclick=BdApi.getPlugin("${this.getName()}").chanClear()>remove</button>
+		<button class="ChU-btn2" onclick=BdApi.getPlugin("'${this.getName()}").saveSettings()>save</button>
+		<button class="ChU-btn3" onclick=BdApi.getPlugin("${this.getName()}").loadSettings()>load</button><br/>
+		<br/>How to use:
+		<br/>1) Insert a channel\'s ID.<br/>
+		2) Click "apply."<br/>
+		3) To remove the last-added channel, click the "remove" button.<br/>`;
 		return htmls;
 	};
 };
