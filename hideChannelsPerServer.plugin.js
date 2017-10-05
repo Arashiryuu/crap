@@ -29,7 +29,17 @@ class hideChannelsPerServer {
 		this.hidChannels = {
 			chans: []
 		};
-		this.mo = new MutationObserver(() => {});
+		this.mo = new MutationObserver((changes, _) => {
+			changes.forEach((change, i) => {
+				if(change.addedNodes) {
+					change.addedNodes.forEach((node) => {
+						if(node.className != undefined && node.className === 'containerDefault-7RImuF') {
+							this.hideChannel();
+						}
+					});
+				}
+			});
+		});
 	};
 	hideChannel() {
 		if(!this.hidChannels.chans[0]) {
@@ -39,17 +49,9 @@ class hideChannelsPerServer {
 			return console.warn('%c[hideChannelsPerServer]%c\tNo channels found.', 'color: #F2F', '');
 		}
 		const self = this;
-		if(window.DiscordInternals !== null) {
-			const { getOwnerInstance } = window.DiscordInternals;
-			$('.channels-wrap [class*="containerDefault-7RImuF"]').each(function() {
-				self.hidChannels.chans.some(i => i === getOwnerInstance($(this)[0], {}).props.channel.id) ? $(this).hide() : $(this).show()
-			});
-		}
-		else {
-			$('.channels-wrap [class*="containerDefault-7RImuF"]').each(function() {
-				self.hidChannels.chans.some(ii => ii === self.getReactInstance($(this)[0])._currentElement.props.children.props.channel.id) ? $(this).hide() : $(this).show()
-			});
-		}
+		$('.channels-wrap [class*="containerDefault-7RImuF"]').each(function() {
+			self.hidChannels.chans.some(ii => ii === self.getReactInstance($(this)[0]).return.stateNode.props.channel.id) ? $(this).hide() : $(this).show()
+		});
 	};
 	getReactInstance(node) {
 		return node[Object.keys(node).find((key) => key.startsWith('__reactInternalInstance'))];
@@ -98,17 +100,6 @@ class hideChannelsPerServer {
 			console.info('%c[hideChannelsPerServer]%c\t' + this.hidChannels.chans.join(', '), 'color: #F2F', '');
 		}
 		this.hideChannel();
-		this.mo = new MutationObserver((changes, _) => {
-			changes.forEach((change, i) => {
-				if(change.addedNodes) {
-					change.addedNodes.forEach((node) => {
-						if(node.className != undefined && node.className === 'containerDefault-7RImuF') {
-							this.hideChannel();
-						}
-					});
-				}
-			});
-		});
 		const self = this;
 		if($('.channels-wrap div[class^="container-"]').length > 0) {
 			$('.channels-wrap div[class^="container-"]').each(function() {
@@ -136,7 +127,7 @@ class hideChannelsPerServer {
 		return 'hideChannelsPerServer'; 
 	};
 	getVersion() { 
-		return '1.2'; 
+		return '1.3'; 
 	};
 	getDescription() {
 		 return 'Hides any channels listed in the array of IDs.'; 
