@@ -25,16 +25,33 @@
 
 class hideChannels {
 	constructor() {
-		this.hideChannel = () => {
-			if(!this.hidChannels.chans[0]) return console.warn('%c[hideChannels]%c\tNo channels found.', 'color: #F2F', '');
-			for(let chan of this.hidChannels.chans) {
-  				$(`.containerDefault-7RImuF:contains(${chan})`).hide();
- 			}
-		};
-
 		this.hidChannels = {
 			chans: []
 		};
+		
+		this.mo = new MutationObserver((changes, z) => {
+			changes.forEach((change, i) => {
+				if(change.addedNodes)
+					change.addedNodes.forEach((node) => {
+						if(node.className != undefined && node.className === 'containerDefault-7RImuF')
+							this.hideChannel();
+					});
+			});
+		});
+	};
+	
+	hideChannel() {
+		if(!this.hidChannels.chans[0]) {
+			$('.channels-wrap [class*="containerDefault-7RImuF"]').each(function() {
+				if($(this).css('display') === 'none') $(this).show();
+			});
+			return console.warn('%c[hideChannels]%c\tNo channels found.', 'color: #F2F', '');
+		}
+		else {
+			for(const chan of this.hidChannels.chans) {
+				$(`.containerDefault-7RImuF:contains(${chan})`).hide();
+			}
+		}
 	};
 
 	chanPush() {
@@ -47,17 +64,24 @@ class hideChannels {
 	};
 	
 	chanClear() {
-		let oCh = $('#ChanblockField').val();
-		if(oCh.length) {
-			this.hidChannels.chans.splice(this.hidChannels.chans.indexOf(oCh), 1);
-			console.info(`%c[${this.getName()}]%c\t${this.hidChannels.chans.join(', ')}`, 'color: #F2F', '');
-			alert('Successfully removed!');
-			this.hideChannel();	
+		const oCh = $('#ChanblockField').val();
+		if(this.hidChannels.chans.length !== 0) {
+			if(oCh.match(/^\w{1,}$/)) {
+				this.hidChannels.chans.splice(this.hidChannels.chans.indexOf(oCh), 1);
+				console.info(`%c[${this.getName()}]%c\t${this.hidChannels.chans.join(', ')}`, 'color: #F2F', '');
+				alert('Successfully removed!');
+				this.hideChannel();	
+			}
+			else {
+				this.hidChannels.chans.pop();
+				console.info(`%c[${this.getName()}]%c\t${this.hidChannels.chans.join(', ')}`, 'color: #F2F', '');
+				alert('Successfully removed!');
+				this.hideChannel();
+			}
+		} 
+		else {
+			return console.warn('%c[hideChannels]%c\tNo channels to remove.', 'color: #F2F', '');	
 		}
-		this.hidChannels.chans.pop();
-		console.info(`%c[${this.getName()}]%c\t${this.hidChannels.chans.join(', ')}`, 'color: #F2F', '');
-		alert('Successfully removed!');
-		this.hideChannel();		
 	};
 
 	saveSettings() {
@@ -71,6 +95,15 @@ class hideChannels {
 		console.info('%c[hideChannels]%c\tLoaded settings.', 'color: #F2F', '');
 		console.info('%c[hideChannels]%c\t' + this.hidChannels.chans.join(', '), 'color: #F2F', '');
 	};
+	
+	observe() {
+		const self = this;
+		if($('.channels-wrap div[class^="container-"]').length > 0) {
+			$('.channels-wrap div[class^="container-"]').each(function() {
+				self.mo.observe($(this)[0], {childList: true, subtree: true});
+			});
+		}
+	}
 
 	start() {
 		console.info('%c[hideChannels]%c\tWorking...', 'color: #F2F', '');
@@ -83,17 +116,43 @@ class hideChannels {
 			console.info('%c[hideChannels]%c\t' + this.hidChannels.chans.join(', '), 'color: #F2F', '');
 		}
 		this.hideChannel();
+		this.observe();
 	};
-	stop() { console.info('%c[hideChannels]%c\tStopped.', 'color: #F2F', ''); };
-	load() { console.info('%c[hideChannels]%c\tBooting-Up.', 'color: #F2F', ''); };
-	unload() {};
-	onMessage() {};
-	onSwitch() { this.hideChannel(); };
+	
+	stop() {
+		this.mo.disconnect();
+		$('.channels-wrap [class*="containerDefault-7RImuF"]').each(function() {
+			if($(this).css('display') === 'none') $(this).show();
+		});
+		console.info('%c[hideChannels]%c\tStopped.', 'color: #F2F', '');
+	};
+	
+	load() {
+		console.info('%c[hideChannels]%c\tBooting-Up.', 'color: #F2F', '');
+	};
+	
+	onSwitch() {
+		this.mo.disconnect();
+		this.hideChannel();
+		this.observe();
+	};
 
-	getAuthor() { return 'Arashiryuu'; };
-	getName() { return 'hideChannels'; };
-	getVersion() { return '1.1.0'; };
-	getDescription() { return 'Hides any channels listed in the array of names.'; };
+	getName() {
+		return 'hideChannels';
+	};
+	
+	getAuthor() {
+		return 'Arashiryuu';
+	};
+	
+	getVersion() {
+		return '1.2';
+	};
+	
+	getDescription() {
+		return 'Hides any channels listed in the array of names.';
+	};
+	
 	getSettingsPanel() { 
 		let htmls = '<h3>hideChannels Plugin</h3><br/>'; 
 		htmls += '<input id="ChanblockField" type="text" placeholder="name -- case-sensitive" style="resize: none; width: 80%;" /><br/><br/>';
@@ -108,4 +167,5 @@ class hideChannels {
 		return htmls;
 	};
 };
+
 /*@end*/
