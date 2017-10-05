@@ -55,7 +55,7 @@ class hideChannels {
 	};
 
 	chanPush() {
-		let nChan = $('#ChanblockField').val();
+		const nChan = $('#ChanblockField').val();
 		if(typeof nChan !== 'string') return $('#ChanblockField').val('Invalid entry. (Name-only)');
 		if(!nChan) return $('#ChanblockField').val('Invalid entry. (No-entry)');
 		this.hidChannels.chans.push(nChan);
