@@ -56,22 +56,26 @@ function TitleForTitle() {
   uwu.getReactInstance = (node) => node[Object.keys(node).find((key) => key.startsWith('__reactInternalInstance'))];
   uwu.getChannel = () => {
     const titularText = $('.title .channel-name').text();
-    if(uwu.getReactInstance($('.chat')[0])._currentElement.props.children[0].props.children[2] !== null) {
-      switch(uwu.getReactInstance($('.chat')[0])._currentElement.props.children[0].props.children[2].props.channel.type) {
-        case 0:
-          $('#TitleforTitlebar').text('Guild Channel — ' + titularText);
-        break;
-        case 1:
-          $('#TitleforTitlebar').text('DM — ' + titularText);
-        break;
-      }
-    }
-    else {
-      switch(uwu.getReactInstance($('.chat')[0])._currentElement.props.children[0].props.children[1].props.children.props.channel.type) {
-        case 3:
-          $('#TitleforTitlebar').text('Group DM — ' + titularText);
-        break;
-      }
+    switch(uwu.getReactInstance($('.chat')[0]).return.stateNode.state.channel.type) {
+      /**
+       * @param {type}
+       * @type {number}
+       * Types:
+       * 0 - Guild Channel
+       * 1 - DM
+       * 2 - Voice Channel
+       * 3 - Group DM
+       * 4 - Categories
+       */
+      case 0:
+        $('#TitleforTitlebar').text('Guild Channel — ' + titularText);
+      break;
+      case 1:
+        $('#TitleforTitlebar').text('DM — ' + titularText);
+      break;
+      case 3:
+        $('#TitleforTitlebar').text('Group DM — ' + titularText);
+      break;
     }
   }
   uwu.onSwitch = () => uwu.getChannel();
