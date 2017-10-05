@@ -88,6 +88,6 @@ function TitleForTitle() {
   uwu.sName = () => 'TFTb';
   uwu.getName = () => 'TitleForTitlebar';
   uwu.getAuthor = () => 'Arashiryuu';
-  uwu.getVersion = () => '1';
+  uwu.getVersion = () => '1.1';
   uwu.getDescription = () => 'This plugin was intended to be used with Beard\'s Titlebar mini-theme or any theme that implements it.\n\nAdds a corresponding title for the channel / dm you\'re viewing to the titlebar.\n\nEdit it in your CSS with the #TitleforTitlebar element ID.';
 }
