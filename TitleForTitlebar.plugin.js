@@ -78,6 +78,30 @@ function TitleForTitle() {
       break;
     }
   }
+	uwu.observer = ({addedNodes, removedNodes}) => {
+    if(addedNodes && addedNodes[0] && addedNodes[0].classList && addedNodes[0].classList.contains('chat')) {
+      uwu.getChannel();
+    } else
+    if(addedNodes && addedNodes[0] && addedNodes[0].id && addedNodes[0].id === 'friends') {
+      $('#TitleforTitlebar').text('UI — Friends');
+    } else
+    if(addedNodes && addedNodes[0] && addedNodes[0].classList && addedNodes[0].classList.contains('layer')) {
+      if(!$('#bd-settings-sidebar').length) {
+        $('#TitleforTitlebar').text('UI — Server Settings');
+      }
+      else {
+        $('#TitleforTitlebar').text('UI — User Settings');
+      }
+    } else
+    if(removedNodes && removedNodes[0] && removedNodes[0].classList && removedNodes[0].classList.contains('layer')) {
+      if($('#friends').length > 0) {
+        $('#TitleforTitlebar').text('UI — Friends');
+      }
+      else {
+        uwu.getChannel();
+      }
+    }
+  }
   uwu.onSwitch = () => uwu.getChannel();
   uwu.stop = () => {
     $('#TitleforTitlebar').remove();
@@ -88,6 +112,8 @@ function TitleForTitle() {
   uwu.sName = () => 'TFTb';
   uwu.getName = () => 'TitleForTitlebar';
   uwu.getAuthor = () => 'Arashiryuu';
-  uwu.getVersion = () => '1.1';
+  uwu.getVersion = () => '1.2';
   uwu.getDescription = () => 'This plugin was intended to be used with Beard\'s Titlebar mini-theme or any theme that implements it.\n\nAdds a corresponding title for the channel / dm you\'re viewing to the titlebar.\n\nEdit it in your CSS with the #TitleforTitlebar element ID.';
 }
+
+/*@end@*/
