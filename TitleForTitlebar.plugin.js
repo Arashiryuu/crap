@@ -53,11 +53,11 @@ function TitleForTitle() {
     uwu.getChannel();
     uwu.log('Started');
   }
-	/**
-	 * @name getInternalInstance — renamed to getReactInstance
-	 * @description Function to return the react internal instance of an element
-	 * @author noodlebox
-	 */
+  /**
+   * @name getInternalInstance — renamed to getReactInstance
+   * @description Function to return the react internal instance of an element
+   * @author noodlebox
+   */
   uwu.getReactInstance = (node) => node[Object.keys(node).find((key) => key.startsWith('__reactInternalInstance'))];
   uwu.getChannel = () => {
     const titularText = $('.title .channel-name').text();
