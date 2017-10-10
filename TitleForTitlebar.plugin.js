@@ -83,7 +83,7 @@ function TitleForTitle() {
       break;
     }
   }
-	uwu.observer = ({addedNodes, removedNodes}) => {
+  uwu.observer = ({addedNodes, removedNodes}) => {
     if(addedNodes && addedNodes[0] && addedNodes[0].classList && addedNodes[0].classList.contains('chat')) {
       uwu.getChannel();
     } else
