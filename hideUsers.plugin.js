@@ -86,14 +86,14 @@ class hideUsers {
 	}
 	
 	contextHide() {
-    if(!$('.context-menu').length) return;
-    if(!this.getReactInstance($('.context-menu')[0]).return.stateNode.props.user) return;
-    if(!this.hidUsers.users.includes(this.getReactInstance($('.context-menu')[0]).return.stateNode.props.user.id)) {
-      this.hidUsers.users.push(this.getReactInstance($('.context-menu')[0]).return.stateNode.props.user.id);
-      this.saveSettings();
-      this.hideUser();
+		if(!$('.context-menu').length) return;
+		if(!this.getReactInstance($('.context-menu')[0]).return.stateNode.props.user) return;
+		if(!this.hidUsers.users.includes(this.getReactInstance($('.context-menu')[0]).return.stateNode.props.user.id)) {
+			this.hidUsers.users.push(this.getReactInstance($('.context-menu')[0]).return.stateNode.props.user.id);
+			this.saveSettings();
+			this.hideUser();
 		}
-  }
+	}
 
 	userPush() {
 		const nUser = $('#blockField').val();
@@ -106,24 +106,24 @@ class hideUsers {
 	};
 	
 	userClear() {
-	 const oUser = $('#blockField').val();
-	 if(this.hidUsers.users.length !== 0) {
-	 	if(oUser.match(/^\d{17,18}$/)) {
-			this.hidUsers.users.splice(this.hidUsers.users.indexOf(oUser), 1);
-			alert('Successfully removed!');
-			this.log(this.hidUsers.users.join(', '));
-			this.hideUser();
+		const oUser = $('#blockField').val();
+		if(this.hidUsers.users.length !== 0) {
+			if(oUser.match(/^\d{17,18}$/)) {
+				this.hidUsers.users.splice(this.hidUsers.users.indexOf(oUser), 1);
+				alert('Successfully removed!');
+				this.log(this.hidUsers.users.join(', '));
+				this.hideUser();
+			}
+			else {
+				this.hidUsers.users.pop();
+				alert('Successfully removed!');
+				this.log(this.hidUsers.users.join(', '));
+				this.hideUser();
+			}
 		}
 		else {
-			this.hidUsers.users.pop();
-			alert('Successfully removed!');
-			this.log(this.hidUsers.users.join(', '));
-			this.hideUser();
+			this.log('No users available');
 		}
-	 }
-	 else {
-		 this.log('No users available');
-	 }
 	};
 
 	saveSettings() {
