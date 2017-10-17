@@ -73,16 +73,16 @@ class hideUsers {
 	}
 
 	appendContext(context) {
-    if(!context) return;
+		if(!context) return;
 		if((this.getReactInstance(context).return.memoizedProps.target && this.getReactInstance(context).return.memoizedProps.target.classList.contains('avatar-large'))
 		|| (this.getReactInstance(context).return.memoizedProps.target && this.getReactInstance(context).return.memoizedProps.target.classList.contains('user-name'))
 		|| (this.getReactInstance(context).return.memoizedProps.target && this.getReactInstance(context).return.memoizedProps.target.classList.contains('member-username'))
 		|| (this.getReactInstance(context).return.memoizedProps.target && this.getReactInstance(context).return.memoizedProps.target.classList.contains('avatar-small'))) {
-      $(context).find('.item:contains("Profile")').after(this.contextItem);
-      $(context).find('.item.hideUser-item')
-        .off('click.hideUsers')
-        .on('click.hideUsers', this.contextHide.bind(this));
-    }
+			$(context).find('.item:contains("Profile")').after(this.contextItem);
+			$(context).find('.item.hideUser-item')
+				.off('click.hideUsers')
+				.on('click.hideUsers', this.contextHide.bind(this));
+		}
 	}
 	
 	contextHide() {
