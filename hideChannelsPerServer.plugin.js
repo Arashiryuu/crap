@@ -29,76 +29,131 @@ class hideChannelsPerServer {
 		this.hidChannels = {
 			chans: []
 		};
+
+		this.contextItem = `<div class="item-group hideChannelsPerServer">
+			<div class="item hideChannelItem">
+				<span>Hide Channel</span>
+				<div class="hint"></div>
+			</div>
+		</div>`;
+
 		this.mo = new MutationObserver((changes, _) => {
 			changes.forEach((change, i) => {
 				if(change.addedNodes) {
 					change.addedNodes.forEach((node) => {
-						if(node.className != undefined && node.className === 'containerDefault-7RImuF') {
+						if(node.className !== undefined && node.className === 'containerDefault-7RImuF') {
 							this.hideChannel();
 						}
 					});
 				}
 			});
 		});
+
+		this.contmo = new MutationObserver((changes, p) => {
+			for(const change of changes) {
+				if(change.addedNodes) {
+					for(const node of change.addedNodes.values()) {
+						if(node.nodeType === 1 && node.classList && node.classList.contains('context-menu')) {
+							this.appendContext(node);
+						}
+					}
+				}
+			}
+		});
 	};
+
 	hideChannel() {
-		if(!this.hidChannels.chans[0]) {
+		if(!this.hidChannels.chans.length) {
 			$('.channels-wrap [class*="containerDefault-7RImuF"]').each(function() {
 				if($(this).css('display') === 'none') $(this).show();
 			});
-			return console.warn('%c[hideChannelsPerServer]%c\tNo channels found.', 'color: #F2F', '');
+			return this.log('No channels found');
 		}
-		const self = this;
-		$('.channels-wrap [class*="containerDefault-7RImuF"]').each(function() {
-			self.hidChannels.chans.some(ii => ii === self.getReactInstance($(this)[0]).return.stateNode.props.channel.id) ? $(this).hide() : $(this).show()
-		});
+		else {
+			const self = this;
+			$('.channels-wrap [class*="containerDefault-7RImuF"]').each(function() {
+				self.hidChannels.chans.some(ii => ii === self.getReactInstance($(this)[0]).return.stateNode.props.channel.id) ? $(this).hide() : $(this).show()
+			});
+		}
 	};
+
+	appendContext(context) {
+		if(!context) return;
+    	if(this.getReactInstance(context).return.memoizedProps.channel && (this.getReactInstance(context).return.memoizedProps.channel.type === 0 || this.getReactInstance($('.context-menu')[0]).return.memoizedProps.channel.type === 2)) {
+			$(context).find('.item').first().after(this.contextItem);
+			$(context).find('.item.hideChannelItem')
+				.off('click.hideChannels')
+				.on('click.hideChannels', this.contextClick.bind(this));
+    	}
+	};
+
+	contextClick() {
+		if(!$('.context-menu').length) return;
+		if(!this.getReactInstance($('.context-menu')[0]).return.memoizedProps.channel) return;
+		if(!this.hidChannels.chans.includes(this.getReactInstance($('.context-menu')[0]).return.memoizedProps.channel.id)) {
+			this.hidChannels.chans.push(this.getReactInstance($('.context-menu')[0]).return.memoizedProps.channel.id);
+			this.saveSettings();
+			this.hideChannel();
+		}
+	};
+
+	/**
+     * @name getInternalInstance
+     * @description returns the react internal instance of the element
+     * @param {Node} node - the element we want the internal data from
+     * @author noodlebox
+     * @returns {Node}
+     */
 	getReactInstance(node) {
 		return node[Object.keys(node).find((key) => key.startsWith('__reactInternalInstance'))];
 	};
+
 	chanPush() {
-		let nChan = $('#ChanblockField').val();
+		const nChan = $('#ChanblockField').val();
 		if(isNaN(nChan)) return $('#ChanblockField').val('Invalid entry. (ID-only)');
 		if(!nChan) return $('#ChanblockField').val('Invalid entry. (No-entry)');
 		if(!nChan.match(/^\d{16,18}$/)) return $('#ChanblockField').val('Invalid entry. (Invalid-length-or-characters)');
 		this.hidChannels.chans.push(nChan);
-		console.info(`%c[${this.getName()}]%c\t${this.hidChannels.chans.join(', ')}`, 'color: #F2F', '');
+		this.saveSettings();
 		this.hideChannel();
 	};
+
 	chanClear() {
-	  let oChan = $('#ChanblockField').val();
+	  const oChan = $('#ChanblockField').val();
 		if(oChan.match(/^\d{16,18}$/)) {
 			this.hidChannels.chans.splice(this.hidChannels.chans.indexOf(oChan), 1);
-			console.info(`%c[${this.getName()}]%c\t${this.hidChannels.chans.join(', ')}`, 'color: #F2F', '');
+			this.saveSettings();
 			alert('Successfully removed!');
 			this.hideChannel();
 		} else {
 			this.hidChannels.chans.pop();
-			console.info(`%c[${this.getName()}]%c\t${this.hidChannels.chans.join(', ')}`, 'color: #F2F', '');
+			this.saveSettings();
 			alert('Successfully removed!');
 			this.hideChannel();	
 		}
 	};
+
 	saveSettings() {
 		bdPluginStorage.set('hideChannelsPerServer', 'channelsss', JSON.stringify(this.hidChannels.chans));
-		console.info('%c[hideChannelsPerServer]%c\tSaved settings.', 'color: #F2F', '');
-		console.info('%c[hideChannelsPerServer]%c\t' + this.hidChannels.chans.join(', '), 'color: #F2F', '');
+		this.log('Saved settings\n' + this.hidChannels.chans.join(', '));
 	};
+
 	loadSettings() {
 		this.hidChannels.chans = JSON.parse(bdPluginStorage.get('hideChannelsPerServer', 'channelsss'));
-		console.info('%c[hideChannelsPerServer]%c\tLoaded settings.', 'color: #F2F', '');
-		console.info('%c[hideChannelsPerServer]%c\t' + this.hidChannels.chans.join(', '), 'color: #F2F', '');
+		this.log('Loaded settings\n' + this.hidChannels.chans.join(', '));
 	};
+
 	start() {
-		console.info('%c[hideChannelsPerServer]%c\tWorking...', 'color: #F2F', '');
-		var settings = bdPluginStorage.get('hideChannelsPerServer', 'channelsss');
-		if(settings === null) {
-			console.info('%c[hideChannelsPerServer]%c\tNo settings found.', 'color: #F2F', '');
+		this.log('Started');
+		const settings = bdPluginStorage.get('hideChannelsPerServer', 'channelsss');
+		if(!settings) {
+			this.log('No settings found');
 		}
 		else {
 			this.hidChannels.chans = JSON.parse(settings);
-			console.info('%c[hideChannelsPerServer]%c\t' + this.hidChannels.chans.join(', '), 'color: #F2F', '');
+			this.log('Loaded settings\n' + this.hidChannels.chans.join(', '));
 		}
+		this.contmo.observe(document.querySelector('.app'), {childList: true, subtree: true});
 		this.hideChannel();
 		const self = this;
 		if($('.channels-wrap div[class^="container-"]').length > 0) {
@@ -107,33 +162,52 @@ class hideChannelsPerServer {
 			});
 		}
 	};
+
 	stop() {
 		$('.channels-wrap [class*="containerDefault-7RImuF"]').each(function() {
 			if($(this).css('display') === 'none') $(this).show();
 		});
+		$('*').off('click.hideChannels');
+		this.contmo.disconnect();
 		this.mo.disconnect();
-		console.info('%c[hideChannelsPerServer]%c\tStopped.', 'color: #F2F', ''); 
+		this.log('Stopped');
 	};
-	load() { 
-		console.info('%c[hideChannelsPerServer]%c\tBooting-Up.', 'color: #F2F', ''); 
+
+	load() {
+		this.log('Loaded');
 	};
+
+	log(text, extra) {
+		if(typeof text !== 'string')
+			return console.log(`[%c${this.getName()}%c]`, 'color: #F2F;', '', text);
+		if(!extra)
+			return console.log(`[%c${this.getName()}%c] ${text}`, 'color: #F2F;', '');
+		else
+			return console.log(`[%c${this.getName()}%c] ${text}`, 'color: #F2F;', '', extra);
+	}
+
 	onSwitch() { 
 		this.hideChannel(); 
 	};
+
 	getAuthor() { 
 		return 'Arashiryuu'; 
 	};
+
 	getName() { 
 		return 'hideChannelsPerServer'; 
 	};
+
 	getVersion() { 
-		return '1.3'; 
+		return '1.4'; 
 	};
+
 	getDescription() {
 		 return 'Hides any channels listed in the array of IDs.'; 
 	};
+
 	getSettingsPanel() { 
-		let htmls = `<h3>hideChannelsPerServer Plugin</h3><br/> 
+		return `<h3>hideChannelsPerServer Plugin</h3><br/> 
 		<input id="ChanblockField" type="text" placeholder="ID" style="resize: none; width: 80%;" /><br/><br/>
 		<br/><button class="ChU-btn0" onclick=BdApi.getPlugin("${this.getName()}").chanPush()>apply</button>
 		<button class="ChU-btn1" onclick=BdApi.getPlugin("${this.getName()}").chanClear()>remove</button>
@@ -142,8 +216,8 @@ class hideChannelsPerServer {
 		<br/>How to use:
 		<br/>1) Insert a channel\'s ID.<br/>
 		2) Click "apply."<br/>
-		3) To remove the last-added channel, click the "remove" button.<br/>`;
-		return htmls;
+		3) To remove the last-added channel, click the "remove" button.<br/>
+		<span class="hCPS-Footnote">Note: You can remove a specific channel by entering its ID to the textarea and clicking "remove".\nAlso channels can be hidden by right-clicking them.</span><br/>`;
 	};
 };
 
