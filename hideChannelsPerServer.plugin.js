@@ -217,7 +217,7 @@ class hideChannelsPerServer {
 		<br/>1) Insert a channel\'s ID.<br/>
 		2) Click "apply."<br/>
 		3) To remove the last-added channel, click the "remove" button.<br/>
-		<span class="hCPS-Footnote">Note: You can remove a specific channel by entering its ID to the textarea and clicking "remove".\nAlso channels can be hidden by right-clicking them.</span><br/>`;
+		<span class="hCPS-Footnote" style="font-size: 12px;">Note: You can remove a specific channel by entering its ID to the textarea and clicking "remove".\nAlso channels can be hidden by right-clicking them.</span><br/>`;
 	};
 };
 
