@@ -79,7 +79,7 @@ class hideChannelsPerServer {
 
 	appendContext(context) {
 		if(!context) return;
-    	if(this.getReactInstance(context).return.memoizedProps.channel && (this.getReactInstance(context).return.memoizedProps.channel.type === 0 || this.getReactInstance($('.context-menu')[0]).return.memoizedProps.channel.type === 2)) {
+    	if(!this.getReactInstance(context).return.memoizedProps.message && this.getReactInstance(context).return.memoizedProps.channel && (this.getReactInstance(context).return.memoizedProps.channel.type === 0 || this.getReactInstance($('.context-menu')[0]).return.memoizedProps.channel.type === 2)) {
 			$(context).find('.item').first().after(this.contextItem);
 			$(context).find('.item.hideChannelItem')
 				.off('click.hideChannels')
