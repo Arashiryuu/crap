@@ -28,10 +28,7 @@ function TitleForTitle() {
   const uwu = this;
   uwu.start = () => {
     if($('#TitleforTitlebar').length) return;
-    const tElem = $('<span/>', { 
-      id: 'TitleforTitlebar', 
-      text: '\u200b'
-    });
+    const tElem = $('<span/>', { id: 'TitleforTitlebar', text: '\u200b' });
     const titleCSS = `
     <style id="TitleforTitlebarCSS" type="text/css">
       @import 'https://fonts.googleapis.com/css?family=Roboto|Inconsolata';
@@ -63,8 +60,6 @@ function TitleForTitle() {
     const titularText = $('.title .channel-name').text();
     switch(uwu.getReactInstance($('.chat')[0]).return.stateNode.state.channel.type) {
       /**
-       * @param {type}
-       * @type {number}
        * Types:
        * 0 - Guild Channel
        * 1 - DM
