@@ -9,7 +9,7 @@
 	var pathPlugins = shell.ExpandEnvironmentStrings("%APPDATA%\\BetterDiscord\\plugins");
 	var pathSelf = WScript.ScriptFullName;
 	// Put the user at ease by addressing them in the first person
-	shell.Popup("It looks like you mistakenly tried to run me directly. \n(Don't do that!)", 0, "I'm a plugin for BetterDiscord", 0x30);
+	shell.Popup("It looks like you've mistakenly tried to run me directly. \n(Don't do that!)", 0, "I'm a plugin for BetterDiscord", 0x30);
 	if (fs.GetParentFolderName(pathSelf) === fs.GetAbsolutePathName(pathPlugins)) {
 		shell.Popup("I'm in the correct folder already.\nJust reload Discord with Ctrl+R.", 0, "I'm already installed", 0x40);
 	} else if (!fs.FolderExists(pathPlugins)) {
@@ -21,63 +21,117 @@
 		shell.Popup("I'm installed!\nJust reload Discord with Ctrl+R.", 0, "Successfully installed", 0x40);
 	}
 	WScript.Quit();
+
 @else@*/
 
 class hideServers {
 	constructor() {
-		this.hideServer = () => {
-			if(!this.hidServers.servers[0]) return console.warn('%c[hideServers]%c\tNo servers found.', 'color: #AAF', '');
-			for(let server of this.hidServers.servers) {
-  			$(`[href*='${server}']`).parent().parent().parent().hide();
- 			}
-		};
 		this.hidServers = {
 			servers: []
-		};
-	};
+		}
+
+		this.contextItem = `<div class="item-group hideServers">
+			<div class="item hideServer-item-hide">
+				<span>Hide Server</span>
+				<div class="hint"></div>
+			</div>
+		</div>`;
+
+		this.contextmo = new MutationObserver((changes, p) => {
+			changes.forEach((change, i) => {
+				if(change.addedNodes) {
+					change.addedNodes.forEach((node) => {
+						if(node.nodeType === 1 && node.classList && node.classList.contains('context-menu')) {
+							this.appendContext(node);
+						}
+					});
+				}
+			});
+		});
+	}
+
+	hideServer() {
+		if(!this.hidServers.servers[0]) {
+			$('.guild').each(function() {
+				if($(this).css('display') === 'none') $(this).show();
+			});
+		}
+		else {
+			$('.guild').each(function() {
+				if($(this).css('display') === 'none') $(this).show();
+			});
+			for(const server of this.hidServers.servers) {
+				$(`[href*='${server}']`).parent().parent().parent().hide();
+			}
+		}
+	}
+
+	appendContext(context) {
+		if(!context) return;
+		if((this.getReactInstance(context).return.memoizedProps.target && this.getReactInstance(context).return.memoizedProps.guild)) {
+      		$(context).find('.item').first().after(this.contextItem);
+      		$(context).find('.item.hideServer-item-hide')
+        		.off('click.hideServers')
+				.on('click.hideServers', this.contextHide.bind(this));
+    	}
+	}
+
+	contextHide() {
+    	if(!$('.context-menu').length) return;
+    	if(!this.getReactInstance($('.context-menu')[0]).return.memoizedProps.guild) return;
+    	if(!this.hidServers.servers.includes(this.getReactInstance($('.context-menu')[0]).return.memoizedProps.guild.id)) {
+      		this.hidServers.servers.push(this.getReactInstance($('.context-menu')[0]).return.memoizedProps.guild.id);
+     		this.saveSettings();
+      		this.hideServer();
+		}
+	}
+
 	servPush() {
-		let nServer = $('#ServerHideField').val();
+		const nServer = $('#ServerHideField').val();
 		if(isNaN(nServer)) return $('#ServerHideField').val('Invalid entry. (NaN)');
-		if(nServer.length === 0 || nServer === undefined) return $('#ServerHideField').val('Invalid entry. (empty server)');
-		if (nServer.match(/^[0-9]{16,18}$/) === null) return $('#ServerHideField').val('Invalid entry. (Invalid length or non digit)');
+		if(!nServer) return $('#ServerHideField').val('Invalid entry. (empty server)');
+		if(!nServer.match(/^[0-9]{16,18}$/)) return $('#ServerHideField').val('Invalid entry. (Invalid length or non digit)');
 		this.hidServers.servers.push(nServer);
-		console.info(`%c[${this.getName()}]%c\t${this.hidServers.servers.join(', ')}`, 'color: #AAF', '');
+		this.log('Server added\n' + this.hidServers.servers.join(', '));
 		this.hideServer();
-	};
+	}
+
 	servClear() {
-		if (this.hidServers.servers.length !== 0)
+		if(this.hidServers.servers.length !== 0)
 			this.servRemove(this.hidServers.servers[this.hidServers.servers.length-1]);
 		else
-			console.info('%c[hideServers]%c There are no servers to remove', 'color: #AAF', '');
-	};
+			this.log('No servers found');
+	}
+
 	servRemove(servId) {
 		this.hidServers.servers.splice(this.hidServers.servers.indexOf(servId), 1);
 		$(`[href*='${servId}']`).parent().parent().parent().show();
-		console.info(`%c[${this.getName()}]%c\t${this.hidServers.servers.join(', ')}`, 'color: #AAF', '');
+		this.log('Server removed\n' + this.hidServers.servers.join(', '));
 		alert('Successfully removed!');
 		this.hideServer();		
-	};
+	}
+
 	saveSettings() {
 		bdPluginStorage.set('hideServers', 'servers', JSON.stringify(this.hidServers.servers));
-		console.info('%c[hideServers]%c\tSaved settings.', 'color: #AAF', '');
-		console.info('%c[hideServers]%c\t' + this.hidServers.servers.join(', '), 'color: #AAF', '');
-	};
+		this.log('Saved settings\n' + this.hidServers.servers.join(', '));
+	}
+
 	loadSettings() {
 		this.hidServers.servers = JSON.parse(bdPluginStorage.get('hideServers', 'servers'));
-		console.info('%c[hideServers]%c\tLoaded settings.', 'color: #AAF', '');
-		console.info('%c[hideServers]%c\t' + this.hidServers.servers.join(', '), 'color: #AAF', '');
+		this.log('Loaded settings\n' + this.hidServers.servers.join(', '));
 		this.hideServer();
-	};
+	}
+
 	updateSettingsPanel() {
-		let pluginName = this.getName();
-		if ($('#hsplugin-settings-div').length === 0) {
+		const pluginName = this.getName();
+		if($('#hsplugin-settings-div').length === 0) {
 			var that = this;
-			setTimeout(function() { that.updateSettingsPanel(); }, 500); // try again later
+			setTimeout(() => that.updateSettingsPanel(), 500); // try again later
 			return;
 		}
 		let stff = `<h3>hideServers Plugin</h3><br/>
 		<div id="hsplugin-subcontainer" style="display: flex; flex: 1 1 auto; flex-flow: wrap row; position: relative; margin-bottom: 4ex; width: 70%;">`;
-		for(let server of this.hidServers.servers) {
+		for(const server of this.hidServers.servers) {
 			let style = $(`[href*='${server}']`).attr('style');
 			stff += `<button class='avatar-small' onclick='BdApi.getPlugin("${pluginName}").servRemove(${server})' style='${style}; background-size: cover; background-position: center; flex: 1 0 20%; margin-left: 1px; max-width: 13%; min-height: 4vh;'></button>`;
  		}
@@ -89,59 +143,94 @@ class hideServers {
 			<button class="ShU-btn3" onclick=BdApi.getPlugin("${pluginName}").loadSettings()>load</button><br/>
 
 			<br/>How to use:<br/>
-				0) Go to user settings -> Appearance, and enable Developer Mode, then right-click a server and "Copy ID"<br/>
+				0) Go to user settings \u21D2 Appearance, and enable Developer Mode, then right-click a server and "Copy ID"<br/>
 				1) Insert a server's ID.<br/>
 				2) Click "apply."<br/>
-				3) To remove the last-added server, click the "remove" button.<br/>
+				3) To remove the last-added server, click the "remove" button.<br/><br/>
+				<span style="font-size: 12px;">Note: You can right-click a server to hide it also.</span><br/><br/>
 		`;
 		$('#hsplugin-settings-div').html(stff);
-	};
+	}
+
+	/**
+     * @name getInternalInstance
+     * @description returns the react internal instance of the element
+     * @param {Node} node - the element we want the internal data from
+     * @author noodlebox
+     * @returns {Node}
+     */
+	getReactInstance(node) {
+		return node[Object.keys(node).find((key) => key.startsWith('__reactInternalInstance'))];
+	}
+
 	start() { 
-		console.info('%c[hideServers]%c\tWorking...', 'color: #AAF', '');
-		var settings = bdPluginStorage.get('hideServers', 'servers');
-		if(settings === null || settings === undefined) {
-			console.info('%c[hideServers]%c\t' + 'No settings found.', 'color: #AAF', '');
+		this.log('Started');
+		const settings = bdPluginStorage.get('hideServers', 'servers');
+		if(!settings) {
+			this.log('No settings available');
 		}
 		else {
 			this.hidServers.servers = JSON.parse(settings);
-			console.info('%c[hideServers]%c\t' + this.hidServers.servers.join(', '), 'color: #AAF', '');
+			this.log('Settings loaded\n' + this.hidServers.servers.join(', '));
 		}
-		this.hideServer(); 
-		this.updateSettingsPanel(); 
-	};
+		this.hideServer();
+		this.updateSettingsPanel();
+		this.contextmo.observe($('.app')[0], {childList: true, subtree: true});
+	}
+
 	stop() {
-		for(let server of this.hidServers.servers) {
-			$(`[href*='${server}']`).parent().parent().parent().show();
+		if(!this.hidServers.servers[0]) {
+			$('.guild').each(function() {
+				if($(this).css('display') === 'none') $(this).show();
+			});
 		}
-		console.info('%c[hideServers]%c\tStopped.', 'color: #AAF', '');
-	};
+		else {
+			for(const server of this.hidServers.servers) {
+				$(`[href*='${server}']`).parent().parent().parent().show();
+			}
+		}
+		$('*').off('click.hideServers');
+		this.contextmo.disconnect();
+		this.log('Stopped');
+	}
+
 	load() { 
-		console.info('%c[hideServers]%c\tBooting-Up.', 'color: #AAF', ''); 
-	};
+		this.log('Loaded');
+	}
+
+	log(text) {
+		return console.log(`[%c${this.getName()}%c] ${text}`, 'color: #AAF', '');
+	}
+
 	onSwitch() {
 		this.hideServer();
-	};
+	}
+
 	getAuthor() {
 		return 'Arashiryuu';
-	};
+	}
+
 	getName() {
 		return 'hideServers';
-	};
+	}
+
 	getVersion() {
-		return '2';
-	};
+		return '2ƒ';
+	}
+
 	getDescription() {
 		return 'Hides any servers listed in the array of IDs.';
-	};
+	}
+
 	getSettingsPanel() { 
-		let pluginName = this.getName();
 		let stff = `<div id='hsplugin-settings-div'>
 			<h3>hideServers Plugin</h3><br/>
 			Loading...
 			</div>`;
-		var that = this;
-		setTimeout(function() { that.updateSettingsPanel(); }, 1000);
+		const that = this;
+		setTimeout(() => that.updateSettingsPanel(), 1000);
 		return stff;
-	};
+	}
 };
+
 /*@end*/
