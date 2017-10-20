@@ -68,10 +68,10 @@ class hideServers {
 
 	appendContext(context) {
 		if(!context) return;
-		if((this.getReactInstance(context).return.memoizedProps.target && this.getReactInstance(context).return.memoizedProps.guild)) {
+		if(this.getReactInstance(context).return.memoizedProps.type === 'GUILD_ICON_BAR' && this.getReactInstance(context).return.memoizedProps.guild && !this.getReactInstance(context).return.memoizedProps.channel) {
       		$(context).find('.item').first().after(this.contextItem);
       		$(context).find('.item.hideServer-item-hide')
-        		.off('click.hideServers')
+       			.off('click.hideServers')
 				.on('click.hideServers', this.contextHide.bind(this));
     	}
 	}
@@ -81,7 +81,7 @@ class hideServers {
     	if(!this.getReactInstance($('.context-menu')[0]).return.memoizedProps.guild) return;
     	if(!this.hidServers.servers.includes(this.getReactInstance($('.context-menu')[0]).return.memoizedProps.guild.id)) {
       		this.hidServers.servers.push(this.getReactInstance($('.context-menu')[0]).return.memoizedProps.guild.id);
-     		this.saveSettings();
+      		this.saveSettings();
       		this.hideServer();
 		}
 	}
