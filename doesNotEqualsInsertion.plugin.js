@@ -50,7 +50,8 @@ class doesNotEqualsInsertion {
 		if(!teA.length) return;
 		teA.off('keyup.dnEI').on('keyup.dnEI', (e) => {
 			if(teA.val().includes('\=\/\=')) {
-				teA.val(teA.text().replace(/\=\/\=/g, '\u2260'));
+				teA.val(teA.text().replace(/=\/=/g, ''));
+				document.execCommand('insertText', false, '\u2260');
 			}
 		});
 	}
@@ -61,7 +62,7 @@ class doesNotEqualsInsertion {
 		return 'Arashiryuu';
 	}
 	getVersion() {
-		return '1';
+		return '1.1';
 	}
 	getDescription() {
 		return 'Replace any `\=\/\=` with `\≠`';
