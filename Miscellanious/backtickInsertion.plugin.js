@@ -9,7 +9,7 @@
 	var pathPlugins = shell.ExpandEnvironmentStrings("%APPDATA%\\BetterDiscord\\plugins");
 	var pathSelf = WScript.ScriptFullName;
 	// Put the user at ease by addressing them in the first person
-	shell.Popup("It looks like you mistakenly tried to run me directly. \n(Don't do that!)", 0, "I'm a plugin for BetterDiscord", 0x30);
+	shell.Popup("It looks like you've mistakenly tried to run me directly. \n(Don't do that!)", 0, "I'm a plugin for BetterDiscord", 0x30);
 	if (fs.GetParentFolderName(pathSelf) === fs.GetAbsolutePathName(pathPlugins)) {
 		shell.Popup("I'm in the correct folder already.\nJust reload Discord with Ctrl+R.", 0, "I'm already installed", 0x40);
 	} else if (!fs.FolderExists(pathPlugins)) {
@@ -40,7 +40,7 @@ class backtickInsertion {
 		this.log('Loaded');
 	}
 	log(text) {
-		return console.log(`%c[${this.getName()}]%c ${text}`, 'color: hsla(192, 100%, 50%, 0.8)', '');
+		return console.log(`[%c${this.getName()}%c] ${text}`, 'color: #59F; text-shadow: 0 0 1px black, 0 0 2px black, 0 0 3px black;', '');
 	}
 	onSwitch() {
 		this.init();
@@ -50,7 +50,8 @@ class backtickInsertion {
 		if(!textArea.length) return;
 		textArea.off('keyup.backIn').on('keyup.backIn', (e) => {
 			if(textArea.val().includes('\'\'\'')) {
-				textArea.val(textArea.text().replace(/\'\'\'/g, '`'.repeat(3)));
+				textArea.val(textArea.text().replace(/'''/g, '`'.repeat(3)));
+				document.execCommand('textInsert', false, '`'.repeat(3));
 			}
 		});
 	}
@@ -61,10 +62,10 @@ class backtickInsertion {
 		return 'Arashiryuu';
 	}
 	getVersion() {
-		return '1';
+		return '1.1';
 	}
 	getDescription() {
-		return 'Replace any consecutive triple apostrophies \'\'\' you may have input with \`\`\` consecutive triple backticks; AKA grave-accents, making markdown for codeblocks slightly simpler to achieve.';
+		return 'Replace any consecutive triple apostrophies \'\'\' that you may have input with \`\`\` consecutive triple backticks; AKA grave-accents, making markdown for codeblocks slightly simpler to achieve.';
 	}
 	getSettingsPanel() {
 		return;
