@@ -44,15 +44,27 @@ class hideUsers {
 		</div>`;
 
 		this.contextmo = new MutationObserver((changes, p) => {
-			changes.forEach((change, i) => {
+      changes.forEach((change, i) => {
+        if(change.addedNodes) {
+          change.addedNodes.forEach((node) => {
+            if(node.nodeType === 1 && node.classList && node.classList.contains('context-menu')) {
+              this.appendContext(node);
+            }
+          });
+        }
+      });
+		});
+		
+		this.memberListMO = new MutationObserver((changes, p) => {
+			for(const change of changes) {
 				if(change.addedNodes) {
-					change.addedNodes.forEach((node) => {
-						if(node.nodeType === 1 && node.classList && node.classList.contains('context-menu')) {
-							this.appendContext(node);
+					for(const node of change.addedNodes.values()) {
+						if(this.getReactInstance(node).return.return.memoizedProps.user && this.hidUsers.users.includes(this.getReactInstance(node).return.return.memoizedProps.user.id)) {
+							this.hideUser();
 						}
-					});
+					}
 				}
-			});
+			}
 		});
 	};
 
@@ -73,27 +85,27 @@ class hideUsers {
 	}
 
 	appendContext(context) {
-		if(!context) return;
+    	if(!context) return;
 		if((this.getReactInstance(context).return.memoizedProps.target && this.getReactInstance(context).return.memoizedProps.target.classList.contains('avatar-large'))
 		|| (this.getReactInstance(context).return.memoizedProps.target && this.getReactInstance(context).return.memoizedProps.target.classList.contains('user-name'))
 		|| (this.getReactInstance(context).return.memoizedProps.target && this.getReactInstance(context).return.memoizedProps.target.classList.contains('member-username'))
 		|| (this.getReactInstance(context).return.memoizedProps.target && this.getReactInstance(context).return.memoizedProps.target.classList.contains('avatar-small'))) {
-			$(context).find('.item:contains("Profile")').after(this.contextItem);
-			$(context).find('.item.hideUser-item')
-				.off('click.hideUsers')
-				.on('click.hideUsers', this.contextHide.bind(this));
-		}
+      		$(context).find('.item:contains("Profile")').after(this.contextItem);
+      		$(context).find('.item.hideUser-item')
+        		.off('click.hideUsers')
+        		.on('click.hideUsers', this.contextHide.bind(this));
+    	}
 	}
 	
 	contextHide() {
-		if(!$('.context-menu').length) return;
-		if(!this.getReactInstance($('.context-menu')[0]).return.stateNode.props.user) return;
-		if(!this.hidUsers.users.includes(this.getReactInstance($('.context-menu')[0]).return.stateNode.props.user.id)) {
-			this.hidUsers.users.push(this.getReactInstance($('.context-menu')[0]).return.stateNode.props.user.id);
-			this.saveSettings();
-			this.hideUser();
+    	if(!$('.context-menu').length) return;
+    	if(!this.getReactInstance($('.context-menu')[0]).return.stateNode.props.user) return;
+    	if(!this.hidUsers.users.includes(this.getReactInstance($('.context-menu')[0]).return.stateNode.props.user.id)) {
+      		this.hidUsers.users.push(this.getReactInstance($('.context-menu')[0]).return.stateNode.props.user.id);
+      		this.saveSettings();
+      		this.hideUser();
 		}
-	}
+  }
 
 	userPush() {
 		const nUser = $('#blockField').val();
@@ -106,24 +118,24 @@ class hideUsers {
 	};
 	
 	userClear() {
-		const oUser = $('#blockField').val();
-		if(this.hidUsers.users.length !== 0) {
-			if(oUser.match(/^\d{17,18}$/)) {
-				this.hidUsers.users.splice(this.hidUsers.users.indexOf(oUser), 1);
-				alert('Successfully removed!');
-				this.log(this.hidUsers.users.join(', '));
-				this.hideUser();
-			}
-			else {
-				this.hidUsers.users.pop();
-				alert('Successfully removed!');
-				this.log(this.hidUsers.users.join(', '));
-				this.hideUser();
-			}
+	 const oUser = $('#blockField').val();
+	 if(this.hidUsers.users.length !== 0) {
+	 	if(oUser.match(/^\d{17,18}$/)) {
+			this.hidUsers.users.splice(this.hidUsers.users.indexOf(oUser), 1);
+			alert('Successfully removed!');
+			this.log(this.hidUsers.users.join(', '));
+			this.hideUser();
 		}
 		else {
-			this.log('No users available');
+			this.hidUsers.users.pop();
+			alert('Successfully removed!');
+			this.log(this.hidUsers.users.join(', '));
+			this.hideUser();
 		}
+	 }
+	 else {
+		 this.log('No users available');
+	 }
 	};
 
 	saveSettings() {
@@ -143,12 +155,12 @@ class hideUsers {
 	};
 
 	/**
-   * @name getInternalInstance
-   * @description returns the react internal instance of the element
-   * @param {Node} node - the element we want the internal data from
-   * @author noodlebox
-   * @returns {Node}
-   */
+     * @name getInternalInstance
+     * @description returns the react internal instance of the element
+     * @param {Node} node - the element we want the internal data from
+     * @author noodlebox
+     * @returns {Node}
+     */
 	getReactInstance(node) {
 		return node[Object.keys(node).find((key) => key.startsWith('__reactInternalInstance'))];
 	}
@@ -165,11 +177,13 @@ class hideUsers {
 		}
 		 this.hideUser();
 		 this.contextmo.observe($('.app')[0], {childList: true, subtree: true});
+		 this.memberListMO.observe($('.channel-members-wrap')[0], {childList: true, subtree: true});
 	 	$('head').append(this.blockCSS);
 	};
 
 	stop() {
 		this.contextmo.disconnect();
+		this.memberListMO.disconnect();
 		$('#hideUsersCSS').remove();
 		$('.message-group').each(function() {
 			if($(this).css('display') === 'none') $(this).show();
@@ -214,7 +228,7 @@ class hideUsers {
 	};
 
 	getVersion() {
-		return '1.3';
+		return '1.4';
 	};
 
 	getDescription() {
