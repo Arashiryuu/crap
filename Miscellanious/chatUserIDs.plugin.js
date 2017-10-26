@@ -26,16 +26,16 @@
 
 class chatUserIDs {
 	constructor() {
-		this.css = `
-		<style id="chatUserIDsCSS" type="text/css">
-		  @import 'https://fonts.googleapis.com/css?family=Roboto|Inconsolata';
-		  #tagID {
-		  	  font-size: 12px;
-			  padding: 6px 0 0 3px;
-			  color: #EEE;
-			  font-family: 'Roboto', 'Inconsolata', 'Whitney', sans-serif;
-		  }
-		</style>`;
+    this.css = `
+    <style id="chatUserIDsCSS" type="text/css">
+      @import 'https://fonts.googleapis.com/css?family=Roboto|Inconsolata';
+      #tagID {
+        font-size: 12px;
+        padding: 6px 6px 0 0;
+        color: #EEE;
+        font-family: 'Roboto', 'Inconsolata', 'Whitney', sans-serif;
+      }
+    </style>`;
 	}
 
 	load() {
@@ -43,41 +43,42 @@ class chatUserIDs {
 	}
 
 	stop() {
-		$('.tagID, #chatUserIDsCSS').remove();
+    $('.tagID, #chatUserIDsCSS').remove();
 		this.log('Stopped');
 	}
 
 	start() {
-		$('head').append(this.css);
-		this.attachID();
+    $('head').append(this.css);
+    this.attachID();
 		this.log('Started');
 	}
 
 	onSwitch() {
-		setTimeout(() => this.attachID(), 250);
+		setTimeout(() => this.attachID(), 1e3);
 	}
 
 	observer({ addedNodes, removedNodes }) {
-		if(addedNodes.length > 0 && addedNodes[0].classList && addedNodes[0].classList.contains('message-group')) {
-			this.attachID();
-    	}
-    	if(removedNodes.length > 0 && removedNodes[0].classList && removedNodes[0].classList.contains('message-group')) {
-			this.attachID();
-    	}
+    if(addedNodes.length > 0 && addedNodes[0].classList && addedNodes[0].classList.contains('message-group')
+    || addedNodes.length > 0 && addedNodes[0].classList && addedNodes[0].classList.contains('messages-wrapper')) {
+      this.attachID();
+    }
+    if(removedNodes.length > 0 && removedNodes[0].classList && removedNodes[0].classList.contains('message-group')) {
+      this.attachID();
+    }
 	}
 
 	attachID() {
-		if(!$('.message-group').length) return;
-		try {
-			$('.message-group').each((index, post) => {
-				if($(post).find('.tagID').length > 0) return;
-				const elem = `<span id="tagID" class="tagID">[ ${this.getReactInstance($(post)[0]).return.memoizedProps.messages[0].author.id} ]</span>`;
-				$(post).find('.username-wrapper > .user-name').append(elem);
-		  	});
-		}
-		catch(e) {
-			console.error(e);
-		}
+    if(!$('.message-group').length) return;
+    try {
+      $('.message-group').each((index, post) => {
+        if($(post).find('.tagID').length > 0) return;
+        const elem = `<span id="tagID" class="tagID">[ ${this.getReactInstance($(post)[0]).return.memoizedProps.messages[0].author.id} ]</span>`;
+        $(post).find('.username-wrapper > .user-name').before(elem);
+      });
+    }
+    catch(e) {
+      console.error(e);
+    }
 	}
 
 	/**
