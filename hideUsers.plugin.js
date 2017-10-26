@@ -183,7 +183,7 @@ class hideUsers {
 
 	membersObserve() {
 		const memberList = $('.channel-members-wrap');
-		if(!membersList || !memberList.length) return;
+		if(!memberList || !memberList.length) return;
 		this.memberListMO.observe($('.channel-members-wrap')[0], {childList: true, subtree: true});
 	};
 
