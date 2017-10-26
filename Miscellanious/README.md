@@ -8,3 +8,5 @@
 **[statusProfileContainer](https://github.com/Arashiryuu/crap/blob/master/Miscellanious/statusProfileContainer.plugin.js)** ー Colours the profile container to align with your current status.
 
 **[backtickInsertion](https://github.com/Arashiryuu/crap/blob/master/Miscellanious/backtickInsertion.plugin.js)** ー Replaces user-input consecutive triple apostrophies \'\'\' with backticks \`\`\`, making markdown codeblocks easier to achieve.
+
+**[chatUserIDs](https://github.com/Arashiryuu/crap/blob/master/Miscellanious/chatUserIDs.plugin.js)** ー Adds a user's ID next to their names in the chat, makes accessing a user's ID simpler.
