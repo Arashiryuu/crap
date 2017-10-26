@@ -82,7 +82,7 @@ class hideUsers {
 			$(`[style*='${user}']`).parent().hide();
 			$(`.avatarContainer-303pFz [style*='${user}']`).parent().parent().parent().hide();
 		}
-	}
+	};
 
 	appendContext(context) {
     	if(!context) return;
@@ -95,7 +95,7 @@ class hideUsers {
         		.off('click.hideUsers')
         		.on('click.hideUsers', this.contextHide.bind(this));
     	}
-	}
+	};
 	
 	contextHide() {
     	if(!$('.context-menu').length) return;
@@ -105,7 +105,7 @@ class hideUsers {
       		this.saveSettings();
       		this.hideUser();
 		}
-  }
+	};
 
 	userPush() {
 		const nUser = $('#blockField').val();
@@ -155,15 +155,15 @@ class hideUsers {
 	};
 
 	/**
-     * @name getInternalInstance
-     * @description returns the react internal instance of the element
-     * @param {Node} node - the element we want the internal data from
-     * @author noodlebox
-     * @returns {Node}
-     */
+	 * @name getInternalInstance
+	 * @description returns the react internal instance of the element
+	 * @param {Node} node - the element we want the internal data from
+	 * @author noodlebox
+	 * @returns {Node}
+	 */
 	getReactInstance(node) {
 		return node[Object.keys(node).find((key) => key.startsWith('__reactInternalInstance'))];
-	}
+	};
 
 	start() { 
 		this.log('Started');
@@ -176,9 +176,15 @@ class hideUsers {
 			this.log('Loaded settings\n' + this.hidUsers.users.join(', '));
 		}
 		 this.hideUser();
+		 this.membersObserve();
 		 this.contextmo.observe($('.app')[0], {childList: true, subtree: true});
-		 this.memberListMO.observe($('.channel-members-wrap')[0], {childList: true, subtree: true});
 	 	$('head').append(this.blockCSS);
+	};
+
+	membersObserve() {
+		const memberList = $('.channel-members-wrap');
+		if(!membersList || !memberList.length) return;
+		this.memberListMO.observe($('.channel-members-wrap')[0], {childList: true, subtree: true});
 	};
 
 	stop() {
@@ -201,7 +207,7 @@ class hideUsers {
 
 	log(text) {
 		return console.log(`[%c${this.getName()}%c] ${text}`, 'color: #9653AD', '');
-	}
+	};
 
 	observer(ex) {
 		if(ex.addedNodes.length && ex.addedNodes[0].classList && ex.addedNodes[0].classList.contains('message-group')) {
@@ -212,11 +218,12 @@ class hideUsers {
 		}
 		if(ex.addedNodes.length && ex.addedNodes[0].classList && ex.addedNodes[0].classList.contains('channel-members-wrap')) {
 			this.hideUser();
+			this.membersObserve();
 		}
 	};
 
 	onSwitch() { 
-		this.hideUser(); 
+		this.hideUser();
 	};
 
 	getName() {
@@ -228,7 +235,7 @@ class hideUsers {
 	};
 
 	getVersion() {
-		return '1.4';
+		return '1.5';
 	};
 
 	getDescription() {
