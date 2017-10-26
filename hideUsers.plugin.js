@@ -44,15 +44,15 @@ class hideUsers {
 		</div>`;
 
 		this.contextmo = new MutationObserver((changes, p) => {
-      changes.forEach((change, i) => {
-        if(change.addedNodes) {
-          change.addedNodes.forEach((node) => {
-            if(node.nodeType === 1 && node.classList && node.classList.contains('context-menu')) {
-              this.appendContext(node);
-            }
-          });
-        }
-      });
+      		changes.forEach((change, i) => {
+        		if(change.addedNodes) {
+          			change.addedNodes.forEach((node) => {
+            			if(node.nodeType === 1 && node.classList && node.classList.contains('context-menu')) {
+              				this.appendContext(node);
+            			}
+          			});
+        		}
+      		});
 		});
 		
 		this.memberListMO = new MutationObserver((changes, p) => {
