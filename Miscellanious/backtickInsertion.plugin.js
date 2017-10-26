@@ -34,7 +34,7 @@ class backtickInsertion {
 	}
 	stop() {
 		this.log('Stopped');
-		$('.channel-text-area-default div textarea').off('keyup.backIn');
+		$('#app-mount form > div > div > textarea').off('keyup.backIn');
 	}
 	load() {
 		this.log('Loaded');
@@ -46,7 +46,7 @@ class backtickInsertion {
 		this.init();
 	}
 	init() {
-		const textArea = $('.channel-text-area-default div textarea');
+		const textArea = $('#app-mount form > div > div > textarea');
 		if(!textArea.length) return;
 		textArea.off('keyup.backIn').on('keyup.backIn', (e) => {
 			if(textArea.val().includes('\'\'\'')) {
