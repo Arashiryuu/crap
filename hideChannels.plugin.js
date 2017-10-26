@@ -9,7 +9,7 @@
 	var pathPlugins = shell.ExpandEnvironmentStrings("%APPDATA%\\BetterDiscord\\plugins");
 	var pathSelf = WScript.ScriptFullName;
 	// Put the user at ease by addressing them in the first person
-	shell.Popup("It looks like you mistakenly tried to run me directly. \n(Don't do that!)", 0, "I'm a plugin for BetterDiscord", 0x30);
+	shell.Popup("It looks like you've mistakenly tried to run me directly. \n(Don't do that!)", 0, "I'm a plugin for BetterDiscord", 0x30);
 	if (fs.GetParentFolderName(pathSelf) === fs.GetAbsolutePathName(pathPlugins)) {
 		shell.Popup("I'm in the correct folder already.\nJust reload Discord with Ctrl+R.", 0, "I'm already installed", 0x40);
 	} else if (!fs.FolderExists(pathPlugins)) {
@@ -21,6 +21,7 @@
 		shell.Popup("I'm installed!\nJust reload Discord with Ctrl+R.", 0, "Successfully installed", 0x40);
 	}
 	WScript.Quit();
+
 @else@*/
 
 class hideChannels {
@@ -28,7 +29,7 @@ class hideChannels {
 		this.hidChannels = {
 			chans: []
 		};
-		
+
 		this.mo = new MutationObserver((changes, z) => {
 			changes.forEach((change, i) => {
 				if(change.addedNodes)
@@ -39,14 +40,14 @@ class hideChannels {
 			});
 		});
 	};
-	
+
 	hideChannel() {
 		if(!this.hidChannels.chans[0]) {
 			$('.channels-wrap [class*="containerDefault-7RImuF"]').each(function() {
 				if($(this).css('display') === 'none') $(this).show();
 			});
-			return console.warn('%c[hideChannels]%c\tNo channels found.', 'color: #F2F', '');
-		}
+			return console.warn('%c[hideChannelsPerServer]%c\tNo channels found.', 'color: #F2F', '');
+		} 
 		else {
 			for(const chan of this.hidChannels.chans) {
 				$(`.containerDefault-7RImuF:contains(${chan})`).hide();
@@ -55,22 +56,22 @@ class hideChannels {
 	};
 
 	chanPush() {
-		const nChan = $('#ChanblockField').val();
-		if(typeof nChan !== 'string') return $('#ChanblockField').val('Invalid entry. (Name-only)');
-		if(!nChan) return $('#ChanblockField').val('Invalid entry. (No-entry)');
-		this.hidChannels.chans.push(nChan);
+		const newChan = $('#ChanblockField').val();
+		if(typeof newChan !== 'string') return $('#ChanblockField').val('Invalid entry.');
+		if(!newChan || newChan === undefined) return $('#ChanblockField').val('Invalid entry.');
+		this.hidChannels.chans.push(newChan);
 		console.info(`%c[${this.getName()}]%c\t${this.hidChannels.chans.join(', ')}`, 'color: #F2F', '');
 		this.hideChannel();
 	};
 	
 	chanClear() {
-		const oCh = $('#ChanblockField').val();
+		const oldChan = $('#ChanblockField').val();
 		if(this.hidChannels.chans.length !== 0) {
-			if(oCh.match(/^\w{1,}$/)) {
-				this.hidChannels.chans.splice(this.hidChannels.chans.indexOf(oCh), 1);
+			if(oldChan.match(/^\w{1,}$/)) {
+				this.hidChannels.chans.splice(this.hidChannels.chans.indexOf(oldChan), 1);
 				console.info(`%c[${this.getName()}]%c\t${this.hidChannels.chans.join(', ')}`, 'color: #F2F', '');
 				alert('Successfully removed!');
-				this.hideChannel();	
+				this.hideChannel();
 			}
 			else {
 				this.hidChannels.chans.pop();
@@ -78,14 +79,14 @@ class hideChannels {
 				alert('Successfully removed!');
 				this.hideChannel();
 			}
-		} 
-		else {
-			return console.warn('%c[hideChannels]%c\tNo channels to remove.', 'color: #F2F', '');	
 		}
+		else
+			return console.info(`%c[${this.getName()}]%c\tNo channels to remove.`, 'color: #F2F', '');
 	};
 
-	saveSettings() {
+	saveSettings(save) {
 		bdPluginStorage.set('hideChannels', 'chans', JSON.stringify(this.hidChannels.chans));
+		save = true;
 		console.info('%c[hideChannels]%c\tSaved settings.', 'color: #F2F', '');
 		console.info('%c[hideChannels]%c\t' + this.hidChannels.chans.join(', '), 'color: #F2F', '');
 	};
@@ -95,15 +96,6 @@ class hideChannels {
 		console.info('%c[hideChannels]%c\tLoaded settings.', 'color: #F2F', '');
 		console.info('%c[hideChannels]%c\t' + this.hidChannels.chans.join(', '), 'color: #F2F', '');
 	};
-	
-	observe() {
-		const self = this;
-		if($('.channels-wrap div[class^="container-"]').length > 0) {
-			$('.channels-wrap div[class^="container-"]').each(function() {
-				self.mo.observe($(this)[0], {childList: true, subtree: true});
-			});
-		}
-	}
 
 	start() {
 		console.info('%c[hideChannels]%c\tWorking...', 'color: #F2F', '');
@@ -118,7 +110,23 @@ class hideChannels {
 		this.hideChannel();
 		this.observe();
 	};
-	
+
+	observe() {
+		const self = this;
+		if($('.scroller-NXV0-d').length > 0) {
+			self.mo.observe($('.scroller-NXV0-d')[0], {childList: true, subtree: true});
+		}
+	}
+
+	observer({ addedNodes, removedNodes }) {
+		if(addedNodes && addedNodes[0] && addedNodes[0].classList && addedNodes[0].classList.contains('messages-wrapper')
+		|| addedNodes && addedNodes[0] && addedNodes[0].classList && addedNodes[0].classList.contains('containerDefault')) {
+			this.mo.disconnect();
+			this.hideChannel();
+			this.observe();
+		}
+	}
+
 	stop() {
 		this.mo.disconnect();
 		$('.channels-wrap [class*="containerDefault-7RImuF"]').each(function() {
@@ -126,36 +134,30 @@ class hideChannels {
 		});
 		console.info('%c[hideChannels]%c\tStopped.', 'color: #F2F', '');
 	};
-	
-	load() {
+
+	load() { 
 		console.info('%c[hideChannels]%c\tBooting-Up.', 'color: #F2F', '');
 	};
-	
-	onSwitch() {
-		this.mo.disconnect();
-		this.hideChannel();
-		this.observe();
+
+	getAuthor() {
+		return 'Arashiryuu';
 	};
 
 	getName() {
 		return 'hideChannels';
 	};
-	
-	getAuthor() {
-		return 'Arashiryuu';
-	};
-	
+
 	getVersion() {
 		return '1.2';
 	};
-	
+
 	getDescription() {
 		return 'Hides any channels listed in the array of names.';
 	};
-	
+
 	getSettingsPanel() { 
 		let htmls = '<h3>hideChannels Plugin</h3><br/>'; 
-		htmls += '<input id="ChanblockField" type="text" placeholder="name -- case-sensitive" style="resize: none; width: 80%;" /><br/><br/>';
+		htmls += '<input id="ChanblockField" type="text" placeholder="Name" style="resize: none; width: 80%;" /><br/><br/>';
 		htmls += '<br/><button class="ChU-btn0" onclick=BdApi.getPlugin("'+ this.getName() +'").chanPush()>apply</button>';
 		htmls += '<button class="ChU-btn1" onclick=BdApi.getPlugin("'+ this.getName() +'").chanClear()>remove</button>';
 		htmls += '<button class="ChU-btn2" onclick=BdApi.getPlugin("'+ this.getName() +'").saveSettings()>save</button>';
