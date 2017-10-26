@@ -27,8 +27,8 @@
 function TitleForTitle() {
   const uwu = this;
   uwu.start = () => {
-    if($('#TitleforTitlebar').length) return;
-    const tElem = $('<span/>', { id: 'TitleforTitlebar', text: '\u200b' });
+    if($('#TitleforTitlebar') && $('#TitleforTitlebar').length > 0) return;
+    const tElem = $('<span/>', { id: 'TitleforTitlebar', text: 'Initialised' });
     const titleCSS = `
     <style id="TitleforTitlebarCSS" type="text/css">
       @import 'https://fonts.googleapis.com/css?family=Roboto|Inconsolata';
@@ -39,72 +39,84 @@ function TitleForTitle() {
         position: absolute;
         color: #EEE;
         top: 1ex;
-        left: 40vw;
+        left: 26vw;
         font-size: 13pt;
         font-family: 'Inconsolata', sans-serif;
         text-transform: capitalize;
       }
     </style>`;
     $('head').append(titleCSS);
-    $('.titlebar').append(tElem);
+    if($('#app-mount > div:first-child')) {
+      $('#app-mount > div:first-child').append(tElem);
+    }
     uwu.getChannel();
     uwu.log('Started');
   }
   /**
-   * @name getInternalInstance — renamed to getReactInstance
-   * @description Function to return the react internal instance of an element
+	 * @name getInternalInstance
    * @author noodlebox
-   */
+	 * @description Function to return the react internal instance of an element
+   * @param {Node} node - The element we want the internal data from
+	 */
   uwu.getReactInstance = (node) => node[Object.keys(node).find((key) => key.startsWith('__reactInternalInstance'))];
   uwu.getChannel = () => {
-    const titularText = $('.title .channel-name').text();
-    switch(uwu.getReactInstance($('.chat')[0]).return.stateNode.state.channel.type) {
-      /**
-       * Types:
-       * 0 - Guild Channel
-       * 1 - DM
-       * 2 - Voice Channel
-       * 3 - Group DM
-       * 4 - Categories
-       */
-      case 0:
-        $('#TitleforTitlebar').text('Guild Channel — ' + titularText);
-      break;
-      case 1:
-        $('#TitleforTitlebar').text('DM — ' + titularText);
-      break;
-      case 3:
-        $('#TitleforTitlebar').text('Group DM — ' + titularText);
-      break;
+    if(document.querySelector('.chat')) {
+      const titularText = $('div[class*="titleText"] > span[class*="channelName"]').text();
+      switch(uwu.getReactInstance(document.querySelector('.chat')).return.stateNode.state.channel.type) {
+        /**
+         * Types:
+         * 0 - Guild Channel
+         * 1 - DM
+         * 2 - Voice Channel
+         * 3 - Group DM
+         * 4 - Categories
+         */
+        case 0:
+          $('#TitleforTitlebar').text(`[Guild Channel] ${titularText}`);
+        break;
+        case 1:
+          $('#TitleforTitlebar').text(`[DM] ${titularText}`);
+        break;
+        case 3:
+          $('#TitleforTitlebar').text(`[Group DM] ${titularText}`);
+        break;
+      }
+    } 
+    else {
+      if(document.querySelector('.tab-bar.UNIQUE')) {
+        $('#TitleforTitlebar').text('[UI] Friends');
+      }
     }
   }
   uwu.observer = ({addedNodes, removedNodes}) => {
-    if(addedNodes && addedNodes[0] && addedNodes[0].classList && addedNodes[0].classList.contains('chat')) {
+    if((addedNodes && addedNodes[0] && addedNodes[0].classList && addedNodes[0].classList.contains('chat'))
+      || (addedNodes && addedNodes[0] && addedNodes[0].classList && addedNodes[0].classList.contains('messages-wrapper'))) {
       uwu.getChannel();
     } else
     if(addedNodes && addedNodes[0] && addedNodes[0].id && addedNodes[0].id === 'friends') {
-      $('#TitleforTitlebar').text('UI — Friends');
+      const titleText = $('.tab-bar.UNIQUE .tab-bar-item.selected').text();
+      $('#TitleforTitlebar').text('[UI] Friends');
     } else
     if(addedNodes && addedNodes[0] && addedNodes[0].classList && addedNodes[0].classList.contains('layer')) {
       if(!$('#bd-settings-sidebar').length) {
-        $('#TitleforTitlebar').text('UI — Server Settings');
+        $('#TitleforTitlebar').text('[UI] Server Settings');
       }
       else {
-        $('#TitleforTitlebar').text('UI — User Settings');
+        $('#TitleforTitlebar').text('[UI] User Settings');
       }
     } else
     if(removedNodes && removedNodes[0] && removedNodes[0].classList && removedNodes[0].classList.contains('layer')) {
       if($('#friends').length > 0) {
-        $('#TitleforTitlebar').text('UI — Friends');
+        const titleText = $('.tab-bar.UNIQUE .tab-bar-item.selected').text();
+        $('#TitleforTitlebar').text('[UI] Friends');
       }
       else {
         uwu.getChannel();
       }
     }
   }
-  uwu.onSwitch = () => uwu.getChannel();
   uwu.stop = () => {
-    $('#TitleforTitlebar').remove();
+    $('#TitleforTitlebar, #TitleforTitlebarCSS').remove();
     uwu.log('Stopped');
   }
   uwu.log = (x) => console.log(`[%c${uwu.sName()}%c] ${x}`, 'color: #59F; text-shadow: 0 0 1px black, 0 0 2px black, 0 0 3px black', '');
