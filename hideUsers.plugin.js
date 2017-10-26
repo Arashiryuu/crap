@@ -184,12 +184,16 @@ class hideUsers {
 	membersObserve() {
 		const memberList = $('.channel-members-wrap');
 		if(!memberList || !memberList.length) return;
-		this.memberListMO.observe($('.channel-members-wrap')[0], {childList: true, subtree: true});
+		this.memberListMO.observe(memberList[0], {childList: true, subtree: true});
+	};
+	
+	membersUnobserve() {
+		this.memberListMO.disconnect();	
 	};
 
 	stop() {
 		this.contextmo.disconnect();
-		this.memberListMO.disconnect();
+		this.membersUnobserve();
 		$('#hideUsersCSS').remove();
 		$('.message-group').each(function() {
 			if($(this).css('display') === 'none') $(this).show();
@@ -220,10 +224,14 @@ class hideUsers {
 			this.hideUser();
 			this.membersObserve();
 		}
+		if(ex.removedNodes.length && ex.removedNodes[0].classList && ex.removedNodes[0].classList.contains('channel-members-wrap')) {
+			this.membersUnobserve();	
+		}
 	};
 
 	onSwitch() { 
 		this.hideUser();
+		this.membersUnobserve();
 	};
 
 	getName() {
