@@ -34,7 +34,7 @@ class doesNotEqualsInsertion {
 	}
 	stop() {
 		this.log('Stopped');
-		$('.channel-text-area-default div textarea').off('keyup.dnEI');
+		$('#app-mount form > div > div > textarea').off('keyup.dnEI');
 	}
 	load() {
 		this.log('Loaded');
@@ -46,7 +46,7 @@ class doesNotEqualsInsertion {
 		this.begin();
 	}
 	begin() {
-		const teA = $('.channel-text-area-default div textarea');
+		const teA = $('#app-mount form > div > div > textarea');
 		if(!teA.length) return;
 		teA.off('keyup.dnEI').on('keyup.dnEI', (e) => {
 			if(teA.val().includes('\=\/\=')) {
@@ -62,7 +62,7 @@ class doesNotEqualsInsertion {
 		return 'Arashiryuu';
 	}
 	getVersion() {
-		return '1.1';
+		return '1';
 	}
 	getDescription() {
 		return 'Replace any `\=\/\=` with `\≠`';
