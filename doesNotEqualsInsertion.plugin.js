@@ -42,8 +42,10 @@ class doesNotEqualsInsertion {
 	log(text) {
 		return console.log(`[%c${this.getName()}%c] ${text}`, 'color: #59F; text-shadow: 0 0 1px black, 0 0 2px black, 0 0 3px black;', '');
 	}
-	onSwitch() {
-		this.begin();
+	observer({ addedNodes, removedNodes }) {
+		if(addedNodes && addedNodes[0] && addedNodes[0].classList && addedNodes[0].classList.contains('messages-wrapper')) {
+			this.begin();
+		}
 	}
 	begin() {
 		const teA = $('#app-mount form > div > div > textarea');
