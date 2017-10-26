@@ -118,24 +118,24 @@ class hideUsers {
 	};
 	
 	userClear() {
-	 const oUser = $('#blockField').val();
-	 if(this.hidUsers.users.length !== 0) {
-	 	if(oUser.match(/^\d{17,18}$/)) {
-			this.hidUsers.users.splice(this.hidUsers.users.indexOf(oUser), 1);
-			alert('Successfully removed!');
-			this.log(this.hidUsers.users.join(', '));
-			this.hideUser();
-		}
-		else {
-			this.hidUsers.users.pop();
-			alert('Successfully removed!');
-			this.log(this.hidUsers.users.join(', '));
-			this.hideUser();
-		}
-	 }
-	 else {
-		 this.log('No users available');
-	 }
+		const oUser = $('#blockField').val();
+		if(this.hidUsers.users.length !== 0) {
+	 		if(oUser.match(/^\d{17,18}$/)) {
+				this.hidUsers.users.splice(this.hidUsers.users.indexOf(oUser), 1);
+				alert('Successfully removed!');
+				this.log(this.hidUsers.users.join(', '));
+				this.hideUser();
+			}
+			else {
+				this.hidUsers.users.pop();
+				alert('Successfully removed!');
+				this.log(this.hidUsers.users.join(', '));
+				this.hideUser();
+			}
+	 	}
+	 	else {
+			this.log('No users available');
+	 	}
 	};
 
 	saveSettings() {
