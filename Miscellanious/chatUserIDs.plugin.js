@@ -53,10 +53,6 @@ class chatUserIDs {
 		this.log('Started');
 	}
 
-	onSwitch() {
-		setTimeout(() => this.attachID(), 1e3);
-	}
-
 	observer({ addedNodes, removedNodes }) {
     if(addedNodes.length > 0 && addedNodes[0].classList && addedNodes[0].classList.contains('message-group')
     || addedNodes.length > 0 && addedNodes[0].classList && addedNodes[0].classList.contains('messages-wrapper')) {
@@ -71,7 +67,7 @@ class chatUserIDs {
     if(!$('.message-group').length) return;
     try {
       $('.message-group').each((index, post) => {
-        if($(post).find('.tagID').length > 0) return;
+        if($(post).find('.tagID') && $(post).find('.tagID').length === 1) return;
         const elem = `<span id="tagID" class="tagID">[ ${this.getReactInstance($(post)[0]).return.memoizedProps.messages[0].author.id} ]</span>`;
         $(post).find('.username-wrapper > .user-name').before(elem);
       });
