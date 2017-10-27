@@ -112,10 +112,8 @@ class hideChannels {
 	};
 
 	observe() {
-		const self = this;
-		if($('.scroller-NXV0-d').length > 0) {
-			self.mo.observe($('.scroller-NXV0-d')[0], {childList: true, subtree: true});
-		}
+		if(!$('.scroller-NXV0-d') || !$('.scroller-NXV0-d').length) return;
+		this.mo.observe($('.scroller-NXV0-d')[0], {childList: true, subtree: true});
 	}
 
 	observer({ addedNodes, removedNodes }) {
@@ -148,7 +146,7 @@ class hideChannels {
 	};
 
 	getVersion() {
-		return '1.2';
+		return '1.4';
 	};
 
 	getDescription() {
