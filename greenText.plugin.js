@@ -26,12 +26,12 @@
 var greenText = function(){};
 var greenTextInterval;
 
-var greenTextMainFunction = function(){
-	$(".message-text>.markup, .message-text>.markup>.message-content").each(function() {
-		if(!$(this).find('.greenText').length) {
-			var strBase = $(this).text();
-			if(strBase.substr(0,1) == ">") {
-				$(this).addClass("greenText");
+var greenTextMainFunction = function() {
+	$(".message-text>.markup, .message-text>.markup>.message-content").each((i, e) => {
+		if(!$(e).find('.greenText').length) {
+			const strBase = $(e).text();
+			if(strBase.substr(0,1) === ">") {
+				$(e).addClass("greenText");
 			}
 		}
 	});
@@ -56,9 +56,9 @@ greenText.prototype.stop = function(){
 	clearInterval(greenTextInterval);
 };
 
-greenText.prototype.unload = function() {};
-
-greenText.prototype.onSwitch = function() {};
-greenText.prototype.onMessage = function(){};
-greenText.prototype.observer = function() {}
+greenText.prototype.observer = function({addedNodes, removedNodes}) {
+	if(addedNodes && addedNodes.length && addedNodes[0].classList && addedNodes[0].classList.contains('messages-wrapper')) {
+		greenTextMainFunction();
+	}
+};
 greenText.prototype.getSettingsPanel = function(){ return "There are no settings here."; };
