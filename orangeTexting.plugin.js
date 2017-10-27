@@ -27,11 +27,11 @@ var orangeTexting = function(){};
 var orangeTextingInterval;
 
 var orangeTextingMainFunction = function(){
-	$(".message-text>.markup").each(function() {
-		if(!$(this).find('.orangeTexting').length) {
-			var strBase = $(this).text();
-			if(strBase.substr(-1) == "<") {
-				$(this).addClass("orangeTexting");
+	$(".message-text>.markup").each((i, e) => {
+		if(!$(e).find('.orangeTexting').length) {
+			var strBase = $(e).text();
+			if(strBase.substr(-1) === "<") {
+				$(e).addClass("orangeTexting");
 			}
 		}
 	});
@@ -56,9 +56,10 @@ orangeTexting.prototype.stop = function(){
 	clearInterval(orangeTextingInterval);
 };
 
-orangeTexting.prototype.unload = function() {};
+orangeTexting.prototype.observer = function({addedNodes, removedNodes}) {
+	if(addedNodes && addedNodes.length && addedNodes[0].classList && addedNodes[0].classList.contains('messages-wrapper')) {
+		orangeTextingMainFunction();	
+	}
+};
 
-orangeTexting.prototype.onSwitch = function() {};
-orangeTexting.prototype.onMessage = function(){};
-orangeTexting.prototype.observer = function() {}
 orangeTexting.prototype.getSettingsPanel = function(){ return "Go away!"; };
