@@ -162,6 +162,12 @@ class hideServers {
 	getReactInstance(node) {
 		return node[Object.keys(node).find((key) => key.startsWith('__reactInternalInstance'))];
 	}
+	
+	observer({addedNodes, removedNodes}) { // replacing onSwitch
+		if(addedNodes.length && addedNodes[0] && addedNodes[0].classList && addedNodes[0].classList.contains('messages-wrapper')) {
+			this.hideServer();
+		}
+	}
 
 	start() { 
 		this.log('Started');
@@ -200,10 +206,6 @@ class hideServers {
 
 	log(text) {
 		return console.log(`[%c${this.getName()}%c] ${text}`, 'color: #AAF', '');
-	}
-
-	onSwitch() {
-		this.hideServer();
 	}
 
 	getAuthor() {
