@@ -9,7 +9,7 @@
 	var pathPlugins = shell.ExpandEnvironmentStrings("%APPDATA%\\BetterDiscord\\plugins");
 	var pathSelf = WScript.ScriptFullName;
 	// Put the user at ease by addressing them in the first person
-	shell.Popup("It looks like you mistakenly tried to run me directly. \n(Don't do that!)", 0, "I'm a plugin for BetterDiscord", 0x30);
+	shell.Popup("It looks like you've mistakenly tried to run me directly. \n(Don't do that!)", 0, "I'm a plugin for BetterDiscord", 0x30);
 	if (fs.GetParentFolderName(pathSelf) === fs.GetAbsolutePathName(pathPlugins)) {
 		shell.Popup("I'm in the correct folder already.\nJust reload Discord with Ctrl+R.", 0, "I'm already installed", 0x40);
 	} else if (!fs.FolderExists(pathPlugins)) {
@@ -21,49 +21,72 @@
 		shell.Popup("I'm installed!\nJust reload Discord with Ctrl+R.", 0, "Successfully installed", 0x40);
 	}
 	WScript.Quit();
+
 @else@*/
 
 class hashTagging {
- constructor() {
-  this.processChat = () => {
-	 setTimeout(function() {
-		$(".comment .body .markup:not(.line-scanned), .comment .markup>span:not(.line-scanned)").each(function() {
-			var tagRegex = /\B#[A-Z0-9a-z_-]+/igm;
-			var html = $(this).html();
-			if(tagRegex.test(html)) {
-				$(this).html(html.replace(tagRegex, `<span id="hashtag" style='color: #3898FF; font-weight: bold;'>$&</span>`));
-			}
-		}).addClass("line-scanned");
-	 },250);
-  }
- };
+  constructor() {
+    this.css = `
+    <style id="hashTagCSS" type="text/css">
+      #hashtag {
+        color: #3898FF;
+        font-weight: bold;
+      }
+    </style>`;
+  };
+   
+  load() {
+    
+  };
 
-  start() { this.processChat(); }
-	 
-  stop() {}
-	 
-  load() {}
+  stop() {
+    $('#hashTagCSS').remove();
+  };
+
+  start() {
+    $('head').append(this.css);
+	  this.processChat();
+  };
 	
-  unload() {}
-	
-	observer(eht) {
-    if(eht.addedNodes.length && eht.addedNodes[0].classList && eht.addedNodes[0].classList.contains('message-group')) {
+  processChat() {
+    setTimeout(function() {
+      $(".comment .body .markup:not(.line-scanned), .comment .markup>span:not(.line-scanned)").each((i, e) => {
+        const tagRegex = /\B#[A-Z0-9a-z_-]+/igm;
+        const html = $(e).html();
+        const text = $(e).text();
+        if(tagRegex.test(html)) {
+          $(e).html(text.replace(tagRegex, `<span id="hashtag">$&</span>`));
+        }
+      }).addClass("line-scanned");
+    },100);
+  };
+
+  observer({ addedNodes, removedNodes }) {
+    if(addedNodes && addedNodes.length && addedNodes[0].classList && addedNodes[0].classList.contains('message')
+    || addedNodes && addedNodes.length && addedNodes[0].classList && addedNodes[0].classList.contains('message-group')
+    || addedNodes && addedNodes.length && addedNodes[0].classList && addedNodes[0].classList.contains('messages-wrapper')) {
       this.processChat();
     }
-    if(eht.addedNodes.length && eht.addedNodes[0].classList && eht.addedNodes[0].classList.contains('markup')) {
-      this.processChat();
-    } else
-        return;
   };
-	 
-  onMessage() { this.processChat(); }
-	 
-  onSwitch() { setTimeout(() => this.processChat(), 250); }
 
-  getName() { return 'hashTagging'; }
-  getAuthor() { return 'Arashiryuu'; }
-  getVersion() { return '1.2.0'; }
-  getDescription() { return 'Start a word or sentence with a \"#\" to hashtag.'; }
-  getSettingsPanel() { return 'Go away!'; }
+  getName() { 
+    return 'hashTagging';
+  };
+
+  getAuthor() { 
+    return 'Arashiryuu';
+  };
+
+  getVersion() { 
+    return '1.2.0';
+  };
+
+  getDescription() { 
+    return 'Start a word or sentence with a \"#\" to hashtag!';
+  };
+
+  getSettingsPanel() { 
+    return 'Go away!';
+  };
 };
-/*@end @*/
+/*@end@*/
