@@ -214,6 +214,11 @@ class hideUsers {
 	};
 
 	observer(ex) {
+		if(ex.addedNodes.length && ex.addedNodes[0].classList && ex.addedNodes[0].classList.contains('messages-wrapper')) {
+			this.hideUser();
+			this.membersUnobserve();
+			this.membersObserve();
+		}
 		if(ex.addedNodes.length && ex.addedNodes[0].classList && ex.addedNodes[0].classList.contains('message-group')) {
 			this.hideUser();
 		}
@@ -224,14 +229,10 @@ class hideUsers {
 			this.hideUser();
 			this.membersObserve();
 		}
-		if(ex.removedNodes.length && ex.removedNodes[0].classList && ex.removedNodes[0].classList.contains('channel-members-wrap')) {
-			this.membersUnobserve();	
+		if(ex.removedNodes.length && ex.removedNodes[0].classList && ex.removedNodes[0].classList.contains('channel-members-wrap')
+			|| ex.removedNodes.length && ex.removedNodes[0].classList && ex.removedNodes[0].classList.contains('messages-wrapper')) {
+			this.membersUnobserve();
 		}
-	};
-
-	onSwitch() { 
-		this.hideUser();
-		this.membersUnobserve();
 	};
 
 	getName() {
