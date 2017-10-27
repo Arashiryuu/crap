@@ -24,44 +24,61 @@
 @else@*/
 
 class killxd {
- constructor() {
-  this.processChat = () => {
-	setTimeout(function() {
-		$(".chat .content .messages-wrapper .messages .message-group .comment .message .message-text .markup:not(pre), .chat .content .messages-wrapper .messages .message-group .comment .message .message-text .markup:not(code)").each(function() {
-			var tagRegex = /(?:\bXD\b)/igm;
-			var html = $(this).html();
-			$(this).html(html.replace(tagRegex, 'I\'m a retard lol.'));
-		});
-	 }, 100);
-   }
- };
+	constructor() {
+		
+	};
+	
+	load() {
+	
+	}
+	
+	stop() {
+	
+	}
 
-  start() { this.processChat(); }
-	 
-  stop() {}
-	 
-  load() {}
+  start() { 
+		this.processChat(); 
+	}
 	
-  unload() {}
+	processChat = () => {
+		setTimeout(function() {
+			$(".chat .content .messages-wrapper .messages .message-group .comment .message .message-text .markup:not(pre), .chat .content .messages-wrapper .messages .message-group .comment .message .message-text .markup:not(code)").each((i, e) => {
+				const tagRegex = /(?:\bXD\b)/igm;
+				const html = $(e).html();
+				const text = $(e).text();
+				if(tagRegex.test(html)) {
+					$(e).html(text.replace(tagRegex, 'I\'m a retard lol.'));
+				}
+			});
+		 }, 100);
+   }
 	
-	observer(exd) {
-    if(exd.addedNodes.length && exd.addedNodes[0].classList && exd.addedNodes[0].classList.contains('message-group')) {
+	observer({addedNodes, removedNodes}) {
+    if(addedNodes.length && addedNodes[0].classList && addedNodes[0].classList.contains('markup')
+		|| addedNodes.length && addedNodes[0].classList && addedNodes[0].classList.contains('message-group')
+		|| addedNodes.length && addedNodes[0].classList && addedNodes[0].classList.contains('messages-wrapper')) {
       this.processChat();
     }
-    if(exd.addedNodes.length && exd.addedNodes[0].classList && exd.addedNodes[0].classList.contains('markup')) {
-      this.processChat();
-    } else
-        return;
   }
-	 
-  onMessage() { this.processChat(); }
-	 
-  onSwitch() { setTimeout(() => this.processChat(), 250); }
 
-  getName		        () { return 'killxd'; }
-  getDescription    	() { return 'replaces shitty xds.'; }
-  getAuthor		      	() { return 'Arashiryuu'; }
-  getVersion		    () { return '1.1.0'; }
-  getSettingsPanel		() { return 'Go away!'; }
+  getName() {
+		return 'killxd'; 
+	}
+
+  getAuthor() {
+		return 'Arashiryuu'; 
+	}
+
+  getVersion() {
+		return '1.2.0'; 
+	}
+
+	getDescription() {
+		return 'replaces shitty xds.'; 
+	}
+
+  getSettingsPanel() {
+		return 'Go away!'; 
+	}
 };
 /*@end@*/
