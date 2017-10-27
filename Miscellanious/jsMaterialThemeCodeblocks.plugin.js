@@ -213,7 +213,7 @@ class JSMaterialThemeCodeblocks {
 			$('.hljs.JavaScript .hljs-built_in:contains(parseInt)').addClass('paIn');
 			$('.hljs.JAVASCRIPT .hljs-built_in:contains(parseInt)').addClass('paIn');
 		} else
-			return;
+				return;
 	};
 
 	log(text) {
@@ -226,22 +226,24 @@ class JSMaterialThemeCodeblocks {
 		this.createThisClass();
 		this.log('MaterialTheme classes integrated.');
 	};
+
 	stop() { 
 		this.log('Stopped.');
 		$('.JSMaterialThemeCodeblocks').remove();
 	};
-	load() { this.log('Loaded.'); };
-	unload() {};
-	observer(ejs) {
-		if(ejs.addedNodes.length && ejs.addedNodes[0].classList && ejs.addedNodes[0].classList.contains('markup'))
-			setTimeout(() => this.createThisClass(), 250);
-		else
-			return;
+
+	load() {
+		this.log('Loaded.');
 	};
-	onMessage() {};
-	onSwitch() { 
-		setTimeout(() => this.createThisClass(), 250); 
-		setTimeout(() => this.log('MaterialTheme classes integrated.'), 500);
+
+	observer(ejs) {
+		if(ejs.addedNodes.length && ejs.addedNodes[0].classList && ejs.addedNodes[0].classList.contains('markup')) {
+			setTimeout(() => this.createThisClass(), 250);
+		}
+		if(ejs.addedNodes.length && ejs.addedNodes[0].classList && ejs.addedNodes[0].classList.contains('messages-wrapper')) {
+			setTimeout(() => this.createThisClass(), 250); 
+			setTimeout(() => this.log('MaterialTheme classes integrated.'), 500);
+		}
 	};
 
 	getName			() { return 'JSMaterialThemeCodeblocks'; };
