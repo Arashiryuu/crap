@@ -53,9 +53,8 @@ class hashTagging {
       $(".comment .body .markup:not(.line-scanned), .comment .markup>span:not(.line-scanned)").each((i, e) => {
         const tagRegex = /\B#[A-Z0-9a-z_-]+/igm;
         const html = $(e).html();
-        const text = $(e).text();
         if(tagRegex.test(html)) {
-          $(e).html(text.replace(tagRegex, `<span id="hashtag">$&</span>`));
+          $(e).html(html.replace(tagRegex, `<span id="hashtag">$&</span>`));
         }
       }).addClass("line-scanned");
     },100);
