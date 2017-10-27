@@ -142,6 +142,12 @@ class hideChannelsPerServer {
 		this.hidChannels.chans = JSON.parse(bdPluginStorage.get('hideChannelsPerServer', 'channelsss'));
 		this.log('Loaded settings\n' + this.hidChannels.chans.join(', '));
 	};
+	
+	observer({addedNodes, removedNodes}) {
+		if(addedNodes.length && addedNodes[0].classList && addedNodes[0].classList.contains('messages-wrapper')) {
+			this.hideChannel();	
+		}
+	}
 
 	start() {
 		this.log('Started');
@@ -185,10 +191,6 @@ class hideChannelsPerServer {
 		else
 			return console.log(`[%c${this.getName()}%c] ${text}`, 'color: #F2F;', '', extra);
 	}
-
-	onSwitch() { 
-		this.hideChannel(); 
-	};
 
 	getAuthor() { 
 		return 'Arashiryuu'; 
