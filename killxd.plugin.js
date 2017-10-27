@@ -40,14 +40,13 @@ class killxd {
 		this.processChat(); 
 	}
 	
-	processChat = () => {
+	processChat() {
 		setTimeout(function() {
 			$(".chat .content .messages-wrapper .messages .message-group .comment .message .message-text .markup:not(pre), .chat .content .messages-wrapper .messages .message-group .comment .message .message-text .markup:not(code)").each((i, e) => {
 				const tagRegex = /(?:\bXD\b)/igm;
 				const html = $(e).html();
-				const text = $(e).text();
 				if(tagRegex.test(html)) {
-					$(e).html(text.replace(tagRegex, 'I\'m a retard lol.'));
+					$(e).html(html.replace(tagRegex, 'I\'m a retard lol.'));
 				}
 			});
 		 }, 100);
