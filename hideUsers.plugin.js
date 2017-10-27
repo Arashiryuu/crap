@@ -44,15 +44,15 @@ class hideUsers {
 		</div>`;
 
 		this.contextmo = new MutationObserver((changes, p) => {
-      		changes.forEach((change, i) => {
-        		if(change.addedNodes) {
-          			change.addedNodes.forEach((node) => {
-            			if(node.nodeType === 1 && node.classList && node.classList.contains('context-menu')) {
-              				this.appendContext(node);
-            			}
-          			});
-        		}
-      		});
+      changes.forEach((change, i) => {
+        if(change.addedNodes) {
+          change.addedNodes.forEach((node) => {
+            if(node.nodeType === 1 && node.classList && node.classList.contains('context-menu')) {
+              this.appendContext(node);
+            }
+          });
+        }
+      });
 		});
 		
 		this.memberListMO = new MutationObserver((changes, p) => {
@@ -78,34 +78,42 @@ class hideUsers {
 			});	
 			return this.log('No users found');
 		}
-		for(const user of this.hidUsers.users) {
-			$(`[style*='${user}']`).parent().hide();
-			$(`.avatarContainer-303pFz [style*='${user}']`).parent().parent().parent().parent().hide();
-		}
-	};
+		$('.message-group').each((index, item) => {
+			if(this.getReactInstance(item).return.memoizedProps.messages[0].author)
+				this.hidUsers.users.some((i) => i === this.getReactInstance(item).return.memoizedProps.messages[0].author.id) ? $(item).hide() : $(item).show();
+		});
+		$('.member').each((index, item) => {
+			if(this.getReactInstance(item).return.return.memoizedProps.user)
+				this.hidUsers.users.some((i) => i === this.getReactInstance(item).return.return.memoizedProps.user.id) ? $(item).hide() : $(item).show();
+		});
+		$('.wrapperSelectedVoice-1Q1ocJ.wrapper-fDmxzK ~ .listDefault-3i7eWQ').each((index, item) => {
+			if(this.getReactInstance(item).childNodes.memoizedProps.user)
+				this.hidUsers.users.some((i) => i === this.getReactInstance(item).childNodes.memoizedProps.user.id) ? $(item).hide() : $(item).show(); 
+		});
+	}
 
 	appendContext(context) {
-    	if(!context) return;
-			if((this.getReactInstance(context).return.memoizedProps.target && this.getReactInstance(context).return.memoizedProps.target.classList.contains('avatar-large'))
-			|| (this.getReactInstance(context).return.memoizedProps.target && this.getReactInstance(context).return.memoizedProps.target.classList.contains('user-name'))
-			|| (this.getReactInstance(context).return.memoizedProps.target && this.getReactInstance(context).return.memoizedProps.target.classList.contains('member-username'))
-			|| (this.getReactInstance(context).return.memoizedProps.target && this.getReactInstance(context).return.memoizedProps.target.classList.contains('avatar-small'))) {
-      		$(context).find('.item:contains("Profile")').after(this.contextItem);
-      		$(context).find('.item.hideUser-item')
-        		.off('click.hideUsers')
-        		.on('click.hideUsers', this.contextHide.bind(this));
-    	}
-	};
+    if(!context) return;
+		if((this.getReactInstance(context).return.memoizedProps.target && this.getReactInstance(context).return.memoizedProps.target.classList.contains('avatar-large'))
+		|| (this.getReactInstance(context).return.memoizedProps.target && this.getReactInstance(context).return.memoizedProps.target.classList.contains('user-name'))
+		|| (this.getReactInstance(context).return.memoizedProps.target && this.getReactInstance(context).return.memoizedProps.target.classList.contains('member-username'))
+		|| (this.getReactInstance(context).return.memoizedProps.target && this.getReactInstance(context).return.memoizedProps.target.classList.contains('avatar-small'))) {
+      $(context).find('.item:contains("Profile")').after(this.contextItem);
+      $(context).find('.item.hideUser-item')
+        .off('click.hideUsers')
+        .on('click.hideUsers', this.contextHide.bind(this));
+    }
+	}
 	
 	contextHide() {
-    	if(!$('.context-menu').length) return;
-    	if(!this.getReactInstance($('.context-menu')[0]).return.stateNode.props.user) return;
-    	if(!this.hidUsers.users.includes(this.getReactInstance($('.context-menu')[0]).return.stateNode.props.user.id)) {
-      		this.hidUsers.users.push(this.getReactInstance($('.context-menu')[0]).return.stateNode.props.user.id);
-      		this.saveSettings();
-      		this.hideUser();
+    if(!$('.context-menu').length) return;
+    if(!this.getReactInstance($('.context-menu')[0]).return.stateNode.props.user) return;
+    if(!this.hidUsers.users.includes(this.getReactInstance($('.context-menu')[0]).return.stateNode.props.user.id)) {
+      this.hidUsers.users.push(this.getReactInstance($('.context-menu')[0]).return.stateNode.props.user.id);
+      this.saveSettings();
+      this.hideUser();
 		}
-	};
+  }
 
 	userPush() {
 		const nUser = $('#blockField').val();
@@ -118,24 +126,24 @@ class hideUsers {
 	};
 	
 	userClear() {
-		const oUser = $('#blockField').val();
-		if(this.hidUsers.users.length !== 0) {
-	 		if(oUser.match(/^\d{17,18}$/)) {
-				this.hidUsers.users.splice(this.hidUsers.users.indexOf(oUser), 1);
-				alert('Successfully removed!');
-				this.log(this.hidUsers.users.join(', '));
-				this.hideUser();
-			}
-			else {
-				this.hidUsers.users.pop();
-				alert('Successfully removed!');
-				this.log(this.hidUsers.users.join(', '));
-				this.hideUser();
-			}
-	 	}
-	 	else {
-			this.log('No users available');
-	 	}
+	 const oUser = $('#blockField').val();
+	 if(this.hidUsers.users.length !== 0) {
+	 	if(oUser.match(/^\d{17,18}$/)) {
+			this.hidUsers.users.splice(this.hidUsers.users.indexOf(oUser), 1);
+			alert('Successfully removed!');
+			this.log(this.hidUsers.users.join(', '));
+			this.hideUser();
+		}
+		else {
+			this.hidUsers.users.pop();
+			alert('Successfully removed!');
+			this.log(this.hidUsers.users.join(', '));
+			this.hideUser();
+		}
+	 }
+	 else {
+		 this.log('No users available');
+	 }
 	};
 
 	saveSettings() {
@@ -155,15 +163,15 @@ class hideUsers {
 	};
 
 	/**
-	 * @name getInternalInstance
-	 * @description returns the react internal instance of the element
-	 * @param {Node} node - the element we want the internal data from
-	 * @author noodlebox
-	 * @returns {Node}
-	 */
+   * @name getInternalInstance
+   * @description returns the react internal instance of the element
+   * @param {Node} node - the element we want the internal data from
+   * @author noodlebox
+   * @returns {Node}
+   */
 	getReactInstance(node) {
 		return node[Object.keys(node).find((key) => key.startsWith('__reactInternalInstance'))];
-	};
+	}
 
 	start() { 
 		this.log('Started');
@@ -186,9 +194,9 @@ class hideUsers {
 		if(!memberList || !memberList.length) return;
 		this.memberListMO.observe(memberList[0], {childList: true, subtree: true});
 	};
-	
+
 	membersUnobserve() {
-		this.memberListMO.disconnect();	
+		this.memberListMO.disconnect();
 	};
 
 	stop() {
@@ -211,10 +219,10 @@ class hideUsers {
 
 	log(text) {
 		return console.log(`[%c${this.getName()}%c] ${text}`, 'color: #9653AD', '');
-	};
+	}
 
 	observer(ex) {
-		if(ex.addedNodes.length && ex.addedNodes[0].classList && ex.addedNodes[0].classList.contains('messages-wrapper')) {
+		if(ex.addedNodes.length && ex.addedNodes[0].classList && ex.addedNodes[0].classList.contains('messages-wrapper')) { // onSwitch
 			this.hideUser();
 			this.membersUnobserve();
 			this.membersObserve();
@@ -229,8 +237,7 @@ class hideUsers {
 			this.hideUser();
 			this.membersObserve();
 		}
-		if(ex.removedNodes.length && ex.removedNodes[0].classList && ex.removedNodes[0].classList.contains('channel-members-wrap')
-			|| ex.removedNodes.length && ex.removedNodes[0].classList && ex.removedNodes[0].classList.contains('messages-wrapper')) {
+		if(ex.removedNodes.length && ex.removedNodes[0].classList && ex.removedNodes[0].classList.contains('channel-members-wrap')) {
 			this.membersUnobserve();
 		}
 	};
@@ -244,7 +251,7 @@ class hideUsers {
 	};
 
 	getVersion() {
-		return '1.6';
+		return '1.7';
 	};
 
 	getDescription() {
