@@ -80,16 +80,16 @@ class hideUsers {
 		}
 		for(const user of this.hidUsers.users) {
 			$(`[style*='${user}']`).parent().hide();
-			$(`.avatarContainer-303pFz [style*='${user}']`).parent().parent().parent().hide();
+			$(`.avatarContainer-303pFz [style*='${user}']`).parent().parent().parent().parent().hide();
 		}
 	};
 
 	appendContext(context) {
     	if(!context) return;
-		if((this.getReactInstance(context).return.memoizedProps.target && this.getReactInstance(context).return.memoizedProps.target.classList.contains('avatar-large'))
-		|| (this.getReactInstance(context).return.memoizedProps.target && this.getReactInstance(context).return.memoizedProps.target.classList.contains('user-name'))
-		|| (this.getReactInstance(context).return.memoizedProps.target && this.getReactInstance(context).return.memoizedProps.target.classList.contains('member-username'))
-		|| (this.getReactInstance(context).return.memoizedProps.target && this.getReactInstance(context).return.memoizedProps.target.classList.contains('avatar-small'))) {
+			if((this.getReactInstance(context).return.memoizedProps.target && this.getReactInstance(context).return.memoizedProps.target.classList.contains('avatar-large'))
+			|| (this.getReactInstance(context).return.memoizedProps.target && this.getReactInstance(context).return.memoizedProps.target.classList.contains('user-name'))
+			|| (this.getReactInstance(context).return.memoizedProps.target && this.getReactInstance(context).return.memoizedProps.target.classList.contains('member-username'))
+			|| (this.getReactInstance(context).return.memoizedProps.target && this.getReactInstance(context).return.memoizedProps.target.classList.contains('avatar-small'))) {
       		$(context).find('.item:contains("Profile")').after(this.contextItem);
       		$(context).find('.item.hideUser-item')
         		.off('click.hideUsers')
@@ -244,7 +244,7 @@ class hideUsers {
 	};
 
 	getVersion() {
-		return '1.5';
+		return '1.6';
 	};
 
 	getDescription() {
