@@ -35,7 +35,7 @@ class chatUserIDs {
 			position: relative;
 			top: 0.6ex;
 			height: 9px;
-			margin-left: -8px;
+			margin-left: -3px;
 			margin-right: 6px;
 			text-shadow: 0 1px 3px black;
 			background: #798AED;
