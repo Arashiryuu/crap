@@ -33,7 +33,7 @@ class chatUserIDs {
 			font-size: 10px;
 			letter-spacing: 0.025rem;
 			position: relative;
-			top: 0.6ex;
+			top: -0.4ex;
 			height: 9px;
 			margin-left: -3px;
 			margin-right: 6px;
