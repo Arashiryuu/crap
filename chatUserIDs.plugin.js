@@ -46,6 +46,14 @@ class chatUserIDs {
 			font-family: 'Roboto', 'Inconsolata', 'Whitney', sans-serif;
       	}
 		</style>`;
+		
+		this.editObs = new MutationObserver((changes, p) => {
+			for(const change of changes) {
+				if(change && change.target && change.target.classList && change.target.classList.contains('message-group')) {
+					this.attachID();
+				}
+			}
+		});
 	}
 
 	load() {
@@ -53,6 +61,7 @@ class chatUserIDs {
 	}
 
 	stop() {
+		this.chatDiscon();
 		$('*').off('dblclick.chatID');
 		$('.tagID, #chatUserIDsCSS').remove();
 		this.log('Stopped');
@@ -60,17 +69,33 @@ class chatUserIDs {
 
 	start() {
 		$('head').append(this.css);
+		this.chatObserve();
 		this.attachID();
 		this.log('Started');
 	}
+	
+	chatObserve() {
+		this.editObs.observe(document.querySelector('.chat'), { attributes: true, subtree: true });
+	}
+
+	chatDiscon() {
+		this.editObs.disconnect();
+	}
 
 	observer({ addedNodes, removedNodes }) {
-		if(addedNodes.length > 0 && addedNodes[0].classList && addedNodes[0].classList.contains('message-group')
-		|| addedNodes.length > 0 && addedNodes[0].classList && addedNodes[0].classList.contains('messages-wrapper')) {
+		if(addedNodes.length > 0 && addedNodes[0].classList && addedNodes[0].classList.contains('messages-wrapper')) {
+			this.chatDiscon();
+			this.attachID();
+			this.chatObserve();
+		}
+		if(addedNodes.length > 0 && addedNodes[0].classList && addedNodes[0].classList.contains('message-group')) {
 			this.attachID();
 		}
 		if(removedNodes.length > 0 && removedNodes[0].classList && removedNodes[0].classList.contains('message-group')) {
 			this.attachID();
+		}
+		if(removedNodes.length > 0 && removedNodes[0].classList && removedNodes[0].classList.contains('messages-wrapper')) {
+			this.chatDiscon();
 		}
 	}
 
