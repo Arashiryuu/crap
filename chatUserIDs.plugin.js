@@ -75,7 +75,9 @@ class chatUserIDs {
 	}
 	
 	chatObserve() {
-		this.editObs.observe(document.querySelector('.chat'), { attributes: true, subtree: true });
+		const chat = document.querySelector('.chat');
+		if(!chat || !chat.length) return;
+		this.editObs.observe(chat, { attributes: true, subtree: true });
 	}
 
 	chatDiscon() {
@@ -83,7 +85,8 @@ class chatUserIDs {
 	}
 
 	observer({ addedNodes, removedNodes }) {
-		if(addedNodes.length > 0 && addedNodes[0].classList && addedNodes[0].classList.contains('messages-wrapper')) {
+		if(addedNodes.length > 0 && addedNodes[0].classList && addedNodes[0].classList.contains('messages-wrapper')
+		|| addedNodes.length > 0 && addedNodes[0].classList && addedNodes[0].classList.contains('chat')) {
 			this.chatDiscon();
 			this.attachID();
 			this.chatObserve();
