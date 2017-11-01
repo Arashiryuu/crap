@@ -106,7 +106,7 @@ class chatUserIDs {
 		if(!$('.message-group') || !$('.message-group').length) return;
 		try {
 		  $('.message-group').each((index, post) => {
-			if($(post).find('.tagID') && $(post).find('.tagID').length === 1) return;
+			if($(post).find('.tagID') && $(post).find('.tagID').length > 0) return;
 			const elem = `<span id="tagID" class="tagID">${this.getReactInstance($(post)[0]).return.memoizedProps.messages[0].author.id}</span>`;
 				$(post).find('.username-wrapper').before(elem);
 				$(post).find('.tagID')
