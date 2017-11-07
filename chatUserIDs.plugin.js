@@ -28,23 +28,23 @@ class chatUserIDs {
 	constructor() {
     	this.css = `
     	<style id="chatUserIDsCSS" type="text/css">
-      	@import 'https://fonts.googleapis.com/css?family=Roboto|Inconsolata';
-      	#tagID {
-			font-size: 10px;
-			letter-spacing: 0.025rem;
-			position: relative;
-			top: -0.4ex;
-			height: 9px;
-			margin-left: -3px;
-			margin-right: 6px;
-			text-shadow: 0 1px 3px black;
-			background: #798AED;
-			border-radius: 3px;
-			font-weight: 500;
-			padding: 3px 5px;
-			color: #FFF;
-			font-family: 'Roboto', 'Inconsolata', 'Whitney', sans-serif;
-      	}
+			@import 'https://fonts.googleapis.com/css?family=Roboto|Inconsolata';
+			#tagID {
+				font-size: 10px;
+				letter-spacing: 0.025rem;
+				position: relative;
+				top: -0.4ex;
+				height: 9px;
+				margin-left: -3px;
+				margin-right: 6px;
+				text-shadow: 0 1px 3px black;
+				background: #798AED;
+				border-radius: 3px;
+				font-weight: 500;
+				padding: 3px 5px;
+				color: #FFF;
+				font-family: 'Roboto', 'Inconsolata', 'Whitney', sans-serif;
+			}
 		</style>`;
 		
 		this.editObs = new MutationObserver((changes, p) => {
@@ -125,7 +125,7 @@ class chatUserIDs {
 			document.execCommand('copy');
 		}
 		catch(err) {
-			this.err(e.stack);
+			this.err(err.stack);
 		}
 	}
 
