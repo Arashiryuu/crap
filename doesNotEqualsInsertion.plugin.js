@@ -26,7 +26,7 @@
 
 class doesNotEqualsInsertion {
 	constructor() {
-		// construct global variables
+	
 	}
 	start() {
 		this.log('Started');
