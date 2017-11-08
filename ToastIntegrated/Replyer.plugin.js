@@ -79,7 +79,7 @@ class Replyer {
 	}
 
 	initialize() {
-		PluginUtilities.checkForUpdate(this.getName(), this.getVersion());
+		this.checkForUpdate(this.getName(), this.getVersion());
 		$('head').append(this.css);
 		this.initialized = true;
 		PluginUtilities.showToast(`${this.getName()} ${this.getVersion()} has started.`);
