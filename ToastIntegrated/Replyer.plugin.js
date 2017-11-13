@@ -94,7 +94,7 @@ class Replyer {
 			$(element).find('.replyer').on('click.replyer', (event) => {
 				try {
 					const
-						mention = `<@!${this.getReactInstance(element).return.memoizedProps.messages[0].author.id}>`;
+						mention = `<@!${this.getReactInstance(element).return.memoizedProps.messages[0].author.id}> `;
 					$('#app-mount form > div > div > textarea').focus();
 					document.execCommand('insertText', false, mention);
 				}
@@ -195,7 +195,7 @@ class Replyer {
 	}
 
 	getVersion() {
-		return '1.0.1';
+		return '1.0.2';
 	}
 
 	getDescription() {
