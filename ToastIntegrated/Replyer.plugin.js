@@ -79,7 +79,7 @@ class Replyer {
 	}
 
 	initialize() {
-		this.checkForUpdate(this.getName(), this.getVersion());
+		PluginUtilities.checkForUpdate(this.getName(), this.getVersion(), this.downLink);
 		$('head').append(this.css);
 		this.initialized = true;
 		PluginUtilities.showToast(`${this.getName()} ${this.getVersion()} has started.`);
@@ -136,22 +136,9 @@ class Replyer {
 	err(error) {
 		return console.error(`[%c${this.getName()}%c] ${error}`, 'color: #59F;', '');
 	}
-	
-	checkForUpdate() {
-		const githubRaw = `https://raw.githubusercontent.com/Arashiryuu/crap/master/ToastIntegrated/${this.getName()}.plugin.js`;
-		$.get(githubRaw, (result) => {
-			let ver = result.match(/['"][0-9]+\.[0-9]+\.[0-9]+['"]/i);
-			if (!ver) return;
-			ver = ver.toString().replace(/"/g, "");
-			ver = ver.split(".");
-			const lver = this.getVersion().split(".");
-			let hasUpdate = false;
-			if (ver[0] > lver[0]) hasUpdate = true;
-			else if (ver[0] == lver[0] && ver[1] > lver[1]) hasUpdate = true;
-			else if (ver[0] == lver[0] && ver[1] == lver[1] && ver[2] > lver[2]) hasUpdate = true;
-			if (hasUpdate) this.showUpdateNotice(this.getName());
-			else this.removeUpdateNotice(this.getName());
-		});
+  
+	get downLink() {
+		return `https://raw.githubusercontent.com/Arashiryuu/crap/master/ToastIntegrated/${this.getName()}.plugin.js`;
 	}
 
 	showUpdateNotice() {
@@ -195,7 +182,7 @@ class Replyer {
 	}
 
 	getVersion() {
-		return '1.0.2';
+		return '1.0.3';
 	}
 
 	getDescription() {
