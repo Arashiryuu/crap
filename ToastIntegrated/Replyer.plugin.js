@@ -52,6 +52,14 @@ class Replyer {
 				display: none;
 			}
 		</style>`;
+
+		this.editObs = new MutationObserver((changes) => {
+			for(const change of changes) {
+				if(change && change.target && change.target.classList && change.target.classList.contains('message-group')) {
+					this.run();
+				}
+			}
+		});
 	}
 
 	load() {
@@ -59,6 +67,7 @@ class Replyer {
 	}
 
 	stop() {
+		this.chatDiscon();
 		$('*').off('click.replyer');
 		$('#Replyer, .replyer').remove();
 		this.log('Stopped');
@@ -84,6 +93,17 @@ class Replyer {
 		this.initialized = true;
 		PluginUtilities.showToast(`${this.getName()} ${this.getVersion()} has started.`);
 		this.run();
+		this.chatObserve();
+	}
+
+	chatObserve() {
+		const chat = $('.chat');
+		if(!chat[0]) return;
+		this.editObs.observe(chat[0], { attributes: true, subtree: true });
+	}
+
+	chatDiscon() {
+		this.editObs.disconnect();
 	}
 
 	run() {
@@ -105,11 +125,18 @@ class Replyer {
 		});
 	}
 
-	observer({ addedNodes }) {
+	observer({ addedNodes, removedNodes }) {
 		if(addedNodes && addedNodes[0] && addedNodes[0].classList && addedNodes[0].classList.contains('message')
-		|| addedNodes && addedNodes[0] && addedNodes[0].classList && addedNodes[0].classList.contains('message-group')
+		|| addedNodes && addedNodes[0] && addedNodes[0].classList && addedNodes[0].classList.contains('message-group')) {
+			this.run();
+		}
+		if(addedNodes && addedNodes[0] && addedNodes[0].classList && addedNodes[0].classList.contains('chat')
 		|| addedNodes && addedNodes[0] && addedNodes[0].classList && addedNodes[0].classList.contains('messages-wrapper')) {
 			this.run();
+			this.chatObserve();
+		}
+		if(removedNodes.length && removedNodes[0].classList && removedNodes[0].classList.contains('messages-wrapper')) {
+			this.chatDiscon();
 		}
 	}
 	
@@ -182,7 +209,7 @@ class Replyer {
 	}
 
 	getVersion() {
-		return '1.0.3';
+		return '1.1.0';
 	}
 
 	getDescription() {
