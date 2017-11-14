@@ -75,16 +75,17 @@ class Replyer {
 
 	start() {
 		this.log('Started');
-		let libraryScript = document.getElementById('zeresLibraryScript');
-		if (libraryScript) libraryScript.parentElement.removeChild(libraryScript);
-		libraryScript = document.createElement('script');
-		libraryScript.setAttribute('type', 'text/javascript');
-		libraryScript.setAttribute('src', 'https://rauenzi.github.io/BetterDiscordAddons/Plugins/PluginLibrary.js');
-		libraryScript.setAttribute('id', 'zeresLibraryScript');
-		document.head.appendChild(libraryScript);
+		let libraryScript = $('#zeresLibraryScript');
+		if(libraryScript) libraryScript.remove();
+		libraryScript = $('<script/>', {
+			id: 'zeresLibraryScript',
+			src: 'https://rauenzi.github.io/BetterDiscordAddons/Plugins/PluginLibrary.js',
+			type: 'text/javascript'
+		});
+		$('head').append(libraryScript);
 
 		if (typeof window.ZeresLibrary !== 'undefined') this.initialize();
-		else libraryScript.addEventListener('load', () => this.initialize());
+		else libraryScript.on('load', () => this.initialize());
 	}
 
 	initialize() {
@@ -135,7 +136,8 @@ class Replyer {
 			this.run();
 			this.chatObserve();
 		}
-		if(removedNodes.length && removedNodes[0].classList && removedNodes[0].classList.contains('messages-wrapper')) {
+		if(removedNodes.length && removedNodes[0].classList && removedNodes[0].classList.contains('chat')
+		|| removedNodes.length && removedNodes[0].classList && removedNodes[0].classList.contains('messages-wrapper')) {
 			this.chatDiscon();
 		}
 	}
@@ -168,38 +170,6 @@ class Replyer {
 		return `https://raw.githubusercontent.com/Arashiryuu/crap/master/ToastIntegrated/${this.getName()}.plugin.js`;
 	}
 
-	showUpdateNotice() {
-		const updateLink = `https://betterdiscord.net/ghdl?url=https://github.com/Arashiryuu/crap/blob/master/ToastIntegrated/${this.getName()}.plugin.js`;
-		BdApi.clearCSS('pluginNoticeCSS');
-		BdApi.injectCSS('pluginNoticeCSS', '#pluginNotice span, #pluginNotice span a {-webkit-app-region: no-drag;color:#fff;} #pluginNotice span a:hover {text-decoration:underline;}');
-		const noticeElement = '<div class="notice notice-info" id="pluginNotice"><div class="notice-dismiss" id="pluginNoticeDismiss"></div>The following plugins have updates: &nbsp;<strong id="outdatedPlugins"></strong></div>';
-		if (!$('#pluginNotice').length)  {
-			$('.app.flex-vertical').children().first().before(noticeElement);
-			$('.win-buttons').addClass('win-buttons-notice');
-			$('#pluginNoticeDismiss').on('click', () => {
-				$('.win-buttons').animate({ top: 0 }, 400, 'swing', () => $('.win-buttons').css('top', '').removeClass('win-buttons-notice'));
-				$('#pluginNotice').slideUp({ complete: () => $('#pluginNotice').remove() });
-			});
-		}
-		const pluginNoticeID = `${this.getName()}-notice`;
-		if (!$(`#${pluginNoticeID}`).length) {
-			let pluginNoticeElement = $(`<span id="${pluginNoticeID}">`);
-			pluginNoticeElement.html(`<a href="${updateLink}" target="_blank">${this.getName()}</a>`);
-			if ($('#outdatedPlugins').children('span').length) $('#outdatedPlugins').append('<span class="separator">, </span>');
-			$('#outdatedPlugins').append(pluginNoticeElement);
-		}
-	}
-
-	removeUpdateNotice() {
-		const notice = $(`#${this.getName()}-notice`);
-		if (notice.length) {
-			if (notice.next('.separator').length) notice.next().remove();
-			else if (notice.prev('.separator').length) notice.prev().remove();
-			notice.remove();
-		}
-		if (!$('#outdatedPlugins').children('span').length) $('#pluginNoticeDismiss').click();
-	}
-
 	getName() {
 		return 'Replyer';
 	}
@@ -209,7 +179,7 @@ class Replyer {
 	}
 
 	getVersion() {
-		return '1.1.0';
+		return '1.1.1';
 	}
 
 	getDescription() {
