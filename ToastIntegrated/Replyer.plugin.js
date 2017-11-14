@@ -76,7 +76,7 @@ class Replyer {
 	start() {
 		this.log('Started');
 		let libraryScript = $('#zeresLibraryScript');
-		if(libraryScript) libraryScript.remove();
+		if(libraryScript[0]) libraryScript.remove();
 		libraryScript = $('<script/>', {
 			id: 'zeresLibraryScript',
 			src: 'https://rauenzi.github.io/BetterDiscordAddons/Plugins/PluginLibrary.js',
