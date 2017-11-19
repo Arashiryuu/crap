@@ -29,7 +29,7 @@ class Replyer {
 		this.initialized = false;
 
 		this.css = `<style id="${this.getName()}" type="text/css">
-			.replyer {
+			#app-mount .messages-wrapper .message-group h2.old-h2 span.replyer {
 				transition: all 300ms ease;
 				position: relative;
 				top: -1px;
@@ -43,7 +43,7 @@ class Replyer {
 				cursor: pointer;
 			}
 
-			.replyer:hover {
+			#app-mount .messages-wrapper .message-group h2.old-h2 span.replyer:hover {
 				background: rgba(0, 0, 0, 0.6);
 				text-shadow: 0 0 1px currentColor;
 			}
@@ -111,7 +111,7 @@ class Replyer {
 		if(!document.querySelector('.message-group')) return;
 		$('.message-group').each((index, element) => {
 			if($(element).find('.replyer').length > 0) return;
-			$(element).find('.timestamp').after('<div id="replyer" class="replyer">Reply</div>');
+			$(element).find('.timestamp').after('<span id="replyer" class="replyer">Reply</span>');
 			$(element).find('.replyer').on('click.replyer', (event) => {
 				try {
 					const
@@ -179,7 +179,7 @@ class Replyer {
 	}
 
 	getVersion() {
-		return '1.1.1';
+		return '1.1.2';
 	}
 
 	getDescription() {
