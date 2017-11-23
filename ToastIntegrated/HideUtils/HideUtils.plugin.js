@@ -511,7 +511,10 @@ class HideUtils {
 	}
 
 	channelSettings() {
-		return $('#HideUtils-Settings').html(`<div id="HideUtils-Settings" class="HUSettings">
+		const settings = $('#HideUtils-Settings');
+		settings.fadeOut();
+		settings.fadeIn(1500);
+		return setTimeout(() => $('#HideUtils-Settings').html(`<div id="HideUtils-Settings" class="HUSettings">
 			<div id="HideUtils-plugin-settings-div" class="container">
 				<h3>HideUtils Plugin \u2192 Settings \u2192 Channels</h3><br/><br/>
 
@@ -524,11 +527,14 @@ class HideUtils {
 				</div><br/><br/>
 				<button id="HideUtils-Return" class="returnButton" onclick=BdApi.getPlugin("${this.getName()}").returnSettings()>Return</button><br/>
 			</div>
-		</div>`);
+		</div>`), 5e2);
 	}
 
 	serverSettings() {
-		return $('#HideUtils-Settings').html(`<div id="HideUtils-Settings" class="HUSettings">
+		const settings = $('#HideUtils-Settings');
+		settings.fadeOut();
+		settings.fadeIn(1800);
+		return setTimeout(() => $('#HideUtils-Settings').html(`<div id="HideUtils-Settings" class="HUSettings">
 			<div id="HideUtils-plugin-settings-div" class="container">
 				<h3>HideUtils Plugin \u2192 Settings \u2192 Servers</h3><br/><br/>
 
@@ -541,11 +547,14 @@ class HideUtils {
 				</div><br/><br/>
 				<button id="HideUtils-Return" class="returnButton" onclick=BdApi.getPlugin("${this.getName()}").returnSettings()>Return</button><br/>
 			</div>
-		</div>`);
+		</div>`), 5e2);
 	}
 
 	userSettings() {
-		return $('#HideUtils-Settings').html(`<div id="HideUtils-Settings" class="HUSettings">
+		const settings = $('#HideUtils-Settings');
+		settings.fadeOut();
+		settings.fadeIn(1800);
+		return setTimeout(() => $('#HideUtils-Settings').html(`<div id="HideUtils-Settings" class="HUSettings">
 			<div id="HideUtils-plugin-settings-div" class="container">
 				<h3>HideUtils Plugin \u2192 Settings \u2192 Users</h3><br/><br/>
 
@@ -558,11 +567,14 @@ class HideUtils {
 				</div><br/><br/>
 				<button id="HideUtils-Return" class="returnButton" onclick=BdApi.getPlugin("${this.getName()}").returnSettings()>Return</button><br/>
 			</div>
-		</div>`);
+		</div>`), 5e2);
 	}
 
 	instructionPanel() {
-		return $('#HideUtils-Settings').html(`<div id="HideUtils-Settings" class="HUSettings">
+		const settings = $('#HideUtils-Settings');
+		settings.fadeOut();
+		settings.fadeIn(1800);
+		return setTimeout(() => $('#HideUtils-Settings').html(`<div id="HideUtils-Settings" class="HUSettings">
 			<div id="HideUtils-plugin-settings-div" class="container">
 				<h3>HideUtils Plugin \u2192 Settings \u2192 Instructions</h3><br/>
 				<p id="HideUtils-instructions" class="instructions">
@@ -578,11 +590,14 @@ class HideUtils {
 				</p><br/>
 				<button id="HideUtils-Return" class="returnButton" onclick=BdApi.getPlugin("${this.getName()}").returnSettings()>Return</button><br/>
 			</div>
-		</div>`);
+		</div>`), 5e2);
 	}
 
 	returnSettings() {
-		return $('#HideUtils-Settings').html(this.settingSelect());
+		const settings = $('#HideUtils-Settings');
+		settings.fadeOut();
+		settings.fadeIn(1500);
+		return setTimeout(() => settings.html(this.settingSelect()), 5e2);
 	}
 
 	observer({ addedNodes, removedNodes }) {
@@ -645,7 +660,7 @@ class HideUtils {
 	}
 
 	getVersion() {
-		return '1.0.0';
+		return '1.0.1';
 	}
 
 	getDescription() {
