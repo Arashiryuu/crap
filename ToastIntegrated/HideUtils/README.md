@@ -7,6 +7,3 @@
 ## New features
 - Added context-menu compatibility; can now right-click and hide things.
 - New settings UI.
-
-## To do:
-- Add transitions / animations to the settings UI.
