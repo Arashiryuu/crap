@@ -7,3 +7,11 @@
 ## New features
 - Added context-menu compatibility; can now right-click and hide things.
 - New settings UI.
+
+## Preview
+### Settings hub-page:
+![hub](../Previews/settings-hub-default.png)
+### Settings page:
+![page](../Previews/settings-servers.png)
+### Context-menus:
+**Soon™**
