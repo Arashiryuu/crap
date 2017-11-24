@@ -14,4 +14,6 @@
 ### Settings page:
 ![page](../Previews/settings-servers.png)
 ### Context-menus:
-**Soon™**
+![context](../Previews/contextsM.png)
+![context](../Previews/contextsM2.png)
+![context](../Previews/contextsM3.png)
