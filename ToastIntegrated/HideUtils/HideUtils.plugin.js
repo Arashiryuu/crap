@@ -120,6 +120,18 @@ class HideUtils {
 			}
 		});
 
+		this.servMO = new MutationObserver((changes) => {
+			for(const change of changes) {
+				if(change.addedNodes) {
+					for(const node of change.addedNodes.values()) {
+						if(node.classList && node.classList.contains('guild')) {
+							this.auditServers();
+						}
+					}
+				}
+			}
+		});
+
 		this.servCon = new MutationObserver((changes) => {
 			for(const change of changes) {
 				if(change.addedNodes) {
@@ -173,6 +185,7 @@ class HideUtils {
 		this.servCon.disconnect();
 		this.userCon.disconnect();
 		this.chanDiscon();
+		this.servDiscon();
 		this.userDiscon();
 		$('*').off('click.HideUtilsC, click.HideUtilsS, click.HideUtilsU');
 		this.auditChannels();
@@ -211,6 +224,7 @@ class HideUtils {
 		this.servCon.observe(app, { childList: true, subtree: true });
 		this.userCon.observe(app, { childList: true, subtree: true });
 		this.chanObs();
+		this.servObs();
 		this.userObs();
 		this.initialized = true;
 		this.hideChannels();
@@ -329,7 +343,7 @@ class HideUtils {
 	auditServers() {
 		if(document.querySelector('.guild')) {
 			$('.guild').each((_, guild) => {
-				if(this.getReactInstance(guild) && this.getReactInstance(guild).return.memoizedProps.guild)
+				if(guild instanceof Element && this.getReactInstance(guild) && this.getReactInstance(guild).return.memoizedProps.guild)
 					this.hid.servers.includes(this.getReactInstance(guild).return.memoizedProps.guild.id) ? $(guild).hide() : $(guild).show();
 			});
 		}
@@ -338,6 +352,16 @@ class HideUtils {
 	hideServers() {
 		if(!this.hid.servers.length) return;
 		this.auditServers();
+	}
+
+	servObs() {
+		const guilds = document.querySelector('.guilds-wrapper');
+		if(!guilds) return;
+		this.servMO.observe(guilds, { childList: true, subtree: true });
+	}
+
+	servDiscon() {
+		this.servMO.disconnect();
 	}
 
 	servPush() {
@@ -520,10 +544,10 @@ class HideUtils {
 
 				<input id="ChanblockField" type="text" placeholder="ID" style="resize: none; width: 80%; position: relative; left: 10%;" /><br/><br/>
 				<br/><div class="buttonGroupi">
-				<button class="hU-btn0" onclick=BdApi.getPlugin("${this.getName()}").chanPush()>apply</button>
-				<button class="hU-btn1" onclick=BdApi.getPlugin("${this.getName()}").chanClear()>remove</button>
-				<button class="hU-btn2" onclick=BdApi.getPlugin("${this.getName()}").saveSettings()>save</button>
-				<button class="hU-btn3" onclick=BdApi.getPlugin("${this.getName()}").loadSettings()>load</button>
+				<button class="hU-btn0" onclick=BdApi.getPlugin("${this.getName()}").chanPush()>Apply</button>
+				<button class="hU-btn1" onclick=BdApi.getPlugin("${this.getName()}").chanClear()>Remove</button>
+				<button class="hU-btn2" onclick=BdApi.getPlugin("${this.getName()}").saveSettings()>Save</button>
+				<button class="hU-btn3" onclick=BdApi.getPlugin("${this.getName()}").loadSettings()>Load</button>
 				</div><br/><br/>
 				<button id="HideUtils-Return" class="returnButton" onclick=BdApi.getPlugin("${this.getName()}").returnSettings()>Return</button><br/>
 			</div>
@@ -540,10 +564,10 @@ class HideUtils {
 
 				<input id="ServerHideField" type="text" placeholder="ID" style="resize: none; width: 80%; position: relative; left: 10%;" /><br/><br/>
 				<br/><div class="buttonGroupi">
-				<button class="hU-btn0" onclick=BdApi.getPlugin("${this.getName()}").servPush()>apply</button>
-				<button class="hU-btn1" onclick=BdApi.getPlugin("${this.getName()}").servClear()>remove</button>
-				<button class="hU-btn2" onclick=BdApi.getPlugin("${this.getName()}").saveSettings()>save</button>
-				<button class="hU-btn3" onclick=BdApi.getPlugin("${this.getName()}").loadSettings()>load</button>
+				<button class="hU-btn0" onclick=BdApi.getPlugin("${this.getName()}").servPush()>Apply</button>
+				<button class="hU-btn1" onclick=BdApi.getPlugin("${this.getName()}").servClear()>Remove</button>
+				<button class="hU-btn2" onclick=BdApi.getPlugin("${this.getName()}").saveSettings()>Save</button>
+				<button class="hU-btn3" onclick=BdApi.getPlugin("${this.getName()}").loadSettings()>Load</button>
 				</div><br/><br/>
 				<button id="HideUtils-Return" class="returnButton" onclick=BdApi.getPlugin("${this.getName()}").returnSettings()>Return</button><br/>
 			</div>
@@ -560,10 +584,10 @@ class HideUtils {
 
 				<input id="blockField" type="text" placeholder="ID" style="resize: none; width: 80%; position: relative; left: 10%;" /><br/><br/>
 				<br/><div class="buttonGroupi">
-				<button class="hU-btn0" onclick=BdApi.getPlugin("${this.getName()}").userPush()>apply</button>
-				<button class="hU-btn1" onclick=BdApi.getPlugin("${this.getName()}").userClear()>remove</button>
-				<button class="hU-btn2" onclick=BdApi.getPlugin("${this.getName()}").saveSettings()>save</button>
-				<button class="hU-btn3" onclick=BdApi.getPlugin("${this.getName()}").loadSettings()>load</button>
+				<button class="hU-btn0" onclick=BdApi.getPlugin("${this.getName()}").userPush()>Apply</button>
+				<button class="hU-btn1" onclick=BdApi.getPlugin("${this.getName()}").userClear()>Remove</button>
+				<button class="hU-btn2" onclick=BdApi.getPlugin("${this.getName()}").saveSettings()>Save</button>
+				<button class="hU-btn3" onclick=BdApi.getPlugin("${this.getName()}").loadSettings()>Load</button>
 				</div><br/><br/>
 				<button id="HideUtils-Return" class="returnButton" onclick=BdApi.getPlugin("${this.getName()}").returnSettings()>Return</button><br/>
 			</div>
@@ -618,6 +642,11 @@ class HideUtils {
 			this.auditUsers();
 			this.userObs();
 		}
+		if(addedNodes.length && addedNodes[0].classList && addedNodes[0].classList.contains('guilds-wrapper')) {
+			this.servDiscon();
+			this.servObs();
+			this.auditServers();
+		}
 		if(removedNodes.length && removedNodes[0] && removedNodes[0].classList && removedNodes[0].classList.contains('channel-members-wrap')) {
 			this.userDiscon();
 		}
@@ -660,7 +689,7 @@ class HideUtils {
 	}
 
 	getVersion() {
-		return '1.0.1';
+		return '1.0.2';
 	}
 
 	getDescription() {
