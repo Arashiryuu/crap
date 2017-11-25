@@ -33,7 +33,7 @@ class chatUserIDs {
 				font-size: 10px;
 				letter-spacing: 0.025rem;
 				position: relative;
-				top: -0.4ex;
+				top: 0;
 				height: 9px;
 				margin-left: -3px;
 				margin-right: 6px;
@@ -44,6 +44,10 @@ class chatUserIDs {
 				padding: 3px 5px;
 				color: #FFF;
 				font-family: 'Roboto', 'Inconsolata', 'Whitney', sans-serif;
+			}
+			.message-group:not(.compact) h2 {
+				display: flex;
+				position: relative;
 			}
 		</style>`;
 		
@@ -162,15 +166,11 @@ class chatUserIDs {
 	}
 
 	getVersion() {
-		return '1';
+		return '1.0.1';
 	}
 
 	getDescription() {
 		return 'Adds a user\'s ID next to their name in chat, makes accessing a user ID simpler. Double-click to copy the ID.';
-	}
-
-	getSettingsPanel() {
-		return;
 	}
 };
 
