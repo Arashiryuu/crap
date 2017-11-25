@@ -446,8 +446,8 @@ class HideUtils {
 			}
 			if(document.querySelector('.wrapperSelectedVoice-1Q1ocJ.wrapper-fDmxzK ~ .listDefault-3i7eWQ')) {
 				$('.wrapperSelectedVoice-1Q1ocJ.wrapper-fDmxzK ~ .listDefault-3i7eWQ').each((_, user) => {
-					if(this.getReactInstance(user) && this.getReactInstance(user).childNodes.memoizedProps.user)
-						this.hid.users.includes(this.getReactInstance(user).childNodes.memoizedProps.user.id) ? $(user).hide() : $(user).show();
+					if(user.nodeType === 1 && user instanceof Element && this.getReactInstance(user) && this.getReactInstance(user).child.memoizedProps.user)
+						this.hid.users.includes(this.getReactInstance(user).child.memoizedProps.user.id) ? $(user).hide() : $(user).show();
 				});
 			}
 		} catch(e) {
@@ -635,7 +635,8 @@ class HideUtils {
 			this.auditUsers();
 		}
 		if(addedNodes.length && addedNodes[0].classList && addedNodes[0].classList.contains('message')
-		|| addedNodes.length && addedNodes[0].classList && addedNodes[0].classList.contains('message-group')) {
+		|| addedNodes.length && addedNodes[0].classList && addedNodes[0].classList.contains('message-group')
+		|| addedNodes.length && addedNodes[0].classList && addedNodes[0].classList.contains('listDefault-3i7eWQ')) {
 			setTimeout(() => this.auditUsers(), 5e2);
 		}
 		if(addedNodes.length && addedNodes[0] && addedNodes[0].classList && addedNodes[0].classList.contains('channel-members-wrap')) {
@@ -689,7 +690,7 @@ class HideUtils {
 	}
 
 	getVersion() {
-		return '1.0.2';
+		return '1.0.3';
 	}
 
 	getDescription() {
