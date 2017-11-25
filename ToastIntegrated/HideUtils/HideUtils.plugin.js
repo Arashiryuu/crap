@@ -179,18 +179,9 @@ class HideUtils {
 			servers: [],
 			users: []
 		};
-		this.chanMO.disconnect();
-		this.userMO.disconnect();
-		this.chanCon.disconnect();
-		this.servCon.disconnect();
-		this.userCon.disconnect();
-		this.chanDiscon();
-		this.servDiscon();
-		this.userDiscon();
+		this.allDiscon();
 		$('*').off('click.HideUtilsC, click.HideUtilsS, click.HideUtilsU');
-		this.auditChannels();
-		this.auditServers();
-		this.auditUsers();
+		this.stopHiding();
 		this.log('Stopped');
 	}
 
@@ -212,7 +203,6 @@ class HideUtils {
 	initialize() {
 		PluginUtilities.checkForUpdate(this.getName(), this.getVersion(), this.downLink);
 		const settings = bdPluginStorage.get('HideUtils', 'settings');
-		const app = document.querySelector('.app');
 		if(!settings) {
 			this.log('No settings found.');
 		} else {
@@ -220,17 +210,57 @@ class HideUtils {
 			this.log('Settings found and loaded. Settings are:', this.hid);
 		}
 		$('head').append(this.blockCSS, this.settingsCSS);
-		this.chanCon.observe(app, { childList: true, subtree: true });
-		this.servCon.observe(app, { childList: true, subtree: true });
-		this.userCon.observe(app, { childList: true, subtree: true });
-		this.chanObs();
-		this.servObs();
-		this.userObs();
+		this.allObs();
 		this.initialized = true;
+		this.startHiding();
+		PluginUtilities.showToast(`${this.getName()} ${this.getVersion()} has started.`);
+	}
+
+	startHiding() {
 		this.hideChannels();
 		this.hideServers();
 		this.hideUsers();
-		PluginUtilities.showToast(`${this.getName()} ${this.getVersion()} has started.`);
+	}
+
+	stopHiding() {
+		this.auditChannels();
+		this.auditServers();
+		this.auditUsers();
+	}
+
+	appObs() {
+		const app = document.querySelector('.app');
+		this.chanCon.observe(app, { childList: true, subtree: true });
+		this.servCon.observe(app, { childList: true, subtree: true });
+		this.userCon.observe(app, { childList: true, subtree: true });
+	}
+
+	appDiscon() {
+		this.chanCon.disconnect();
+		this.servCon.disconnect();
+		this.userCon.disconnect();
+	}
+
+	moObs() {
+		this.chanObs();
+		this.servObs();
+		this.userObs();
+	}
+
+	moDiscon() {
+		this.chanMO.disconnect();
+		this.servMO.disconnect();
+		this.userMO.disconnect();
+	}
+
+	allObs() {
+		this.appObs();
+		this.moObs();
+	}
+
+	allDiscon() {
+		this.appDiscon();
+		this.moDiscon();
 	}
 
 	channelContext(context) {
@@ -625,6 +655,13 @@ class HideUtils {
 	}
 
 	observer({ addedNodes, removedNodes }) {
+		if(addedNodes.length && addedNodes[0].id && addedNodes[0].id === 'friends') {
+			this.allDiscon();
+			this.allObs();
+		}
+		if(addedNodes.length && addedNodes[0] && addedNodes[0].classList && addedNodes[0].classList.contains('guild')) {
+			setTimeout(() => this.auditServers(), 5e2);
+		}
 		if(addedNodes.length && addedNodes[0] && addedNodes[0].classList && addedNodes[0].classList.contains('chat')
 		|| addedNodes.length && addedNodes[0] && addedNodes[0].classList && addedNodes[0].classList.contains('messages-wrapper')) {
 			this.chanDiscon();
@@ -690,7 +727,7 @@ class HideUtils {
 	}
 
 	getVersion() {
-		return '1.0.3';
+		return '1.0.4';
 	}
 
 	getDescription() {
