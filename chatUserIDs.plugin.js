@@ -26,8 +26,7 @@
 
 class chatUserIDs {
 	constructor() {
-    	this.css = `
-    	<style id="chatUserIDsCSS" type="text/css">
+		this.css = `<style id="chatUserIDsCSS" type="text/css">
 			@import 'https://fonts.googleapis.com/css?family=Roboto|Inconsolata';
 			#tagID {
 				font-size: 10px;
@@ -35,7 +34,7 @@ class chatUserIDs {
 				position: relative;
 				top: 0;
 				height: 9px;
-				margin-left: -3px;
+				margin-left: -4px;
 				margin-right: 6px;
 				text-shadow: 0 1px 3px black;
 				background: #798AED;
@@ -77,10 +76,10 @@ class chatUserIDs {
 		this.attachID();
 		this.log('Started');
 	}
-	
+
 	chatObserve() {
 		const chat = document.querySelector('.chat');
-		if(!chat || !chat.length) return;
+		if(!chat) return;
 		this.editObs.observe(chat, { attributes: true, subtree: true });
 	}
 
@@ -89,47 +88,48 @@ class chatUserIDs {
 	}
 
 	observer({ addedNodes, removedNodes }) {
-		if(addedNodes.length > 0 && addedNodes[0].classList && addedNodes[0].classList.contains('messages-wrapper')
-		|| addedNodes.length > 0 && addedNodes[0].classList && addedNodes[0].classList.contains('chat')) {
+		if(addedNodes && addedNodes.length && addedNodes[0] && addedNodes[0] instanceof Element && addedNodes[0].classList && addedNodes[0].classList.contains('messages-wrapper')
+		|| addedNodes && addedNodes.length && addedNodes[0] && addedNodes[0] instanceof Element && addedNodes[0].classList && addedNodes[0].classList.contains('chat')) {
 			this.chatDiscon();
 			this.attachID();
 			this.chatObserve();
 		}
-		if(addedNodes.length > 0 && addedNodes[0].classList && addedNodes[0].classList.contains('message-group')) {
-			this.attachID();
+		if(addedNodes && addedNodes.length && addedNodes[0] && addedNodes[0] instanceof Element && addedNodes[0].classList && addedNodes[0].classList.contains('message-group')) {
+			setTimeout(() => this.attachID(), 5e2);
 		}
-		if(removedNodes.length > 0 && removedNodes[0].classList && removedNodes[0].classList.contains('message-group')) {
-			this.attachID();
+		if(removedNodes && removedNodes.length && removedNodes[0] && removedNodes[0] instanceof Element && removedNodes[0].classList && removedNodes[0].classList.contains('message-group')) {
+			setTimeout(() => this.attachID(), 5e2);
 		}
-		if(removedNodes.length > 0 && removedNodes[0].classList && removedNodes[0].classList.contains('messages-wrapper')) {
+		if(removedNodes && removedNodes.length && removedNodes[0] && removedNodes[0] instanceof Element && removedNodes[0].classList && removedNodes[0].classList.contains('messages-wrapper')) {
 			this.chatDiscon();
 		}
 	}
 
 	attachID() {
-		if(!$('.message-group') || !$('.message-group').length) return;
+		if(!document.querySelector('.message-group')) return;
 		try {
-		  $('.message-group').each((index, post) => {
-			if($(post).find('.tagID') && $(post).find('.tagID').length > 0) return;
-			const elem = `<span id="tagID" class="tagID">${this.getReactInstance($(post)[0]).return.memoizedProps.messages[0].author.id}</span>`;
-				$(post).find('.username-wrapper').before(elem);
-				$(post).find('.tagID')
-					.off('dblclick.chatID')
-					.on('dblclick.chatID', this.dblClickID.bind(this));
-		  });
-    	}
-    	catch(e) {
-      		this.err(e.stack);
-    	}
+			$('.message-group').each((index, post) => {
+				if(post.nodeType === 1 && post instanceof Element) {
+					if($(post).find('.tagID') && $(post).find('.tagID').length > 0) return;
+					if(!$(post)[0] instanceof Element) return;
+						const elem = `<span id="tagID" class="tagID">${this.getReactInstance($(post)[0]).return.memoizedProps.messages[0].author.id}</span>`;
+						$(post).find('.username-wrapper').before(elem);
+						$(post).find('.tagID').off('dblclick.chatID').on('dblclick.chatID', this.constructor.dblClickID.bind(this));
+				}
+			});
+		}
+		catch(e) {
+			this.err(e.stack);
+		}
 	}
 
-	dblClickID(e) {
+	static dblClickID(e) {
 		e.stopPropagation();
 		try {
 			document.execCommand('copy');
 		}
 		catch(err) {
-			this.err(err.stack);
+			this.err(e.stack);
 		}
 	}
 
