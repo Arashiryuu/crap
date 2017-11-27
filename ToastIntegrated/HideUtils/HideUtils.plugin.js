@@ -642,8 +642,8 @@ class HideUtils {
 				0) Right-click on a channel, server, or user.<br/>
 				1) Left-click the hide option.<br/><br/>
 				[ B ]:<br/><br/>
-				0) User Settings \u2192 Appearence \u2192 Developer Mode, then right-click a user and "Copy ID".<br/>
-				1) Insert a user's ID.<br/>
+				0) User Settings \u2192 Appearence \u2192 Developer Mode, then right-click a user, channel, or server, and "Copy ID".<br/>
+				1) Insert the ID.<br/>
 				2) Click "apply."<br/><br/>
 				[ NOTE ]:<br/><br/>
 				* Unhiding requires use of the settings-panel, and is not handled within a context-menu.
