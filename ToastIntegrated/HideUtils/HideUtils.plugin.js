@@ -265,7 +265,7 @@ class HideUtils {
 
 	channelContext(context) {
 		if(!context) return;
-		if(this.getReactInstance(context).return.memoizedProps.target && this.getReactInstance(context).return.memoizedProps.type.includes('CHANNEL_LIST') && this.getReactInstance(context).return.memoizedProps.channel && (this.getReactInstance(context).return.memoizedProps.channel.type === 0 || this.getReactInstance($('.context-menu')[0]).return.memoizedProps.channel.type === 2)) {
+		if(this.getReactInstance(context) && this.getReactInstance(context).return.memoizedProps.target && this.getReactInstance(context).return.memoizedProps.type.includes('CHANNEL_LIST') && this.getReactInstance(context).return.memoizedProps.channel && (this.getReactInstance(context).return.memoizedProps.channel.type === 0 || this.getReactInstance($('.context-menu')[0]).return.memoizedProps.channel.type === 2)) {
 			$(context).find('.item').first().after(this.chanItem);
 			$(context).find('.item.hideChannel')
 				.off('click.HideUtilC')
@@ -350,7 +350,7 @@ class HideUtils {
 
 	serverContext(context) {
 		if(!context) return;
-		if(this.getReactInstance(context).return.memoizedProps.type === 'GUILD_ICON_BAR' && this.getReactInstance(context).return.memoizedProps.guild && !this.getReactInstance(context).return.memoizedProps.channel) {
+		if(this.getReactInstance(context) && this.getReactInstance(context).return.memoizedProps.type === 'GUILD_ICON_BAR' && this.getReactInstance(context).return.memoizedProps.guild && !this.getReactInstance(context).return.memoizedProps.channel) {
 			$(context).find('.item').first().after(this.servItem);
 			$(context).find('.item.hideServer')
 				.off('click.HideUtilsS')
@@ -436,7 +436,7 @@ class HideUtils {
 
 	userContext(context) {
 		if(!context) return;
-		if(!this.getReactInstance(context).return.memoizedProps.user) return;
+		if(!this.getReactInstance(context) || !this.getReactInstance(context).return.memoizedProps.user) return;
 		if((this.getReactInstance(context).return.memoizedProps.target && this.getReactInstance(context).return.memoizedProps.target.classList.contains('avatar-large'))
 		|| (this.getReactInstance(context).return.memoizedProps.target && this.getReactInstance(context).return.memoizedProps.target.classList.contains('user-name'))
 		|| (this.getReactInstance(context).return.memoizedProps.target && this.getReactInstance(context).return.memoizedProps.target.classList.contains('member-username'))
@@ -464,15 +464,21 @@ class HideUtils {
 		try {
 			if(document.querySelector('.member')) {
 				$('.member').each((_, user) => {
-					if(this.getReactInstance(user) && this.getReactInstance(user).return.return.memoizedProps.user)
+					if(user.nodeType === 1 && user instanceof Element && this.getReactInstance(user) && this.getReactInstance(user).return.return.memoizedProps.user)
 						this.hid.users.includes(this.getReactInstance(user).return.return.memoizedProps.user.id) ? $(user).hide() : $(user).show();
 				});
 			}
 			if(document.querySelector('.message-group')) {
-				$('.message-group').each((_, user) => {
+				$('.message-group.hide-overflow').each((_, user) => {
 					if(user.nodeType === 1 && user instanceof Element && this.getReactInstance(user) && this.getReactInstance(user).return.memoizedProps.messages && this.getReactInstance(user).return.memoizedProps.messages[0] && this.getReactInstance(user).return.memoizedProps.messages[0].author)
 						this.hid.users.includes(this.getReactInstance(user).return.memoizedProps.messages[0].author.id) ? $(user).hide() : $(user).show();
 				});
+				if($('.message-group:not(.hide-overflow)').length) {
+					$('.message-group:not(.hide-overflow)').each((_, user) => {
+						if(user.nodeType === 1 && user instanceof Element && this.getReactInstance(user) && this.getReactInstance(user).return.key && this.getReactInstance(user).return.key.includes('upload')  && this.getReactInstance(user).return.memoizedProps.user)
+							this.hid.users.includes(this.getReactInstance(user).return.memoizedProps.user.id) ? $(user).hide() : $(user).show();
+					});
+				}
 			}
 			if(document.querySelector('.wrapperSelectedVoice-1Q1ocJ.wrapper-fDmxzK ~ .listDefault-3i7eWQ')) {
 				$('.wrapperSelectedVoice-1Q1ocJ.wrapper-fDmxzK ~ .listDefault-3i7eWQ').each((_, user) => {
@@ -660,7 +666,7 @@ class HideUtils {
 			this.allObs();
 		}
 		if(addedNodes.length && addedNodes[0] && addedNodes[0].classList && addedNodes[0].classList.contains('guild')) {
-			setTimeout(() => this.auditServers(), 5e2);
+			this.auditServers();
 		}
 		if(addedNodes.length && addedNodes[0] && addedNodes[0].classList && addedNodes[0].classList.contains('chat')
 		|| addedNodes.length && addedNodes[0] && addedNodes[0].classList && addedNodes[0].classList.contains('messages-wrapper')) {
@@ -674,7 +680,7 @@ class HideUtils {
 		if(addedNodes.length && addedNodes[0].classList && addedNodes[0].classList.contains('message')
 		|| addedNodes.length && addedNodes[0].classList && addedNodes[0].classList.contains('message-group')
 		|| addedNodes.length && addedNodes[0].classList && addedNodes[0].classList.contains('listDefault-3i7eWQ')) {
-			setTimeout(() => this.auditUsers(), 5e2);
+			this.auditUsers();
 		}
 		if(addedNodes.length && addedNodes[0] && addedNodes[0].classList && addedNodes[0].classList.contains('channel-members-wrap')) {
 			this.auditUsers();
@@ -727,7 +733,7 @@ class HideUtils {
 	}
 
 	getVersion() {
-		return '1.0.4';
+		return '1.0.5';
 	}
 
 	getDescription() {
