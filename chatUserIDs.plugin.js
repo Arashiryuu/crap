@@ -52,7 +52,7 @@ class chatUserIDs {
 		
 		this.editObs = new MutationObserver((changes, p) => {
 			for(const change of changes) {
-				if(change && change.target && change.target.classList && change.target.classList.contains('message-group')) {
+				if(change && change instanceof Element && change.target && change.target instanceof Element && change.target.classList && change.target.classList.contains('message-group')) {
 					this.attachID();
 				}
 			}
@@ -95,10 +95,10 @@ class chatUserIDs {
 			this.chatObserve();
 		}
 		if(addedNodes && addedNodes.length && addedNodes[0] && addedNodes[0] instanceof Element && addedNodes[0].classList && addedNodes[0].classList.contains('message-group')) {
-			setTimeout(() => this.attachID(), 5e2);
+			this.attachID();
 		}
 		if(removedNodes && removedNodes.length && removedNodes[0] && removedNodes[0] instanceof Element && removedNodes[0].classList && removedNodes[0].classList.contains('message-group')) {
-			setTimeout(() => this.attachID(), 5e2);
+			this.attachID();
 		}
 		if(removedNodes && removedNodes.length && removedNodes[0] && removedNodes[0] instanceof Element && removedNodes[0].classList && removedNodes[0].classList.contains('messages-wrapper')) {
 			this.chatDiscon();
@@ -108,15 +108,25 @@ class chatUserIDs {
 	attachID() {
 		if(!document.querySelector('.message-group')) return;
 		try {
-			$('.message-group').each((index, post) => {
+			$('.message-group.hide-overflow').each((index, post) => {
 				if(post.nodeType === 1 && post instanceof Element) {
 					if($(post).find('.tagID') && $(post).find('.tagID').length > 0) return;
 					if(!$(post)[0] instanceof Element) return;
-						const elem = `<span id="tagID" class="tagID">${this.getReactInstance($(post)[0]).return.memoizedProps.messages[0].author.id}</span>`;
-						$(post).find('.username-wrapper').before(elem);
-						$(post).find('.tagID').off('dblclick.chatID').on('dblclick.chatID', this.constructor.dblClickID.bind(this));
+					const elem = `<span id="tagID" class="tagID">${this.getReactInstance(post).return.memoizedProps.messages[0].author.id}</span>`;
+					$(post).find('.username-wrapper').before(elem);
+					$(post).find('.tagID').off('dblclick.chatID').on('dblclick.chatID', this.constructor.dblClickID.bind(this));
 				}
 			});
+			if($('.message-group:not(.hide-overflow)').length) {
+				$('.message-group:not(.hide-overflow)').each((index, post) => {
+					if($(post).find('.tagID') && $(post).find('.tagID').length > 0) return;
+					if(!$(post)[0] instanceof Element) return;
+					if(!this.getReactInstance(post).return.key && !this.getReactInstance(post).return.key.includes('upload')) return;
+					const elem = `<span id="tagID" class="tagID">${this.getReactInstance(post).return.memoizedProps.user.id}</span>`;
+					$(post).find('.username-wrapper').before(elem);
+					$(post).find('.tagID').off('dblclick.chatID').on('dblclick.chatID', this.constructor.dblClickID.bind(this));
+				});
+			}
 		}
 		catch(e) {
 			this.err(e.stack);
@@ -166,7 +176,7 @@ class chatUserIDs {
 	}
 
 	getVersion() {
-		return '1.0.1';
+		return '1.0.2';
 	}
 
 	getDescription() {
