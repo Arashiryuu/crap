@@ -50,9 +50,9 @@ class chatUserIDs {
 			}
 		</style>`;
 		
-		this.editObs = new MutationObserver((changes, p) => {
+		this.editObs = new MutationObserver((changes) => {
 			for(const change of changes) {
-				if(change && change instanceof Element && change.target && change.target instanceof Element && change.target.classList && change.target.classList.contains('message-group')) {
+				if(change && change.target && change.target.classList && change.target.classList.contains('message-group')) {
 					this.attachID();
 				}
 			}
@@ -111,20 +111,26 @@ class chatUserIDs {
 			$('.message-group.hide-overflow').each((index, post) => {
 				if(post.nodeType === 1 && post instanceof Element) {
 					if($(post).find('.tagID') && $(post).find('.tagID').length > 0) return;
-					if(!$(post)[0] instanceof Element) return;
+					if(!(post instanceof Element)) return;
 					const elem = `<span id="tagID" class="tagID">${this.getReactInstance(post).return.memoizedProps.messages[0].author.id}</span>`;
 					$(post).find('.username-wrapper').before(elem);
 					$(post).find('.tagID').off('dblclick.chatID').on('dblclick.chatID', this.constructor.dblClickID.bind(this));
 				}
 			});
-			if($('.message-group:not(.hide-overflow)').length) {
+			if($('.message-group:not(.hide-overflow)').length > 0) {
 				$('.message-group:not(.hide-overflow)').each((index, post) => {
 					if($(post).find('.tagID') && $(post).find('.tagID').length > 0) return;
-					if(!$(post)[0] instanceof Element) return;
-					if(!this.getReactInstance(post).return.key && !this.getReactInstance(post).return.key.includes('upload')) return;
-					const elem = `<span id="tagID" class="tagID">${this.getReactInstance(post).return.memoizedProps.user.id}</span>`;
-					$(post).find('.username-wrapper').before(elem);
-					$(post).find('.tagID').off('dblclick.chatID').on('dblclick.chatID', this.constructor.dblClickID.bind(this));
+					if(!(post instanceof Element)) return;
+					if(this.getReactInstance(post).return.key && this.getReactInstance(post).return.key.includes('upload')) {
+						const elem = `<span id="tagID" class="tagID">${this.getReactInstance(post).return.memoizedProps.user.id}</span>`;
+						$(post).find('.username-wrapper').before(elem);
+						$(post).find('.tagID').off('dblclick.chatID').on('dblclick.chatID', this.constructor.dblClickID.bind(this));
+					}
+					else if(this.getReactInstance(post).return.memoizedProps.messages && this.getReactInstance(post).return.memoizedProps.messages.length > 0) {
+						const elem = `<span id="tagID" class="tagID">${this.getReactInstance(post).return.memoizedProps.messages[0].author.id}</span>`;
+						$(post).find('.username-wrapper').before(elem);
+						$(post).find('.tagID').off('dblclick.chatID').on('dblclick.chatID', this.constructor.dblClickID.bind(this));
+					}
 				});
 			}
 		}
@@ -176,7 +182,7 @@ class chatUserIDs {
 	}
 
 	getVersion() {
-		return '1.0.2';
+		return '1.0.3';
 	}
 
 	getDescription() {
