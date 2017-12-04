@@ -48,6 +48,9 @@ class chatUserIDs {
 				display: flex;
 				position: relative;
 			}
+			.message-group .comment .message.first ~ div > .edit-message .edit-container-inner .old-h2 {
+				display: none;
+			}
 		</style>`;
 		
 		this.editObs = new MutationObserver((changes) => {
