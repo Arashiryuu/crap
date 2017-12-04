@@ -34,8 +34,11 @@ class HideUtils {
 			users: []
 		};
 
-		this.blockCSS = `<style id="hideUsersCSS" type="text/css">
-			.message-group-blocked { display: none; }
+		this.blockCSS = `<style id="HideUtils-Block-CSS" type="text/css">
+			.message-group-blocked,
+			.unread-mentions-bar {
+				display: none;
+			}
 		</style>`;
 
 		this.settingsCSS = `<style id="HideUtils-Settings-CSS" type="text/css">
@@ -179,6 +182,7 @@ class HideUtils {
 			servers: [],
 			users: []
 		};
+		$('#HideUtils-Block-CSS, #HideUtils-Settings-CSS').remove();
 		this.allDiscon();
 		$('*').off('click.HideUtilsC, click.HideUtilsS, click.HideUtilsU');
 		this.stopHiding();
@@ -254,8 +258,13 @@ class HideUtils {
 	}
 
 	allObs() {
-		this.appObs();
-		this.moObs();
+		try {
+			this.appObs();
+			this.moObs();
+		}
+		catch(e) {
+			this.err(e.stack);
+		}
 	}
 
 	allDiscon() {
@@ -265,7 +274,7 @@ class HideUtils {
 
 	channelContext(context) {
 		if(!context) return;
-		if(this.getReactInstance(context) && this.getReactInstance(context).return.memoizedProps.target && this.getReactInstance(context).return.memoizedProps.type.includes('CHANNEL_LIST') && this.getReactInstance(context).return.memoizedProps.channel && (this.getReactInstance(context).return.memoizedProps.channel.type === 0 || this.getReactInstance($('.context-menu')[0]).return.memoizedProps.channel.type === 2)) {
+		if(this.getReactInstance(context) && this.getReactInstance(context).return.memoizedProps.target && this.getReactInstance(context).return.memoizedProps.type && this.getReactInstance(context).return.memoizedProps.type.includes('CHANNEL_LIST') && this.getReactInstance(context).return.memoizedProps.channel && (this.getReactInstance(context).return.memoizedProps.channel.type === 0 || this.getReactInstance($('.context-menu')[0]).return.memoizedProps.channel.type === 2)) {
 			$(context).find('.item').first().after(this.chanItem);
 			$(context).find('.item.hideChannel')
 				.off('click.HideUtilC')
@@ -441,6 +450,12 @@ class HideUtils {
 		|| (this.getReactInstance(context).return.memoizedProps.target && this.getReactInstance(context).return.memoizedProps.target.classList.contains('user-name'))
 		|| (this.getReactInstance(context).return.memoizedProps.target && this.getReactInstance(context).return.memoizedProps.target.classList.contains('member-username'))
 		|| (this.getReactInstance(context).return.memoizedProps.target && this.getReactInstance(context).return.memoizedProps.target.classList.contains('avatar-small'))) {
+			$(context).find('.item').first().after(this.userItem);
+			$(context).find('.item.hideUser')
+				.off('click.HideUtilsU')
+				.on('click.HideUtilsU', this.userConClick.bind(this));
+		} else
+		if(this.getReactInstance(context).return.memoizedProps.type && this.getReactInstance(context).return.memoizedProps.type === 'USER_FRIEND_LIST' && this.getReactInstance(context).return.memoizedProps.user) {
 			$(context).find('.item').first().after(this.userItem);
 			$(context).find('.item.hideUser')
 				.off('click.HideUtilsU')
@@ -661,7 +676,7 @@ class HideUtils {
 	}
 
 	observer({ addedNodes, removedNodes }) {
-		if(addedNodes.length && addedNodes[0].id && addedNodes[0].id === 'friends') {
+		if(addedNodes.length && addedNodes[0].id && addedNodes[0].id.toLowerCase() === 'friends') {
 			this.allDiscon();
 			this.allObs();
 		}
@@ -689,6 +704,9 @@ class HideUtils {
 		if(addedNodes.length && addedNodes[0].classList && addedNodes[0].classList.contains('guilds-wrapper')) {
 			this.servDiscon();
 			this.servObs();
+			this.auditServers();
+		}
+		if(removedNodes.length && removedNodes[0].classList && removedNodes[0].classList.contains('folder')) {
 			this.auditServers();
 		}
 		if(removedNodes.length && removedNodes[0] && removedNodes[0].classList && removedNodes[0].classList.contains('channel-members-wrap')) {
@@ -733,7 +751,7 @@ class HideUtils {
 	}
 
 	getVersion() {
-		return '1.0.5';
+		return '1.0.6';
 	}
 
 	getDescription() {
