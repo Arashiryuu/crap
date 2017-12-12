@@ -48,7 +48,7 @@ class killxd {
 		 }, 100);
 	}
 	
-	observer({addedNodes, removedNodes}) {
+	observer({ addedNodes }) {
 		if(addedNodes.length && addedNodes[0].classList && addedNodes[0].classList.contains('chat')
 		|| addedNodes.length && addedNodes[0].classList && addedNodes[0].classList.contains('markup')
 		|| addedNodes.length && addedNodes[0].classList && addedNodes[0].classList.contains('message')
