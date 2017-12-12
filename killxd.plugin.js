@@ -24,10 +24,6 @@
 @else@*/
 
 class killxd {
-	constructor() {
-		
-	};
-	
 	load() {
 	
 	}
@@ -36,7 +32,7 @@ class killxd {
 	
 	}
 
-  start() { 
+	start() { 
 		this.processChat(); 
 	}
 	
@@ -50,34 +46,33 @@ class killxd {
 				}
 			});
 		 }, 100);
-   }
+	}
 	
 	observer({addedNodes, removedNodes}) {
-    if(addedNodes.length && addedNodes[0].classList && addedNodes[0].classList.contains('markup')
-		|| addedNodes.length && addedNodes[0].classList && addedNodes[0].classList.contains('message-group')
+		if(addedNodes.length && addedNodes[0].classList && addedNodes[0].classList.contains('chat')
+		|| addedNodes.length && addedNodes[0].classList && addedNodes[0].classList.contains('markup')
+		|| addedNodes.length && addedNodes[0].classList && addedNodes[0].classList.contains('message')
+		|| addedNodes.length && addedNodes[0].classList && addedNodes[0].classList.contains('hide-overflow')
 		|| addedNodes.length && addedNodes[0].classList && addedNodes[0].classList.contains('messages-wrapper')) {
-      this.processChat();
-    }
-  }
-
-  getName() {
+      		this.processChat();
+    	}
+  	}
+	
+	getName() {
 		return 'killxd'; 
 	}
-
-  getAuthor() {
+	
+  	getAuthor() {
 		return 'Arashiryuu'; 
 	}
-
-  getVersion() {
-		return '1.2.0'; 
+	
+  	getVersion() {
+		return '1.2.1'; 
 	}
-
+	
 	getDescription() {
 		return 'replaces shitty xds.'; 
 	}
-
-  getSettingsPanel() {
-		return 'Go away!'; 
-	}
 };
+
 /*@end@*/
