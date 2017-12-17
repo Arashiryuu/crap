@@ -76,7 +76,7 @@ class Replyer {
 	start() {
 		this.log('Started');
 		
-		let libraryScript = document.getElementById('#zeresLibraryScript');
+		let libraryScript = document.getElementById('zeresLibraryScript');
 		if(!libraryScript) {
 			libraryScript = document.createElement('script');
 			libraryScript.id = 'zeresLibraryScript';
