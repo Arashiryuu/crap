@@ -191,14 +191,15 @@ class HideUtils {
 
 	start() {
 		this.log('Started');
-		let libraryScript = $('#zeresLibraryScript');
-		if(libraryScript) libraryScript.remove();
-		libraryScript = $('<script/>', {
-			id: 'zeresLibraryScript',
-			src: 'https://rauenzi.github.io/BetterDiscordAddons/Plugins/PluginLibrary.js',
-			type: 'text/javascript'
-		});
-		$('head').append(libraryScript);
+		
+		let libraryScript = document.getElementById('zeresLibraryScript');
+		if(!libraryScript) {
+			libraryScript = document.createElement('script');
+			libraryScript.id = 'zeresLibraryScript';
+			libraryScript.src = 'https://rauenzi.github.io/BetterDiscordAddons/Plugins/PluginLibrary.js';
+			libraryScript.type = 'text/javascript';
+			document.head.appendChild(libraryScript);
+		}
 
 		if(typeof window.ZeresLibrary !== 'undefined') this.initialize();
 		else libraryScript.on('load', () => this.initialize());
