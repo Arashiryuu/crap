@@ -202,7 +202,7 @@ class HideUtils {
 		}
 
 		if(typeof window.ZeresLibrary !== 'undefined') this.initialize();
-		else libraryScript.on('load', () => this.initialize());
+		else libraryScript.addEventListener('load', () => this.initialize());
 	}
 
 	initialize() {
