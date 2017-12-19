@@ -10,10 +10,10 @@
 
 ## Preview
 ### Settings hub-page:
-![hub](../Previews/settings-hub-default.png)
+![hub](../Previews/HideUtils/settings-hub-default.png)
 ### Settings page:
-![page](../Previews/settings-servers.png)
+![page](../Previews/HideUtils/settings-servers.png)
 ### Context-menus:
-![context](../Previews/contextsM.png)
-![context](../Previews/contextsM2.png)
-![context](../Previews/contextsM3.png)
+![context](../Previews/HideUtils/contextsM.png)
+![context](../Previews/HideUtils/contextsM2.png)
+![context](../Previews/HideUtils/contextsM3.png)
