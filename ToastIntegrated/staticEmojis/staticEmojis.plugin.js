@@ -105,17 +105,6 @@ class staticEmojis {
 			this.scan();
 		}
 	}
-	
-	/**
-	 * @name getInternalInstance
-	 * @description Function to return the react internal data of the element
-	 * @param {Node} node - the element we want the internal data from
-	 * @author noodlebox
-	 * @returns {Node}
-	 */
-	getReactInstance(node) {
-		return node[Object.keys(node).find((key) => key.startsWith('__reactInternalInstance'))];
-	}
 
 	log(text, ...extra) {
 		if(typeof text !== 'string')
