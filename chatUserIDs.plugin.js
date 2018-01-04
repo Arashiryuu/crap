@@ -148,7 +148,7 @@ class chatUserIDs {
 			document.execCommand('copy');
 		}
 		catch(err) {
-			this.err(e.stack);
+			this.err(err.stack);
 		}
 	}
 
