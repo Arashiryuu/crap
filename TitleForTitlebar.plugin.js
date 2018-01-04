@@ -53,11 +53,11 @@ function TitleForTitle() {
     uwu.log('Started');
   }
   /**
-	 * @name getInternalInstance
+   * @name getInternalInstance
    * @author noodlebox
-	 * @description Function to return the react internal instance of an element
+   * @description Function to return the react internal instance of an element
    * @param {Node} node - The element we want the internal data from
-	 */
+   */
   uwu.getReactInstance = (node) => node[Object.keys(node).find((key) => key.startsWith('__reactInternalInstance'))];
   uwu.getChannel = () => {
     if(document.querySelector('.chat')) {
@@ -94,7 +94,6 @@ function TitleForTitle() {
       uwu.getChannel();
     } else
     if(addedNodes && addedNodes[0] && addedNodes[0].id && addedNodes[0].id === 'friends') {
-      const titleText = $('.tab-bar.UNIQUE .tab-bar-item.selected').text();
       $('#TitleforTitlebar').text('[UI] Friends');
     } else
     if(addedNodes && addedNodes[0] && addedNodes[0].classList && addedNodes[0].classList.contains('layer')) {
@@ -107,7 +106,6 @@ function TitleForTitle() {
     } else
     if(removedNodes && removedNodes[0] && removedNodes[0].classList && removedNodes[0].classList.contains('layer')) {
       if($('#friends').length > 0) {
-        const titleText = $('.tab-bar.UNIQUE .tab-bar-item.selected').text();
         $('#TitleforTitlebar').text('[UI] Friends');
       }
       else {
