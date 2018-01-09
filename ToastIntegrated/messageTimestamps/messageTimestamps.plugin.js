@@ -93,7 +93,7 @@ class messageTimestamps {
 		if(!node) return;
 		const refNode = this.getReactInstance(node);
 		if(refNode && refNode.return.memoizedProps.message && refNode.return.memoizedProps.type && refNode.return.memoizedProps.type.includes('MESSAGE')) {
-			$(node).find('.item:contains("Quote")').after(this.contextMarkup);
+			$(node).find('.item').first().after(this.contextMarkup);
 			$(node).find('.item.timestamp')
 				.off('click.msgTimes')
 				.on('click.msgTimes', this.showTimestamp.bind(this));			
@@ -146,7 +146,7 @@ class messageTimestamps {
 	}
 
 	getVersion() {
-		return '1.0.0';
+		return '1.0.1';
 	}
 
 	getDescription() {
