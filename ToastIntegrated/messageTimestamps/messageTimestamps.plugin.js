@@ -101,12 +101,9 @@ class messageTimestamps {
 	}
 
 	showTimestamp() {
-		const menu = document.querySelector('.context-menu');
-		const msg = this.getReactInstance(menu).return.memoizedProps.message;
-		if(!menu) return;
-		if(!msg) return;
-		const timestamp = msg.timestamp._d;
-		PluginUtilities.showToast(timestamp);
+		const menu = document.querySelector('.context-menu'), msg = this.getReactInstance(menu).return.memoizedProps.message;
+		if(!menu || !msg) return;
+		PluginUtilities.showToast(msg.timestamp._d);
 	}
 	
 	/**
