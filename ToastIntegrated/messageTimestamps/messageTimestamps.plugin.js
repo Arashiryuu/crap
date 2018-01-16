@@ -39,7 +39,8 @@ class messageTimestamps {
 			for(const change of changes) {
 				if(change.addedNodes && change.addedNodes.length) {
 					for(const node of change.addedNodes.values()) {
-						if(node.nodeType === 1 && node.classList && node.classList.contains('context-menu')) {
+						if(node.nodeType === 1 && node.classList && node.classList.contains('context-menu')
+						|| node.nodeType === 1 && node.classList && node.classList.contains('contextMenu-uoJTbz')) {
 							this.addContext(node);
 						}
 					}
@@ -149,7 +150,7 @@ class messageTimestamps {
 	}
 
 	getVersion() {
-		return '1.0.3';
+		return '1.0.4';
 	}
 
 	getDescription() {
