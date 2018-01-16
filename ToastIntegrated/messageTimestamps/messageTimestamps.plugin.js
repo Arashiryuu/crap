@@ -101,9 +101,15 @@ class messageTimestamps {
 	}
 
 	showTimestamp() {
-		const menu = document.querySelector('.context-menu'), msg = this.getReactInstance(menu).return.memoizedProps.message;
-		if(!menu || !msg) return;
-		PluginUtilities.showToast(msg.timestamp._d);
+		if(process['argv0'].includes('DiscordCanary') || process['argv0'].includes('DiscordPTB')) {
+			const menu = document.querySelector('.contextMenu-uoJTbz'), msg = this.getReactInstance(menu).return.memoizedProps.message;
+			if(!menu || !msg) return;
+			PluginUtilities.showToast(msg.timestamp._d);
+		} else {
+			const menu = document.querySelector('.context-menu'), msg = this.getReactInstance(menu).return.memoizedProps.message;
+			if(!menu || !msg) return;
+			PluginUtilities.showToast(msg.timestamp._d);
+		}
 	}
 	
 	/**
@@ -143,7 +149,7 @@ class messageTimestamps {
 	}
 
 	getVersion() {
-		return '1.0.2';
+		return '1.0.3';
 	}
 
 	getDescription() {
