@@ -78,24 +78,24 @@ class HideUtils {
 			}
 		</style>`;
 
-		this.chanItem = `<div class="item-group HideUtils">
-			<div class="item hideChannel">
+		this.chanItem = `<div class="itemGroup-oViAgA HideUtils">
+			<div class="item-1XYaYf hideChannel">
 				<span>Hide Channel</span>
-				<div class="hint"></div>
+				<div class="hint-3TJykr"></div>
 			</div>
 		</div>`;
 
-		this.servItem = `<div class="item-group HideUtils">
-			<div class="item hideServer">
+		this.servItem = `<div class="itemGroup-oViAgA HideUtils">
+			<div class="item-1XYaYf hideServer">
 				<span>Hide Server</span>
-				<div class="hint"></div>
+				<div class="hint-3TJykr"></div>
 			</div>
 		</div>`;
 
-		this.userItem = `<div class="item-group HideUtils">
-			<div class="item hideUser">
+		this.userItem = `<div class="itemGroup-oViAgA HideUtils">
+			<div class="item-1XYaYf hideUser">
 				<span>Hide User</span>
-				<div class="hint"></div>
+				<div class="hint-3TJykr"></div>
 			</div>
 		</div>`;
 
@@ -115,7 +115,7 @@ class HideUtils {
 			for(const change of changes) {
 				if(change.addedNodes) {
 					for(const node of change.addedNodes.values()) {
-						if(node.nodeType === 1 && node.classList && node.classList.contains('context-menu')) {
+						if(node.nodeType === 1 && node.classList && node.classList.contains('contextMenu-uoJTbz')) {
 							this.channelContext(node);
 						}
 					}
@@ -139,7 +139,7 @@ class HideUtils {
 			for(const change of changes) {
 				if(change.addedNodes) {
 					for(const node of change.addedNodes.values()) {
-						if(node.nodeType === 1 && node.classList && node.classList.contains('context-menu')) {
+						if(node.nodeType === 1 && node.classList && node.classList.contains('contextMenu-uoJTbz')) {
 							this.serverContext(node);
 						}
 					}
@@ -163,7 +163,7 @@ class HideUtils {
 			for(const change of changes) {
 				if(change.addedNodes) {
 					for(const node of change.addedNodes.values()) {
-						if(node.nodeType === 1 && node.classList && node.classList.contains('context-menu')) {
+						if(node.nodeType === 1 && node.classList && node.classList.contains('contextMenu-uoJTbz')) {
 							this.userContext(node);
 						}
 					}
@@ -191,18 +191,17 @@ class HideUtils {
 
 	start() {
 		this.log('Started');
-		
-		let libraryScript = document.getElementById('zeresLibraryScript');
-		if(!libraryScript) {
-			libraryScript = document.createElement('script');
-			libraryScript.id = 'zeresLibraryScript';
-			libraryScript.src = 'https://rauenzi.github.io/BetterDiscordAddons/Plugins/PluginLibrary.js';
-			libraryScript.type = 'text/javascript';
-			document.head.appendChild(libraryScript);
-		}
+		let libraryScript = $('#zeresLibraryScript');
+		if(libraryScript) libraryScript.remove();
+		libraryScript = $('<script/>', {
+			id: 'zeresLibraryScript',
+			src: 'https://rauenzi.github.io/BetterDiscordAddons/Plugins/PluginLibrary.js',
+			type: 'text/javascript'
+		});
+		$('head').append(libraryScript);
 
 		if(typeof window.ZeresLibrary !== 'undefined') this.initialize();
-		else libraryScript.addEventListener('load', () => this.initialize());
+		else libraryScript.on('load', () => this.initialize());
 	}
 
 	initialize() {
@@ -275,18 +274,18 @@ class HideUtils {
 
 	channelContext(context) {
 		if(!context) return;
-		if(this.getReactInstance(context) && this.getReactInstance(context).return.memoizedProps.target && this.getReactInstance(context).return.memoizedProps.type && this.getReactInstance(context).return.memoizedProps.type.includes('CHANNEL_LIST') && this.getReactInstance(context).return.memoizedProps.channel && (this.getReactInstance(context).return.memoizedProps.channel.type === 0 || this.getReactInstance($('.context-menu')[0]).return.memoizedProps.channel.type === 2)) {
-			$(context).find('.item').first().after(this.chanItem);
-			$(context).find('.item.hideChannel')
+		if(this.getReactInstance(context) && this.getReactInstance(context).return.memoizedProps.target && this.getReactInstance(context).return.memoizedProps.type && this.getReactInstance(context).return.memoizedProps.type.includes('CHANNEL_LIST') && this.getReactInstance(context).return.memoizedProps.channel && (this.getReactInstance(context).return.memoizedProps.channel.type === 0 || this.getReactInstance($('.contextMenu-uoJTbz')[0]).return.memoizedProps.channel.type === 2)) {
+			$(context).find('.item-1XYaYf').first().after(this.chanItem);
+			$(context).find('.item-1XYaYf.hideChannel')
 				.off('click.HideUtilC')
 				.on('click.HideUtilC', this.chanConClick.bind(this));
 		}
 	}
 
 	chanConClick() {
-		if(!document.querySelector('.context-menu')) return;
-		if(!this.getReactInstance(document.querySelector('.context-menu')).return.memoizedProps.channel) return;
-		const channel = this.getReactInstance(document.querySelector('.context-menu')).return.memoizedProps.channel.id;
+		if(!document.querySelector('.contextMenu-uoJTbz')) return;
+		if(!this.getReactInstance(document.querySelector('.contextMenu-uoJTbz')).return.memoizedProps.channel) return;
+		const channel = this.getReactInstance(document.querySelector('.contextMenu-uoJTbz')).return.memoizedProps.channel.id;
 		if(!this.hid.channels.includes(channel)) {
 			this.hid.channels.push(channel);
 			this.saveSettings();
@@ -361,15 +360,15 @@ class HideUtils {
 	serverContext(context) {
 		if(!context) return;
 		if(this.getReactInstance(context) && this.getReactInstance(context).return.memoizedProps.type === 'GUILD_ICON_BAR' && this.getReactInstance(context).return.memoizedProps.guild && !this.getReactInstance(context).return.memoizedProps.channel) {
-			$(context).find('.item').first().after(this.servItem);
-			$(context).find('.item.hideServer')
+			$(context).find('.item-1XYaYf').first().after(this.servItem);
+			$(context).find('.item-1XYaYf.hideServer')
 				.off('click.HideUtilsS')
 				.on('click.HideUtilsS', this.servConClick.bind(this));
 		}
 	}
 
 	servConClick() {
-		const context = document.querySelector('.context-menu');
+		const context = document.querySelector('.contextMenu-uoJTbz');
 		if(!context) return;
 		if(!this.getReactInstance(context).return.memoizedProps.guild) return;
 		const server = this.getReactInstance(context).return.memoizedProps.guild.id;
@@ -451,21 +450,21 @@ class HideUtils {
 		|| (this.getReactInstance(context).return.memoizedProps.target && this.getReactInstance(context).return.memoizedProps.target.classList.contains('user-name'))
 		|| (this.getReactInstance(context).return.memoizedProps.target && this.getReactInstance(context).return.memoizedProps.target.classList.contains('member-username'))
 		|| (this.getReactInstance(context).return.memoizedProps.target && this.getReactInstance(context).return.memoizedProps.target.classList.contains('avatar-small'))) {
-			$(context).find('.item').first().after(this.userItem);
-			$(context).find('.item.hideUser')
+			$(context).find('.item-1XYaYf').first().after(this.userItem);
+			$(context).find('.item-1XYaYf.hideUser')
 				.off('click.HideUtilsU')
 				.on('click.HideUtilsU', this.userConClick.bind(this));
 		} else
 		if(this.getReactInstance(context).return.memoizedProps.type && this.getReactInstance(context).return.memoizedProps.type === 'USER_FRIEND_LIST' && this.getReactInstance(context).return.memoizedProps.user) {
-			$(context).find('.item').first().after(this.userItem);
-			$(context).find('.item.hideUser')
+			$(context).find('.item-1XYaYf').first().after(this.userItem);
+			$(context).find('.item-1XYaYf.hideUser')
 				.off('click.HideUtilsU')
 				.on('click.HideUtilsU', this.userConClick.bind(this));
 		}
 	}
 
 	userConClick() {
-		const context = document.querySelector('.context-menu');
+		const context = document.querySelector('.contextMenu-uoJTbz');
 		if(!context) return;
 		if(!this.getReactInstance(context).return.memoizedProps.user) return;
 		const user = this.getReactInstance(context).return.memoizedProps.user.id;
@@ -662,7 +661,7 @@ class HideUtils {
 				1) Insert the ID.<br/>
 				2) Click "apply."<br/><br/>
 				[ NOTE ]:<br/><br/>
-				* Unhiding requires use of the settings-panel, and is not handled within a context-menu.
+				* Unhiding requires use of the settings-panel, and is not handled within a contextMenu-uoJTbz.
 				</p><br/>
 				<button id="HideUtils-Return" class="returnButton" onclick=BdApi.getPlugin("${this.getName()}").returnSettings()>Return</button><br/>
 			</div>
@@ -752,7 +751,7 @@ class HideUtils {
 	}
 
 	getVersion() {
-		return '1.0.6';
+		return '1.0.7';
 	}
 
 	getDescription() {
