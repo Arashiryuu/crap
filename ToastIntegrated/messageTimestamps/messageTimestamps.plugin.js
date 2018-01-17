@@ -28,10 +28,10 @@ class messageTimestamps {
 	constructor() {
 		this.initialized = false;
 
-		this.contextMarkup = `<div class="item-group messageTimestamps">
-			<div class="item timestamp">
+		this.contextMarkup = `<div class="itemGroup-oViAgA messageTimestamps">
+			<div class="item-1XYaYf timestamp">
 				<span>Show Timestamp</span>
-				<div class="hint"></div>
+				<div class="hint-3TJykr"></div>
 			</div>
 		</div>`;
 
@@ -39,8 +39,7 @@ class messageTimestamps {
 			for(const change of changes) {
 				if(change.addedNodes && change.addedNodes.length) {
 					for(const node of change.addedNodes.values()) {
-						if(node.nodeType === 1 && node.classList && node.classList.contains('context-menu')
-						|| node.nodeType === 1 && node.classList && node.classList.contains('contextMenu-uoJTbz')) {
+						if(node.nodeType === 1 && node.classList && node.classList.contains('contextMenu-uoJTbz')) {
 							this.addContext(node);
 						}
 					}
@@ -94,23 +93,17 @@ class messageTimestamps {
 		if(!node) return;
 		const refNode = this.getReactInstance(node);
 		if(refNode && refNode.return.memoizedProps.message && refNode.return.memoizedProps.type && refNode.return.memoizedProps.type.includes('MESSAGE')) {
-			$(node).find('.item').first().before(this.contextMarkup);
-			$(node).find('.item.timestamp')
+			$(node).find('.item-1XYaYf').first().before(this.contextMarkup);
+			$(node).find('.item-1XYaYf.timestamp')
 				.off('click.msgTimes')
 				.on('click.msgTimes', this.showTimestamp.bind(this));			
 		}
 	}
 
 	showTimestamp() {
-		if(process['argv0'].includes('DiscordCanary') || process['argv0'].includes('DiscordPTB')) {
-			const menu = document.querySelector('.contextMenu-uoJTbz'), msg = this.getReactInstance(menu).return.memoizedProps.message;
-			if(!menu || !msg) return;
-			PluginUtilities.showToast(msg.timestamp._d);
-		} else {
-			const menu = document.querySelector('.context-menu'), msg = this.getReactInstance(menu).return.memoizedProps.message;
-			if(!menu || !msg) return;
-			PluginUtilities.showToast(msg.timestamp._d);
-		}
+		const menu = document.querySelector('.contextMenu-uoJTbz'), msg = this.getReactInstance(menu).return.memoizedProps.message;
+		if(!menu || !msg) return;
+		PluginUtilities.showToast(msg.timestamp._d);
 	}
 	
 	/**
@@ -150,7 +143,7 @@ class messageTimestamps {
 	}
 
 	getVersion() {
-		return '1.0.4';
+		return '1.0.5';
 	}
 
 	getDescription() {
