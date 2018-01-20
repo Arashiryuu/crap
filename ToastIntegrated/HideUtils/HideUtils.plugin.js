@@ -60,7 +60,9 @@ class HideUtils {
 				border-radius: 5px;
 				margin: 5px;
 				height: 30px;
-				width: 6vw;
+				min-width: 6vw;
+				width: auto;
+				padding: 0 1vw;
 			}
 			#HideUtils-Settings button {
 				background: #7289DA;
