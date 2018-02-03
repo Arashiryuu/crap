@@ -105,6 +105,13 @@ class messageTimestamps {
 		if(!menu || !msg) return;
 		PluginUtilities.showToast(msg.timestamp._d);
 	}
+
+	observer({ addedNodes }) {
+		if(addedNodes.length && addedNodes[0].classList && addedNodes[0].classList.contains('app')) {
+			this.discon();
+			this.appObs();
+		}
+	}
 	
 	/**
 	 * @name getInternalInstance
@@ -143,7 +150,7 @@ class messageTimestamps {
 	}
 
 	getVersion() {
-		return '1.0.5';
+		return '1.0.6';
 	}
 
 	getDescription() {
