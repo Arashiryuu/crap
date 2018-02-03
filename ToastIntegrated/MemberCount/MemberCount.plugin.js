@@ -159,13 +159,24 @@ class MemberCount {
 	inject() {
 		const ss = document.getElementById('memberCountCSS');
 		const c = document.getElementById('memberCount');
-		if( (!ss && !c) || !c || !ss ) {
+		const members = document.querySelector('.channel-members-wrap');
+		if(!members) return;
+
+		if(!ss && !c) {
+			this.stylesheet = this.createElement('style', 'memberCountCSS', this.styleCSS);
+			document.head.appendChild(this.stylesheet);
+	
+			this.counter = this.createElement('h2', 'memberCount', '&nbsp;');
+			members.appendChild(this.counter);
+	
+			return true;
+		} else if(!c || !ss) {
 			$('#memberCountCSS, #memberCount').remove();
 			this.stylesheet = this.createElement('style', 'memberCountCSS', this.styleCSS);
 			document.head.appendChild(this.stylesheet);
 	
 			this.counter = this.createElement('h2', 'memberCount', '&nbsp;');
-			document.querySelector('.channel-members-wrap').appendChild(this.counter);
+			members.appendChild(this.counter);
 	
 			return true;
 		}
@@ -175,9 +186,13 @@ class MemberCount {
 
 	remove() {
 		if(this.stylesheet && this.counter) {
-			document.head.removeChild(this.stylesheet);
-			document.querySelector('.channel-members-wrap').removeChild(this.counter);
-			return true;
+			try {
+				document.head.removeChild(this.stylesheet);
+				document.querySelector('.channel-members-wrap').removeChild(this.counter);
+				return true;
+			} catch(e) {
+				this.err(e.stack);
+			}
 		}
 
 		return false;
@@ -242,7 +257,7 @@ class MemberCount {
 	}
 
 	getVersion() {
-		return '1.0.2';
+		return '1.0.3';
 	}
 
 	getDescription() {
