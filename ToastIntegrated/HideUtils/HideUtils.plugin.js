@@ -60,8 +60,8 @@ class HideUtils {
 				border-radius: 5px;
 				margin: 5px;
 				height: 30px;
-				min-width: 6vw;
 				width: auto;
+				min-width: 6vw;
 				padding: 0 1vw;
 			}
 			#HideUtils-Settings button {
@@ -120,6 +120,11 @@ class HideUtils {
 						if(node.nodeType === 1 && node.classList && node.classList.contains('contextMenu-uoJTbz')) {
 							this.channelContext(node);
 						}
+						if(node.nodeType === 1 && node.classList && ( node.classList.contains('chat') || node.classList.contains('messages-wrapper') )) {
+							this.auditChannels();
+							this.chanMO.disconnect();
+							this.chanObs();
+						}
 					}
 				}
 			}
@@ -144,6 +149,11 @@ class HideUtils {
 						if(node.nodeType === 1 && node.classList && node.classList.contains('contextMenu-uoJTbz')) {
 							this.serverContext(node);
 						}
+						if(node.nodeType === 1 && node.classList && ( node.classList.contains('chat') || node.classList.contains('messages-wrapper') )) {
+							this.auditServers();
+							this.servDiscon();
+							this.servObs();
+						}
 					}
 				}
 			}
@@ -153,7 +163,7 @@ class HideUtils {
 			for(const change of changes) {
 				if(change.addedNodes) {
 					for(const node of change.addedNodes.values()) {
-						if(this.getReactInstance(node).return.return.memoizedProps.user && this.hid.users.includes(this.getReactInstance(node).return.return.memoizedProps.user.id)) {
+						if(this.getReactInstance(node) && this.getReactInstance(node).return && this.getReactInstance(node).return.memoizedProps.user && this.hid.users.includes(this.getReactInstance(node).return.return.memoizedProps.user.id)) {
 							this.auditUsers();
 						}
 					}
@@ -167,6 +177,11 @@ class HideUtils {
 					for(const node of change.addedNodes.values()) {
 						if(node.nodeType === 1 && node.classList && node.classList.contains('contextMenu-uoJTbz')) {
 							this.userContext(node);
+						}
+						if(node.nodeType === 1 && node.classList && ( node.classList.contains('chat') || node.classList.contains('messages-wrapper') || node.classList.contains('channel-members-wrap') )) {
+							this.auditUsers();
+							this.userDiscon();
+							this.userObs();
 						}
 					}
 				}
@@ -254,9 +269,9 @@ class HideUtils {
 	}
 
 	moDiscon() {
-		this.chanMO.disconnect();
-		this.servMO.disconnect();
-		this.userMO.disconnect();
+		this.chanDiscon();
+		this.servDiscon();
+		this.userDiscon();
 	}
 
 	allObs() {
@@ -678,41 +693,11 @@ class HideUtils {
 	}
 
 	observer({ addedNodes, removedNodes }) {
-		if(addedNodes.length && addedNodes[0].id && addedNodes[0].id.toLowerCase() === 'friends') {
-			this.allDiscon();
-			this.allObs();
-		}
-		if(addedNodes.length && addedNodes[0] && addedNodes[0].classList && addedNodes[0].classList.contains('guild')) {
-			this.auditServers();
-		}
-		if(addedNodes.length && addedNodes[0] && addedNodes[0].classList && addedNodes[0].classList.contains('chat')
-		|| addedNodes.length && addedNodes[0] && addedNodes[0].classList && addedNodes[0].classList.contains('messages-wrapper')) {
-			this.chanDiscon();
-			this.userDiscon();
-			this.chanObs();
-			this.auditChannels();
-			this.auditServers();
+		if(addedNodes.length && addedNodes[0].classList && ( addedNodes[0].classList.contains('message') || addedNodes[0].classList.contains('message-group') || addedNodes[0].classList.contains('listDefault-3i7eWQ') )) {
 			this.auditUsers();
-		}
-		if(addedNodes.length && addedNodes[0].classList && addedNodes[0].classList.contains('message')
-		|| addedNodes.length && addedNodes[0].classList && addedNodes[0].classList.contains('message-group')
-		|| addedNodes.length && addedNodes[0].classList && addedNodes[0].classList.contains('listDefault-3i7eWQ')) {
-			this.auditUsers();
-		}
-		if(addedNodes.length && addedNodes[0] && addedNodes[0].classList && addedNodes[0].classList.contains('channel-members-wrap')) {
-			this.auditUsers();
-			this.userObs();
-		}
-		if(addedNodes.length && addedNodes[0].classList && addedNodes[0].classList.contains('guilds-wrapper')) {
-			this.servDiscon();
-			this.servObs();
-			this.auditServers();
 		}
 		if(removedNodes.length && removedNodes[0].classList && removedNodes[0].classList.contains('folder')) {
 			this.auditServers();
-		}
-		if(removedNodes.length && removedNodes[0] && removedNodes[0].classList && removedNodes[0].classList.contains('channel-members-wrap')) {
-			this.userDiscon();
 		}
 	}
 	
@@ -753,7 +738,7 @@ class HideUtils {
 	}
 
 	getVersion() {
-		return '1.0.7';
+		return '1.0.8';
 	}
 
 	getDescription() {
