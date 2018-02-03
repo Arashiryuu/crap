@@ -206,6 +206,13 @@ class MemberCount {
 		return false;
 	}
 
+	observer({ addedNodes }) {
+		if(addedNodes.length && addedNodes[0].classList && addedNodes[0].classList.contains('app')) {
+			this.unwatch();
+			this.watch();
+		}
+	}
+
 	log(text, ...extra) {
 		if(typeof text !== 'string')
 			return console.log(`[%c${this.getName()}%c]`, 'color: #59F;', '', text);
@@ -235,7 +242,7 @@ class MemberCount {
 	}
 
 	getVersion() {
-		return '1.0.1';
+		return '1.0.2';
 	}
 
 	getDescription() {
