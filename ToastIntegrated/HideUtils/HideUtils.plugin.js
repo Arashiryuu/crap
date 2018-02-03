@@ -693,6 +693,10 @@ class HideUtils {
 	}
 
 	observer({ addedNodes, removedNodes }) {
+		if(addedNodes.length && addedNodes[0].classList && addedNodes[0].classList.contains('app')) {
+			this.appDiscon();
+			this.appObs();
+		}
 		if(addedNodes.length && addedNodes[0].classList && ( addedNodes[0].classList.contains('message') || addedNodes[0].classList.contains('message-group') || addedNodes[0].classList.contains('listDefault-3i7eWQ') )) {
 			this.auditUsers();
 		}
@@ -738,7 +742,7 @@ class HideUtils {
 	}
 
 	getVersion() {
-		return '1.0.8';
+		return '1.1.0';
 	}
 
 	getDescription() {
