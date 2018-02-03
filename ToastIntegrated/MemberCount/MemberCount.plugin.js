@@ -61,6 +61,40 @@ class MemberCount {
 				}
 			}
 		});
+
+		this.styleCSS = `
+			.theme-dark #memberCount {
+				position: absolute;
+				color: hsla(0, 0%, 100%, 0.4);
+				font-size: 12px;
+				letter-spacing: 0.08em;
+				font-weight: 500;
+				text-transform: uppercase;
+				background: #2f3136;
+				display: block;
+				width: 100%;
+				text-align: center;
+				padding: 1vh 0;
+			} 
+			
+			.theme-light #memberCount {
+				position: absolute;
+				color: #99aab5;
+				font-size: 12px;
+				letter-spacing: 0.08em;
+				font-weight: 500;
+				text-transform: uppercase;
+				background: #f3f3f3;
+				display: block;
+				width: 100%;
+				text-align: center;
+				padding: 1vh 0;
+			}
+
+			.channel-members-wrap .channel-members {
+				margin-top: 2vh;
+			}
+		`;
 	}
 
 	load() {
@@ -127,7 +161,7 @@ class MemberCount {
 		const c = document.getElementById('memberCount');
 		if( (!ss && !c) || !c || !ss ) {
 			$('#memberCountCSS, #memberCount').remove();
-			this.stylesheet = this.createElement('style', 'memberCountCSS', '#memberCount { position: absolute; color: hsla(0, 0%, 100%, 0.4); font-size: 12px; letter-spacing: 0.08em; font-weight: 500; text-transform: uppercase; background: #2f3136; display: block; width: 100%; text-align: center; padding: 1vh 0;  } .channel-members-wrap .channel-members { margin-top: 2vh; }');
+			this.stylesheet = this.createElement('style', 'memberCountCSS', this.styleCSS);
 			document.head.appendChild(this.stylesheet);
 	
 			this.counter = this.createElement('h2', 'memberCount', '&nbsp;');
@@ -201,7 +235,7 @@ class MemberCount {
 	}
 
 	getVersion() {
-		return '1.0.0';
+		return '1.0.1';
 	}
 
 	getDescription() {
