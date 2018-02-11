@@ -33,7 +33,7 @@ class JSMaterialThemeCodeblocks {
     			border-left: 2.6ch solid rgba(0, 0, 0, .2);
 			}*/
 
-			#app-mount .hljs-built_in.paIn {
+			#app-mount .hljs-built_in.parseInt {
 				color: #82AAFF !important;
 			}
 
@@ -79,12 +79,12 @@ class JSMaterialThemeCodeblocks {
 				font-style: italic;
 			}
 
-			#app-mount .hljs[class~="js" i] .hljs-built_in.isN,
+			#app-mount .hljs[class~="js" i] .hljs-built_in.isNaN,
 			#app-mount .hljs[class~="js" i] .hljs-attr {
 				color: #82aaff;
 			}
 
-			#app-mount .hljs[class~="js" i] .hljs-built_in.rqr {
+			#app-mount .hljs[class~="js" i] .hljs-built_in.require {
 				color: #82aaff;
 			}
 
@@ -138,12 +138,12 @@ class JSMaterialThemeCodeblocks {
 				font-style: italic;
 			}
 
-			#app-mount .hljs[class~="jsx" i] .hljs-built_in.isN,
+			#app-mount .hljs[class~="jsx" i] .hljs-built_in.isNaN,
 			#app-mount .hljs[class~="jsx" i] .hljs-attr {
 				color: #82aaff;
 			}
 
-			#app-mount .hljs[class~="jsx" i] .hljs-built_in.rqr {
+			#app-mount .hljs[class~="jsx" i] .hljs-built_in.require {
 				color: #82aaff;
 			}
 
@@ -201,12 +201,12 @@ class JSMaterialThemeCodeblocks {
 				font-style: italic;
 			}
 
-			#app-mount .hljs[class~="javascript" i] .hljs-built_in.isN,
+			#app-mount .hljs[class~="javascript" i] .hljs-built_in.isNaN,
 			#app-mount .hljs[class~="javascript" i] .hljs-attr {
 				color: #82aaff;
 			}
 
-			#app-mount .hljs[class~="javascript" i] .hljs-built_in.rqr {
+			#app-mount .hljs[class~="javascript" i] .hljs-built_in.require {
 				color: #82aaff;
 			}
 
@@ -220,7 +220,14 @@ class JSMaterialThemeCodeblocks {
 
 		</style>`;
 
-		this.selectors = ['.hljs[class~="js" i] .hljs-keyword', '.hljs[class~="jsx" i] .hljs-keyword', '.hljs[class~="javascript" i] .hljs-keyword'];
+		this.selectors = [
+			'.hljs[class~="js" i] .hljs-keyword', 
+			'.hljs[class~="jsx" i] .hljs-keyword', 
+			'.hljs[class~="javascript" i] .hljs-keyword',
+			'.hljs[class~="js" i] .hljs-built_in',
+			'.hljs[class~="jsx" i] .hljs-built_in',
+			'.hljs[class~="javascript" i] .hljs-built_in'
+		];
 
 		this.keywords = {
 			'parseInt':'parseInt',
@@ -234,15 +241,26 @@ class JSMaterialThemeCodeblocks {
 	createThisClass() {
 		try {
 			for(const selector of this.selectors) {
-				for(const k of document.querySelectorAll(selector)) {
-					if(this.keywords[k.textContent]) {
-						k.classList.add(this.keywords[k.textContent]);
+				const keywords = $(selector);
+				for(const k of Object.values(keywords)) {
+					const text = $(k).text();
+					const w = this.getWord(text);
+					if(w && !$(k).hasClass(w)) {
+						$(k).addClass(w);
 					}
 				}
 			}
 		} catch(e) {
 			this.err(e);
 		}
+	};
+
+	getWord(text) {
+		if(this.keywords[text]) {
+			return this.keywords[text];
+		}
+
+		return null;
 	};
 
 	log(text, ...ex) {
@@ -273,7 +291,7 @@ class JSMaterialThemeCodeblocks {
 	};
 
 	observer({ addedNodes }) {
-		if(addedNodes.length && addedNodes[0].classList && addedNodes[0].classList.contains('markup')) {
+		if(addedNodes.length && addedNodes[0].classList && ( addedNodes[0].classList.contains('message-group') || addedNodes[0].classList.contains('message') || addedNodes[0].classList.contains('markup') )) {
 			setTimeout(() => this.createThisClass(), 250);
 		}
 		if(addedNodes.length && addedNodes[0].classList && addedNodes[0].classList.contains('messages-wrapper')) {
@@ -282,10 +300,21 @@ class JSMaterialThemeCodeblocks {
 		}
 	};
 
-	getName			() { return 'JSMaterialThemeCodeblocks'; };
-	getAuthor		() { return 'Arashiryuu'; };
-	getVersion		() { return '3.0.0'; };
-	getDescription	() { return 'Applies the "Material Theme" to JavaScript codeblocks.'; };
+	getName() {
+		return 'JSMaterialThemeCodeblocks';
+	};
+
+	getAuthor() {
+		return 'Arashiryuu';
+	};
+
+	getVersion() {
+		return '3.0.0';
+	};
+
+	getDescription() {
+		return 'Applies the "Material Theme" to JavaScript codeblocks.';
+	};
 };
 
 /*@end@*/
