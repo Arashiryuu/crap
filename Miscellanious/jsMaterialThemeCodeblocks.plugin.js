@@ -27,10 +27,10 @@
 class JSMaterialThemeCodeblocks {
 	constructor() {
 		this.css = `
-			<style class='JSMaterialThemeCodeblocks'>
+			<style id='JSMaterialThemeCodeblocks'>
 
 			/*.hljs[class~="js" i] .kawaii-linenumbers {
-    		border-left: 2.6ch solid rgba(0, 0, 0, .2);
+    			border-left: 2.6ch solid rgba(0, 0, 0, .2);
 			}*/
 
 			#app-mount .hljs-built_in.paIn {
@@ -38,32 +38,32 @@ class JSMaterialThemeCodeblocks {
 			}
 
 			#app-mount .chat > .content .messages .message-group .markup pre code.hljs[class~="js" i] {
-    		background: #263239 !important;
-    		color: #eee !important;
+				background: #263239 !important;
+				color: #eee !important;
 			}
 
 			#app-mount code.hljs[class~="js" i] .hljs-addition, #app-mount code.hljs[class~="js" i] .hljs-keyword, #app-mount code.hljs[class~="js" i] .hljs-selector-tag {
-    		color: #c792ea;
+    			color: #c792ea;
 			}
 
 			#app-mount .hljs[class~="js" i] .hljs-built_in, #app-mount .hljs[class~="js" i] .hljs-deletion, #app-mount .hljs[class~="js" i] .hljs-attribute, #app-mount .hljs[class~="js" i] .hljs-class .hljs-title, #app-mount .hljs[class~="js" i] .hljs-template-variable, #app-mount .hljs[class~="js" i] .hljs-type, #app-mount .hljs[class~="js" i] .hljs-variable {
-    		color: #ffcb6b;
+    			color: #ffcb6b;
 			}
 
 			#app-mount .hljs[class~="js" i] .hljs-bullet, #app-mount .hljs[class~="js" i] .hljs-link, #app-mount .hljs[class~="js" i] .hljs-meta .hljs-keyword, #app-mount .hljs[class~="js" i] .hljs-selector-attr, #app-mount .hljs[class~="js" i] .hljs-selector-pseudo, #app-mount .hljs[class~="js" i] .hljs-subst, #app-mount .hljs[class~="js" i] .hljs-symbol {
-    		color: #89ddf3;
+    			color: #89ddf3;
 			}
 
 			#app-mount .hljs[class~="js" i] .hljs-doctag,
 			#app-mount .hljs[class~="js" i] .hljs-meta,
 			#app-mount .hljs[class~="js" i] .hljs-meta-string,
 			#app-mount .hljs[class~="js" i] .hljs-regexp, #app-mount .hljs[class~="js" i] .hljs-string {
-    		color: #c3e88d;
+    			color: #c3e88d;
 			}
 
 			#app-mount .hljs[class~="js" i] .hljs-number,
 			#app-mount .hljs[class~="js" i] .hljs-literal {
-    		color: #f78c6a;
+    			color: #f78c6a;
 			}
 
 			#app-mount .hljs[class~="js" i] .hljs-params {
@@ -95,38 +95,97 @@ class JSMaterialThemeCodeblocks {
 			.theme-dark .hljs[class~="js" i] .hljs-name, .theme-dark .hljs[class~="js" i] .hljs-section, .theme-dark .hljs[class~="js" i] .hljs-selector-class, .theme-dark .hljs[class~="js" i] .hljs-selector-id, .theme-dark .hljs[class~="js" i] .hljs-title {
 				color: #82aaff;
 			}
+
+			#app-mount .chat > .content .messages .message-group .markup pre code.hljs[class~="jsx" i] {
+				background: #263239 !important;
+				color: #eee !important;
+			}
+
+			#app-mount code.hljs[class~="jsx" i] .hljs-addition, #app-mount code.hljs[class~="jsx" i] .hljs-keyword, #app-mount code.hljs[class~="jsx" i] .hljs-selector-tag {
+    			color: #c792ea;
+			}
+
+			#app-mount .hljs[class~="jsx" i] .hljs-built_in, #app-mount .hljs[class~="jsx" i] .hljs-deletion, #app-mount .hljs[class~="jsx" i] .hljs-attribute, #app-mount .hljs[class~="jsx" i] .hljs-class .hljs-title, #app-mount .hljs[class~="jsx" i] .hljs-template-variable, #app-mount .hljs[class~="jsx" i] .hljs-type, #app-mount .hljs[class~="jsx" i] .hljs-variable {
+    			color: #ffcb6b;
+			}
+
+			#app-mount .hljs[class~="jsx" i] .hljs-bullet, #app-mount .hljs[class~="jsx" i] .hljs-link, #app-mount .hljs[class~="jsx" i] .hljs-meta .hljs-keyword, #app-mount .hljs[class~="jsx" i] .hljs-selector-attr, #app-mount .hljs[class~="jsx" i] .hljs-selector-pseudo, #app-mount .hljs[class~="jsx" i] .hljs-subst, #app-mount .hljs[class~="jsx" i] .hljs-symbol {
+    			color: #89ddf3;
+			}
+
+			#app-mount .hljs[class~="jsx" i] .hljs-doctag,
+			#app-mount .hljs[class~="jsx" i] .hljs-meta,
+			#app-mount .hljs[class~="jsx" i] .hljs-meta-string,
+			#app-mount .hljs[class~="jsx" i] .hljs-regexp, #app-mount .hljs[class~="jsx" i] .hljs-string {
+    			color: #c3e88d;
+			}
+
+			#app-mount .hljs[class~="jsx" i] .hljs-number,
+			#app-mount .hljs[class~="jsx" i] .hljs-literal {
+    			color: #f78c6a;
+			}
+
+			#app-mount .hljs[class~="jsx" i] .hljs-params {
+				color: #eee;
+			}
+
+			#app-mount .hljs[class~="jsx" i] .hljs-function {
+				color: #c792ea;
+			}
+
+			#app-mount .hljs[class~="jsx" i] .hljs-keyword.this {
+				color: #f95479;
+				font-style: italic;
+			}
+
+			#app-mount .hljs[class~="jsx" i] .hljs-built_in.isN,
+			#app-mount .hljs[class~="jsx" i] .hljs-attr {
+				color: #82aaff;
+			}
+
+			#app-mount .hljs[class~="jsx" i] .hljs-built_in.rqr {
+				color: #82aaff;
+			}
+
+			#app-mount .hljs[class~="jsx" i] .hljs-keyword.new {
+				color: #89ddf3;
+			}
+
+			.theme-dark .hljs[class~="jsx" i] .hljs-name, .theme-dark .hljs[class~="jsx" i] .hljs-section, .theme-dark .hljs[class~="jsx" i] .hljs-selector-class, .theme-dark .hljs[class~="jsx" i] .hljs-selector-id, .theme-dark .hljs[class~="jsx" i] .hljs-title {
+				color: #82aaff;
+			}
 			
 			/*.hljs[class~="javascript" i] .kawaii-linenumbers {
-    		border-left: 2.6ch solid rgba(0, 0, 0, .2);
+    			border-left: 2.6ch solid rgba(0, 0, 0, .2);
 			}*/
 
 			#app-mount .chat > .content .messages .message-group .markup pre code.hljs[class~="javascript" i] {
-    		background: #263239 !important;
-    		color: #eee !important;
+				background: #263239 !important;
+				color: #eee !important;
 			}
 
 			#app-mount code.hljs[class~="javascript" i] .hljs-addition, #app-mount code.hljs[class~="javascript" i] .hljs-keyword, #app-mount code.hljs[class~="javascript" i] .hljs-selector-tag {
-    		color: #c792ea;
+    			color: #c792ea;
 			}
 
 			#app-mount .hljs[class~="javascript" i] .hljs-built_in, #app-mount .hljs[class~="javascript" i] .hljs-deletion, #app-mount .hljs[class~="javascript" i] .hljs-attribute, #app-mount .hljs[class~="javascript" i] .hljs-class .hljs-title, #app-mount .hljs[class~="javascript" i] .hljs-template-variable, #app-mount .hljs[class~="javascript" i] .hljs-type, #app-mount .hljs[class~="javascript" i] .hljs-variable {
-    		color: #ffcb6b;
+    			color: #ffcb6b;
 			}
 
 			#app-mount .hljs[class~="javascript" i] .hljs-bullet, #app-mount .hljs[class~="javascript" i] .hljs-link, #app-mount .hljs[class~="javascript" i] .hljs-meta .hljs-keyword, #app-mount .hljs[class~="javascript" i] .hljs-selector-attr, #app-mount .hljs[class~="javascript" i] .hljs-selector-pseudo, #app-mount .hljs[class~="javascript" i] .hljs-subst, #app-mount .hljs[class~="javascript" i] .hljs-symbol {
-    		color: #89ddf3;
+    			color: #89ddf3;
 			}
 
 			#app-mount .hljs[class~="javascript" i] .hljs-doctag,
 			#app-mount .hljs[class~="javascript" i] .hljs-meta,
 			#app-mount .hljs[class~="javascript" i] .hljs-meta-string,
 			#app-mount .hljs[class~="javascript" i] .hljs-regexp, #app-mount .hljs[class~="javascript" i] .hljs-string {
-    		color: #c3e88d;
+    			color: #c3e88d;
 			}
 
 			#app-mount .hljs[class~="javascript" i] .hljs-number,
 			#app-mount .hljs[class~="javascript" i] .hljs-literal {
-    		color: #f78c6a;
+    			color: #f78c6a;
 			}
 
 			#app-mount .hljs[class~="javascript" i] .hljs-params {
@@ -160,64 +219,41 @@ class JSMaterialThemeCodeblocks {
 			}
 
 		</style>`;
+
+		this.selectors = ['.hljs[class~="js" i] .hljs-keyword', '.hljs[class~="jsx" i] .hljs-keyword', '.hljs[class~="javascript" i] .hljs-keyword'];
+
+		this.keywords = {
+			'parseInt':'parseInt',
+			'require':'require',
+			'isNaN':'isNaN',
+			'this':'this',
+			'new':'new'
+		};
 	};
 
 	createThisClass() {
-		let slef = $('.hljs.js .hljs-keyword:contains(this)'),
-		isNuN = $('.hljs.js .hljs-built_in:contains(isNaN)'),
-		ewn = $('.hljs.js .hljs-keyword:contains(new)'),
-		paIn = $('.hljs.js .hljs-built_in:contains(parseInt)'),
-		rqr = $('.hljs.js .hljs-built_in:contains(require)');
-		if(slef || $('.hljs.JS .hljs-keyword:contains(this)') || $('.hljs.Js .hljs-keyword:contains(this)') || $('.hljs.javascript .hljs-keyword:contains(this)') || $('.hljs.Javascript .hljs-keyword:contains(this)') || $('.hljs.JAVASCRIPT .hljs-keyword:contains(this)') || $('.hljs.JavaScript .hljs-keyword:contains(this)')) {
-			slef.addClass('this');
-			$('.hljs.JS .hljs-keyword:contains(this)').addClass('this');
-			$('.hljs.Js .hljs-keyword:contains(this)').addClass('this');
-			$('.hljs.javascript .hljs-keyword:contains(this)').addClass('this');
-			$('.hljs.Javascript .hljs-keyword:contains(this)').addClass('this');
-			$('.hljs.JAVASCRIPT .hljs-keyword:contains(this)').addClass('this');
-			$('.hljs.JavaScript .hljs-keyword:contains(this)').addClass('this');
+		try {
+			for(const selector of this.selectors) {
+				for(const k of document.querySelectorAll(selector)) {
+					if(this.keywords[k.textContent]) {
+						k.classList.add(this.keywords[k.textContent]);
+					}
+				}
+			}
+		} catch(e) {
+			this.err(e);
 		}
-		if(isNuN || $('.hljs.JS .hljs-built_in:contains(isNaN)') || $('.hljs.Js .hljs-built_in:contains(isNaN)') || $('.hljs.javascript .hljs-built_in:contains(isNaN)') || $('.hljs.Javascript .hljs-built_in:contains(isNaN)') || $('.hljs.JAVASCRIPT .hljs-built_in:contains(isNaN)') || $('.hljs.JavaScript .hljs-built_in:contains(isNaN)')) {
-			isNuN.addClass('isN');
-			$('.hljs.JS .hljs-built_in:contains(isNaN)').addClass('isN');
-			$('.hljs.Js .hljs-built_in:contains(isNaN)').addClass('isN');
-			$('.hljs.javascript .hljs-built_in:contains(isNaN)').addClass('isN');
-			$('.hljs.Javascript .hljs-built_in:contains(isNaN)').addClass('isN');
-			$('.hljs.JAVASCRIPT .hljs-built_in:contains(isNaN)').addClass('isN');
-			$('.hljs.JavaScript .hljs-built_in:contains(isNaN)').addClass('isN');
-		}
-		if(ewn || $('.hljs.JS .hljs-keyword:contains(new)') || $('.hljs.Js .hljs-keyword:contains(new)') || $('.hljs.javascript .hljs-keyword:contains(new)') || $('.hljs.Javascript .hljs-keyword:contains(new)') || $('.hljs.JAVASCRIPT .hljs-keyword:contains(new)') || $('.hljs.JavaScript .hljs-keyword:contains(new)')) {
-			ewn.addClass('new');
-			$('.hljs.JS .hljs-keyword:contains(new)').addClass('new');
-			$('.hljs.Js .hljs-keyword:contains(new)').addClass('new');
-			$('.hljs.javascript .hljs-keyword:contains(new)').addClass('new');
-			$('.hljs.Javascript .hljs-keyword:contains(new)').addClass('new');
-			$('.hljs.JAVASCRIPT .hljs-keyword:contains(new)').addClass('new');
-			$('.hljs.JavaScript .hljs-keyword:contains(new)').addClass('new');
-		}
-		if(rqr || $('.hljs.JS .hljs-built_in:contains(require)') || $('.hljs.Js .hljs-built_in:contains(require)') || $('.hljs.javascript .hljs-built_in:contains(require)') || $('.hljs.Javascript .hljs-built_in:contains(require)') || $('.hljs.JAVASCRIPT .hljs-built_in:contains(require)') || $('.hljs.JavaScript .hljs-built_in:contains(require)')) {
-			rqr.addClass('rqr');
-			$('.hljs.JS .hljs-built_in:contains(require)').addClass('rqr');
-			$('.hljs.Js .hljs-built_in:contains(require)').addClass('rqr');
-			$('.hljs.javascript .hljs-built_in:contains(require)').addClass('rqr');
-			$('.hljs.Javascript .hljs-built_in:contains(require)').addClass('rqr');
-			$('.hljs.JAVASCRIPT .hljs-built_in:contains(require)').addClass('rqr');
-			$('.hljs.JavaScript .hljs-built_in:contains(require)').addClass('rqr');
-		}
-		if(paIn || $('.hljs.Js .hljs-built_in:contains(parseInt)') || $('.hljs.JS .hljs-built_in:contains(parseInt)') || $('.hljs.javascript .hljs-built_in:contains(parseInt)') || $('.hljs.Javascript .hljs-built_in:contains(parseInt)') || $('.hljs.JavaScript .hljs-built_in:contains(parseInt)') || $('.hljs.JAVASCRIPT .hljs-built_in:contains(parseInt)')) {
-			paIn.addClass('paIn');
-			$('.hljs.Js .hljs-built_in:contains(parseInt)').addClass('paIn');
-			$('.hljs.JS .hljs-built_in:contains(parseInt)').addClass('paIn');
-			$('.hljs.javascript .hljs-built_in:contains(parseInt)').addClass('paIn');
-			$('.hljs.Javascript .hljs-built_in:contains(parseInt)').addClass('paIn');
-			$('.hljs.JavaScript .hljs-built_in:contains(parseInt)').addClass('paIn');
-			$('.hljs.JAVASCRIPT .hljs-built_in:contains(parseInt)').addClass('paIn');
-		} else
-				return;
 	};
 
-	log(text) {
-		return console.log(`%c[JSMaterialThemeCodeblocks]%c ${text}`, 'color: #F95479; text-shadow: 0 0 1px black, 0 0 2px black, 0 0 3px black;', '');
+	log(text, ...ex) {
+		if(typeof text === 'string')
+			return console.log(`%c[JSMaterialThemeCodeblocks]%c ${text}`, 'color: #F95479; text-shadow: 0 0 1px black, 0 0 2px black, 0 0 3px black;', '', ...ex);
+		else
+			return console.log('%c[JSMaterialThemeCodeblocks]%c', 'color: #F95479; text-shadow: 0 0 1px black, 0 0 2px black, 0 0 3px black;', '', text, ...ex);
+	};
+
+	err(error, ...ex) {
+		return console.error('%c[JSMaterialThemeCodeblocks]%c', 'color: #F95479; text-shadow: 0 0 1px black, 0 0 2px black, 0 0 3px black;', '', error, ...ex);
 	};
 
 	start() {
@@ -229,18 +265,18 @@ class JSMaterialThemeCodeblocks {
 
 	stop() { 
 		this.log('Stopped.');
-		$('.JSMaterialThemeCodeblocks').remove();
+		$('#JSMaterialThemeCodeblocks').remove();
 	};
 
 	load() {
 		this.log('Loaded.');
 	};
 
-	observer(ejs) {
-		if(ejs.addedNodes.length && ejs.addedNodes[0].classList && ejs.addedNodes[0].classList.contains('markup')) {
+	observer({ addedNodes }) {
+		if(addedNodes.length && addedNodes[0].classList && addedNodes[0].classList.contains('markup')) {
 			setTimeout(() => this.createThisClass(), 250);
 		}
-		if(ejs.addedNodes.length && ejs.addedNodes[0].classList && ejs.addedNodes[0].classList.contains('messages-wrapper')) {
+		if(addedNodes.length && addedNodes[0].classList && addedNodes[0].classList.contains('messages-wrapper')) {
 			setTimeout(() => this.createThisClass(), 250); 
 			setTimeout(() => this.log('MaterialTheme classes integrated.'), 500);
 		}
@@ -248,8 +284,8 @@ class JSMaterialThemeCodeblocks {
 
 	getName			() { return 'JSMaterialThemeCodeblocks'; };
 	getAuthor		() { return 'Arashiryuu'; };
-	getVersion		() { return '2.0.0'; };
+	getVersion		() { return '3.0.0'; };
 	getDescription	() { return 'Applies the "Material Theme" to JavaScript codeblocks.'; };
-	getSettingsPanel() { return '<span class="JSMTCBSettings" style="font-family: \'FangSong\'">你已经死了。</span>'; };
 };
+
 /*@end@*/
