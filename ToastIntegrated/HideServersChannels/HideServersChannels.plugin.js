@@ -83,7 +83,7 @@ class HideServersChannels {
 			const rect = serverButton[0].getBoundingClientRect();
 			setTimeout(() => {
 				const center = (rect.left + (rect.width / 2)) - (serverTooltip.outerWidth() / 2);
-				serverTooltip.attr('style', `left: ${center}px; top: ${(rect.top + rect.height) + 4}px; white-space: nowrap;`);
+				serverTooltip.attr('style', `left: ${center}px; top: ${rect.top + rect.height}px; white-space: nowrap;`);
 			}, 10);
 			serverTooltip.attr('style', `left: -1000vw; top: -1000vh;`);
 			tooltips.append(serverTooltip);
