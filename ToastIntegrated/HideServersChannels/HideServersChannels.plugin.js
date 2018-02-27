@@ -157,17 +157,6 @@ class HideServersChannels {
 		}
 	}
 
-	/**
-	 * @name getInternalInstance
-	 * @description Function to return the react internal data of the element
-	 * @param {Node} node - the element we want the internal data from
-	 * @author noodlebox
-	 * @returns {Node}
-	 */
-	getReactInstance(node) {
-		return node[Object.keys(node).find((key) => key.startsWith('__reactInternalInstance'))];
-	}
-
 	log(text, ...extra) {
 		if(!extra.length)
 			return console.log(`[%c${this.getName()}%c]`, 'color: #59F;', '', text);
