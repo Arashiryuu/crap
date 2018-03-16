@@ -114,7 +114,7 @@ class messageTimestamps {
 
 		if(!menu || !msg) return;
 
-		$(menu).hide();
+		$(menu).hide(100);
 
 		if(!this.settings.tooltips) {
 			PluginUtilities.showToast(msg.timestamp._d);
