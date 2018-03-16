@@ -27,6 +27,10 @@
 class messageTimestamps {
 	constructor() {
 		this.initialized = false;
+		this.default = {
+			tooltips: false
+		};
+		this.settings = this.default;
 
 		this.contextMarkup = `<div class="itemGroup-oViAgA messageTimestamps">
 			<div class="item-1XYaYf timestamp">
@@ -75,8 +79,11 @@ class messageTimestamps {
 
 	initialize() {
 		PluginUtilities.checkForUpdate(this.getName(), this.getVersion(), this.downLink);
+		
+		PluginUtilities.loadSettings(this.getName(), this.default);
 		this.appObs();
 		this.initialized = true;
+
 		PluginUtilities.showToast(`${this.getName()} ${this.getVersion()} has started.`);
 	}
 
@@ -96,14 +103,28 @@ class messageTimestamps {
 			$(node).find('.item-1XYaYf').first().before(this.contextMarkup);
 			$(node).find('.item-1XYaYf.timestamp')
 				.off('click.msgTimes')
-				.on('click.msgTimes', this.showTimestamp.bind(this));			
+				.on('click.msgTimes', () => this.showTimestamp());
 		}
 	}
 
 	showTimestamp() {
-		const menu = document.querySelector('.contextMenu-uoJTbz'), msg = this.getReactInstance(menu).return.memoizedProps.message;
+		const menu = document.querySelector('.contextMenu-uoJTbz');
+		const message = this.getReactInstance(menu).return.stateNode.props.target;
+		const msg = this.getReactInstance(menu).return.memoizedProps.message;
+
 		if(!menu || !msg) return;
-		PluginUtilities.showToast(msg.timestamp._d);
+
+		$(menu).hide();
+
+		if(!this.settings.tooltips) {
+			PluginUtilities.showToast(msg.timestamp._d);
+		} else {
+			const timestamp = String(msg.timestamp._d).split(' ').slice(0, 5).join(' ');
+			const tip = new PluginTooltip.Tooltip($(message), timestamp);
+			tip.show();
+			tip.node.off('mouseenter.tooltip').off('mouseleave.tooltip');
+			setTimeout(() => tip.tooltip.remove(), 3e3);
+		}
 	}
 
 	observer({ addedNodes }) {
@@ -150,11 +171,36 @@ class messageTimestamps {
 	}
 
 	getVersion() {
-		return '1.0.6';
+		return '1.1.0';
 	}
 
 	getDescription() {
 		return 'Shows a message\'s timestamp. Simply right-click a message and click "Show Timestamp."';
+	}
+
+	genSettingsPanel(panel) {
+		new PluginSettings.ControlGroup('Timestamp Display Settings', () => PluginUtilities.saveSettings(this.getName(), this.settings)).appendTo(panel).append(
+			new PluginSettings.Checkbox('Tooltip Mode', 'Toggles whether timestamps are displayed using Toasts or Tooltips.', this.settings.tooltips, (c) => this.settings.tooltips = c)
+		);
+
+		const resetButton = $('<button>');
+		resetButton.attr('type', 'button');
+		resetButton.text('Reset To Default');
+		resetButton.css('float', 'right');
+		resetButton.on('click.reset', () => {
+			this.settings = this.default;
+			PluginUtilities.saveSettings(this.getName(), this.settings);
+			panel.empty();
+			this.genSettingsPanel(panel);
+		});
+
+		panel.append(resetButton);
+	}
+
+	getSettingsPanel() {
+		const panel = $('<form>').addClass('form').css('width', '100%');
+		if(this.initialized) this.genSettingsPanel(panel);
+		return panel[0];
 	}
 };
 
