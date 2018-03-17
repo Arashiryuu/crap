@@ -88,7 +88,7 @@ class messageTimestamps {
 	}
 
 	appObs() {
-		const app = document.querySelector('.app');
+		const app = document.querySelector('#app-mount');
 		this.contextMO.observe(app, { childList: true, subtree: true });
 	}
 
@@ -105,6 +105,10 @@ class messageTimestamps {
 				.off('click.msgTimes')
 				.on('click.msgTimes', () => this.showTimestamp());
 		}
+
+		$(node).hide();
+
+		$(node).slideDown(300);
 	}
 
 	showTimestamp() {
@@ -114,7 +118,7 @@ class messageTimestamps {
 
 		if(!menu || !msg) return;
 
-		$(menu).hide(100);
+		$(menu).slideUp(200);
 
 		if(!this.settings.tooltips) {
 			PluginUtilities.showToast(msg.timestamp._d);
@@ -124,13 +128,6 @@ class messageTimestamps {
 			tip.show();
 			tip.node.off('mouseenter.tooltip').off('mouseleave.tooltip');
 			setTimeout(() => tip.tooltip.remove(), 3e3);
-		}
-	}
-
-	observer({ addedNodes }) {
-		if(addedNodes.length && addedNodes[0].classList && addedNodes[0].classList.contains('app')) {
-			this.discon();
-			this.appObs();
 		}
 	}
 	
@@ -171,7 +168,7 @@ class messageTimestamps {
 	}
 
 	getVersion() {
-		return '1.1.0';
+		return '1.1.1';
 	}
 
 	getDescription() {
