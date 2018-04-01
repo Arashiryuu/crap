@@ -163,7 +163,7 @@ class HideUtils {
 			for(const change of changes) {
 				if(change.addedNodes) {
 					for(const node of change.addedNodes.values()) {
-						if(this.getReactInstance(node) && this.getReactInstance(node).return && this.getReactInstance(node).return.memoizedProps.user && this.hid.users.includes(this.getReactInstance(node).return.return.memoizedProps.user.id)) {
+						if(this.getReactInstance(node) && this.getReactInstance(node).return && this.getReactInstance(node).return.memoizedProps.user && this.hid.users.includes(this.getReactInstance(node).return.memoizedProps.user.id)) {
 							this.auditUsers();
 						}
 					}
@@ -295,7 +295,7 @@ class HideUtils {
 			$(context).find('.item-1XYaYf').first().after(this.chanItem);
 			$(context).find('.item-1XYaYf.hideChannel')
 				.off('click.HideUtilC')
-				.on('click.HideUtilC', this.chanConClick.bind(this));
+				.on('click.HideUtilC', (o) => this.chanConClick());
 		}
 	}
 
@@ -329,17 +329,23 @@ class HideUtils {
 		const nChan = field.val();
 		if(isNaN(nChan)) {
 			field.val('Invalid entry: NaN; ID-Only.');
-			setTimeout(() => field.val(''), 2e3);
+			return setTimeout(() => field.val(''), 2e3);
 		}
 		if(!nChan) {
 			field.val('Invalid entry: No-entry.');
-			setTimeout(() => field.val(''), 2e3);
+			return setTimeout(() => field.val(''), 2e3);
 		}
 		if(!nChan.match(/^\d{16,18}$/)) {
 			field.val('Invalid entry: Invalid length or characters.');
-			setTimeout(() => field.val(''), 2e3);
+			return setTimeout(() => field.val(''), 2e3);
+		}
+		if(this.hid.channels.includes(nChan)) {
+			field.val('Invalid entry: This channel is already being hidden.');
+			return setTimeout(() => field.val(''), 2e3);
 		}
 		this.hid.channels.push(nChan);
+		field.val(`${nChan} is now being hidden.`);
+		setTimeout(() => field.val(''), 2e3);
 		this.saveSettings();
 		this.hideChannels();
 	}
@@ -348,7 +354,7 @@ class HideUtils {
 		const field = $('#ChanblockField');
 		const oChan = field.val();
 		if(this.hid.channels.length) {
-			if(oChan.match(/^\d{16,18}$/)) {
+			if(oChan.match(/^\d{16,18}$/) && this.hid.channels.includes(oChan)) {
 				this.hid.channels.splice(this.hid.channels.indexOf(oChan), 1);
 				this.saveSettings();
 				field.val('Channel successfully removed!');
@@ -380,7 +386,7 @@ class HideUtils {
 			$(context).find('.item-1XYaYf').first().after(this.servItem);
 			$(context).find('.item-1XYaYf.hideServer')
 				.off('click.HideUtilsS')
-				.on('click.HideUtilsS', this.servConClick.bind(this));
+				.on('click.HideUtilsS', (o) => this.servConClick());
 		}
 	}
 
@@ -425,17 +431,23 @@ class HideUtils {
 		const nServer = field.val();
 		if(isNaN(nServer)) {
 			field.val('Invalid entry: NaN; ID-Only.');
-			setTimeout(() => field.val(''), 2e3);
+			return setTimeout(() => field.val(''), 2e3);
 		}
 		if(!nServer) {
 			field.val('Invalid entry: No-entry.');
-			setTimeout(() => field.val(''), 2e3);
+			return setTimeout(() => field.val(''), 2e3);
 		}
 		if(!nServer.match(/^\d{16,18}$/)) {
 			field.val('Invalid entry: Invalid length or characters.');
-			setTimeout(() => field.val(''), 2e3);
+			return setTimeout(() => field.val(''), 2e3);
+		}
+		if(this.hid.servers.includes(nServer)) {
+			field.val('Invalid entry: This server is already being hidden.');
+			return setTimeout(() => field.val(''), 2e3);
 		}
 		this.hid.servers.push(nServer);
+		field.val(`${nServer} is now being hidden.`);
+		setTimeout(() => field.val(''), 2e3);
 		this.saveSettings();
 		this.hideServers();
 	}
@@ -444,7 +456,7 @@ class HideUtils {
 		const field = $('#ServerHideField');
 		const oServer = field.val();
 		if(this.hid.servers.length) {
-			if(oServer.match(/^\d{16,18}$/)) {
+			if(oServer.match(/^\d{16,18}$/) && this.hid.servers.includes(oServer)) {
 				this.hid.servers.splice(this.hid.servers.indexOf(oServer), 1);
 				this.saveSettings();
 				field.val('Server successfully removed!');
@@ -463,20 +475,18 @@ class HideUtils {
 	userContext(context) {
 		if(!context) return;
 		if(!this.getReactInstance(context) || !this.getReactInstance(context).return.memoizedProps.user) return;
-		if((this.getReactInstance(context).return.memoizedProps.target && this.getReactInstance(context).return.memoizedProps.target.classList.contains('avatar-large'))
-		|| (this.getReactInstance(context).return.memoizedProps.target && this.getReactInstance(context).return.memoizedProps.target.classList.contains('user-name'))
-		|| (this.getReactInstance(context).return.memoizedProps.target && this.getReactInstance(context).return.memoizedProps.target.classList.contains('member-username'))
-		|| (this.getReactInstance(context).return.memoizedProps.target && this.getReactInstance(context).return.memoizedProps.target.classList.contains('avatar-small'))) {
+		const contexts = ['user-name', 'avatar-small', 'avatar-large', 'username-MwOsla', 'image-EVRGPw', 'small-TEeAkX', 'avatarWrapper-3E-a5I'];
+		if(this.getReactInstance(context).return.memoizedProps.target && ( contexts.some((n) => this.getReactInstance(context).return.memoizedProps.target.className.includes(n)) )) {
 			$(context).find('.item-1XYaYf').first().after(this.userItem);
 			$(context).find('.item-1XYaYf.hideUser')
 				.off('click.HideUtilsU')
-				.on('click.HideUtilsU', this.userConClick.bind(this));
+				.on('click.HideUtilsU', (o) => this.userConClick());
 		} else
 		if(this.getReactInstance(context).return.memoizedProps.type && this.getReactInstance(context).return.memoizedProps.type === 'USER_FRIEND_LIST' && this.getReactInstance(context).return.memoizedProps.user) {
 			$(context).find('.item-1XYaYf').first().after(this.userItem);
 			$(context).find('.item-1XYaYf.hideUser')
 				.off('click.HideUtilsU')
-				.on('click.HideUtilsU', this.userConClick.bind(this));
+				.on('click.HideUtilsU', (o) => this.userConClick());
 		}
 	}
 
@@ -494,10 +504,10 @@ class HideUtils {
 
 	auditUsers() {
 		try {
-			if(document.querySelector('.member')) {
-				$('.member').each((_, user) => {
-					if(user.nodeType === 1 && user instanceof Element && this.getReactInstance(user) && this.getReactInstance(user).return.return.memoizedProps.user)
-						this.hid.users.includes(this.getReactInstance(user).return.return.memoizedProps.user.id) ? $(user).hide() : $(user).show();
+			if(document.querySelector('.member') || document.querySelector('.member-2FrNV0')) {
+				$('.member, .member-2FrNV0').each((_, user) => {
+					if(user.nodeType === 1 && user instanceof Element && this.getReactInstance(user) && this.getReactInstance(user).return.memoizedProps.user)
+						this.hid.users.includes(this.getReactInstance(user).return.memoizedProps.user.id) ? $(user).hide() : $(user).show();
 				});
 			}
 			if(document.querySelector('.message-group')) {
@@ -543,17 +553,23 @@ class HideUtils {
 		const nUser = field.val();
 		if(isNaN(nUser)) {
 			field.val('Invalid entry: NaN; ID-Only.');
-			setTimeout(() => field.val(''), 2e3);
+			return setTimeout(() => field.val(''), 2e3);
 		}
 		if(!nUser) {
 			field.val('Invalid entry: No-entry.');
-			setTimeout(() => field.val(''), 2e3);
+			return setTimeout(() => field.val(''), 2e3);
 		}
 		if(!nUser.match(/^\d{17,18}$/)) {
 			field.val('Invalid entry: Invalid length or characters.');
-			setTimeout(() => field.val(''), 2e3);
+			return setTimeout(() => field.val(''), 2e3);
+		}
+		if(this.hid.users.includes(nUser)) {
+			field.val('Invalid entry: This user is already being hidden.');
+			return setTimeout(() => field.val(''), 2e3);
 		}
 		this.hid.users.push(nUser);
+		field.val(`${nUser} is now being hidden.`);
+		setTimeout(() => field.val(''), 2e3);
 		this.saveSettings();
 		this.hideUsers();
 	}
@@ -562,7 +578,7 @@ class HideUtils {
 		const field = $('#blockField');
 		const oUser = field.val();
 		if(this.hid.users.length) {
-			if(oUser.match(/^\d{17,18}$/)) {
+			if(oUser.match(/^\d{17,18}$/) && this.hid.users.includes(oUser)) {
 				this.hid.users.splice(this.hid.users.indexOf(oUser), 1);
 				this.saveSettings();
 				field.val('User successfully removed!');
@@ -713,16 +729,11 @@ class HideUtils {
 	}
 
 	log(text, ...extra) {
-		if(typeof text !== 'string')
-			return console.log(`[%c${this.getName()}%c]`, 'color: #59F;', '', text);
-		if(!extra.length)
-			return console.log(`[%c${this.getName()}%c] ${text}`, 'color: #59F;', '');
-		else
-			return console.log(`[%c${this.getName()}%c] ${text}`, 'color: #59F;', '', ...extra);
+		return console.log(`[%c${this.getName()}%c]`, 'color: #59F;', '', text, ...extra);
 	}
 
-	err(error) {
-		return console.error(`[%c${this.getName()}%c] ${error}`, 'color: #59F;', '');
+	err(...e) {
+		return console.error(`[%c${this.getName()}%c]`, 'color: #59F;', '', ...e);
 	}
 
 	get downLink() {
@@ -738,7 +749,7 @@ class HideUtils {
 	}
 
 	getVersion() {
-		return '1.1.1';
+		return '1.1.2';
 	}
 
 	getDescription() {
