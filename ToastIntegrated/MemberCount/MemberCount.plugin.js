@@ -36,7 +36,7 @@ class MemberCount {
 			for(const change of changes) {
 				if(change.type === 'childList' && change.addedNodes) {
 					for(const node of change.addedNodes.values()) {
-						if(node.classList && node.classList.contains('channel-members-wrap')) {
+						if(node.classList && node.classList.contains('membersWrap-3wRngy')) {
 							this.reinject();
 						}
 						if(node.classList && ( node.classList.contains('chat') || node.classList.contains('messages-wrapper') )) {
@@ -46,12 +46,12 @@ class MemberCount {
 				}
 				if(change.type === 'childList' && ( change.addedNodes || change.removedNodes )) {
 					for(const node of change.addedNodes.values()) {
-						if(node.classList && node.classList.contains('member')) {
+						if(node.classList && node.classList.contains('member-2FrNV0')) {
 							this.memberCount();
 						}
 					}
 					for(const node of change.removedNodes.values()) {
-						if(node.classList && node.classList.contains('member')) {
+						if(node.classList && node.classList.contains('member-2FrNV0')) {
 							this.memberCount();
 						}
 					}
@@ -74,7 +74,7 @@ class MemberCount {
 				display: block;
 				width: 100%;
 				text-align: center;
-				padding: 1vh 0;
+				padding: 0.9vh 0;
 			} 
 			
 			.theme-light #memberCount {
@@ -88,10 +88,10 @@ class MemberCount {
 				display: block;
 				width: 100%;
 				text-align: center;
-				padding: 1vh 0;
+				padding: 0.9vh 0;
 			}
 
-			.channel-members-wrap .channel-members {
+			.membersWrap-3wRngy .members-1bid1J {
 				margin-top: 2vh;
 			}
 		`;
@@ -139,6 +139,7 @@ class MemberCount {
 
 	watch() {
 		const app = document.querySelector('.app');
+		if(!app) return false;
 		this.membMO.observe(app, { childList: true, subtree: true });
 		return true;
 	}
@@ -149,8 +150,9 @@ class MemberCount {
 	}
 
 	reinject() {
-		const m = document.querySelector('.channel-members-wrap');
-		if(!m) return;
+		const m = document.querySelector('.membersWrap-3wRngy');
+		if(!m) return false;
+
 		this.inject();
 
 		return this.memberCount();
@@ -159,23 +161,23 @@ class MemberCount {
 	inject() {
 		const ss = document.getElementById('memberCountCSS');
 		const c = document.getElementById('memberCount');
-		const members = document.querySelector('.channel-members-wrap');
-		if(!members) return;
+		const members = document.querySelector('.membersWrap-3wRngy');
+		if(!members) return false;
 
 		if(!ss && !c) {
-			this.stylesheet = this.createElement('style', 'memberCountCSS', this.styleCSS);
+			this.stylesheet = this.createElement('style', { id: 'memberCountCSS', textContent: this.styleCSS });
 			document.head.appendChild(this.stylesheet);
 	
-			this.counter = this.createElement('h2', 'memberCount', '&nbsp;');
+			this.counter = this.createElement('div', { id: 'memberCount', className: 'membersGroup-3_dP5E', textContent: '&nbsp;' });
 			members.appendChild(this.counter);
 	
 			return true;
 		} else if(!c || !ss) {
 			$('#memberCountCSS, #memberCount').remove();
-			this.stylesheet = this.createElement('style', 'memberCountCSS', this.styleCSS);
+			this.stylesheet = this.createElement('style', { id: 'memberCountCSS', textContent: this.styleCSS });
 			document.head.appendChild(this.stylesheet);
 	
-			this.counter = this.createElement('h2', 'memberCount', '&nbsp;');
+			this.counter = this.createElement('div', { id: 'memberCount', className: 'membersGroup-3_dP5E', textContent: '&nbsp;' });
 			members.appendChild(this.counter);
 	
 			return true;
@@ -188,7 +190,7 @@ class MemberCount {
 		if(this.stylesheet && this.counter) {
 			try {
 				document.head.removeChild(this.stylesheet);
-				document.querySelector('.channel-members-wrap').removeChild(this.counter);
+				document.querySelector('.membersWrap-3wRngy').removeChild(this.counter);
 				return true;
 			} catch(e) {
 				this.err(e.stack);
@@ -198,23 +200,25 @@ class MemberCount {
 		return false;
 	}
 
-	createElement(type = '', id = '', content = '') {
+	createElement(type = '', properties = {}) {
 		const element = document.createElement(type);
-		element.id = id;
-		element.textContent = content;
+		
+		for(const prop in properties) {
+			element[prop] = properties[prop];
+		}
 
 		return element;
 	}
 
 	memberCount() {
-		const members = document.querySelector('.channel-members-wrap');
-		if(!members) return;
+		const members = document.querySelector('.membersWrap-3wRngy');
+		if(!members) return false;
 
 		const total = this.memberStore.getMemberIds(this.guildStore.getGuildId()).length;
 		const mCount = document.getElementById('memberCount');
 
 		if(mCount) {
-			mCount.textContent = 'Members' + '—' + total;
+			mCount.textContent = `Members—${total}`;
 			return true;
 		}
 
@@ -257,11 +261,11 @@ class MemberCount {
 	}
 
 	getVersion() {
-		return '1.0.3';
+		return '1.0.4';
 	}
 
 	getDescription() {
-		return 'Displays a server\'s member-count at the top of the member-list, can be styled with `#memberCount`.';
+		return 'Displays a server\'s member-count at the top of the member-list, can be styled with the #memberCount selector.';
 	}
 };
 
