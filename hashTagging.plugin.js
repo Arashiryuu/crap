@@ -25,67 +25,77 @@
 @else@*/
 
 class hashTagging {
-  constructor() {
-    this.css = `
-    <style id="hashTagCSS" type="text/css">
-      #hashtag {
-        color: #3898FF;
-        font-weight: bold;
-      }
-    </style>`;
-  };
-   
-  load() {
-    
-  };
+	constructor() {
+		this.css = `<style id="hashTagCSS" type="text/css">
+		  #hashtag {
+			color: #3898FF;
+			font-weight: bold;
+		  }
+		</style>`;
+	};
 
-  stop() {
-    $('#hashTagCSS').remove();
-  };
+	load() {
 
-  start() {
-    $('head').append(this.css);
-	  this.processChat();
-  };
-	
-  processChat() {
-    setTimeout(function() {
-      $(".comment .body .markup:not(.line-scanned), .comment .markup>span:not(.line-scanned)").each((i, e) => {
-        const tagRegex = /\B#[A-Z0-9a-z_-]+/igm;
-        const html = $(e).html();
-        if(tagRegex.test(html) && !$(e).children().first().hasClass('mention')) {
-          $(e).html(html.replace(tagRegex, `<span id="hashtag">$&</span>`));
-        }
-      }).addClass("line-scanned");
-    },100);
-  };
+	};
 
-  observer({ addedNodes, removedNodes }) {
-    if(addedNodes && addedNodes.length && addedNodes[0].classList && addedNodes[0].classList.contains('message')
-    || addedNodes && addedNodes.length && addedNodes[0].classList && addedNodes[0].classList.contains('message-group')
-    || addedNodes && addedNodes.length && addedNodes[0].classList && addedNodes[0].classList.contains('messages-wrapper')) {
-      this.processChat();
-    }
-  };
+	stop() {
+		$('#hashTagCSS').remove();
+	};
 
-  getName() { 
-    return 'hashTagging';
-  };
+	start() {
+		$('head').append(this.css);
+		this.processChat();
+	};
 
-  getAuthor() { 
-    return 'Arashiryuu';
-  };
+	processChat() {
+		if(document.readyState !== 'complete') return setTimeout(() => this.processChat(), 1e3);
 
-  getVersion() { 
-    return '1.2.0';
-  };
+		setTimeout(function() {
+			$(".comment .body .markup:not(.line-scanned), .comment .markup>span:not(.line-scanned)").each((i, e) => {
+				const tagRegex = /\B#[A-Z0-9a-z_-]+/igm;
+				const html = $(e).html();
+				if(tagRegex.test(html) && !$(e).children().first().hasClass('mention')) {
+					const index = html.indexOf('#');
+					if(index > 0) {	
+						const pre = html[index - 1] === '/' ? true : false;
+						if(!pre) {
+							$(e).html(html.replace(tagRegex, `<span id="hashtag">$&</span>`));
+						}
+					} else {
+						$(e).html(html.replace(tagRegex, `<span id="hashtag">$&</span>`));	
+					}
+				}
+			}).addClass("line-scanned");
+		}, 1e2);
+	};
 
-  getDescription() { 
-    return 'Start a word or sentence with a \"#\" to hashtag!';
-  };
+	observer({ addedNodes, removedNodes }) {
+		if(addedNodes && addedNodes.length && addedNodes[0].classList && addedNodes[0].classList.contains('message')
+		|| addedNodes && addedNodes.length && addedNodes[0].classList && addedNodes[0].classList.contains('message-group')
+		|| addedNodes && addedNodes.length && addedNodes[0].classList && addedNodes[0].classList.contains('messages-wrapper')) {
+			this.processChat();
+		}
+	};
 
-  getSettingsPanel() { 
-    return 'Go away!';
-  };
+	getName() { 
+		return 'hashTagging';
+	};
+
+	getAuthor() { 
+		return 'Arashiryuu';
+	};
+
+	getVersion() { 
+		return '1.2.3';
+	};
+
+	getDescription() { 
+		return 'Start a word or sentence with a \"#\" to hashtag!';
+	};
+
+	getSettingsPanel() { 
+		return 'Go away!';
+	};
 };
+
 /*@end@*/
