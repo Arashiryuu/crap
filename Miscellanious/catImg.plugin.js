@@ -43,10 +43,17 @@ class catImg {
 		const tea = $('#app-mount form > div > div > textarea');
 		if(!tea[0]) return;
 		tea.off('keyup.cat').on('keyup.cat', async (e) => {
-			if(tea.val().includes('/cat')) {
-				const randCat = await this.genLink;
-				tea.val(tea.text().replace(/\/cat/igm, ''));
-				document.execCommand('insertText', false, randCat);
+			const catRegex = /\B\/cat/igm;
+			const val = tea.val();
+			if(val.includes('/cat')) {
+				const catIndex = val.indexOf('/cat');
+				const pre = val[catIndex - 1] === '/' ? true : false;
+				if(!pre) {
+					const randCat = await this.genLink;
+					tea.val(tea.text().replace(/\/cat/igm, ''));
+					tea.focus();
+					document.execCommand('insertText', false, randCat);
+				}
 			}
 		});
 	}
@@ -54,7 +61,7 @@ class catImg {
 	get genLink() {
 		return (async () => {
 			try {
-				const base = await fetch('https://random.cat/meow');
+				const base = await fetch('https://aws.random.cat/meow');
 				const { file } = await base.json();
 				return file;
 			}
@@ -62,7 +69,7 @@ class catImg {
 				this.err(e);
 				return null;
 			}
-    	})();
+		})();
 	}
 
 	observer({ addedNodes }) {
@@ -94,7 +101,7 @@ class catImg {
 	}
 
 	getVersion() {
-		return '1';
+		return '1.0.1';
 	}
 
 	getDescription() {
