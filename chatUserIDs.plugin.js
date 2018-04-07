@@ -28,6 +28,7 @@ class chatUserIDs {
 	constructor() {
 		this.css = `<style id="chatUserIDsCSS" type="text/css">
 			@import 'https://fonts.googleapis.com/css?family=Roboto|Inconsolata';
+
 			#tagID {
 				font-size: 10px;
 				letter-spacing: 0.025rem;
@@ -44,10 +45,12 @@ class chatUserIDs {
 				color: #FFF;
 				font-family: 'Roboto', 'Inconsolata', 'Whitney', sans-serif;
 			}
+
 			.message-group:not(.compact) h2 {
 				display: flex;
 				position: relative;
 			}
+			
 			.message-group .comment .message.first ~ div > .edit-message .edit-container-inner .old-h2 {
 				display: none;
 			}
@@ -68,7 +71,6 @@ class chatUserIDs {
 
 	stop() {
 		this.chatDiscon();
-		$('*').off('dblclick.chatID');
 		$('.tagID, #chatUserIDsCSS').remove();
 		this.log('Stopped');
 	}
@@ -91,19 +93,18 @@ class chatUserIDs {
 	}
 
 	observer({ addedNodes, removedNodes }) {
-		if(addedNodes && addedNodes.length && addedNodes[0] && addedNodes[0] instanceof Element && addedNodes[0].classList && addedNodes[0].classList.contains('messages-wrapper')
-		|| addedNodes && addedNodes.length && addedNodes[0] && addedNodes[0] instanceof Element && addedNodes[0].classList && addedNodes[0].classList.contains('chat')) {
+		if(addedNodes.length && addedNodes[0].classList && (addedNodes[0].classList.contains('messages-wrapper') || addedNodes[0].classList.contains('chat'))) {
 			this.chatDiscon();
 			this.attachID();
 			this.chatObserve();
-		}
-		if(addedNodes && addedNodes.length && addedNodes[0] && addedNodes[0] instanceof Element && addedNodes[0].classList && addedNodes[0].classList.contains('message-group')) {
+		} else
+		if(addedNodes.length && addedNodes[0].classList && addedNodes[0].classList.contains('message-group')) {
 			this.attachID();
-		}
-		if(removedNodes && removedNodes.length && removedNodes[0] && removedNodes[0] instanceof Element && removedNodes[0].classList && removedNodes[0].classList.contains('message-group')) {
+		} else
+		if(removedNodes.length && removedNodes[0].classList && removedNodes[0].classList.contains('message-group')) {
 			this.attachID();
-		}
-		if(removedNodes && removedNodes.length && removedNodes[0] && removedNodes[0] instanceof Element && removedNodes[0].classList && removedNodes[0].classList.contains('messages-wrapper')) {
+		} else
+		if(removedNodes.length && removedNodes[0].classList && removedNodes[0].classList.contains('messages-wrapper')) {
 			this.chatDiscon();
 		}
 	}
@@ -117,7 +118,7 @@ class chatUserIDs {
 					if(!(post instanceof Element)) return;
 					const elem = `<span id="tagID" class="tagID">${this.getReactInstance(post).return.memoizedProps.messages[0].author.id}</span>`;
 					$(post).find('.username-wrapper').before(elem);
-					$(post).find('.tagID').off('dblclick.chatID').on('dblclick.chatID', this.constructor.dblClickID.bind(this));
+					$(post).find('.tagID').off('dblclick.chatID').on('dblclick.chatID', (e) => this.dblClickID(e));
 				}
 			});
 			if($('.message-group:not(.hide-overflow)').length > 0) {
@@ -127,12 +128,12 @@ class chatUserIDs {
 					if(this.getReactInstance(post).return.key && this.getReactInstance(post).return.key.includes('upload')) {
 						const elem = `<span id="tagID" class="tagID">${this.getReactInstance(post).return.memoizedProps.user.id}</span>`;
 						$(post).find('.username-wrapper').before(elem);
-						$(post).find('.tagID').off('dblclick.chatID').on('dblclick.chatID', this.constructor.dblClickID.bind(this));
+						$(post).find('.tagID').off('dblclick.chatID').on('dblclick.chatID', (e) => this.dblClickID(e));
 					}
 					else if(this.getReactInstance(post).return.memoizedProps.messages && this.getReactInstance(post).return.memoizedProps.messages.length > 0) {
 						const elem = `<span id="tagID" class="tagID">${this.getReactInstance(post).return.memoizedProps.messages[0].author.id}</span>`;
 						$(post).find('.username-wrapper').before(elem);
-						$(post).find('.tagID').off('dblclick.chatID').on('dblclick.chatID', this.constructor.dblClickID.bind(this));
+						$(post).find('.tagID').off('dblclick.chatID').on('dblclick.chatID', (e) => this.dblClickID(e));
 					}
 				});
 			}
@@ -142,13 +143,13 @@ class chatUserIDs {
 		}
 	}
 
-	static dblClickID(e) {
-		e.stopPropagation();
+	dblClickID({ stopPropagation }) {
+		stopPropagation();
 		try {
 			document.execCommand('copy');
 		}
 		catch(err) {
-			this.err(err.stack);
+			this.err(e.stack);
 		}
 	}
 
@@ -163,17 +164,12 @@ class chatUserIDs {
 		return node[Object.keys(node).find((key) => key.startsWith('__reactInternalInstance'))];
 	}
 
-	log(text, extra) {
-		if(typeof text !== 'string')
-			return console.log(`[%c${this.getName()}%c]`, 'color: #59F;', '', text);
-		if(!extra)
-			return console.log(`[%c${this.getName()}%c] ${text}`, 'color: #59F;', '');
-		else
-			return console.log(`[%c${this.getName()}%c] ${text}`, 'color: #59F;', '', extra);
+	log(...extra) {
+		return console.log(`[%c${this.getName()}%c]`, 'color: #59F;', '', ...extra);
 	}
 
-	err(error) {
-		return console.error(`[%c${this.getName()}%c]`, 'color: #59F;', '', error);
+	err(...error) {
+		return console.error(`[%c${this.getName()}%c]`, 'color: #59F;', '', ...error);
 	}
 
 	getName() {
@@ -185,7 +181,7 @@ class chatUserIDs {
 	}
 
 	getVersion() {
-		return '1.0.3';
+		return '1.0.4';
 	}
 
 	getDescription() {
