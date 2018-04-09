@@ -1,4 +1,4 @@
-# Crap
+# Crap <br/>[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](./LICENSE)
 
 ### Plugins for the BetterDiscord addon for Discord clients.
 **[doesNotEqualsInsertion](https://github.com/Arashiryuu/crap/blob/master/doesNotEqualsInsertion.plugin.js)** ー replaces any instances of `=/=` in the textarea with `≠`.
