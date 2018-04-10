@@ -110,9 +110,9 @@ class HideServersChannels {
 		if(!serverButton || !channelButton) return;
 
 		if(clicked === serverButton || clicked.parentNode === serverButton) {
-			const $elem = $('.HideServers');
+			const $elem = $(serverButton);
 			const $toggle = $('.guilds-wrapper');
-			let $classList = $('.HideServers').attr('class');
+			let $classList = $elem.attr('class');
 	
 			$toggle.toggle();
 	
@@ -127,9 +127,9 @@ class HideServersChannels {
 			}
 		}
 		else if(clicked === channelButton || clicked.parentNode === channelButton) {
-			const $elem = $('.HideChannels');
+			const $elem = $(channelButton);
 			const $toggle = $('.channels-3g2vYe');
-			let $classList = $('.HideChannels').attr('class');
+			let $classList = $elem.attr('class');
 	
 			$toggle.toggle();
 	
