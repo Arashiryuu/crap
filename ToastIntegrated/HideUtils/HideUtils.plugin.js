@@ -34,6 +34,9 @@ class HideUtils {
 			users: []
 		};
 
+		this.TypingUsers;
+		this.Patch;
+
 		this.blockCSS = `<style id="HideUtils-Block-CSS" type="text/css">
 			.message-group-blocked,
 			.unread-mentions-bar {
@@ -194,6 +197,7 @@ class HideUtils {
 	}
 
 	stop() {
+		this.Cancel();
 		this.hid = {
 			channels: [],
 			servers: [],
@@ -230,6 +234,15 @@ class HideUtils {
 			this.hid = JSON.parse(settings);
 			this.log('Settings found and loaded. Settings are:', this.hid);
 		}
+		this.TypingUsers = InternalUtilities.WebpackModules.findByDisplayName('TypingUsers');
+		this.Cancel = InternalUtilities.monkeyPatch(this.TypingUsers.prototype, 'render', {
+			before: (data) => {
+				const { thisObject: { state: { typingUsers } } } = data;
+				for(const user of this.hid.users) {
+					if(typingUsers[user]) delete typingUsers[user];
+				}
+			}
+		});
 		$('head').append(this.blockCSS, this.settingsCSS);
 		this.allObs();
 		this.initialized = true;
@@ -728,8 +741,8 @@ class HideUtils {
 		return node[Object.keys(node).find((key) => key.startsWith('__reactInternalInstance'))];
 	}
 
-	log(text, ...extra) {
-		return console.log(`[%c${this.getName()}%c]`, 'color: #59F;', '', text, ...extra);
+	log(...extra) {
+		return console.log(`[%c${this.getName()}%c]`, 'color: #59F;', '', ...extra);
 	}
 
 	err(...e) {
@@ -749,7 +762,7 @@ class HideUtils {
 	}
 
 	getVersion() {
-		return '1.1.2';
+		return '1.1.3';
 	}
 
 	getDescription() {
