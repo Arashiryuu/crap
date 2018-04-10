@@ -35,7 +35,7 @@ class HideUtils {
 		};
 
 		this.TypingUsers;
-		this.Patch;
+		this.Cancel;
 
 		this.blockCSS = `<style id="HideUtils-Block-CSS" type="text/css">
 			.message-group-blocked,
