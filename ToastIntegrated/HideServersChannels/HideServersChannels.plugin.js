@@ -3,15 +3,15 @@
 /*@cc_on
 @if (@_jscript)
 	
-	// Offer to self-install for clueless users that try to run this directly.
+	// Offer to self-install for clueless users that try to run this diButtonly.
 	var shell = WScript.CreateObject("WScript.Shell");
 	var fs = new ActiveXObject("Scripting.FileSystemObject");
 	var pathPlugins = shell.ExpandEnvironmentStrings("%APPDATA%\\BetterDiscord\\plugins");
 	var pathSelf = WScript.ScriptFullName;
 	// Put the user at ease by addressing them in the first person
-	shell.Popup("It looks like you've mistakenly tried to run me directly. \n(Don't do that!)", 0, "I'm a plugin for BetterDiscord", 0x30);
+	shell.Popup("It looks like you've mistakenly tried to run me diButtonly. \n(Don't do that!)", 0, "I'm a plugin for BetterDiscord", 0x30);
 	if (fs.GetParentFolderName(pathSelf) === fs.GetAbsolutePathName(pathPlugins)) {
-		shell.Popup("I'm in the correct folder already.\nJust reload Discord with Ctrl+R.", 0, "I'm already installed", 0x40);
+		shell.Popup("I'm in the corButton folder already.\nJust reload Discord with Ctrl+R.", 0, "I'm already installed", 0x40);
 	} else if (!fs.FolderExists(pathPlugins)) {
 		shell.Popup("I can't find the BetterDiscord plugins folder.\nAre you sure it's even installed?", 0, "Can't install myself", 0x10);
 	} else if (shell.Popup("Should I copy myself to BetterDiscord's plugins folder for you?", 0, "Do you need some help?", 0x34) === 6) {
@@ -76,39 +76,33 @@ class HideServersChannels {
 		const serverTooltip = $('<div/>', { id: 'HideServersChannelsTooltip', class: 'tooltip tooltip-bottom tooltip-black', text: 'Toggle Servers' });
 		const channelTooltip = $('<div/>', { id: 'HideServersChannelsTooltip', class: 'tooltip tooltip-bottom tooltip-black', text: 'Toggle Channels' });
 
-		serverButton.on('click.HSCT', this.constructor.click.bind(this));
-		channelButton.on('click.HSCT', this.constructor.click.bind(this));
+		const utils = {
+			server: {
+				button: serverButton,
+				tooltip: serverTooltip
+			},
+			channels: {
+				button: channelButton,
+				tooltip: channelTooltip
+			}
+		};
 
-		serverButton.on('mouseenter.HSCT', () => {
-			const rect = serverButton[0].getBoundingClientRect();
-			setTimeout(() => {
-				const center = (rect.left + (rect.width / 2)) - (serverTooltip.outerWidth() / 2);
-				serverTooltip.attr('style', `left: ${center}px; top: ${rect.top + rect.height}px; white-space: nowrap;`);
-			}, 10);
-			serverTooltip.attr('style', `left: -1000vw; top: -1000vh;`);
-			tooltips.append(serverTooltip);
-		});
-		channelButton.on('mouseenter.HSCT', () => {
-			const rect = channelButton[0].getBoundingClientRect();
-			setTimeout(() => {
-				const center = (rect.left + (rect.width / 2)) - (channelTooltip.outerWidth() / 2);
-				channelTooltip.attr('style', `left: ${center}px; top: ${rect.top + rect.height}px; white-space: nowrap;`);
-			}, 10);
-			channelTooltip.attr('style', `left: -1000vw; top: -1000vh;`);
-			tooltips.append(channelTooltip);
-		});
-
-		serverButton.on('mouseleave.HSCT', () => {
-			$('#HideServersChannelsTooltip').remove();
-		});
-		channelButton.on('mouseleave.HSCT', () => {
-			$('#HideServersChannelsTooltip').remove();
-		});
+		for(const { button, tooltip } of Object.values(utils)) {
+			button.on('click.HSCT', (e) => this.click(e))
+			.on('mouseenter.HSCT', () => {
+				setTimeout(() => {
+					const center = (button.offset().left + (button.outerWidth() / 2)) - (tooltip.outerWidth() / 2);
+					tooltip.attr('style', `left: ${center}px; top: ${serverButton.offset().top + serverButton.outerHeight()}px; white-space: nowrap;`);
+				}, 10);
+				tooltips.append(tooltip);
+			})
+			.on('mouseleave.HSCT', () => { $('#HideServersChannelsTooltip').remove() });			
+		}
 
 		return true;
 	}
 
-	static click(e) {
+	click(e) {
 		const clicked = e.target;
 		const serverButton = document.querySelector('.HideServers');
 		const channelButton = document.querySelector('.HideChannels');
@@ -152,23 +146,17 @@ class HideServersChannels {
 	}
 
 	observer({ addedNodes }) {
-		if(addedNodes.length && addedNodes[0].classList && (addedNodes[0].classList.contains('app') || (addedNodes[0].id && addedNodes[0].id.toLowerCase() === 'friends') || addedNodes[0].classList.contains('chat'))) {
+		if(addedNodes.length && addedNodes[0].classList && ( addedNodes[0].classList.contains('app') || addedNodes[0].classList.contains('chat') || addedNodes[0].classList.contains('messages-wrapper') )) {
 			this.inject();
 		}
 	}
 
-	log(text, ...extra) {
-		if(!extra.length)
-			return console.log(`[%c${this.getName()}%c]`, 'color: #59F;', '', text);
-		else
-			return console.log(`[%c${this.getName()}%c]`, 'color: #59F;', '', text, ...extra);
+	log(...extra) {
+		return console.log(`[%c${this.getName()}%c]`, 'color: #59F;', '', ...extra);
 	}
 
-	err(error, ...errors) {
-		if(typeof error === 'string' && !errors.length)
-			return console.error(`[%c${this.getName()}%c] ${error}`, 'color: #59F;', '');
-		else
-			return console.error(`[%c${this.getName()}%c] `, 'color: #59F;', '', error, ...errors);
+	err(...errors) {
+		return console.error(`[%c${this.getName()}%c] `, 'color: #59F;', '', ...errors);
 	}
 
 	get downLink() {
@@ -184,7 +172,7 @@ class HideServersChannels {
 	}
 
 	getVersion() {
-		return '1.0.0';
+		return '1.0.1';
 	}
 
 	getDescription() {
