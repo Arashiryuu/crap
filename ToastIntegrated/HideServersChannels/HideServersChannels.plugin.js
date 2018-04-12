@@ -92,7 +92,7 @@ class HideServersChannels {
 			.on('mouseenter.HSCT', () => {
 				setTimeout(() => {
 					const center = (button.offset().left + (button.outerWidth() / 2)) - (tooltip.outerWidth() / 2);
-					tooltip.attr('style', `left: ${center}px; top: ${serverButton.offset().top + serverButton.outerHeight()}px; white-space: nowrap;`);
+					tooltip.attr('style', `left: ${center}px; top: ${button.offset().top + button.outerHeight()}px; white-space: nowrap;`);
 				}, 10);
 				tooltips.append(tooltip);
 			})
