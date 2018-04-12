@@ -140,7 +140,7 @@ class MemberCount {
 	watch() {
 		const app = document.querySelector('.app');
 		if(!app) return false;
-		this.membMO.observe(app, { childList: true, subtree: true });
+		this.membMO.observe(app, { childList: true, subtree: true, attributes: true });
 		return true;
 	}
 
