@@ -1,4 +1,4 @@
-//META{"name":"HideUtils"}*//
+//META{"name":"HideUtilsMap"}*//
 
 /*@cc_on
 @if (@_jscript)
@@ -24,7 +24,7 @@
 
 @else@*/
 
-class HideUtils {
+class HideUtilsMap {
 	constructor() {
 		this.initialized = false;
 
@@ -115,7 +115,7 @@ class HideUtils {
 				word-break: break-word;
 				word-wrap: break-word;
 				text-overflow: ellipsis;
-				padding: 0 5ex;
+				padding: 0 5px;
 				display: flex;
 				justify-content: center;
 				overflow: hidden;
@@ -277,7 +277,18 @@ class HideUtils {
 		this.channel = findByProps(['getChannel']);
 		this.guild = findByProps(['getGuild']);
 		this.user = findByProps(['getUser']);
-		this.loadSettings();
+		const settings = bdPluginStorage.get('HideUtilsMap', 'settings');
+		if(!settings) {
+			this.log('No settings found.');
+		} else {
+			const parsedSettings = JSON.parse(settings);
+			for(const [key, data] of Object.entries(parsedSettings)) {
+				for(const entry of data) {
+					this.hid[key].set(entry[0], entry[1]);
+				}
+			}
+			setTimeout(() => PluginUtilities.showToast('HideUtils settings found and successfully loaded.', { type: 'info', icon: true, timeout: 2e3 }), 500);
+		}
 		this.TypingUsers = InternalUtilities.WebpackModules.findByDisplayName('TypingUsers');
 		this.Cancel = InternalUtilities.monkeyPatch(this.TypingUsers.prototype, 'render', {
 			before: (data) => {
@@ -523,8 +534,8 @@ class HideUtils {
 	servPush(o) {
 		if(o) {
 			const server = this.guild.getGuild(o);
-			const icon = $(`a[style*="${server.id}"]`).attr('style').split('"')[1];
 			if(server) {
+				const icon = $(`a[style*="${server.id}"]`).attr('style').split('"')[1];
 				this.hid.servers.set(server.id, {
 					icon,
 					name: server.name,
@@ -555,8 +566,8 @@ class HideUtils {
 				return setTimeout(() => field.val(''), 2e3);
 			}
 			const server = this.guild.getGuild(nServer);
-			const icon = $(`a[style*="${server.id}"]`).attr('style').split('"')[1];
 			if(server) {
+				const icon = $(`a[style*="${server.id}"]`).attr('style').split('"')[1];
 				this.hid.servers.set(server.id, {
 					icon,
 					name: server.name,
@@ -789,22 +800,11 @@ class HideUtils {
 	}
 
 	saveSettings() {
-		bdPluginStorage.set('HideUtils', 'new-settings', JSON.stringify(this.hid));
+		bdPluginStorage.set('HideUtilsMap', 'settings', JSON.stringify(this.hid));
 	}
 
 	loadSettings() {
-		const settings = bdPluginStorage.get('HideUtils', 'new-settings');
-		if(settings) {	
-			const parsed = JSON.parse(settings);
-			for(const [key, data] of Object.entries(parsed)) {
-				for(const entry of data) {
-					this.hid[key].set(entry[0], entry[1]);
-				}
-			}
-			PluginUtilities.showToast('HideUtils settings found and successfully loaded.', { type: 'success', icon: true, timeout: 3e3 });
-		} else {
-			PluginUtilities.showToast('HideUtils settings do not exist or could not be loaded.', { type: 'info', icon: true, timeout: 3e3 });
-		}
+		this.hid = JSON.parse(bdPluginStorage.get('HideUtilsMap', 'settings'));
 	}
 
 	settingSelect() {
@@ -972,7 +972,7 @@ class HideUtils {
 	}
 
 	getName() {
-		return 'HideUtils';
+		return 'HideUtilsMap';
 	}
 
 	getAuthor() {
