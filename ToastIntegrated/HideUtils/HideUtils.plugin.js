@@ -28,14 +28,19 @@ class HideUtils {
 	constructor() {
 		this.initialized = false;
 
-		this.hid = {
-			channels: [],
-			servers: [],
-			users: []
+		this.default = {
+			channels: new Map(),
+			servers: new Map(),
+			users: new Map()
 		};
-
+		this.hid = this.default;
+		
 		this.TypingUsers;
 		this.Cancel;
+
+		this.user;
+		this.guild;
+		this.channel;
 
 		this.blockCSS = `<style id="HideUtils-Block-CSS" type="text/css">
 			.message-group-blocked,
@@ -74,12 +79,55 @@ class HideUtils {
 				height: 30px;
 				width: 5vw;
 				margin: 5px;
+				padding: 0;
+				font-size: 14px;
 			}
 			#HideUtils-Settings .buttonGroupi {
 				padding-left: 20%;
 			}
 			#HideUtils-Settings #HideUtils-instructions {
 				color: #BBB;
+			}
+			#HideUtils-Settings .icons {
+				max-width: 80%;
+				position: relative;
+				left: 10%;
+				display: flex;
+				flex-flow: row wrap;
+			}
+			#HideUtils-Settings .icons .container {
+				max-height: 6vh;
+				overflow-y: auto;
+				display: flex;
+				flex-flow: row wrap;
+			}
+			#HideUtils-Settings .icons .container .button {
+				background-repeat: no-repeat;
+				background-position: center;
+				background-size: cover;
+				min-height: 5vh;
+				min-width: 5vw;
+				height: 5vh;
+				width: auto;
+				max-height: 10vh;
+				max-width: 10vw;
+				font-size: 10pt;
+				word-break: break-word;
+				word-wrap: break-word;
+				text-overflow: ellipsis;
+				padding: 0 5ex;
+				display: flex;
+				justify-content: center;
+				overflow: hidden;
+			}
+			#HideUtils-Settings .icons .container::-webkit-scrollbar {
+				width: 7px !important;
+				background: rgba(0, 0, 0, 0.4);
+			}
+			#HideUtils-Settings .icons .container::-webkit-scrollbar-thumb {
+				min-height: 20pt !important;
+				min-width: 20pt !important;
+				background: rgba(255, 255, 255, 0.6) !important;
 			}
 		</style>`;
 
@@ -166,7 +214,7 @@ class HideUtils {
 			for(const change of changes) {
 				if(change.addedNodes) {
 					for(const node of change.addedNodes.values()) {
-						if(this.getReactInstance(node) && this.getReactInstance(node).return && this.getReactInstance(node).return.memoizedProps.user && this.hid.users.includes(this.getReactInstance(node).return.memoizedProps.user.id)) {
+						if(this.getReactInstance(node) && this.getReactInstance(node).return && this.getReactInstance(node).return.memoizedProps.user && this.hid.users.has(this.getReactInstance(node).return.memoizedProps.user.id)) {
 							this.auditUsers();
 						}
 					}
@@ -198,11 +246,7 @@ class HideUtils {
 
 	stop() {
 		this.Cancel();
-		this.hid = {
-			channels: [],
-			servers: [],
-			users: []
-		};
+		this.hid = this.default;
 		$('#HideUtils-Block-CSS, #HideUtils-Settings-CSS').remove();
 		this.allDiscon();
 		$('*').off('click.HideUtilsC, click.HideUtilsS, click.HideUtilsU');
@@ -227,18 +271,18 @@ class HideUtils {
 
 	initialize() {
 		PluginUtilities.checkForUpdate(this.getName(), this.getVersion(), this.downLink);
-		const settings = bdPluginStorage.get('HideUtils', 'settings');
-		if(!settings) {
-			this.log('No settings found.');
-		} else {
-			this.hid = JSON.parse(settings);
-			this.log('Settings found and loaded. Settings are:', this.hid);
-		}
+
+		const findByProps = InternalUtilities.WebpackModules.findByUniqueProperties;
+
+		this.channel = findByProps(['getChannel']);
+		this.guild = findByProps(['getGuild']);
+		this.user = findByProps(['getUser']);
+		this.loadSettings();
 		this.TypingUsers = InternalUtilities.WebpackModules.findByDisplayName('TypingUsers');
 		this.Cancel = InternalUtilities.monkeyPatch(this.TypingUsers.prototype, 'render', {
 			before: (data) => {
 				const { thisObject: { state: { typingUsers } } } = data;
-				for(const user of this.hid.users) {
+				for(const user of this.hid.users.keys()) {
 					if(typingUsers[user]) delete typingUsers[user];
 				}
 			}
@@ -247,7 +291,8 @@ class HideUtils {
 		this.allObs();
 		this.initialized = true;
 		this.startHiding();
-		PluginUtilities.showToast(`${this.getName()} ${this.getVersion()} has started.`);
+
+		PluginUtilities.showToast(`${this.getName()} ${this.getVersion()} has started.`, { type: 'info', icon: true, timeout: 2e3 });
 	}
 
 	startHiding() {
@@ -316,8 +361,8 @@ class HideUtils {
 		if(!document.querySelector('.contextMenu-uoJTbz')) return;
 		if(!this.getReactInstance(document.querySelector('.contextMenu-uoJTbz')).return.memoizedProps.channel) return;
 		const channel = this.getReactInstance(document.querySelector('.contextMenu-uoJTbz')).return.memoizedProps.channel.id;
-		if(!this.hid.channels.includes(channel)) {
-			this.hid.channels.push(channel);
+		if(!this.hid.channels.has(channel)) {
+			this.chanPush(channel);
 			this.saveSettings();
 			this.auditChannels();
 		}
@@ -327,58 +372,94 @@ class HideUtils {
 		if(document.querySelector('div[class^="channels"] .containerDefault-7RImuF')) {
 			$('div[class^="channels"] .containerDefault-7RImuF').each((_, channel) => {
 				if(this.getReactInstance(channel) && this.getReactInstance(channel).return.memoizedProps.channel)
-					this.hid.channels.includes(this.getReactInstance(channel).return.memoizedProps.channel.id) ? $(channel).hide() : $(channel).show();
+					this.hid.channels.has(this.getReactInstance(channel).return.memoizedProps.channel.id) ? $(channel).hide() : $(channel).show();
 			});
 		}
 	}
 
 	hideChannels() {
-		if(!this.hid.channels.length) return;
+		if(!this.hid.channels.size) return;
 		this.auditChannels();
 	}
 
-	chanPush() {
-		const field = $('#ChanblockField');
-		const nChan = field.val();
-		if(isNaN(nChan)) {
-			field.val('Invalid entry: NaN; ID-Only.');
-			return setTimeout(() => field.val(''), 2e3);
+	chanPush(o) {
+		if(o) {
+			const chan = this.channel.getChannel(o);
+			if(chan) {
+				const guild = this.guild.getGuild(chan.guild_id);
+				this.hid.channels.set(chan.id, {
+					guild: guild.name,
+					name: chan.name,
+					id: chan.id
+				});
+				this.saveSettings();
+				this.hideChannels();
+			}
+		} else {
+			const field = $('#ChanblockField');
+			const nChan = field.val();
+			if(isNaN(nChan)) {
+				field.val('Invalid entry: NaN; ID-Only.');
+				return setTimeout(() => field.val(''), 2e3);
+			}
+			else if(!nChan) {
+				field.val('Invalid entry: No-entry.');
+				return setTimeout(() => field.val(''), 2e3);
+			}
+			else if(!nChan.match(/^\d{16,18}$/)) {
+				field.val('Invalid entry: Invalid length or characters.');
+				return setTimeout(() => field.val(''), 2e3);
+			}
+			else if(this.hid.channels.has(nChan)) {
+				field.val('Invalid entry: This channel is already being hidden.');
+				return setTimeout(() => field.val(''), 2e3);
+			}
+			const chan = this.channel.getChannel(nChan);
+			if(chan) {
+				this.hid.channels.set(chan.id, {
+					guild: chan.guild_id,
+					name: chan.name,
+					id: chan.id
+				});
+				field.val(`${nChan} is now being hidden.`);
+				setTimeout(() => field.val(''), 2e3);
+				this.saveSettings();
+				this.hideChannels();
+			} else {
+				field.val('Unable to find that channel to hide.');
+				setTimeout(() => field.val(''), 2e3);
+			}
 		}
-		if(!nChan) {
-			field.val('Invalid entry: No-entry.');
-			return setTimeout(() => field.val(''), 2e3);
-		}
-		if(!nChan.match(/^\d{16,18}$/)) {
-			field.val('Invalid entry: Invalid length or characters.');
-			return setTimeout(() => field.val(''), 2e3);
-		}
-		if(this.hid.channels.includes(nChan)) {
-			field.val('Invalid entry: This channel is already being hidden.');
-			return setTimeout(() => field.val(''), 2e3);
-		}
-		this.hid.channels.push(nChan);
-		field.val(`${nChan} is now being hidden.`);
-		setTimeout(() => field.val(''), 2e3);
-		this.saveSettings();
-		this.hideChannels();
 	}
 
-	chanClear() {
+	chanClear(o) {
 		const field = $('#ChanblockField');
-		const oChan = field.val();
-		if(this.hid.channels.length) {
-			if(oChan.match(/^\d{16,18}$/) && this.hid.channels.includes(oChan)) {
-				this.hid.channels.splice(this.hid.channels.indexOf(oChan), 1);
+		if(o) {
+			if(this.hid.channels.has(o)) {
+				this.hid.channels.delete(o);
 				this.saveSettings();
+				$(`.button[id="${o}"]`).remove();
 				field.val('Channel successfully removed!');
 				setTimeout(() => field.val(''), 2e3);
 				this.auditChannels();
-			} else {
-				this.hid.channels.pop();
-				this.saveSettings();
-				field.val('Successfully removed last added channel!');
-				setTimeout(() => field.val(''), 2e3);
-				this.auditChannels();
+			}
+		} else {
+			const oChan = field.val();
+			if(this.hid.channels.size) {
+				if(oChan.match(/^\d{16,18}$/) && this.hid.channels.has(oChan)) {
+					this.hid.channels.delete(oChan);
+					this.saveSettings();
+					$(`.button[id="${o}"]`).remove();
+					field.val('Channel successfully removed!');
+					setTimeout(() => field.val(''), 2e3);
+					this.auditChannels();
+				} else if(oChan.match() && !this.hid.channels.has(oChan)) {
+					field.val('This channel is not being hidden.');
+					setTimeout(() => field.val(''), 2e3);
+				} else {
+					field.val('Cannot remove nothing.');
+					setTimeout(() => field.val(''), 2e3);
+				}
 			}
 		}
 	}
@@ -408,8 +489,8 @@ class HideUtils {
 		if(!context) return;
 		if(!this.getReactInstance(context).return.memoizedProps.guild) return;
 		const server = this.getReactInstance(context).return.memoizedProps.guild.id;
-		if(!this.hid.servers.includes(server)) {
-			this.hid.servers.push(server);
+		if(!this.hid.servers.has(server)) {
+			this.servPush(server);
 			this.saveSettings();
 			this.hideServers();
 		}
@@ -419,13 +500,13 @@ class HideUtils {
 		if(document.querySelector('.guild')) {
 			$('.guild').each((_, guild) => {
 				if(guild instanceof Element && this.getReactInstance(guild) && this.getReactInstance(guild).return.memoizedProps.guild)
-					this.hid.servers.includes(this.getReactInstance(guild).return.memoizedProps.guild.id) ? $(guild).hide() : $(guild).show();
+					this.hid.servers.has(this.getReactInstance(guild).return.memoizedProps.guild.id) ? $(guild).hide() : $(guild).show();
 			});
 		}
 	}
 
 	hideServers() {
-		if(!this.hid.servers.length) return;
+		if(!this.hid.servers.size) return;
 		this.auditServers();
 	}
 
@@ -439,48 +520,90 @@ class HideUtils {
 		this.servMO.disconnect();
 	}
 
-	servPush() {
-		const field = $('#ServerHideField');
-		const nServer = field.val();
-		if(isNaN(nServer)) {
-			field.val('Invalid entry: NaN; ID-Only.');
-			return setTimeout(() => field.val(''), 2e3);
+	servPush(o) {
+		if(o) {
+			const server = this.guild.getGuild(o);
+			const icon = $(`a[style*="${server.id}"]`).attr('style').split('"')[1];
+			if(server) {
+				this.hid.servers.set(server.id, {
+					icon,
+					name: server.name,
+					id: server.id
+				});
+				this.saveSettings();
+				this.hideServers();
+			} else {
+				this.log('Unable to find that server to hide.');
+			}
+		} else {
+			const field = $('#ServerHideField');
+			const nServer = field.val();
+			if(isNaN(nServer)) {
+				field.val('Invalid entry: NaN; ID-Only.');
+				return setTimeout(() => field.val(''), 2e3);
+			}
+			else if(!nServer) {
+				field.val('Invalid entry: No-entry.');
+				return setTimeout(() => field.val(''), 2e3);
+			}
+			else if(!nServer.match(/^\d{16,18}$/)) {
+				field.val('Invalid entry: Invalid length or characters.');
+				return setTimeout(() => field.val(''), 2e3);
+			}
+			else if(this.hid.servers.has(nServer)) {
+				field.val('Invalid entry: This server is already being hidden.');
+				return setTimeout(() => field.val(''), 2e3);
+			}
+			const server = this.guild.getGuild(nServer);
+			const icon = $(`a[style*="${server.id}"]`).attr('style').split('"')[1];
+			if(server) {
+				this.hid.servers.set(server.id, {
+					icon,
+					name: server.name,
+					id: server.id
+				});
+				field.val(`${server.name} (${server.id}) is now being hidden.`);
+				setTimeout(() => field.val(''), 2e3);
+				this.saveSettings();
+				this.hideServers();
+			} else {
+				field.val('Unable to find that server to hide.');
+				setTimeout(() => field.val(''), 2e3);
+			}
 		}
-		if(!nServer) {
-			field.val('Invalid entry: No-entry.');
-			return setTimeout(() => field.val(''), 2e3);
-		}
-		if(!nServer.match(/^\d{16,18}$/)) {
-			field.val('Invalid entry: Invalid length or characters.');
-			return setTimeout(() => field.val(''), 2e3);
-		}
-		if(this.hid.servers.includes(nServer)) {
-			field.val('Invalid entry: This server is already being hidden.');
-			return setTimeout(() => field.val(''), 2e3);
-		}
-		this.hid.servers.push(nServer);
-		field.val(`${nServer} is now being hidden.`);
-		setTimeout(() => field.val(''), 2e3);
-		this.saveSettings();
-		this.hideServers();
 	}
 
-	servClear() {
+	servClear(o) {
 		const field = $('#ServerHideField');
-		const oServer = field.val();
-		if(this.hid.servers.length) {
-			if(oServer.match(/^\d{16,18}$/) && this.hid.servers.includes(oServer)) {
-				this.hid.servers.splice(this.hid.servers.indexOf(oServer), 1);
+		if(o) {
+			if(this.hid.servers.has(o)) {
+				this.hid.servers.delete(o);
 				this.saveSettings();
+				$(`.button[id="${o}"]`).remove();
 				field.val('Server successfully removed!');
 				setTimeout(() => field.val(''), 2e3);
 				this.auditServers();
 			} else {
-				this.hid.servers.pop();
-				this.saveSettings();
-				field.val('Successfully removed last added server!');
+				field.val('This server is not being hidden.');
 				setTimeout(() => field.val(''), 2e3);
-				this.auditServers();
+			}
+		} else {
+			const oServer = field.val();
+			if(this.hid.servers.size) {
+				if(oServer.match(/^\d{16,18}$/) && this.hid.servers.has(oServer)) {
+					this.hid.servers.delete(oServer);
+					this.saveSettings();
+					$(`.button[id="${o}"]`).remove();
+					field.val('Server successfully removed!');
+					setTimeout(() => field.val(''), 2e3);
+					this.auditServers();
+				} else if(oServer.match(/^\d{16,18}$/) && !this.hid.servers.has(oServer)) {
+					field.val('This server is not being hidden.');
+					setTimeout(() => field.val(''), 2e3);
+				} else {
+					field.val('Cannot remove nothing.');
+					setTimeout(() => field.val(''), 2e3);
+				}
 			}
 		}
 	}
@@ -508,8 +631,8 @@ class HideUtils {
 		if(!context) return;
 		if(!this.getReactInstance(context).return.memoizedProps.user) return;
 		const user = this.getReactInstance(context).return.memoizedProps.user.id;
-		if(!this.hid.users.includes(user)) {
-			this.hid.users.push(user);
+		if(!this.hid.users.has(user)) {
+			this.userPush(user);
 			this.saveSettings();
 			this.hideUsers();
 		}
@@ -519,26 +642,45 @@ class HideUtils {
 		try {
 			if(document.querySelector('.member') || document.querySelector('.member-2FrNV0')) {
 				$('.member, .member-2FrNV0').each((_, user) => {
-					if(user.nodeType === 1 && user instanceof Element && this.getReactInstance(user) && this.getReactInstance(user).return.memoizedProps.user)
-						this.hid.users.includes(this.getReactInstance(user).return.memoizedProps.user.id) ? $(user).hide() : $(user).show();
+					if(user.nodeType === 1 && user instanceof Element && this.getReactInstance(user) && this.getReactInstance(user).return.memoizedProps.user) {
+						if(this.hid.users.has(this.getReactInstance(user).return.memoizedProps.user.id)) {
+							$(user).hide();
+							const group = $('.membersGroup-3_dP5E');
+							if(group.length) {
+								const filtered = group.filter((_, o) => user.compareDocumentPosition(o) === 2).last();
+								if(user.previousElementSibling.className && user.previousElementSibling.className.includes('membersGroup-3_dP5E') && user.nextElementSibling.className && user.nextElementSibling.className.includes('membersGroup-3_dP5E')) {
+									filtered.hide();
+								}
+							}
+						} else {
+							$(user).show();
+							const group = $('.membersGroup-3_dP5E');
+							if(group.length) {
+								const filtered = group.filter((_, o) => user.compareDocumentPosition(o) === 2).last();
+								if(user.previousElementSibling.className && user.previousElementSibling.className.includes('membersGroup-3_dP5E') && user.nextElementSibling.className && user.nextElementSibling.className.includes('membersGroup-3_dP5E')) {
+									filtered.show();
+								}
+							}
+						}
+					}
 				});
 			}
 			if(document.querySelector('.message-group')) {
 				$('.message-group.hide-overflow').each((_, user) => {
 					if(user.nodeType === 1 && user instanceof Element && this.getReactInstance(user) && this.getReactInstance(user).return.memoizedProps.messages && this.getReactInstance(user).return.memoizedProps.messages[0] && this.getReactInstance(user).return.memoizedProps.messages[0].author)
-						this.hid.users.includes(this.getReactInstance(user).return.memoizedProps.messages[0].author.id) ? $(user).hide() : $(user).show();
+						this.hid.users.has(this.getReactInstance(user).return.memoizedProps.messages[0].author.id) ? $(user).hide() : $(user).show();
 				});
 				if($('.message-group:not(.hide-overflow)').length) {
 					$('.message-group:not(.hide-overflow)').each((_, user) => {
 						if(user.nodeType === 1 && user instanceof Element && this.getReactInstance(user) && this.getReactInstance(user).return.key && this.getReactInstance(user).return.key.includes('upload')  && this.getReactInstance(user).return.memoizedProps.user)
-							this.hid.users.includes(this.getReactInstance(user).return.memoizedProps.user.id) ? $(user).hide() : $(user).show();
+							this.hid.users.has(this.getReactInstance(user).return.memoizedProps.user.id) ? $(user).hide() : $(user).show();
 					});
 				}
 			}
 			if(document.querySelector('.wrapperSelectedVoice-1Q1ocJ.wrapper-fDmxzK ~ .listDefault-3i7eWQ')) {
 				$('.wrapperSelectedVoice-1Q1ocJ.wrapper-fDmxzK ~ .listDefault-3i7eWQ').each((_, user) => {
 					if(user.nodeType === 1 && user instanceof Element && this.getReactInstance(user) && this.getReactInstance(user).child.memoizedProps.user)
-						this.hid.users.includes(this.getReactInstance(user).child.memoizedProps.user.id) ? $(user).hide() : $(user).show();
+						this.hid.users.has(this.getReactInstance(user).child.memoizedProps.user.id) ? $(user).hide() : $(user).show();
 				});
 			}
 		} catch(e) {
@@ -547,7 +689,7 @@ class HideUtils {
 	}
 
 	hideUsers() {
-		if(!this.hid.users.length) return;
+		if(!this.hid.users.size) return;
 		this.auditUsers();
 	}
 	
@@ -561,60 +703,108 @@ class HideUtils {
 		this.userMO.disconnect();
 	}
 
-	userPush() {
-		const field = $('#blockField');
-		const nUser = field.val();
-		if(isNaN(nUser)) {
-			field.val('Invalid entry: NaN; ID-Only.');
-			return setTimeout(() => field.val(''), 2e3);
+	userPush(o) {
+		if(o) {
+			const user = this.user.getUser(o);
+			if(user) {
+				this.hid.users.set(user.id, {
+					icon: user.avatarURL,
+					tag: user.tag,
+					id: user.id
+				});
+				this.saveSettings();
+				this.hideUsers();
+			} else {
+				this.log('Unable to find that user to hide.');
+			}
+		} else {
+			const field = $('#blockField');
+			const nUser = field.val();
+			if(isNaN(nUser)) {
+				field.val('Invalid entry: NaN; ID-Only.');
+				return setTimeout(() => field.val(''), 2e3);
+			}
+			else if(!nUser) {
+				field.val('Invalid entry: No-entry.');
+				return setTimeout(() => field.val(''), 2e3);
+			}
+			else if(!nUser.match(/^\d{17,18}$/)) {
+				field.val('Invalid entry: Invalid length or characters.');
+				return setTimeout(() => field.val(''), 2e3);
+			}
+			else if(this.hid.users.has(nUser)) {
+				field.val('Invalid entry: This user is already being hidden.');
+				return setTimeout(() => field.val(''), 2e3);
+			}
+			const user = this.user.getUser(nUser);
+			if(user) {
+				this.hid.users.set(user.id, {
+					icon: user.avatarURL,
+					tag: user.tag,
+					id: user.id
+				});
+				field.val(`${user.username} (${nUser}) is now being hidden.`);
+				setTimeout(() => field.val(''), 2e3);
+				this.saveSettings();
+				this.hideUsers();
+			} else {
+				field.val('Unable to find that user to hide.');
+				setTimeout(() => field.val(''), 2e3);
+			}
 		}
-		if(!nUser) {
-			field.val('Invalid entry: No-entry.');
-			return setTimeout(() => field.val(''), 2e3);
-		}
-		if(!nUser.match(/^\d{17,18}$/)) {
-			field.val('Invalid entry: Invalid length or characters.');
-			return setTimeout(() => field.val(''), 2e3);
-		}
-		if(this.hid.users.includes(nUser)) {
-			field.val('Invalid entry: This user is already being hidden.');
-			return setTimeout(() => field.val(''), 2e3);
-		}
-		this.hid.users.push(nUser);
-		field.val(`${nUser} is now being hidden.`);
-		setTimeout(() => field.val(''), 2e3);
-		this.saveSettings();
-		this.hideUsers();
 	}
 
-	userClear() {
+	userClear(o) {
 		const field = $('#blockField');
-		const oUser = field.val();
-		if(this.hid.users.length) {
-			if(oUser.match(/^\d{17,18}$/) && this.hid.users.includes(oUser)) {
-				this.hid.users.splice(this.hid.users.indexOf(oUser), 1);
+		if(o) {
+			if(this.hid.users.has(o)) {
+				this.hid.users.delete(o);
 				this.saveSettings();
+				$(`.button[id="${o}"]`).remove();
 				field.val('User successfully removed!');
 				setTimeout(() => field.val(''), 2e3);
 				this.auditUsers();
 			} else {
-				this.hid.users.pop();
-				this.saveSettings();
-				field.val('Successfully removed the last added user!');
-				setTimeout(() => field.val(''), 2e3);
-				this.auditUsers();
+				field.val('Cannot remove users that are not being hidden.');
+			}
+		} else {
+			const oUser = field.val();
+			if(this.hid.users.size) {
+				if(oUser.match(/^\d{17,18}$/) && this.hid.users.has(oUser)) {
+					this.hid.users.delete(oUser);
+					this.saveSettings();
+					$(`.button[id="${o}"]`).remove();
+					field.val('User successfully removed!');
+					setTimeout(() => field.val(''), 2e3);
+					this.auditUsers();
+				} else if(oUser.match(/^\d{17,18}$/) && !this.hid.users.has(oUser)) {
+					field.val('That user is not being hidden.');
+					setTimeout(() => field.val(''), 2e3);
+				} else {
+					field.val('Cannot remove nothing.');
+					setTimeout(() => field.val(''), 2e3);
+				}
 			}
 		}
 	}
 
 	saveSettings() {
-		bdPluginStorage.set('HideUtils', 'settings', JSON.stringify(this.hid));
-		this.log('Saved settings. Settings are:', this.hid);
+		bdPluginStorage.set('HideUtils', 'new-settings', JSON.stringify(this.hid));
 	}
 
 	loadSettings() {
-		this.hid = JSON.parse(bdPluginStorage.get('HideUtils', 'settings'));
-		this.log('Loaded settings. Settings are:', this.hid);
+		const settings = bdPluginStorage.get('HideUtils', 'new-settings');
+		if(settings) {	
+			const parsed = JSON.parse(settings);
+			for(const [key, data] of Object.entries(parsed)) {
+				for(const entry of data) {
+					this.hid[key].set(entry[0], entry[1]);
+				}
+			}
+			PluginUtilities.showToast('HideUtils settings found and successfully loaded.', { type: 'success', icon: true, timeout: 3e3 });
+		} else {
+			PluginUtilities.showToast('HideUtils settings do not exist or could not be loaded.', { type: 'info', icon: true, timeout: 3e3 });
+		}
 	}
 
 	settingSelect() {
@@ -622,10 +812,10 @@ class HideUtils {
 			<div id="settingSelect" class="container">
 				<h3 class="settingsHeader">Settings Selection</h3><br/><br/>
 				<div id="HideUtils-buttonGroup" class="buttonGroup">
-					<button id="HideUtils-channels" onclick=BdApi.getPlugin("${this.getName()}").channelSettings()>Channels</button>
-					<button id="HideUtils-servers" onclick=BdApi.getPlugin("${this.getName()}").serverSettings()>Servers</button>
-					<button id="HideUtils-users" onclick=BdApi.getPlugin("${this.getName()}").userSettings()>Users</button>
-					<button id="HideUtils-instructions" onclick=BdApi.getPlugin("${this.getName()}").instructionPanel()>Instructions</button>
+					<button id="HideUtils-channels" class="button" onclick=BdApi.getPlugin("${this.getName()}").channelSettings()>Channels</button>
+					<button id="HideUtils-servers" class="button" onclick=BdApi.getPlugin("${this.getName()}").serverSettings()>Servers</button>
+					<button id="HideUtils-users" class="button" onclick=BdApi.getPlugin("${this.getName()}").userSettings()>Users</button>
+					<button id="HideUtils-instructions" class="button" onclick=BdApi.getPlugin("${this.getName()}").instructionPanel()>Instructions</button>
 				</div>
 			</div>
 		</div>`;
@@ -635,67 +825,91 @@ class HideUtils {
 		const settings = $('#HideUtils-Settings');
 		settings.fadeOut();
 		settings.fadeIn(1500);
-		return setTimeout(() => $('#HideUtils-Settings').html(`<div id="HideUtils-Settings" class="HUSettings">
-			<div id="HideUtils-plugin-settings-div" class="container">
+		let html = `<div id="HideUtils-Settings-Inner" class="HUSettings">
+			<div id="HideUtils-plugin-settings-div" class="scroller-fzNley container scroller">
 				<h3>HideUtils Plugin \u2192 Settings \u2192 Channels</h3><br/><br/>
+				<div id="ChannelIcons" class="icons">
+				<div class="scroller-fzNley container scroller">`;
 
+				for(const entry of this.hid.channels.values()) {
+					html += `<button type="button" class="button" id="${entry.id}" title="${entry.guild ? entry.guild : entry.name}" onclick=BdApi.getPlugin("${this.getName()}").chanClear("${entry.id}")>${entry.name}</button>`;
+				}
+
+				html += `</div></div><br/><br/>
 				<input id="ChanblockField" type="text" placeholder="ID" style="resize: none; width: 80%; position: relative; left: 10%;" /><br/><br/>
 				<br/><div class="buttonGroupi">
-				<button class="hU-btn0" onclick=BdApi.getPlugin("${this.getName()}").chanPush()>Apply</button>
-				<button class="hU-btn1" onclick=BdApi.getPlugin("${this.getName()}").chanClear()>Remove</button>
-				<button class="hU-btn2" onclick=BdApi.getPlugin("${this.getName()}").saveSettings()>Save</button>
-				<button class="hU-btn3" onclick=BdApi.getPlugin("${this.getName()}").loadSettings()>Load</button>
+				<button class="button apply" onclick=BdApi.getPlugin("${this.getName()}").chanPush()>Apply</button>
+				<button class="button remove" onclick=BdApi.getPlugin("${this.getName()}").chanClear()>Remove</button>
+				<button class="button save" onclick=BdApi.getPlugin("${this.getName()}").saveSettings()>Save</button>
+				<button class="button load" onclick=BdApi.getPlugin("${this.getName()}").loadSettings()>Load</button>
 				</div><br/><br/>
-				<button id="HideUtils-Return" class="returnButton" onclick=BdApi.getPlugin("${this.getName()}").returnSettings()>Return</button><br/>
+				<button id="HideUtils-Return" class="button returnButton" onclick=BdApi.getPlugin("${this.getName()}").returnSettings()>Return</button><br/>
 			</div>
-		</div>`), 5e2);
+		</div>`;
+		return setTimeout(() => settings.html(html), 5e2);
 	}
 
 	serverSettings() {
 		const settings = $('#HideUtils-Settings');
 		settings.fadeOut();
 		settings.fadeIn(1800);
-		return setTimeout(() => $('#HideUtils-Settings').html(`<div id="HideUtils-Settings" class="HUSettings">
-			<div id="HideUtils-plugin-settings-div" class="container">
+		let html = `<div id="HideUtils-Settings-Inner" class="HUSettings">
+			<div id="HideUtils-plugin-settings-div" class="scroller-fzNley container scroller">
 				<h3>HideUtils Plugin \u2192 Settings \u2192 Servers</h3><br/><br/>
+				<div id="ServerIcons" class="icons">
+				<div class="scroller-fzNley container scroller">`;
 
+				for(const entry of this.hid.servers.values()) {
+					html += `<button type="button" class="button" id="${entry.id}" title="${entry.name}" style="background-image: url(${entry.icon});" onclick=BdApi.getPlugin("${this.getName()}").servClear("${entry.id}")></button>`;
+				}
+
+				html += `</div></div><br/><br/>
 				<input id="ServerHideField" type="text" placeholder="ID" style="resize: none; width: 80%; position: relative; left: 10%;" /><br/><br/>
 				<br/><div class="buttonGroupi">
-				<button class="hU-btn0" onclick=BdApi.getPlugin("${this.getName()}").servPush()>Apply</button>
-				<button class="hU-btn1" onclick=BdApi.getPlugin("${this.getName()}").servClear()>Remove</button>
-				<button class="hU-btn2" onclick=BdApi.getPlugin("${this.getName()}").saveSettings()>Save</button>
-				<button class="hU-btn3" onclick=BdApi.getPlugin("${this.getName()}").loadSettings()>Load</button>
+				<button class="button apply" onclick=BdApi.getPlugin("${this.getName()}").servPush()>Apply</button>
+				<button class="button remove" onclick=BdApi.getPlugin("${this.getName()}").servClear()>Remove</button>
+				<button class="button save" onclick=BdApi.getPlugin("${this.getName()}").saveSettings()>Save</button>
+				<button class="button load" onclick=BdApi.getPlugin("${this.getName()}").loadSettings()>Load</button>
 				</div><br/><br/>
-				<button id="HideUtils-Return" class="returnButton" onclick=BdApi.getPlugin("${this.getName()}").returnSettings()>Return</button><br/>
+				<button id="HideUtils-Return" class="button returnButton" onclick=BdApi.getPlugin("${this.getName()}").returnSettings()>Return</button><br/>
 			</div>
-		</div>`), 5e2);
+		</div>`;
+		return setTimeout(() => settings.html(html), 5e2);
 	}
 
 	userSettings() {
 		const settings = $('#HideUtils-Settings');
 		settings.fadeOut();
 		settings.fadeIn(1800);
-		return setTimeout(() => $('#HideUtils-Settings').html(`<div id="HideUtils-Settings" class="HUSettings">
-			<div id="HideUtils-plugin-settings-div" class="container">
+		let html = `<div id="HideUtils-Settings-Inner" class="HUSettings">
+			<div id="HideUtils-plugin-settings-div" class="scroller-fzNley container scroller">
 				<h3>HideUtils Plugin \u2192 Settings \u2192 Users</h3><br/><br/>
+				<div id="UserIcons" class="icons">
+				<div class="scroller-fzNley container scroller">`;
+			
+				for(const entry of this.hid.users.values()) {
+					html += `<button type="button" class="button" id="${entry.id}" title="${entry.tag}" style="background-image: url(${entry.icon});" onclick=BdApi.getPlugin("${this.getName()}").userClear("${entry.id}")></button>`;
+				}
 
+				html += `</div></div><br/><br/>
 				<input id="blockField" type="text" placeholder="ID" style="resize: none; width: 80%; position: relative; left: 10%;" /><br/><br/>
 				<br/><div class="buttonGroupi">
-				<button class="hU-btn0" onclick=BdApi.getPlugin("${this.getName()}").userPush()>Apply</button>
-				<button class="hU-btn1" onclick=BdApi.getPlugin("${this.getName()}").userClear()>Remove</button>
-				<button class="hU-btn2" onclick=BdApi.getPlugin("${this.getName()}").saveSettings()>Save</button>
-				<button class="hU-btn3" onclick=BdApi.getPlugin("${this.getName()}").loadSettings()>Load</button>
+				<button class="button apply" onclick=BdApi.getPlugin("${this.getName()}").userPush()>Apply</button>
+				<button class="button remove" onclick=BdApi.getPlugin("${this.getName()}").userClear()>Remove</button>
+				<button class="button save" onclick=BdApi.getPlugin("${this.getName()}").saveSettings()>Save</button>
+				<button class="button load" onclick=BdApi.getPlugin("${this.getName()}").loadSettings()>Load</button>
 				</div><br/><br/>
-				<button id="HideUtils-Return" class="returnButton" onclick=BdApi.getPlugin("${this.getName()}").returnSettings()>Return</button><br/>
+				<button id="HideUtils-Return" class="button returnButton" onclick=BdApi.getPlugin("${this.getName()}").returnSettings()>Return</button><br/>
 			</div>
-		</div>`), 5e2);
+		</div>`;
+		return setTimeout(() => settings.html(html), 5e2);
 	}
 
 	instructionPanel() {
 		const settings = $('#HideUtils-Settings');
 		settings.fadeOut();
 		settings.fadeIn(1800);
-		return setTimeout(() => $('#HideUtils-Settings').html(`<div id="HideUtils-Settings" class="HUSettings">
+		return setTimeout(() => settings.html(`<div id="HideUtils-Settings-Inner" class="HUSettings">
 			<div id="HideUtils-plugin-settings-div" class="container">
 				<h3>HideUtils Plugin \u2192 Settings \u2192 Instructions</h3><br/>
 				<p id="HideUtils-instructions" class="instructions">
@@ -707,9 +921,9 @@ class HideUtils {
 				1) Insert the ID.<br/>
 				2) Click "apply."<br/><br/>
 				[ NOTE ]:<br/><br/>
-				* Unhiding requires use of the settings-panel, and is not handled within a contextMenu-uoJTbz.
+				* Unhiding requires use of the settings-panel, and is not handled within a context-menu.
 				</p><br/>
-				<button id="HideUtils-Return" class="returnButton" onclick=BdApi.getPlugin("${this.getName()}").returnSettings()>Return</button><br/>
+				<button id="HideUtils-Return" class="button returnButton" onclick=BdApi.getPlugin("${this.getName()}").returnSettings()>Return</button><br/>
 			</div>
 		</div>`), 5e2);
 	}
@@ -719,6 +933,10 @@ class HideUtils {
 		settings.fadeOut();
 		settings.fadeIn(1500);
 		return setTimeout(() => settings.html(this.settingSelect()), 5e2);
+	}
+
+	get settings() {
+		return this.hid;
 	}
 
 	observer({ addedNodes, removedNodes }) {
@@ -762,7 +980,7 @@ class HideUtils {
 	}
 
 	getVersion() {
-		return '1.1.3';
+		return '1.1.4';
 	}
 
 	getDescription() {
