@@ -802,12 +802,15 @@ class HideUtils {
 		const settings = bdPluginStorage.get('HideUtils', 'new-settings');
 		if(settings) {
 			const parsed = JSON.parse(settings);
-			for(const [key, data] of Object.entries(parsed)) {
-				for(const entry of data) {
-					this.hid[key].set(entry[0], entry[1]);
+			if(parsed && parsed.length) {
+				for(const [key, data] of Object.entries(parsed)) {
+					for(const entry of data) {
+						this.hid[key].set(entry[0], entry[1]);
+					}
 				}
+				return PluginUtilities.showToast('HideUtils settings found and successfully loaded.', { type: 'success', icon: true, timeout: 3e3 });
 			}
-			return PluginUtilities.showToast('HideUtils settings found and successfully loaded.', { type: 'success', icon: true, timeout: 3e3 });
+			return PluginUtilities.showToast('HideUtils settings do not exist or are unable to be loaded.', { type: 'info', icon: true, timeout: 3e3 });
 		}
 		return PluginUtilities.showToast('HideUtils settings do not exist or are unable to be loaded.', { type: 'info', icon: true, timeout: 3e3 });
 	}
@@ -836,8 +839,10 @@ class HideUtils {
 				<div id="ChannelIcons" class="icons">
 				<div class="scroller-fzNley container scroller">`;
 
-				for(const entry of this.hid.channels.values()) {
-					html += `<button type="button" class="button" id="${entry.id}" title="${entry.guild ? entry.guild : entry.name}" onclick=BdApi.getPlugin("${this.getName()}").chanClear("${entry.id}")>${entry.name}</button>`;
+				if(this.hid.channels.size) {
+					for(const entry of this.hid.channels.values()) {
+						html += `<button type="button" class="button" id="${entry.id}" title="${entry.guild ? entry.guild : entry.name}" onclick=BdApi.getPlugin("${this.getName()}").chanClear("${entry.id}")>${entry.name}</button>`;
+					}
 				}
 
 				html += `</div></div><br/><br/>
@@ -864,8 +869,10 @@ class HideUtils {
 				<div id="ServerIcons" class="icons">
 				<div class="scroller-fzNley container scroller">`;
 
-				for(const entry of this.hid.servers.values()) {
-					html += `<button type="button" class="button" id="${entry.id}" title="${entry.name}" style="background-image: url(${entry.icon});" onclick=BdApi.getPlugin("${this.getName()}").servClear("${entry.id}")></button>`;
+				if(this.hid.servers.size) {
+					for(const entry of this.hid.servers.values()) {
+						html += `<button type="button" class="button" id="${entry.id}" title="${entry.name}" style="background-image: url(${entry.icon});" onclick=BdApi.getPlugin("${this.getName()}").servClear("${entry.id}")></button>`;
+					}
 				}
 
 				html += `</div></div><br/><br/>
@@ -891,9 +898,11 @@ class HideUtils {
 				<h3>HideUtils Plugin \u2192 Settings \u2192 Users</h3><br/><br/>
 				<div id="UserIcons" class="icons">
 				<div class="scroller-fzNley container scroller">`;
-			
-				for(const entry of this.hid.users.values()) {
-					html += `<button type="button" class="button" id="${entry.id}" title="${entry.tag}" style="background-image: url(${entry.icon});" onclick=BdApi.getPlugin("${this.getName()}").userClear("${entry.id}")></button>`;
+
+				if(this.hid.users.size) {
+					for(const entry of this.hid.users.values()) {
+						html += `<button type="button" class="button" id="${entry.id}" title="${entry.tag}" style="background-image: url(${entry.icon});" onclick=BdApi.getPlugin("${this.getName()}").userClear("${entry.id}")></button>`;
+					}
 				}
 
 				html += `</div></div><br/><br/>
