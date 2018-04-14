@@ -1,4 +1,4 @@
-//META{"name":"HideUtilsMap"}*//
+//META{"name":"HideUtils"}*//
 
 /*@cc_on
 @if (@_jscript)
@@ -24,7 +24,7 @@
 
 @else@*/
 
-class HideUtilsMap {
+class HideUtils {
 	constructor() {
 		this.initialized = false;
 
@@ -277,18 +277,7 @@ class HideUtilsMap {
 		this.channel = findByProps(['getChannel']);
 		this.guild = findByProps(['getGuild']);
 		this.user = findByProps(['getUser']);
-		const settings = bdPluginStorage.get('HideUtilsMap', 'settings');
-		if(!settings) {
-			this.log('No settings found.');
-		} else {
-			const parsedSettings = JSON.parse(settings);
-			for(const [key, data] of Object.entries(parsedSettings)) {
-				for(const entry of data) {
-					this.hid[key].set(entry[0], entry[1]);
-				}
-			}
-			setTimeout(() => PluginUtilities.showToast('HideUtils settings found and successfully loaded.', { type: 'info', icon: true, timeout: 2e3 }), 500);
-		}
+		this.loadSettings();
 		this.TypingUsers = InternalUtilities.WebpackModules.findByDisplayName('TypingUsers');
 		this.Cancel = InternalUtilities.monkeyPatch(this.TypingUsers.prototype, 'render', {
 			before: (data) => {
@@ -800,11 +789,27 @@ class HideUtilsMap {
 	}
 
 	saveSettings() {
-		bdPluginStorage.set('HideUtilsMap', 'settings', JSON.stringify(this.hid));
+		try {
+			bdPluginStorage.set('HideUtils', 'new-settings', JSON.stringify(this.hid));
+			return true;
+		} catch(e) {
+			this.err(e);
+			return false;
+		}
 	}
 
 	loadSettings() {
-		this.hid = JSON.parse(bdPluginStorage.get('HideUtilsMap', 'settings'));
+		const settings = bdPluginStorage.get('HideUtils', 'new-settings');
+		if(settings) {
+			const parsed = JSON.parse(settings);
+			for(const [key, data] of Object.entries(parsed)) {
+				for(const entry of data) {
+					this.hid[key].set(entry[0], entry[1]);
+				}
+			}
+			return PluginUtilities.showToast('HideUtils settings found and successfully loaded.', { type: 'success', icon: true, timeout: 3e3 });
+		}
+		return PluginUtilities.showToast('HideUtils settings do not exist or are unable to be loaded.', { type: 'info', icon: true, timeout: 3e3 });
 	}
 
 	settingSelect() {
@@ -972,7 +977,7 @@ class HideUtilsMap {
 	}
 
 	getName() {
-		return 'HideUtilsMap';
+		return 'HideUtils';
 	}
 
 	getAuthor() {
