@@ -229,7 +229,7 @@ class HideUtils {
 						if(node.nodeType === 1 && node.classList && node.classList.contains('contextMenu-uoJTbz')) {
 							this.userContext(node);
 						}
-						if(node.nodeType === 1 && node.classList && ( node.classList.contains('chat') || node.classList.contains('messages-wrapper') || node.classList.contains('channel-members-wrap') )) {
+						if(node.nodeType === 1 && node.classList && ( node.classList.contains('chat') || node.classList.contains('messages-wrapper') || node.classList.contains('membersWrap-3wRngy') )) {
 							this.auditUsers();
 							this.userDiscon();
 							this.userObs();
