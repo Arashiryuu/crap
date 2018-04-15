@@ -802,7 +802,7 @@ class HideUtils {
 		const settings = bdPluginStorage.get('HideUtils', 'new-settings');
 		if(settings) {
 			const parsed = JSON.parse(settings);
-			if(parsed && parsed.length) {
+			if(parsed instanceof Object && parsed.hasOwnProperty('channels')) {
 				for(const [key, data] of Object.entries(parsed)) {
 					for(const entry of data) {
 						this.hid[key].set(entry[0], entry[1]);
@@ -994,7 +994,7 @@ class HideUtils {
 	}
 
 	getVersion() {
-		return '1.1.4';
+		return '1.1.5';
 	}
 
 	getDescription() {
