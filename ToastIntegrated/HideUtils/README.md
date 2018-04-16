@@ -7,6 +7,7 @@
 ## New features
 - Added context-menu compatibility; can now right-click and hide things.
 - New settings UI.
+- Hides users from the Typing indicator.
 ### v1.1.5
 - Improved the settings UI to allow for simpler & more flexible removals.
 
