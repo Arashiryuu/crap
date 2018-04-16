@@ -7,6 +7,8 @@
 ## New features
 - Added context-menu compatibility; can now right-click and hide things.
 - New settings UI.
+### v1.1.5
+- Improved the settings UI to allow for simpler & more flexible removals.
 
 ## Preview
 ### Settings hub-page:
