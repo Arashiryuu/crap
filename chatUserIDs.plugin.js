@@ -203,12 +203,6 @@ class chatUserIDs {
 							const elem = `<span id="tagID" class="tagID">${author.id}</span>\u200b`;
 							$(post).find('.username-wrapper .user-name').before(elem);
 							$(post).find('.tagID').off('dblclick.chatID').on('dblclick.chatID', (e) => this.dblClickID(e));
-							if(this.settings.usernames) {
-								const chatName = $(post).find('.username-wrapper .user-name');
-								if(chatName && chatName.text() !== author.username) {
-									chatName.text(author.username);
-								}
-							}
 						}
 						else if(this.getReactInstance(post).return.memoizedProps.messages && this.getReactInstance(post).return.memoizedProps.messages.length > 0) {
 							const author = this.getReactInstance(post).return.memoizedProps.messages[0].author;
