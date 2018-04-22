@@ -34,22 +34,20 @@ class MemberCount {
 
 		this.membMO = new MutationObserver((changes) => {
 			for(const change of changes) {
-				if(change.type === 'childList' && change.addedNodes) {
+				if(change.type === 'childList' && change.addedNodes.length) {
 					for(const node of change.addedNodes.values()) {
 						if(node.classList && node.classList.contains('membersWrap-3wRngy')) {
 							this.reinject();
-						}
-						if(node.classList && ( node.classList.contains('chat') || node.classList.contains('messages-wrapper') )) {
+						} else
+						if(node.classList && ['chat', 'messages-wrapper'].some((p) => node.classList.contains(p))) {
 							this.reinject();
-						}
-					}
-				}
-				if(change.type === 'childList' && ( change.addedNodes || change.removedNodes )) {
-					for(const node of change.addedNodes.values()) {
+						} else
 						if(node.classList && node.classList.contains('member-2FrNV0')) {
 							this.memberCount();
 						}
 					}
+				} else
+				if(change.type === 'childList' && change.removedNodes.length) {
 					for(const node of change.removedNodes.values()) {
 						if(node.classList && node.classList.contains('member-2FrNV0')) {
 							this.memberCount();
@@ -75,6 +73,7 @@ class MemberCount {
 				width: 100%;
 				text-align: center;
 				padding: 0.9vh 0;
+				z-index: 2;
 			} 
 			
 			.theme-light #memberCount {
@@ -89,6 +88,7 @@ class MemberCount {
 				width: 100%;
 				text-align: center;
 				padding: 0.9vh 0;
+				z-index: 2;
 			}
 
 			.membersWrap-3wRngy .members-1bid1J {
@@ -187,7 +187,7 @@ class MemberCount {
 	}
 
 	remove() {
-		if(this.stylesheet && this.counter) {
+		if(document.contains(this.stylesheet) && document.contains(this.counter)) {
 			try {
 				document.head.removeChild(this.stylesheet);
 				document.querySelector('.membersWrap-3wRngy').removeChild(this.counter);
@@ -232,20 +232,12 @@ class MemberCount {
 		}
 	}
 
-	log(text, ...extra) {
-		if(typeof text !== 'string')
-			return console.log(`[%c${this.getName()}%c]`, 'color: #59F;', '', text);
-		if(!extra.length)
-			return console.log(`[%c${this.getName()}%c] ${text}`, 'color: #59F;', '');
-		else
-			return console.log(`[%c${this.getName()}%c] ${text}`, 'color: #59F;', '', ...extra);
+	log(...extra) {
+		return console.log(`[%c${this.getName()}%c]`, 'color: #59F;', '', ...extra);
 	}
 
-	err(error, ...errors) {
-		if(typeof error === 'string' && !errors.length)
-			return console.error(`[%c${this.getName()}%c] ${error}`, 'color: #59F;', '');
-		else
-			return console.error(`[%c${this.getName()}%c] `, 'color: #59F;', '', error, ...errors);
+	err(...errors) {
+		return console.error(`[%c${this.getName()}%c] `, 'color: #59F;', '', ...errors);
 	}
 
 	get downLink() {
@@ -261,7 +253,7 @@ class MemberCount {
 	}
 
 	getVersion() {
-		return '1.0.4';
+		return '1.0.5';
 	}
 
 	getDescription() {
