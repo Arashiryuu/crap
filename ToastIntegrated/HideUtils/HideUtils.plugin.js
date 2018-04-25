@@ -280,7 +280,7 @@ class HideUtils {
 		this.loadSettings();
 		this.TypingUsers = InternalUtilities.WebpackModules.find((x) => {
 			try {
-				x.displayName === 'FluxContainer(t)' && !(new x({channel: 0}));
+				return x.displayName === 'FluxContainer(t)' && !(new x({channel: 0}));
 			} catch(e) {
 				return e.toString().includes('isPrivate');
 			}
