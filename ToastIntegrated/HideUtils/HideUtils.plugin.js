@@ -278,7 +278,13 @@ class HideUtils {
 		this.guild = findByProps(['getGuild']);
 		this.user = findByProps(['getUser']);
 		this.loadSettings();
-		this.TypingUsers = InternalUtilities.WebpackModules.findByDisplayName('TypingUsers');
+		this.TypingUsers = InternalUtilities.WebpackModules.find((x) => {
+			try {
+				x.displayName === 'FluxContainer(t)' && !(new x({channel: 0}));
+			} catch(e) {
+				return e.toString().includes('isPrivate');
+			}
+		});
 		this.Cancel = InternalUtilities.monkeyPatch(this.TypingUsers.prototype, 'render', {
 			before: (data) => {
 				const { thisObject: { state: { typingUsers } } } = data;
@@ -352,8 +358,8 @@ class HideUtils {
 		if(this.getReactInstance(context) && this.getReactInstance(context).return.memoizedProps.target && this.getReactInstance(context).return.memoizedProps.type && this.getReactInstance(context).return.memoizedProps.type.includes('CHANNEL_LIST') && this.getReactInstance(context).return.memoizedProps.channel && (this.getReactInstance(context).return.memoizedProps.channel.type === 0 || this.getReactInstance($('.contextMenu-uoJTbz')[0]).return.memoizedProps.channel.type === 2)) {
 			$(context).find('.item-1XYaYf').first().after(this.chanItem);
 			$(context).find('.item-1XYaYf.hideChannel')
-				.off('click.HideUtilC')
-				.on('click.HideUtilC', (o) => this.chanConClick());
+				.off('click.HideUtilsC')
+				.on('click.HideUtilsC', (o) => this.chanConClick());
 		}
 	}
 
@@ -416,8 +422,9 @@ class HideUtils {
 			}
 			const chan = this.channel.getChannel(nChan);
 			if(chan) {
+				const guild = this.guild.getGuild(chan.guild_id);
 				this.hid.channels.set(chan.id, {
-					guild: chan.guild_id,
+					guild: guild.name,
 					name: chan.name,
 					id: chan.id
 				});
@@ -985,6 +992,10 @@ class HideUtils {
 		return `https://raw.githubusercontent.com/Arashiryuu/crap/master/ToastIntegrated/${this.getName()}/${this.getName()}.plugin.js`;
 	}
 
+	get [Symbol.toStringTag]() {
+		return 'Plugin';
+	}
+
 	getName() {
 		return 'HideUtils';
 	}
@@ -994,7 +1005,7 @@ class HideUtils {
 	}
 
 	getVersion() {
-		return '1.1.5';
+		return '1.1.6';
 	}
 
 	getDescription() {
