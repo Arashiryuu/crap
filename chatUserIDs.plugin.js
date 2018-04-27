@@ -90,7 +90,7 @@ class chatUserIDs {
 
 	stop() {
 		this.chatDiscon();
-		$('.tagID, #chatUserIDsCSS').remove();
+		this.remove();
 		this.log('Stopped');
 	}
 
@@ -147,6 +147,22 @@ class chatUserIDs {
 		} else
 		if(removedNodes.length && removedNodes[0].classList && removedNodes[0].classList.contains('messages-wrapper')) {
 			this.chatDiscon();
+		}
+	}
+	
+	remove() {
+		const tags = $('.tagID');
+		const css = $('#ChatIDsCSS');
+		if(tags.length && css.length && document.contains(css[0])) {
+			tags.remove();
+			css.remove();
+		}
+	}
+	
+	removeIDs() {
+		const tags = $('.tagID');
+		if(tags.length) {
+			tags.remove();
 		}
 	}
 
@@ -250,7 +266,11 @@ class chatUserIDs {
 
 	genSettings(panel) {
 		new PluginSettings.ControlGroup('Plugin Settings', () => PluginUtilities.saveSettings(this.getName(), this.settings)).appendTo(panel).append(
-			new PluginSettings.PillButton('Display Mode', 'The user\'s display mode.', 'Cozy', 'Compact', this.settings.compact, (i) => this.settings.compact = i)
+			new PluginSettings.PillButton('Display Mode', 'The user\'s display mode.', 'Cozy', 'Compact', this.settings.compact, (i) => {
+				this.settings.compact = i;
+				this.removeIDs();
+				this.attachID();
+			})
 		);
 
 		const resetButton = $('<button>', {
@@ -280,7 +300,7 @@ class chatUserIDs {
 	}
 
 	getVersion() {
-		return '1.1.0';
+		return '1.1.1';
 	}
 
 	getDescription() {
