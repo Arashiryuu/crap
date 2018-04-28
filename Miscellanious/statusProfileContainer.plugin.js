@@ -60,11 +60,11 @@ class statusProfileContainer {
 
 	colorize() {
 		const color = this.statuses[$(this.e).attr('class').split('-')[1]];
-		$('.container-iksrDt').css('background', color);
+		$('.container-2Thooq').css('background', color);
 	}
 
 	revert() {
-		$('.container-iksrDt').attr('style', '');
+		$('.container-2Thooq').attr('style', '');
 	}
 
 	stop() {
