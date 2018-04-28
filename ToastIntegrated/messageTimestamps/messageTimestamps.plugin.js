@@ -32,10 +32,10 @@ class messageTimestamps {
 		};
 		this.settings = this.default;
 
-		this.contextMarkup = `<div class="itemGroup-oViAgA messageTimestamps">
-			<div class="item-1XYaYf timestamp">
+		this.contextMarkup = `<div class="itemGroup-1tL0uz messageTimestamps">
+			<div class="item-1Yvehc timestamp">
 				<span>Show Timestamp</span>
-				<div class="hint-3TJykr"></div>
+				<div class="hint-22uc-R"></div>
 			</div>
 		</div>`;
 
@@ -43,7 +43,7 @@ class messageTimestamps {
 			for(const change of changes) {
 				if(change.addedNodes && change.addedNodes.length) {
 					for(const node of change.addedNodes.values()) {
-						if(node.nodeType === 1 && node.classList && node.classList.contains('contextMenu-uoJTbz')) {
+						if(node.nodeType === 1 && node.classList && node.classList.contains('contextMenu-HLZMGh')) {
 							this.addContext(node);
 						}
 					}
@@ -79,12 +79,12 @@ class messageTimestamps {
 
 	initialize() {
 		PluginUtilities.checkForUpdate(this.getName(), this.getVersion(), this.downLink);
-		
 		PluginUtilities.loadSettings(this.getName(), this.default);
+		
 		this.appObs();
 		this.initialized = true;
 
-		PluginUtilities.showToast(`${this.getName()} ${this.getVersion()} has started.`);
+		PluginUtilities.showToast(`${this.getName()} ${this.getVersion()} has started.`, { type: 'info', icon: true, timeout: 2e3 });
 	}
 
 	appObs() {
@@ -100,8 +100,8 @@ class messageTimestamps {
 		if(!node) return;
 		const refNode = this.getReactInstance(node);
 		if(refNode && refNode.return.memoizedProps.message && refNode.return.memoizedProps.type && refNode.return.memoizedProps.type.includes('MESSAGE')) {
-			$(node).find('.item-1XYaYf').first().before(this.contextMarkup);
-			$(node).find('.item-1XYaYf.timestamp')
+			$(node).find('.item-1Yvehc').first().before(this.contextMarkup);
+			$(node).find('.item-1Yvehc.timestamp')
 				.off('click.msgTimes')
 				.on('click.msgTimes', () => this.showTimestamp());
 		}
@@ -112,7 +112,7 @@ class messageTimestamps {
 	}
 
 	showTimestamp() {
-		const menu = document.querySelector('.contextMenu-uoJTbz');
+		const menu = document.querySelector('.contextMenu-HLZMGh');
 		const message = this.getReactInstance(menu).return.stateNode.props.target;
 		const msg = this.getReactInstance(menu).return.memoizedProps.message;
 
@@ -124,7 +124,7 @@ class messageTimestamps {
 			PluginUtilities.showToast(msg.timestamp._d);
 		} else {
 			const timestamp = String(msg.timestamp._d).split(' ').slice(0, 5).join(' ');
-			const tip = new PluginTooltip.Tooltip($(message), timestamp);
+			const tip = new PluginTooltip.Tooltip($(message), timestamp, { side: 'top' });
 			tip.show();
 			tip.node.off('mouseenter.tooltip').off('mouseleave.tooltip');
 			setTimeout(() => tip.tooltip.remove(), 3e3);
@@ -142,17 +142,12 @@ class messageTimestamps {
 		return node[Object.keys(node).find((key) => key.startsWith('__reactInternalInstance'))];
 	}
 
-	log(text, ...extra) {
-		if(typeof text !== 'string')
-			return console.log(`[%c${this.getName()}%c]`, 'color: #59F;', '', text);
-		if(!extra.length)
-			return console.log(`[%c${this.getName()}%c] ${text}`, 'color: #59F;', '');
-		else
-			return console.log(`[%c${this.getName()}%c] ${text}`, 'color: #59F;', '', ...extra);
+	log(...extra) {
+		return console.log(`[%c${this.getName()}%c]`, 'color: #59F;', '', ...extra);
 	}
 
-	err(error) {
-		return console.error(`[%c${this.getName()}%c] ${error}`, 'color: #59F;', '');
+	err(...errors) {
+		return console.error(`[%c${this.getName()}%c]`, 'color: #59F;', '', ...errors);
 	}
 
 	get downLink() {
@@ -168,7 +163,7 @@ class messageTimestamps {
 	}
 
 	getVersion() {
-		return '1.1.1';
+		return '1.1.2';
 	}
 
 	getDescription() {
@@ -177,14 +172,14 @@ class messageTimestamps {
 
 	genSettingsPanel(panel) {
 		new PluginSettings.ControlGroup('Timestamp Display Settings', () => PluginUtilities.saveSettings(this.getName(), this.settings)).appendTo(panel).append(
-			new PluginSettings.Checkbox('Tooltip Mode', 'Toggles whether timestamps are displayed using Toasts or Tooltips.', this.settings.tooltips, (c) => this.settings.tooltips = c)
+			new PluginSettings.PillButton('Display Mode', 'Toggles between display modes.', 'Toasts', 'Tooltips', this.settings.tooltips, (c) => this.settings.tooltips = c)
 		);
 
-		const resetButton = $('<button>');
-		resetButton.attr('type', 'button');
-		resetButton.text('Reset To Default');
-		resetButton.css('float', 'right');
-		resetButton.on('click.reset', () => {
+		const resetButton = $('<button>', {
+			type: 'button',
+			text: 'Reset To Default',
+			style: 'float: right;'
+		}).on('click.reset', () => {
 			this.settings = this.default;
 			PluginUtilities.saveSettings(this.getName(), this.settings);
 			panel.empty();
