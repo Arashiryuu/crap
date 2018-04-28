@@ -33,7 +33,11 @@ class HideUtils {
 			servers: new Map(),
 			users: new Map()
 		};
-		this.hid = this.default;
+		this.hid = {
+			channels: new Map(),
+			servers: new Map(),
+			users: new Map()
+		};
 		
 		this.TypingUsers;
 		this.Cancel;
@@ -131,24 +135,24 @@ class HideUtils {
 			}
 		</style>`;
 
-		this.chanItem = `<div class="itemGroup-oViAgA HideUtils">
-			<div class="item-1XYaYf hideChannel">
+		this.chanItem = `<div class="itemGroup-1tL0uz HideUtils">
+			<div class="item-1Yvehc hideChannel">
 				<span>Hide Channel</span>
-				<div class="hint-3TJykr"></div>
+				<div class="hint-22uc-R"></div>
 			</div>
 		</div>`;
 
-		this.servItem = `<div class="itemGroup-oViAgA HideUtils">
-			<div class="item-1XYaYf hideServer">
+		this.servItem = `<div class="itemGroup-1tL0uz HideUtils">
+			<div class="item-1Yvehc hideServer">
 				<span>Hide Server</span>
-				<div class="hint-3TJykr"></div>
+				<div class="hint-22uc-R"></div>
 			</div>
 		</div>`;
 
-		this.userItem = `<div class="itemGroup-oViAgA HideUtils">
-			<div class="item-1XYaYf hideUser">
+		this.userItem = `<div class="itemGroup-1tL0uz HideUtils">
+			<div class="item-1Yvehc hideUser">
 				<span>Hide User</span>
-				<div class="hint-3TJykr"></div>
+				<div class="hint-22uc-R"></div>
 			</div>
 		</div>`;
 
@@ -156,7 +160,7 @@ class HideUtils {
 			for(const change of changes) {
 				if(change.addedNodes) {
 					for(const node of change.addedNodes.values()) {
-						if(node.classList && node.classList.contains('containerDefault-7RImuF')) {
+						if(node.classList && node.classList.contains('containerDefault-1ZnADq')) {
 							this.auditChannels();
 						}
 					}
@@ -168,7 +172,7 @@ class HideUtils {
 			for(const change of changes) {
 				if(change.addedNodes) {
 					for(const node of change.addedNodes.values()) {
-						if(node.nodeType === 1 && node.classList && node.classList.contains('contextMenu-uoJTbz')) {
+						if(node.nodeType === 1 && node.classList && node.classList.contains('contextMenu-HLZMGh')) {
 							this.channelContext(node);
 						}
 						if(node.nodeType === 1 && node.classList && ( node.classList.contains('chat') || node.classList.contains('messages-wrapper') )) {
@@ -197,7 +201,7 @@ class HideUtils {
 			for(const change of changes) {
 				if(change.addedNodes) {
 					for(const node of change.addedNodes.values()) {
-						if(node.nodeType === 1 && node.classList && node.classList.contains('contextMenu-uoJTbz')) {
+						if(node.nodeType === 1 && node.classList && node.classList.contains('contextMenu-HLZMGh')) {
 							this.serverContext(node);
 						}
 						if(node.nodeType === 1 && node.classList && ( node.classList.contains('chat') || node.classList.contains('messages-wrapper') )) {
@@ -226,10 +230,10 @@ class HideUtils {
 			for(const change of changes) {
 				if(change.addedNodes) {
 					for(const node of change.addedNodes.values()) {
-						if(node.nodeType === 1 && node.classList && node.classList.contains('contextMenu-uoJTbz')) {
+						if(node.nodeType === 1 && node.classList && node.classList.contains('contextMenu-HLZMGh')) {
 							this.userContext(node);
 						}
-						if(node.nodeType === 1 && node.classList && ( node.classList.contains('chat') || node.classList.contains('messages-wrapper') || node.classList.contains('membersWrap-3wRngy') )) {
+						if(node.nodeType === 1 && node.classList && ( node.classList.contains('chat') || node.classList.contains('messages-wrapper') || node.classList.contains('membersWrap-2h-GB4') )) {
 							this.auditUsers();
 							this.userDiscon();
 							this.userObs();
@@ -256,29 +260,29 @@ class HideUtils {
 
 	start() {
 		this.log('Started');
-		let libraryScript = $('#zeresLibraryScript');
-		if(libraryScript) libraryScript.remove();
-		libraryScript = $('<script/>', {
-			id: 'zeresLibraryScript',
-			src: 'https://rauenzi.github.io/BetterDiscordAddons/Plugins/PluginLibrary.js',
-			type: 'text/javascript'
-		});
-		$('head').append(libraryScript);
+		let libraryScript = document.getElementById('#zeresLibraryScript');
+		if(!libraryScript) {
+			libraryScript = document.createElement('script');
+			libraryScript.id = 'zeresLibraryScript';
+			libraryScript.src = 'https://rauenzi.github.io/BetterDiscordAddons/Plugins/PluginLibrary.js';
+			libraryScript.type = 'text/javascript';
+			document.head.appendChild(libraryScript);
+		}
 
 		if(typeof window.ZeresLibrary !== 'undefined') this.initialize();
-		else libraryScript.on('load', () => this.initialize());
+		else libraryScript.addEventListener('load', () => this.initialize());
 	}
 
 	initialize() {
 		PluginUtilities.checkForUpdate(this.getName(), this.getVersion(), this.downLink);
 
-		const findByProps = InternalUtilities.WebpackModules.findByUniqueProperties;
+		const { WebpackModules: { find, findByProps } } = InternalUtilities;
 
 		this.channel = findByProps(['getChannel']);
 		this.guild = findByProps(['getGuild']);
 		this.user = findByProps(['getUser']);
 		this.loadSettings();
-		this.TypingUsers = InternalUtilities.WebpackModules.find((x) => {
+		this.TypingUsers = find((x) => {
 			try {
 				return x.displayName === 'FluxContainer(t)' && !(new x({channel: 0}));
 			} catch(e) {
@@ -286,8 +290,7 @@ class HideUtils {
 			}
 		});
 		this.Cancel = InternalUtilities.monkeyPatch(this.TypingUsers.prototype, 'render', {
-			before: (data) => {
-				const { thisObject: { state: { typingUsers } } } = data;
+			before: ({ thisObject: { state: { typingUsers } } }) => {
 				for(const user of this.hid.users.keys()) {
 					if(typingUsers[user]) delete typingUsers[user];
 				}
@@ -355,18 +358,18 @@ class HideUtils {
 
 	channelContext(context) {
 		if(!context) return;
-		if(this.getReactInstance(context) && this.getReactInstance(context).return.memoizedProps.target && this.getReactInstance(context).return.memoizedProps.type && this.getReactInstance(context).return.memoizedProps.type.includes('CHANNEL_LIST') && this.getReactInstance(context).return.memoizedProps.channel && (this.getReactInstance(context).return.memoizedProps.channel.type === 0 || this.getReactInstance($('.contextMenu-uoJTbz')[0]).return.memoizedProps.channel.type === 2)) {
-			$(context).find('.item-1XYaYf').first().after(this.chanItem);
-			$(context).find('.item-1XYaYf.hideChannel')
+		if(this.getReactInstance(context) && this.getReactInstance(context).return.memoizedProps.target && this.getReactInstance(context).return.memoizedProps.type && this.getReactInstance(context).return.memoizedProps.type.includes('CHANNEL_LIST') && this.getReactInstance(context).return.memoizedProps.channel && (this.getReactInstance(context).return.memoizedProps.channel.type === 0 || this.getReactInstance($('.contextMenu-HLZMGh')[0]).return.memoizedProps.channel.type === 2)) {
+			$(context).find('.item-1Yvehc').first().after(this.chanItem);
+			$(context).find('.item-1Yvehc.hideChannel')
 				.off('click.HideUtilsC')
 				.on('click.HideUtilsC', (o) => this.chanConClick());
 		}
 	}
 
 	chanConClick() {
-		if(!document.querySelector('.contextMenu-uoJTbz')) return;
-		if(!this.getReactInstance(document.querySelector('.contextMenu-uoJTbz')).return.memoizedProps.channel) return;
-		const channel = this.getReactInstance(document.querySelector('.contextMenu-uoJTbz')).return.memoizedProps.channel.id;
+		if(!document.querySelector('.contextMenu-HLZMGh')) return;
+		if(!this.getReactInstance(document.querySelector('.contextMenu-HLZMGh')).return.memoizedProps.channel) return;
+		const channel = this.getReactInstance(document.querySelector('.contextMenu-HLZMGh')).return.memoizedProps.channel.id;
 		if(!this.hid.channels.has(channel)) {
 			this.chanPush(channel);
 			this.saveSettings();
@@ -375,8 +378,8 @@ class HideUtils {
 	}
 
 	auditChannels() {
-		if(document.querySelector('div[class^="channels"] .containerDefault-7RImuF')) {
-			$('div[class^="channels"] .containerDefault-7RImuF').each((_, channel) => {
+		if(document.querySelector('div[class^="channels"] .containerDefault-1ZnADq')) {
+			$('div[class^="channels"] .containerDefault-1ZnADq').each((_, channel) => {
 				if(this.getReactInstance(channel) && this.getReactInstance(channel).return.memoizedProps.channel)
 					this.hid.channels.has(this.getReactInstance(channel).return.memoizedProps.channel.id) ? $(channel).hide() : $(channel).show();
 			});
@@ -472,7 +475,7 @@ class HideUtils {
 	}
 
 	chanObs() {
-		const chanWrap = document.querySelector('.scroller-NXV0-d');
+		const chanWrap = document.querySelector('.scroller-2v3d_F');
 		if(!chanWrap) return;
 		this.chanMO.observe(chanWrap, { childList: true, subtree: true });
 	}
@@ -484,15 +487,15 @@ class HideUtils {
 	serverContext(context) {
 		if(!context) return;
 		if(this.getReactInstance(context) && this.getReactInstance(context).return.memoizedProps.type === 'GUILD_ICON_BAR' && this.getReactInstance(context).return.memoizedProps.guild && !this.getReactInstance(context).return.memoizedProps.channel) {
-			$(context).find('.item-1XYaYf').first().after(this.servItem);
-			$(context).find('.item-1XYaYf.hideServer')
+			$(context).find('.item-1Yvehc').first().after(this.servItem);
+			$(context).find('.item-1Yvehc.hideServer')
 				.off('click.HideUtilsS')
 				.on('click.HideUtilsS', (o) => this.servConClick());
 		}
 	}
 
 	servConClick() {
-		const context = document.querySelector('.contextMenu-uoJTbz');
+		const context = document.querySelector('.contextMenu-HLZMGh');
 		if(!context) return;
 		if(!this.getReactInstance(context).return.memoizedProps.guild) return;
 		const server = this.getReactInstance(context).return.memoizedProps.guild.id;
@@ -620,21 +623,21 @@ class HideUtils {
 		if(!this.getReactInstance(context) || !this.getReactInstance(context).return.memoizedProps.user) return;
 		const contexts = ['user-name', 'avatar-small', 'avatar-large', 'username-MwOsla', 'image-EVRGPw', 'small-TEeAkX', 'avatarWrapper-3E-a5I'];
 		if(this.getReactInstance(context).return.memoizedProps.target && ( contexts.some((n) => this.getReactInstance(context).return.memoizedProps.target.className.includes(n)) )) {
-			$(context).find('.item-1XYaYf').first().after(this.userItem);
-			$(context).find('.item-1XYaYf.hideUser')
+			$(context).find('.item-1Yvehc').first().after(this.userItem);
+			$(context).find('.item-1Yvehc.hideUser')
 				.off('click.HideUtilsU')
 				.on('click.HideUtilsU', (o) => this.userConClick());
 		} else
 		if(this.getReactInstance(context).return.memoizedProps.type && this.getReactInstance(context).return.memoizedProps.type === 'USER_FRIEND_LIST' && this.getReactInstance(context).return.memoizedProps.user) {
-			$(context).find('.item-1XYaYf').first().after(this.userItem);
-			$(context).find('.item-1XYaYf.hideUser')
+			$(context).find('.item-1Yvehc').first().after(this.userItem);
+			$(context).find('.item-1Yvehc.hideUser')
 				.off('click.HideUtilsU')
 				.on('click.HideUtilsU', (o) => this.userConClick());
 		}
 	}
 
 	userConClick() {
-		const context = document.querySelector('.contextMenu-uoJTbz');
+		const context = document.querySelector('.contextMenu-HLZMGh');
 		if(!context) return;
 		if(!this.getReactInstance(context).return.memoizedProps.user) return;
 		const user = this.getReactInstance(context).return.memoizedProps.user.id;
@@ -647,24 +650,24 @@ class HideUtils {
 
 	auditUsers() {
 		try {
-			if(document.querySelector('.member') || document.querySelector('.member-2FrNV0')) {
-				$('.member, .member-2FrNV0').each((_, user) => {
+			if(document.querySelector('.member-3W1lQa')) {
+				$('.member-3W1lQa').each((_, user) => {
 					if(user.nodeType === 1 && user instanceof Element && this.getReactInstance(user) && this.getReactInstance(user).return.memoizedProps.user) {
 						if(this.hid.users.has(this.getReactInstance(user).return.memoizedProps.user.id)) {
 							$(user).hide();
-							const group = $('.membersGroup-3_dP5E');
+							const group = $('.membersGroup-v9BXpm');
 							if(group.length) {
 								const filtered = group.filter((_, o) => user.compareDocumentPosition(o) === 2).last();
-								if(user.previousElementSibling.className && user.previousElementSibling.className.includes('membersGroup-3_dP5E') && user.nextElementSibling.className && user.nextElementSibling.className.includes('membersGroup-3_dP5E')) {
+								if(user.previousElementSibling.className && user.previousElementSibling.className.includes('membersGroup-v9BXpm') && user.nextElementSibling.className && user.nextElementSibling.className.includes('membersGroup-v9BXpm')) {
 									filtered.hide();
 								}
 							}
 						} else {
 							$(user).show();
-							const group = $('.membersGroup-3_dP5E');
+							const group = $('.membersGroup-v9BXpm');
 							if(group.length) {
 								const filtered = group.filter((_, o) => user.compareDocumentPosition(o) === 2).last();
-								if(user.previousElementSibling.className && user.previousElementSibling.className.includes('membersGroup-3_dP5E') && user.nextElementSibling.className && user.nextElementSibling.className.includes('membersGroup-3_dP5E')) {
+								if(user.previousElementSibling.className && user.previousElementSibling.className.includes('membersGroup-v9BXpm') && user.nextElementSibling.className && user.nextElementSibling.className.includes('membersGroup-v9BXpm')) {
 									filtered.show();
 								}
 							}
@@ -684,8 +687,8 @@ class HideUtils {
 					});
 				}
 			}
-			if(document.querySelector('.wrapperSelectedVoice-1Q1ocJ.wrapper-fDmxzK ~ .listDefault-3i7eWQ')) {
-				$('.wrapperSelectedVoice-1Q1ocJ.wrapper-fDmxzK ~ .listDefault-3i7eWQ').each((_, user) => {
+			if(document.querySelector('.wrapperSelectedVoice-xzxa2u.wrapper-KpKNwI .userDefault-1qtQob')) {
+				$('.wrapperSelectedVoice-xzxa2u.wrapper-KpKNwI .userDefault-1qtQob').each((_, user) => {
 					if(user.nodeType === 1 && user instanceof Element && this.getReactInstance(user) && this.getReactInstance(user).child.memoizedProps.user)
 						this.hid.users.has(this.getReactInstance(user).child.memoizedProps.user.id) ? $(user).hide() : $(user).show();
 				});
@@ -701,7 +704,7 @@ class HideUtils {
 	}
 	
 	userObs() {
-		const memWrap = document.querySelector('.membersWrap-3wRngy');
+		const memWrap = document.querySelector('.membersWrap-2h-GB4');
 		if(!memWrap) return;
 		this.userMO.observe(memWrap, { childList: true, subtree: true });
 	}
@@ -797,7 +800,7 @@ class HideUtils {
 
 	saveSettings() {
 		try {
-			bdPluginStorage.set('HideUtils', 'new-settings', JSON.stringify(this.hid));
+			bdPluginStorage.set('HideUtils', 'settings', JSON.stringify(this.hid));
 			return true;
 		} catch(e) {
 			this.err(e);
@@ -806,7 +809,7 @@ class HideUtils {
 	}
 
 	loadSettings() {
-		const settings = bdPluginStorage.get('HideUtils', 'new-settings');
+		const settings = bdPluginStorage.get('HideUtils', 'settings');
 		if(settings) {
 			const parsed = JSON.parse(settings);
 			if(parsed instanceof Object && parsed.hasOwnProperty('channels')) {
@@ -956,12 +959,8 @@ class HideUtils {
 		return setTimeout(() => settings.html(this.settingSelect()), 5e2);
 	}
 
-	get settings() {
-		return this.hid;
-	}
-
 	observer({ addedNodes, removedNodes }) {
-		if(addedNodes.length && addedNodes[0].classList && ( addedNodes[0].classList.contains('message') || addedNodes[0].classList.contains('message-group') || addedNodes[0].classList.contains('listDefault-3i7eWQ') )) {
+		if(addedNodes.length && addedNodes[0].classList && ( addedNodes[0].classList.contains('message') || addedNodes[0].classList.contains('message-group') || addedNodes[0].classList.contains('userDefault-1qtQob') )) {
 			this.auditUsers();
 		}
 		if(removedNodes.length && removedNodes[0].classList && removedNodes[0].classList.contains('folder')) {
@@ -1005,7 +1004,7 @@ class HideUtils {
 	}
 
 	getVersion() {
-		return '1.1.6';
+		return '1.1.7';
 	}
 
 	getDescription() {
