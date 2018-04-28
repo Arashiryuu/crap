@@ -33,6 +33,7 @@ class HideUtils {
 			servers: new Map(),
 			users: new Map()
 		};
+		
 		this.hid = {
 			channels: new Map(),
 			servers: new Map(),
@@ -621,7 +622,7 @@ class HideUtils {
 	userContext(context) {
 		if(!context) return;
 		if(!this.getReactInstance(context) || !this.getReactInstance(context).return.memoizedProps.user) return;
-		const contexts = ['user-name', 'avatar-small', 'avatar-large', 'username-MwOsla', 'image-EVRGPw', 'small-TEeAkX', 'avatarWrapper-3E-a5I'];
+		const contexts = ['user-name', 'avatar-small', 'avatar-large', 'username-1cB_5E', 'image-33JSyf', 'small-5Os1Bb', 'avatarWrapper-3B0ndJ'];
 		if(this.getReactInstance(context).return.memoizedProps.target && ( contexts.some((n) => this.getReactInstance(context).return.memoizedProps.target.className.includes(n)) )) {
 			$(context).find('.item-1Yvehc').first().after(this.userItem);
 			$(context).find('.item-1Yvehc.hideUser')
