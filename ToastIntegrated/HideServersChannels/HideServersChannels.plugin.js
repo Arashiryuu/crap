@@ -65,10 +65,10 @@ class HideServersChannels {
 	inject() {
 		const toolbar = $('div[class^="titleText"] ~ div[class^="flex"]');
 		if(!toolbar[0] || toolbar.find('.HideServers, .HideChannels').length > 0) return false;
-		toolbar.prepend('<svg class="iconInactive-WWHQEI icon-mr9wAc iconMargin-2Js7V9 HideServers" name="HideServers" width="24" height="24" viewBox="-2 -2 28 28" fill="#FFFFFF" xmlns="http://www.w3.org/2000/svg"><path class="iconForeground-2c7s3m" d="M0 0h24v24H0z" fill="none"/><path class="ServerPath" d="M20 13H4c-.55 0-1 .45-1 1v6c0 .55.45 1 1 1h16c.55 0 1-.45 1-1v-6c0-.55-.45-1-1-1zM7 19c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zM20 3H4c-.55 0-1 .45-1 1v6c0 .55.45 1 1 1h16c.55 0 1-.45 1-1V4c0-.55-.45-1-1-1zM7 9c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2z"/></svg>');
+		toolbar.prepend('<svg class="iconInactive-g2AXfB icon-1R19_H iconMargin-2YXk4F HideServers" name="HideServers" width="24" height="24" viewBox="-2 -2 28 28" fill="#FFFFFF" xmlns="http://www.w3.org/2000/svg"><path class="iconForeground-2c7s3m" d="M0 0h24v24H0z" fill="none"/><path class="ServerPath" d="M20 13H4c-.55 0-1 .45-1 1v6c0 .55.45 1 1 1h16c.55 0 1-.45 1-1v-6c0-.55-.45-1-1-1zM7 19c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zM20 3H4c-.55 0-1 .45-1 1v6c0 .55.45 1 1 1h16c.55 0 1-.45 1-1V4c0-.55-.45-1-1-1zM7 9c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2z"/></svg>');
 
 		const serverButton = $('.HideServers');
-		serverButton.after('<svg class="iconInactive-WWHQEI icon-mr9wAc iconMargin-2Js7V9 HideChannels" name="HideChannels" width="24" height="24" viewBox="2 2 20 20" fill="#FFFFFF" xmlns="http://www.w3.org/2000/svg"><path class="ChannelPath" d="M5 13h14v-2H5v2zm-2 4h14v-2H3v2zM7 7v2h14V7H7z"/><path class="iconForeground-2c7s3m" d="M0 0h24v24H0z" fill="none"/></svg>');
+		serverButton.after('<svg class="iconInactive-g2AXfB icon-1R19_H iconMargin-2YXk4F HideChannels" name="HideChannels" width="24" height="24" viewBox="2 2 20 20" fill="#FFFFFF" xmlns="http://www.w3.org/2000/svg"><path class="ChannelPath" d="M5 13h14v-2H5v2zm-2 4h14v-2H3v2zM7 7v2h14V7H7z"/><path class="iconForeground-2c7s3m" d="M0 0h24v24H0z" fill="none"/></svg>');
 
 		const channelButton = $('.HideChannels');
 		const tooltips = $('.tooltips');
@@ -119,16 +119,16 @@ class HideServersChannels {
 			const $display = $toggle.css('display');
 	
 			if($display === 'none') {
-				$classList = $classList.replace('iconInactive-WWHQEI', 'iconActive-3K4uxh');
+				$classList = $classList.replace('iconInactive-g2AXfB', 'iconActive-AKd_jq');
 				$elem.attr('class', $classList);
 			} else {
-				$classList = $classList.replace('iconActive-3K4uxh', 'iconInactive-WWHQEI');
+				$classList = $classList.replace('iconActive-AKd_jq', 'iconInactive-g2AXfB');
 				$elem.attr('class', $classList);
 			}
 		}
 		else if(clicked === channelButton || clicked.parentNode === channelButton) {
 			const $elem = $(channelButton);
-			const $toggle = $('.channels-3g2vYe');
+			const $toggle = $('.channels-Ie2l6A');
 			let $classList = $elem.attr('class');
 	
 			$toggle.toggle();
@@ -136,10 +136,10 @@ class HideServersChannels {
 			const $display = $toggle.css('display');
 	
 			if($display === 'none') {
-				$classList = $classList.replace('iconInactive-WWHQEI', 'iconActive-3K4uxh');
+				$classList = $classList.replace('iconInactive-g2AXfB', 'iconActive-AKd_jq');
 				$elem.attr('class', $classList);
 			} else {
-				$classList = $classList.replace('iconActive-3K4uxh', 'iconInactive-WWHQEI');
+				$classList = $classList.replace('iconActive-AKd_jq', 'iconInactive-g2AXfB');
 				$elem.attr('class', $classList);
 			}
 		}
@@ -172,7 +172,7 @@ class HideServersChannels {
 	}
 
 	getVersion() {
-		return '1.0.1';
+		return '1.0.2';
 	}
 
 	getDescription() {
