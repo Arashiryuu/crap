@@ -36,20 +36,20 @@ class MemberCount {
 			for(const change of changes) {
 				if(change.type === 'childList' && change.addedNodes.length) {
 					for(const node of change.addedNodes.values()) {
-						if(node.classList && node.classList.contains('membersWrap-3wRngy')) {
+						if(node.classList && node.classList.contains('membersWrap-2h-GB4')) {
 							this.reinject();
 						} else
 						if(node.classList && ['chat', 'messages-wrapper'].some((p) => node.classList.contains(p))) {
 							this.reinject();
 						} else
-						if(node.classList && node.classList.contains('member-2FrNV0')) {
+						if(node.classList && node.classList.contains('member-3W1lQa')) {
 							this.memberCount();
 						}
 					}
 				} else
 				if(change.type === 'childList' && change.removedNodes.length) {
 					for(const node of change.removedNodes.values()) {
-						if(node.classList && node.classList.contains('member-2FrNV0')) {
+						if(node.classList && node.classList.contains('member-3W1lQa')) {
 							this.memberCount();
 						}
 					}
@@ -73,7 +73,6 @@ class MemberCount {
 				width: 100%;
 				text-align: center;
 				padding: 0.9vh 0;
-				z-index: 2;
 			} 
 			
 			.theme-light #memberCount {
@@ -88,10 +87,9 @@ class MemberCount {
 				width: 100%;
 				text-align: center;
 				padding: 0.9vh 0;
-				z-index: 2;
 			}
 
-			.membersWrap-3wRngy .members-1bid1J {
+			.membersWrap-2h-GB4 .members-1998pB {
 				margin-top: 2vh;
 			}
 		`;
@@ -111,10 +109,11 @@ class MemberCount {
 		this.log('Started');
 		let libraryScript = document.getElementById('zeresLibraryScript');
 		if(!libraryScript) {
-			libraryScript = document.createElement('script');
-			libraryScript.id = 'zeresLibraryScript';
-			libraryScript.src = 'https://rauenzi.github.io/BetterDiscordAddons/Plugins/PluginLibrary.js';
-			libraryScript.type = 'text/javascript';
+			libraryScript = this.createElement('script', {
+				id: 'zeresLibraryScript',
+				src: 'https://rauenzi.github.io/BetterDiscordAddons/Plugins/PluginLibrary.js',
+				type: 'text/javascript'
+			});
 			document.head.appendChild(libraryScript);
 		}
 
@@ -150,7 +149,7 @@ class MemberCount {
 	}
 
 	reinject() {
-		const m = document.querySelector('.membersWrap-3wRngy');
+		const m = document.querySelector('.membersWrap-2h-GB4');
 		if(!m) return false;
 
 		this.inject();
@@ -161,14 +160,14 @@ class MemberCount {
 	inject() {
 		const ss = document.getElementById('memberCountCSS');
 		const c = document.getElementById('memberCount');
-		const members = document.querySelector('.membersWrap-3wRngy');
+		const members = document.querySelector('.membersWrap-2h-GB4');
 		if(!members) return false;
 
 		if(!ss && !c) {
 			this.stylesheet = this.createElement('style', { id: 'memberCountCSS', textContent: this.styleCSS });
 			document.head.appendChild(this.stylesheet);
 	
-			this.counter = this.createElement('div', { id: 'memberCount', className: 'membersGroup-3_dP5E', textContent: '&nbsp;' });
+			this.counter = this.createElement('div', { id: 'memberCount', className: 'membersGroup-v9BXpm', textContent: '&nbsp;' });
 			members.appendChild(this.counter);
 	
 			return true;
@@ -177,7 +176,7 @@ class MemberCount {
 			this.stylesheet = this.createElement('style', { id: 'memberCountCSS', textContent: this.styleCSS });
 			document.head.appendChild(this.stylesheet);
 	
-			this.counter = this.createElement('div', { id: 'memberCount', className: 'membersGroup-3_dP5E', textContent: '&nbsp;' });
+			this.counter = this.createElement('div', { id: 'memberCount', className: 'membersGroup-v9BXpm', textContent: '&nbsp;' });
 			members.appendChild(this.counter);
 	
 			return true;
@@ -190,7 +189,7 @@ class MemberCount {
 		if(document.contains(this.stylesheet) && document.contains(this.counter)) {
 			try {
 				document.head.removeChild(this.stylesheet);
-				document.querySelector('.membersWrap-3wRngy').removeChild(this.counter);
+				document.querySelector('.membersWrap-2h-GB4').removeChild(this.counter);
 				return true;
 			} catch(e) {
 				this.err(e.stack);
@@ -211,7 +210,7 @@ class MemberCount {
 	}
 
 	memberCount() {
-		const members = document.querySelector('.membersWrap-3wRngy');
+		const members = document.querySelector('.membersWrap-2h-GB4');
 		if(!members) return false;
 
 		const total = this.memberStore.getMemberIds(this.guildStore.getGuildId()).length;
@@ -253,7 +252,7 @@ class MemberCount {
 	}
 
 	getVersion() {
-		return '1.0.5';
+		return '1.0.6';
 	}
 
 	getDescription() {
