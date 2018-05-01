@@ -39,7 +39,7 @@ class MemberCount {
 						if(node.classList && node.classList.contains('membersWrap-2h-GB4')) {
 							this.reinject();
 						} else
-						if(node.classList && ['chat', 'messages-wrapper'].some((p) => node.classList.contains(p))) {
+						if(node.classList && ['chat', 'messages-wrapper'].includes(node.classList[0])) {
 							this.reinject();
 						} else
 						if(node.classList && node.classList.contains('member-3W1lQa')) {
@@ -73,6 +73,7 @@ class MemberCount {
 				width: 100%;
 				text-align: center;
 				padding: 0.9vh 0;
+				z-index: 2;
 			} 
 			
 			.theme-light #memberCount {
@@ -87,6 +88,7 @@ class MemberCount {
 				width: 100%;
 				text-align: center;
 				padding: 0.9vh 0;
+				z-index: 2;
 			}
 
 			.membersWrap-2h-GB4 .members-1998pB {
@@ -124,8 +126,8 @@ class MemberCount {
 	initialize() {
 		PluginUtilities.checkForUpdate(this.getName(), this.getVersion(), this.downLink);
 
-		this.guildStore = InternalUtilities.WebpackModules.findByUniqueProperties(['getLastSelectedGuildId']);
-		this.memberStore = InternalUtilities.WebpackModules.findByUniqueProperties(['getMember']);
+		this.guildStore = DiscordModules.SelectedGuildStore;
+		this.memberStore = DiscordModules.GuildMemberStore;
 
 		this.inject();
 		this.memberCount();
@@ -252,7 +254,7 @@ class MemberCount {
 	}
 
 	getVersion() {
-		return '1.0.6';
+		return '1.0.7';
 	}
 
 	getDescription() {
