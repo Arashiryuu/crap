@@ -30,7 +30,9 @@ class messageTimestamps {
 		this.default = {
 			tooltips: false
 		};
-		this.settings = this.default;
+		this.settings = {
+			tooltips: false
+		};
 
 		this.contextMarkup = `<div class="itemGroup-1tL0uz messageTimestamps">
 			<div class="item-1Yvehc timestamp">
@@ -79,7 +81,7 @@ class messageTimestamps {
 
 	initialize() {
 		PluginUtilities.checkForUpdate(this.getName(), this.getVersion(), this.downLink);
-		PluginUtilities.loadSettings(this.getName(), this.default);
+		PluginUtilities.loadSettings(this.getName(), this.settings);
 		
 		this.appObs();
 		this.initialized = true;
@@ -180,7 +182,9 @@ class messageTimestamps {
 			text: 'Reset To Default',
 			style: 'float: right;'
 		}).on('click.reset', () => {
-			this.settings = this.default;
+			for(const key in this.default) {
+				this.settings[key] = this.default[key];
+			}
 			PluginUtilities.saveSettings(this.getName(), this.settings);
 			panel.empty();
 			this.genSettingsPanel(panel);
