@@ -30,7 +30,9 @@ class chatUserIDs {
 		this.default = {
 			compact: false
 		};
-		this.settings = this.default;
+		this.settings = {
+			compact: false
+		};
 		this.guild;
 		this.member;
 		this.css = `<style id="ChatIDsCSS" type="text/css">
@@ -111,7 +113,7 @@ class chatUserIDs {
 
 	initialize() {
 		PluginUtilities.checkForUpdate(this.getName(), this.getVersion(), this.downLink);
-		PluginUtilities.loadSettings(this.getName(), this.default);
+		PluginUtilities.loadSettings(this.getName(), this.settings);
 
 		$('head').append(this.css);
 		this.chatObserve();
@@ -278,7 +280,9 @@ class chatUserIDs {
 			text: 'Reset To Default',
 			style: 'float: right;'
 		}).on('click.reset', () => {
-			this.settings = this.default;
+			for(const key in this.default) {
+				this.settings[key] = this.default[key];
+			}
 			PluginUtilities.saveSettings(this.getName(), this.settings);
 			panel.empty();
 			this.genSettingsPanel(panel);
