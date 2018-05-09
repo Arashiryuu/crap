@@ -285,7 +285,7 @@ class chatUserIDs {
 			}
 			PluginUtilities.saveSettings(this.getName(), this.settings);
 			panel.empty();
-			this.genSettingsPanel(panel);
+			this.genSettings(panel);
 		});
 
 		panel.append(resetButton);
