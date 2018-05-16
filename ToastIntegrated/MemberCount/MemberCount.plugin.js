@@ -30,7 +30,7 @@ class MemberCount {
 		this.stylesheet;
 		this.counter;
 		this.guildStore;
-		this.memberStore;
+		this.memberCountStore;
 
 		this.membMO = new MutationObserver((changes) => {
 			for(const change of changes) {
@@ -127,7 +127,7 @@ class MemberCount {
 		PluginUtilities.checkForUpdate(this.getName(), this.getVersion(), this.downLink);
 
 		this.guildStore = DiscordModules.SelectedGuildStore;
-		this.memberStore = DiscordModules.GuildMemberStore;
+		this.memberCountStore = DiscordModules.MemberCountStore;
 
 		this.inject();
 		this.memberCount();
@@ -215,7 +215,7 @@ class MemberCount {
 		const members = document.querySelector('.membersWrap-2h-GB4');
 		if(!members) return false;
 
-		const total = this.memberStore.getMemberIds(this.guildStore.getGuildId()).length;
+		const total = this.memberCountStore.getMemberCount(this.guildStore.getGuildId());
 		const mCount = document.getElementById('memberCount');
 
 		if(mCount) {
