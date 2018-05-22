@@ -26,200 +26,6 @@
 
 class JSMaterialThemeCodeblocks {
 	constructor() {
-		this.css = `
-			<style id='JSMaterialThemeCodeblocks'>
-
-			/*.hljs[class~="js" i] .kawaii-linenumbers {
-    			border-left: 2.6ch solid rgba(0, 0, 0, .2);
-			}*/
-
-			#app-mount .hljs-built_in.parseInt {
-				color: #82AAFF !important;
-			}
-
-			#app-mount .chat > .content .messages .message-group .markup pre code.hljs[class~="js" i] {
-				background: #263239 !important;
-				color: #eee !important;
-			}
-
-			#app-mount code.hljs[class~="js" i] .hljs-addition, #app-mount code.hljs[class~="js" i] .hljs-keyword, #app-mount code.hljs[class~="js" i] .hljs-selector-tag {
-    			color: #c792ea;
-			}
-
-			#app-mount .hljs[class~="js" i] .hljs-built_in, #app-mount .hljs[class~="js" i] .hljs-deletion, #app-mount .hljs[class~="js" i] .hljs-attribute, #app-mount .hljs[class~="js" i] .hljs-class .hljs-title, #app-mount .hljs[class~="js" i] .hljs-template-variable, #app-mount .hljs[class~="js" i] .hljs-type, #app-mount .hljs[class~="js" i] .hljs-variable {
-    			color: #ffcb6b;
-			}
-
-			#app-mount .hljs[class~="js" i] .hljs-bullet, #app-mount .hljs[class~="js" i] .hljs-link, #app-mount .hljs[class~="js" i] .hljs-meta .hljs-keyword, #app-mount .hljs[class~="js" i] .hljs-selector-attr, #app-mount .hljs[class~="js" i] .hljs-selector-pseudo, #app-mount .hljs[class~="js" i] .hljs-subst, #app-mount .hljs[class~="js" i] .hljs-symbol {
-    			color: #89ddf3;
-			}
-
-			#app-mount .hljs[class~="js" i] .hljs-doctag,
-			#app-mount .hljs[class~="js" i] .hljs-meta,
-			#app-mount .hljs[class~="js" i] .hljs-meta-string,
-			#app-mount .hljs[class~="js" i] .hljs-regexp, #app-mount .hljs[class~="js" i] .hljs-string {
-    			color: #c3e88d;
-			}
-
-			#app-mount .hljs[class~="js" i] .hljs-number,
-			#app-mount .hljs[class~="js" i] .hljs-literal {
-    			color: #f78c6a;
-			}
-
-			#app-mount .hljs[class~="js" i] .hljs-params {
-				color: #eee;
-			}
-
-			#app-mount .hljs[class~="js" i] .hljs-function {
-				color: #c792ea;
-			}
-
-			#app-mount .hljs[class~="js" i] .hljs-keyword.this {
-				color: #f95479;
-				font-style: italic;
-			}
-
-			#app-mount .hljs[class~="js" i] .hljs-built_in.isNaN,
-			#app-mount .hljs[class~="js" i] .hljs-attr {
-				color: #82aaff;
-			}
-
-			#app-mount .hljs[class~="js" i] .hljs-built_in.require {
-				color: #82aaff;
-			}
-
-			#app-mount .hljs[class~="js" i] .hljs-keyword.new {
-				color: #89ddf3;
-			}
-
-			.theme-dark .hljs[class~="js" i] .hljs-name, .theme-dark .hljs[class~="js" i] .hljs-section, .theme-dark .hljs[class~="js" i] .hljs-selector-class, .theme-dark .hljs[class~="js" i] .hljs-selector-id, .theme-dark .hljs[class~="js" i] .hljs-title {
-				color: #82aaff;
-			}
-
-			#app-mount .chat > .content .messages .message-group .markup pre code.hljs[class~="jsx" i] {
-				background: #263239 !important;
-				color: #eee !important;
-			}
-
-			#app-mount code.hljs[class~="jsx" i] .hljs-addition, #app-mount code.hljs[class~="jsx" i] .hljs-keyword, #app-mount code.hljs[class~="jsx" i] .hljs-selector-tag {
-    			color: #c792ea;
-			}
-
-			#app-mount .hljs[class~="jsx" i] .hljs-built_in, #app-mount .hljs[class~="jsx" i] .hljs-deletion, #app-mount .hljs[class~="jsx" i] .hljs-attribute, #app-mount .hljs[class~="jsx" i] .hljs-class .hljs-title, #app-mount .hljs[class~="jsx" i] .hljs-template-variable, #app-mount .hljs[class~="jsx" i] .hljs-type, #app-mount .hljs[class~="jsx" i] .hljs-variable {
-    			color: #ffcb6b;
-			}
-
-			#app-mount .hljs[class~="jsx" i] .hljs-bullet, #app-mount .hljs[class~="jsx" i] .hljs-link, #app-mount .hljs[class~="jsx" i] .hljs-meta .hljs-keyword, #app-mount .hljs[class~="jsx" i] .hljs-selector-attr, #app-mount .hljs[class~="jsx" i] .hljs-selector-pseudo, #app-mount .hljs[class~="jsx" i] .hljs-subst, #app-mount .hljs[class~="jsx" i] .hljs-symbol {
-    			color: #89ddf3;
-			}
-
-			#app-mount .hljs[class~="jsx" i] .hljs-doctag,
-			#app-mount .hljs[class~="jsx" i] .hljs-meta,
-			#app-mount .hljs[class~="jsx" i] .hljs-meta-string,
-			#app-mount .hljs[class~="jsx" i] .hljs-regexp, #app-mount .hljs[class~="jsx" i] .hljs-string {
-    			color: #c3e88d;
-			}
-
-			#app-mount .hljs[class~="jsx" i] .hljs-number,
-			#app-mount .hljs[class~="jsx" i] .hljs-literal {
-    			color: #f78c6a;
-			}
-
-			#app-mount .hljs[class~="jsx" i] .hljs-params {
-				color: #eee;
-			}
-
-			#app-mount .hljs[class~="jsx" i] .hljs-function {
-				color: #c792ea;
-			}
-
-			#app-mount .hljs[class~="jsx" i] .hljs-keyword.this {
-				color: #f95479;
-				font-style: italic;
-			}
-
-			#app-mount .hljs[class~="jsx" i] .hljs-built_in.isNaN,
-			#app-mount .hljs[class~="jsx" i] .hljs-attr {
-				color: #82aaff;
-			}
-
-			#app-mount .hljs[class~="jsx" i] .hljs-built_in.require {
-				color: #82aaff;
-			}
-
-			#app-mount .hljs[class~="jsx" i] .hljs-keyword.new {
-				color: #89ddf3;
-			}
-
-			.theme-dark .hljs[class~="jsx" i] .hljs-name, .theme-dark .hljs[class~="jsx" i] .hljs-section, .theme-dark .hljs[class~="jsx" i] .hljs-selector-class, .theme-dark .hljs[class~="jsx" i] .hljs-selector-id, .theme-dark .hljs[class~="jsx" i] .hljs-title {
-				color: #82aaff;
-			}
-			
-			/*.hljs[class~="javascript" i] .kawaii-linenumbers {
-    			border-left: 2.6ch solid rgba(0, 0, 0, .2);
-			}*/
-
-			#app-mount .chat > .content .messages .message-group .markup pre code.hljs[class~="javascript" i] {
-				background: #263239 !important;
-				color: #eee !important;
-			}
-
-			#app-mount code.hljs[class~="javascript" i] .hljs-addition, #app-mount code.hljs[class~="javascript" i] .hljs-keyword, #app-mount code.hljs[class~="javascript" i] .hljs-selector-tag {
-    			color: #c792ea;
-			}
-
-			#app-mount .hljs[class~="javascript" i] .hljs-built_in, #app-mount .hljs[class~="javascript" i] .hljs-deletion, #app-mount .hljs[class~="javascript" i] .hljs-attribute, #app-mount .hljs[class~="javascript" i] .hljs-class .hljs-title, #app-mount .hljs[class~="javascript" i] .hljs-template-variable, #app-mount .hljs[class~="javascript" i] .hljs-type, #app-mount .hljs[class~="javascript" i] .hljs-variable {
-    			color: #ffcb6b;
-			}
-
-			#app-mount .hljs[class~="javascript" i] .hljs-bullet, #app-mount .hljs[class~="javascript" i] .hljs-link, #app-mount .hljs[class~="javascript" i] .hljs-meta .hljs-keyword, #app-mount .hljs[class~="javascript" i] .hljs-selector-attr, #app-mount .hljs[class~="javascript" i] .hljs-selector-pseudo, #app-mount .hljs[class~="javascript" i] .hljs-subst, #app-mount .hljs[class~="javascript" i] .hljs-symbol {
-    			color: #89ddf3;
-			}
-
-			#app-mount .hljs[class~="javascript" i] .hljs-doctag,
-			#app-mount .hljs[class~="javascript" i] .hljs-meta,
-			#app-mount .hljs[class~="javascript" i] .hljs-meta-string,
-			#app-mount .hljs[class~="javascript" i] .hljs-regexp, #app-mount .hljs[class~="javascript" i] .hljs-string {
-    			color: #c3e88d;
-			}
-
-			#app-mount .hljs[class~="javascript" i] .hljs-number,
-			#app-mount .hljs[class~="javascript" i] .hljs-literal {
-    			color: #f78c6a;
-			}
-
-			#app-mount .hljs[class~="javascript" i] .hljs-params {
-				color: #eee;
-			}
-
-			#app-mount .hljs[class~="javascript" i] .hljs-function {
-				color: #c792ea;
-			}
-
-			#app-mount .hljs[class~="javascript" i] .hljs-keyword.this {
-				color: #f95479;
-				font-style: italic;
-			}
-
-			#app-mount .hljs[class~="javascript" i] .hljs-built_in.isNaN,
-			#app-mount .hljs[class~="javascript" i] .hljs-attr {
-				color: #82aaff;
-			}
-
-			#app-mount .hljs[class~="javascript" i] .hljs-built_in.require {
-				color: #82aaff;
-			}
-
-			#app-mount .hljs[class~="javascript" i] .hljs-keyword.new {
-				color: #89ddf3;
-			}
-
-			.theme-dark .hljs[class~="javascript" i] .hljs-name, .theme-dark .hljs[class~="javascript" i] .hljs-section, .theme-dark .hljs[class~="javascript" i] .hljs-selector-class, .theme-dark .hljs[class~="javascript" i] .hljs-selector-id, .theme-dark .hljs[class~="javascript" i] .hljs-title {
-				color: #82aaff;
-			}
-
-		</style>`;
-
 		this.selectors = [
 			'.hljs[class~="js" i] .hljs-keyword', 
 			'.hljs[class~="jsx" i] .hljs-keyword', 
@@ -230,21 +36,33 @@ class JSMaterialThemeCodeblocks {
 		];
 
 		this.keywords = {
+			'instanceof':'instanceof',
 			'parseInt':'parseInt',
 			'require':'require',
 			'isNaN':'isNaN',
 			'this':'this',
 			'new':'new'
 		};
+
+		this.editObs = new MutationObserver((changes) => {
+			for(const change of changes) {
+				if(change && change.target && change.target.classList && change.target.classList.contains('message-group')) {
+					this.createThisClass();
+					setTimeout(() => this.createThisClass(), 5e2);
+				}
+			}
+		});
+
+		this.css;
 	};
 
 	createThisClass() {
 		try {
-			for(const selector of this.selectors) {
-				const keywords = $(selector);
-				for(const k of Object.values(keywords)) {
-					const text = $(k).text();
-					const w = this.getWord(text);
+			for(const s of this.selectors) {
+				const kws = $(s);
+				for(const k of Object.values(kws)) {
+					const t = $(k).text();
+					const w = this.getWord(t);
 					if(w && !$(k).hasClass(w)) {
 						$(k).addClass(w);
 					}
@@ -274,27 +92,58 @@ class JSMaterialThemeCodeblocks {
 		return console.error('%c[JSMaterialThemeCodeblocks]%c', 'color: #F95479; text-shadow: 0 0 1px black, 0 0 2px black, 0 0 3px black;', '', error, ...ex);
 	};
 
+	createElement(type = '', props = {}) {
+		if(typeof type !== 'string' || typeof props !== 'object') throw new TypeError('Parameter `type` must be a string, and parameter `props` must be an object.');
+
+		const e = document.createElement(type);
+
+		for(const prop in props) {
+			e[prop] = props[prop];
+		}
+
+		return e;
+	}
+
 	start() {
 		this.log('Started.');
+		this.css = this.createElement('style', {
+			id: 'JSMaterialThemeCodeblocksCSS',
+			type: 'text/css',
+			textContent: '@import url("https://gitcdn.xyz/repo/Arashiryuu/crap/master/Miscellanious/jsMaterialThemeCodeblocksCSS/src.css");'
+		});
 		$('head').append(this.css);
+		this.watch();
 		this.createThisClass();
 		this.log('MaterialTheme classes integrated.');
 	};
 
 	stop() { 
 		this.log('Stopped.');
-		$('#JSMaterialThemeCodeblocks').remove();
+		this.unwatch();
+		$('#JSMaterialThemeCodeblocksCSS').remove();
 	};
 
 	load() {
 		this.log('Loaded.');
 	};
 
+	watch() {
+		const chat = document.querySelector('.chat');
+		if(!chat) return;
+		this.editObs.observe(chat, { attributes: true, subtree: true });
+	}
+
+	unwatch() {
+		this.editObs.disconnect();
+	}
+
 	observer({ addedNodes }) {
 		if(addedNodes.length && addedNodes[0].classList && ( addedNodes[0].classList.contains('message-group') || addedNodes[0].classList.contains('message') || addedNodes[0].classList.contains('markup') )) {
 			setTimeout(() => this.createThisClass(), 250);
 		}
-		if(addedNodes.length && addedNodes[0].classList && addedNodes[0].classList.contains('messages-wrapper')) {
+		if(addedNodes.length && addedNodes[0].classList && ( addedNodes[0].classList.contains('chat') || addedNodes[0].classList.contains('messages-wrapper') )) {
+			this.unwatch();
+			this.watch();
 			setTimeout(() => this.createThisClass(), 250); 
 			setTimeout(() => this.log('MaterialTheme classes integrated.'), 500);
 		}
