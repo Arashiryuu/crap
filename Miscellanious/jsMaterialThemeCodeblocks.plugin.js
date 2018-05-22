@@ -39,9 +39,12 @@ class JSMaterialThemeCodeblocks {
 			'instanceof':'instanceof',
 			'parseInt':'parseInt',
 			'require':'require',
+			'typeof':'typeof',
 			'isNaN':'isNaN',
 			'this':'this',
-			'new':'new'
+			'new':'new',
+			'in':'in',
+			'of':'of'
 		};
 
 		this.editObs = new MutationObserver((changes) => {
