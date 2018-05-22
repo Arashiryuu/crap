@@ -45,7 +45,7 @@
 
 #app-mount .hljs[class~="js" i] .hljs-keyword.this {
     color: #f95479;
-    font-style: italic;
+    font-style: normal;
 }
 
 #app-mount .hljs[class~="js" i] .hljs-built_in.isNaN,
@@ -108,7 +108,7 @@
 
 #app-mount .hljs[class~="jsx" i] .hljs-keyword.this {
     color: #f95479;
-    font-style: italic;
+    font-style: normal;
 }
 
 #app-mount .hljs[class~="jsx" i] .hljs-built_in.isNaN,
@@ -175,7 +175,7 @@
 
 #app-mount .hljs[class~="javascript" i] .hljs-keyword.this {
     color: #f95479;
-    font-style: italic;
+    font-style: normal;
 }
 
 #app-mount .hljs[class~="javascript" i] .hljs-built_in.isNaN,
