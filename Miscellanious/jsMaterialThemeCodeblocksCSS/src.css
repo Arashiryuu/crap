@@ -1,0 +1,188 @@
+/*.hljs[class~="js" i] .kawaii-linenumbers {
+    border-left: 2.6ch solid rgba(0, 0, 0, .2);
+}*/
+
+#app-mount .hljs-built_in.parseInt {
+  color: #82AAFF !important;
+}
+
+#app-mount .chat > .content .messages .message-group .markup pre code.hljs[class~="js" i] {
+  background: #263239 !important;
+  color: #eee !important;
+}
+
+#app-mount code.hljs[class~="js" i] .hljs-addition, #app-mount code.hljs[class~="js" i] .hljs-keyword, #app-mount code.hljs[class~="js" i] .hljs-selector-tag {
+    color: #c792ea;
+}
+
+#app-mount .hljs[class~="js" i] .hljs-built_in, #app-mount .hljs[class~="js" i] .hljs-deletion, #app-mount .hljs[class~="js" i] .hljs-attribute, #app-mount .hljs[class~="js" i] .hljs-class .hljs-title, #app-mount .hljs[class~="js" i] .hljs-template-variable, #app-mount .hljs[class~="js" i] .hljs-type, #app-mount .hljs[class~="js" i] .hljs-variable {
+    color: #ffcb6b;
+}
+
+#app-mount .hljs[class~="js" i] .hljs-bullet, #app-mount .hljs[class~="js" i] .hljs-link, #app-mount .hljs[class~="js" i] .hljs-meta .hljs-keyword, #app-mount .hljs[class~="js" i] .hljs-selector-attr, #app-mount .hljs[class~="js" i] .hljs-selector-pseudo, #app-mount .hljs[class~="js" i] .hljs-subst, #app-mount .hljs[class~="js" i] .hljs-symbol {
+    color: #89ddf3;
+}
+
+#app-mount .hljs[class~="js" i] .hljs-doctag,
+#app-mount .hljs[class~="js" i] .hljs-meta,
+#app-mount .hljs[class~="js" i] .hljs-meta-string,
+#app-mount .hljs[class~="js" i] .hljs-regexp, #app-mount .hljs[class~="js" i] .hljs-string {
+    color: #c3e88d;
+}
+
+#app-mount .hljs[class~="js" i] .hljs-number,
+#app-mount .hljs[class~="js" i] .hljs-literal {
+    color: #f78c6a;
+}
+
+#app-mount .hljs[class~="js" i] .hljs-params {
+  color: #eee;
+}
+
+#app-mount .hljs[class~="js" i] .hljs-function {
+  color: #c792ea;
+}
+
+#app-mount .hljs[class~="js" i] .hljs-keyword.this {
+  color: #f95479;
+  font-style: italic;
+}
+
+#app-mount .hljs[class~="js" i] .hljs-built_in.isNaN,
+#app-mount .hljs[class~="js" i] .hljs-attr {
+  color: #82aaff;
+}
+
+#app-mount .hljs[class~="js" i] .hljs-built_in.require {
+  color: #82aaff;
+}
+
+#app-mount .hljs[class~="js" i] .hljs-keyword.new {
+  color: #89ddf3;
+}
+
+.theme-dark .hljs[class~="js" i] .hljs-name, .theme-dark .hljs[class~="js" i] .hljs-section, .theme-dark .hljs[class~="js" i] .hljs-selector-class, .theme-dark .hljs[class~="js" i] .hljs-selector-id, .theme-dark .hljs[class~="js" i] .hljs-title {
+  color: #82aaff;
+}
+
+#app-mount .chat > .content .messages .message-group .markup pre code.hljs[class~="jsx" i] {
+  background: #263239 !important;
+  color: #eee !important;
+}
+
+#app-mount code.hljs[class~="jsx" i] .hljs-addition, #app-mount code.hljs[class~="jsx" i] .hljs-keyword, #app-mount code.hljs[class~="jsx" i] .hljs-selector-tag {
+    color: #c792ea;
+}
+
+#app-mount .hljs[class~="jsx" i] .hljs-built_in, #app-mount .hljs[class~="jsx" i] .hljs-deletion, #app-mount .hljs[class~="jsx" i] .hljs-attribute, #app-mount .hljs[class~="jsx" i] .hljs-class .hljs-title, #app-mount .hljs[class~="jsx" i] .hljs-template-variable, #app-mount .hljs[class~="jsx" i] .hljs-type, #app-mount .hljs[class~="jsx" i] .hljs-variable {
+    color: #ffcb6b;
+}
+
+#app-mount .hljs[class~="jsx" i] .hljs-bullet, #app-mount .hljs[class~="jsx" i] .hljs-link, #app-mount .hljs[class~="jsx" i] .hljs-meta .hljs-keyword, #app-mount .hljs[class~="jsx" i] .hljs-selector-attr, #app-mount .hljs[class~="jsx" i] .hljs-selector-pseudo, #app-mount .hljs[class~="jsx" i] .hljs-subst, #app-mount .hljs[class~="jsx" i] .hljs-symbol {
+    color: #89ddf3;
+}
+
+#app-mount .hljs[class~="jsx" i] .hljs-doctag,
+#app-mount .hljs[class~="jsx" i] .hljs-meta,
+#app-mount .hljs[class~="jsx" i] .hljs-meta-string,
+#app-mount .hljs[class~="jsx" i] .hljs-regexp, #app-mount .hljs[class~="jsx" i] .hljs-string {
+    color: #c3e88d;
+}
+
+#app-mount .hljs[class~="jsx" i] .hljs-number,
+#app-mount .hljs[class~="jsx" i] .hljs-literal {
+    color: #f78c6a;
+}
+
+#app-mount .hljs[class~="jsx" i] .hljs-params {
+  color: #eee;
+}
+
+#app-mount .hljs[class~="jsx" i] .hljs-function {
+  color: #c792ea;
+}
+
+#app-mount .hljs[class~="jsx" i] .hljs-keyword.this {
+  color: #f95479;
+  font-style: italic;
+}
+
+#app-mount .hljs[class~="jsx" i] .hljs-built_in.isNaN,
+#app-mount .hljs[class~="jsx" i] .hljs-attr {
+  color: #82aaff;
+}
+
+#app-mount .hljs[class~="jsx" i] .hljs-built_in.require {
+  color: #82aaff;
+}
+
+#app-mount .hljs[class~="jsx" i] .hljs-keyword.new {
+  color: #89ddf3;
+}
+
+.theme-dark .hljs[class~="jsx" i] .hljs-name, .theme-dark .hljs[class~="jsx" i] .hljs-section, .theme-dark .hljs[class~="jsx" i] .hljs-selector-class, .theme-dark .hljs[class~="jsx" i] .hljs-selector-id, .theme-dark .hljs[class~="jsx" i] .hljs-title {
+  color: #82aaff;
+}
+
+/*.hljs[class~="javascript" i] .kawaii-linenumbers {
+    border-left: 2.6ch solid rgba(0, 0, 0, .2);
+}*/
+
+#app-mount .chat > .content .messages .message-group .markup pre code.hljs[class~="javascript" i] {
+  background: #263239 !important;
+  color: #eee !important;
+}
+
+#app-mount code.hljs[class~="javascript" i] .hljs-addition, #app-mount code.hljs[class~="javascript" i] .hljs-keyword, #app-mount code.hljs[class~="javascript" i] .hljs-selector-tag {
+    color: #c792ea;
+}
+
+#app-mount .hljs[class~="javascript" i] .hljs-built_in, #app-mount .hljs[class~="javascript" i] .hljs-deletion, #app-mount .hljs[class~="javascript" i] .hljs-attribute, #app-mount .hljs[class~="javascript" i] .hljs-class .hljs-title, #app-mount .hljs[class~="javascript" i] .hljs-template-variable, #app-mount .hljs[class~="javascript" i] .hljs-type, #app-mount .hljs[class~="javascript" i] .hljs-variable {
+    color: #ffcb6b;
+}
+
+#app-mount .hljs[class~="javascript" i] .hljs-bullet, #app-mount .hljs[class~="javascript" i] .hljs-link, #app-mount .hljs[class~="javascript" i] .hljs-meta .hljs-keyword, #app-mount .hljs[class~="javascript" i] .hljs-selector-attr, #app-mount .hljs[class~="javascript" i] .hljs-selector-pseudo, #app-mount .hljs[class~="javascript" i] .hljs-subst, #app-mount .hljs[class~="javascript" i] .hljs-symbol {
+    color: #89ddf3;
+}
+
+#app-mount .hljs[class~="javascript" i] .hljs-doctag,
+#app-mount .hljs[class~="javascript" i] .hljs-meta,
+#app-mount .hljs[class~="javascript" i] .hljs-meta-string,
+#app-mount .hljs[class~="javascript" i] .hljs-regexp, #app-mount .hljs[class~="javascript" i] .hljs-string {
+    color: #c3e88d;
+}
+
+#app-mount .hljs[class~="javascript" i] .hljs-number,
+#app-mount .hljs[class~="javascript" i] .hljs-literal {
+    color: #f78c6a;
+}
+
+#app-mount .hljs[class~="javascript" i] .hljs-params {
+  color: #eee;
+}
+
+#app-mount .hljs[class~="javascript" i] .hljs-function {
+  color: #c792ea;
+}
+
+#app-mount .hljs[class~="javascript" i] .hljs-keyword.this {
+  color: #f95479;
+  font-style: italic;
+}
+
+#app-mount .hljs[class~="javascript" i] .hljs-built_in.isNaN,
+#app-mount .hljs[class~="javascript" i] .hljs-attr {
+  color: #82aaff;
+}
+
+#app-mount .hljs[class~="javascript" i] .hljs-built_in.require {
+  color: #82aaff;
+}
+
+#app-mount .hljs[class~="javascript" i] .hljs-keyword.new {
+  color: #89ddf3;
+}
+
+.theme-dark .hljs[class~="javascript" i] .hljs-name, .theme-dark .hljs[class~="javascript" i] .hljs-section, .theme-dark .hljs[class~="javascript" i] .hljs-selector-class, .theme-dark .hljs[class~="javascript" i] .hljs-selector-id, .theme-dark .hljs[class~="javascript" i] .hljs-title {
+  color: #82aaff;
+}
