@@ -160,7 +160,7 @@ class HideServersChannels {
 	}
 
 	get downLink() {
-		return `https://raw.githubusercontent.com/Arashiryuu/crap/master/ToastIntegrated/${this.getName()}/${this.getName()}.plugin.js`;
+		return 'https://raw.githubusercontent.com/Arashiryuu/crap/master/ToastIntegrated/HideServersChannels/HideServersChannels.plugin.js';
 	}
 
 	getName() {
