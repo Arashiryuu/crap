@@ -26,6 +26,9 @@
 
 class JSMaterialThemeCodeblocks {
 	constructor() {
+		this.messageList = ['message-group', 'message', 'markup'];
+		this.switchList = ['app', 'chat', 'messages-wrapper'];
+
 		this.selectors = [
 			'.hljs[class~="js" i] .hljs-keyword', 
 			'.hljs[class~="jsx" i] .hljs-keyword', 
@@ -42,6 +45,7 @@ class JSMaterialThemeCodeblocks {
 			'typeof':'typeof',
 			'isNaN':'isNaN',
 			'this':'this',
+			'void':'void',
 			'new':'new',
 			'in':'in',
 			'of':'of'
@@ -61,11 +65,12 @@ class JSMaterialThemeCodeblocks {
 
 	createThisClass() {
 		try {
+			let kws, t, w;
 			for(const s of this.selectors) {
-				const kws = $(s);
-				for(const k of Object.values(kws)) {
-					const t = $(k).text();
-					const w = this.getWord(t);
+				kws = document.querySelectorAll(s);
+				for(const k of kws) {
+					t = k.innerText;
+					w = this.getWord(t);
 					if(w && !$(k).hasClass(w)) {
 						$(k).addClass(w);
 					}
@@ -77,22 +82,19 @@ class JSMaterialThemeCodeblocks {
 	};
 
 	getWord(text) {
-		if(this.keywords[text]) {
+		if(this.keywords.hasOwnProperty(text)) {
 			return this.keywords[text];
 		}
 
 		return null;
 	};
 
-	log(text, ...ex) {
-		if(typeof text === 'string')
-			return console.log(`%c[JSMaterialThemeCodeblocks]%c ${text}`, 'color: #F95479; text-shadow: 0 0 1px black, 0 0 2px black, 0 0 3px black;', '', ...ex);
-		else
-			return console.log('%c[JSMaterialThemeCodeblocks]%c', 'color: #F95479; text-shadow: 0 0 1px black, 0 0 2px black, 0 0 3px black;', '', text, ...ex);
+	log(...ex) {
+		return console.log('%c[JSMaterialThemeCodeblocks]%c', 'color: #F95479; text-shadow: 0 0 1px black, 0 0 2px black, 0 0 3px black;', '', ...ex);
 	};
 
-	err(error, ...ex) {
-		return console.error('%c[JSMaterialThemeCodeblocks]%c', 'color: #F95479; text-shadow: 0 0 1px black, 0 0 2px black, 0 0 3px black;', '', error, ...ex);
+	err(...ex) {
+		return console.error('%c[JSMaterialThemeCodeblocks]%c', 'color: #F95479; text-shadow: 0 0 1px black, 0 0 2px black, 0 0 3px black;', '', ...ex);
 	};
 
 	createElement(type = '', props = {}) {
@@ -141,10 +143,9 @@ class JSMaterialThemeCodeblocks {
 	}
 
 	observer({ addedNodes }) {
-		if(addedNodes.length && addedNodes[0].classList && ( addedNodes[0].classList.contains('message-group') || addedNodes[0].classList.contains('message') || addedNodes[0].classList.contains('markup') )) {
+		if(addedNodes.length && addedNodes[0].classList && this.messageList.includes(addedNodes[0].classList[0])) {
 			setTimeout(() => this.createThisClass(), 250);
-		}
-		if(addedNodes.length && addedNodes[0].classList && ( addedNodes[0].classList.contains('chat') || addedNodes[0].classList.contains('messages-wrapper') )) {
+		} else if(addedNodes.length && addedNodes[0].classList && this.switchList.includes(addedNodes[0].classList[0])) {
 			this.unwatch();
 			this.watch();
 			setTimeout(() => this.createThisClass(), 250); 
