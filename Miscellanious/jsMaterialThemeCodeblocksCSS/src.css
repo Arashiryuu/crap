@@ -60,6 +60,7 @@
 #app-mount .hljs[class~="js" i] .hljs-keyword.in,
 #app-mount .hljs[class~="js" i] .hljs-keyword.of,
 #app-mount .hljs[class~="js" i] .hljs-keyword.new,
+#app-mount .hljs[class~="js" i] .hljs-keyword.void,
 #app-mount .hljs[class~="js" i] .hljs-keyword.typeof,
 #app-mount .hljs[class~="js" i] .hljs-keyword.instanceof {
     color: #89ddf3;
@@ -123,6 +124,7 @@
 #app-mount .hljs[class~="jsx" i] .hljs-keyword.in,
 #app-mount .hljs[class~="jsx" i] .hljs-keyword.of,
 #app-mount .hljs[class~="jsx" i] .hljs-keyword.new,
+#app-mount .hljs[class~="jsx" i] .hljs-keyword.void,
 #app-mount .hljs[class~="jsx" i] .hljs-keyword.typeof,
 #app-mount .hljs[class~="jsx" i] .hljs-keyword.instanceof {
     color: #89ddf3;
@@ -190,6 +192,7 @@
 #app-mount .hljs[class~="javascript" i] .hljs-keyword.in,
 #app-mount .hljs[class~="javascript" i] .hljs-keyword.of,
 #app-mount .hljs[class~="javascript" i] .hljs-keyword.new,
+#app-mount .hljs[class~="javascript" i] .hljs-keyword.void,
 #app-mount .hljs[class~="javascript" i] .hljs-keyword.typeof,
 #app-mount .hljs[class~="javascript" i] .hljs-keyword.instanceof {
     color: #89ddf3;
