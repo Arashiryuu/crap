@@ -30,65 +30,56 @@ class MemberCount {
 		this.stylesheet;
 		this.counter;
 		this.guildStore;
-		this.memberCountStore;
+		this.memberStore;
+		this.loadedGuilds = [];
 
 		this.membMO = new MutationObserver((changes) => {
-			for(const change of changes) {
-				if(change.type === 'childList' && change.addedNodes.length) {
-					for(const node of change.addedNodes.values()) {
-						if(node.classList && node.classList.contains('membersWrap-2h-GB4')) {
+			for (const change of changes) {
+				if (change.type === 'childList' && change.addedNodes.length) {
+					for (const node of change.addedNodes.values()) {
+						if (node.classList && node.classList.contains('membersWrap-2h-GB4')) {
 							this.reinject();
-						} else
-						if(node.classList && ['chat', 'messages-wrapper'].includes(node.classList[0])) {
+						} else if (node.classList && ['chat', 'messages-wrapper'].includes(node.classList[0])) {
 							this.reinject();
-						} else
-						if(node.classList && node.classList.contains('member-3W1lQa')) {
+						} else if (node.classList && node.classList.contains('member-3W1lQa')) {
 							this.memberCount();
 						}
 					}
-				} else
-				if(change.type === 'childList' && change.removedNodes.length) {
-					for(const node of change.removedNodes.values()) {
-						if(node.classList && node.classList.contains('member-3W1lQa')) {
+				} else if (change.type === 'childList' && change.removedNodes.length) {
+					for (const node of change.removedNodes.values()) {
+						if (node.classList && node.classList.contains('member-3W1lQa')) {
 							this.memberCount();
 						}
 					}
 				}
-				if(document.getElementById('memberCount')) {
+				if (document.getElementById('memberCount')) {
 					this.memberCount();
 				}
 			}
 		});
 
 		this.styleCSS = `
-			.theme-dark #memberCount {
+			#memberCount {
 				position: absolute;
-				color: hsla(0, 0%, 100%, 0.4);
 				font-size: 12px;
 				letter-spacing: 0.08em;
 				font-weight: 500;
 				text-transform: uppercase;
-				background: #2f3136;
 				display: block;
 				width: 100%;
 				text-align: center;
 				padding: 0.9vh 0;
-				z-index: 2;
+				z-index: 5;
+			}
+
+			.theme-dark #memberCount {
+				color: hsla(0, 0%, 100%, 0.4);
+				background: #2f3136;
 			} 
 			
 			.theme-light #memberCount {
-				position: absolute;
 				color: #99aab5;
-				font-size: 12px;
-				letter-spacing: 0.08em;
-				font-weight: 500;
-				text-transform: uppercase;
 				background: #f3f3f3;
-				display: block;
-				width: 100%;
-				text-align: center;
-				padding: 0.9vh 0;
-				z-index: 2;
 			}
 
 			.membersWrap-2h-GB4 .members-1998pB {
@@ -110,7 +101,16 @@ class MemberCount {
 	start() {
 		this.log('Started');
 		let libraryScript = document.getElementById('zeresLibraryScript');
-		if(!libraryScript) {
+		
+		if (!libraryScript) {
+			libraryScript = this.createElement('script', {
+				id: 'zeresLibraryScript',
+				src: 'https://rauenzi.github.io/BetterDiscordAddons/Plugins/PluginLibrary.js',
+				type: 'text/javascript'
+			});
+			document.head.appendChild(libraryScript);
+		} else if (libraryScript && libraryScript.isOutdated) {
+			libraryScript.remove();
 			libraryScript = this.createElement('script', {
 				id: 'zeresLibraryScript',
 				src: 'https://rauenzi.github.io/BetterDiscordAddons/Plugins/PluginLibrary.js',
@@ -119,7 +119,7 @@ class MemberCount {
 			document.head.appendChild(libraryScript);
 		}
 
-		if(typeof window.ZeresLibrary !== 'undefined') this.initialize();
+		if (typeof window.ZeresLibrary !== 'undefined') this.initialize();
 		else libraryScript.addEventListener('load', () => this.initialize());
 	}
 
@@ -127,10 +127,10 @@ class MemberCount {
 		PluginUtilities.checkForUpdate(this.getName(), this.getVersion(), this.downLink);
 
 		this.guildStore = DiscordModules.SelectedGuildStore;
-		this.memberCountStore = DiscordModules.MemberCountStore;
+		this.memberStore = DiscordModules.GuildMemberStore;
 
 		this.inject();
-		this.memberCount();
+		this.memberCount(this.guildStore.getGuildId());
 		this.watch();
 
 		this.initialized = true;
@@ -140,7 +140,7 @@ class MemberCount {
 
 	watch() {
 		const app = document.querySelector('.app');
-		if(!app) return false;
+		if (!app) return false;
 		this.membMO.observe(app, { childList: true, subtree: true, attributes: true });
 		return true;
 	}
@@ -152,20 +152,20 @@ class MemberCount {
 
 	reinject() {
 		const m = document.querySelector('.membersWrap-2h-GB4');
-		if(!m) return false;
+		if (!m) return false;
 
 		this.inject();
 
-		return this.memberCount();
+		return this.memberCount(this.guildStore.getGuildId());
 	}
 
 	inject() {
 		const ss = document.getElementById('memberCountCSS');
 		const c = document.getElementById('memberCount');
 		const members = document.querySelector('.membersWrap-2h-GB4');
-		if(!members) return false;
+		if (!members) return false;
 
-		if(!ss && !c) {
+		if (!ss && !c) {
 			this.stylesheet = this.createElement('style', { id: 'memberCountCSS', textContent: this.styleCSS });
 			document.head.appendChild(this.stylesheet);
 	
@@ -173,7 +173,7 @@ class MemberCount {
 			members.appendChild(this.counter);
 	
 			return true;
-		} else if(!c || !ss) {
+		} else if (!c || !ss) {
 			$('#memberCountCSS, #memberCount').remove();
 			this.stylesheet = this.createElement('style', { id: 'memberCountCSS', textContent: this.styleCSS });
 			document.head.appendChild(this.stylesheet);
@@ -188,7 +188,7 @@ class MemberCount {
 	}
 
 	remove() {
-		if(document.contains(this.stylesheet) && document.contains(this.counter)) {
+		if (document.contains(this.stylesheet) && document.contains(this.counter)) {
 			try {
 				document.head.removeChild(this.stylesheet);
 				document.querySelector('.membersWrap-2h-GB4').removeChild(this.counter);
@@ -204,21 +204,30 @@ class MemberCount {
 	createElement(type = '', properties = {}) {
 		const element = document.createElement(type);
 		
-		for(const prop in properties) {
+		for (const prop in properties) {
 			element[prop] = properties[prop];
 		}
 
 		return element;
 	}
 
-	memberCount() {
+	memberCount(guildId) {
 		const members = document.querySelector('.membersWrap-2h-GB4');
-		if(!members) return false;
+		if (!members) return false;
 
-		const total = this.memberCountStore.getMemberCount(this.guildStore.getGuildId());
+		if (guildId && !this.loadedGuilds.includes(guildId)) {
+			try {
+				DiscordModules.GuildActions.requestMembers([guildId], '', 0);
+				this.loadedGuilds.push(guildId);
+			} catch(e) {
+				this.err(e);
+			}
+		}
+		
+		const total = this.memberStore.getMemberIds(this.guildStore.getGuildId()).length;
 		const mCount = document.getElementById('memberCount');
 
-		if(mCount) {
+		if (mCount) {
 			mCount.textContent = `Members—${total}`;
 			return true;
 		}
@@ -227,7 +236,7 @@ class MemberCount {
 	}
 
 	observer({ addedNodes }) {
-		if(addedNodes.length && addedNodes[0].classList && addedNodes[0].classList.contains('app')) {
+		if (addedNodes.length && addedNodes[0].classList && addedNodes[0].classList.contains('app')) {
 			this.unwatch();
 			this.watch();
 		}
@@ -254,7 +263,7 @@ class MemberCount {
 	}
 
 	getVersion() {
-		return '1.0.8';
+		return '1.0.9';
 	}
 
 	getDescription() {
