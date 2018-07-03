@@ -27,12 +27,9 @@
 class chatUserIDs {
 	constructor() {
 		this.initialized = false;
-		this.default = {
-			compact: false
-		};
-		this.settings = {
-			compact: false
-		};
+		this.default = { compact: false };
+		this.settings = Object.assign({}, this.default);
+		this.switchList = ['app', 'chat', 'messages-wrapper'];
 		this.guild;
 		this.member;
 		this.css = `<style id="ChatIDsCSS" type="text/css">
@@ -136,7 +133,7 @@ class chatUserIDs {
 	}
 
 	observer({ addedNodes, removedNodes }) {
-		if(addedNodes.length && addedNodes[0].classList && ['app', 'chat', 'messages-wrapper'].some((u) => addedNodes[0].classList.contains(u))) {
+		if(addedNodes.length && addedNodes[0].classList && this.switchList.includes(addedNodes[0].classList[0])) {
 			this.chatDiscon();
 			this.attachID();
 			this.chatObserve();
@@ -197,7 +194,6 @@ class chatUserIDs {
 							const elem = `<span id="tagID" class="tagID">${author.id}</span>`;
 							$(post).find('.username-wrapper').before(elem);
 							$(post).find('.tagID').off('dblclick.chatID').on('dblclick.chatID', (e) => this.dblClickID(e));
-							}
 						}
 					});
 				}
@@ -259,11 +255,11 @@ class chatUserIDs {
 	}
 
 	log(...extra) {
-		return console.log(`[%c${this.getName()}%c]`, 'color: #59F;', '', ...extra);
+		return console.log(`%c[${this.getName()}]`, 'color: #59F;', ...extra);
 	}
 
 	err(...error) {
-		return console.error(`[%c${this.getName()}%c]`, 'color: #59F;', '', ...error);
+		return console.error(`%c[${this.getName()}]`, 'color: #59F;', ...error);
 	}
 
 	genSettings(panel) {
