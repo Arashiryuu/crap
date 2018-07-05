@@ -201,3 +201,21 @@
 .theme-dark .hljs[class~="javascript" i] .hljs-name, .theme-dark .hljs[class~="javascript" i] .hljs-section, .theme-dark .hljs[class~="javascript" i] .hljs-selector-class, .theme-dark .hljs[class~="javascript" i] .hljs-selector-id, .theme-dark .hljs[class~="javascript" i] .hljs-title {
     color: #82aaff;
 }
+
+#app-mount .hljs[class~="js" i] .hljs-params:not(.hljs-no-param),
+#app-mount .hljs[class~="jsx" i] .hljs-params:not(.hljs-no-param),
+#app-mount .hljs[class~="javascript" i] .hljs-params:not(.hljs-no-param) { 
+    color: #f78c6a;
+}
+
+#app-mount .hljs[class~="js" i] .hljs-no-param,
+#app-mount .hljs[class~="jsx" i] .hljs-no-param,
+#app-mount .hljs[class~="javascript" i] .hljs-no-param {
+    color: #c792ea;
+}
+
+#app-mount .hljs[class~="js" i] .hljs-separator,
+#app-mount .hljs[class~="jsx" i] .hljs-separator,
+#app-mount .hljs[class~="javascript" i] .hljs-separator {
+    color: #eee;
+}
