@@ -55,7 +55,8 @@ class JSMaterialThemeCodeblocks {
 			for(const change of changes) {
 				if(change && change.target && change.target.classList && change.target.classList.contains('message-group')) {
 					this.createThisClass();
-					setTimeout(() => this.createThisClass(), 5e2);
+					this.paramParse();
+					setTimeout(() => { this.createThisClass(); setTimeout(() => this.paramParse(), 5e2); }, 5e2);
 				}
 			}
 		});
@@ -81,6 +82,30 @@ class JSMaterialThemeCodeblocks {
 		}
 	};
 
+	paramParse() {
+		let params = document.querySelectorAll('.hljs-params:not(.hljs-no-param)');
+
+		if (!params.length) return;
+		
+		const noParam = [...params].filter((param) => param.textContent === '()');
+
+		if (noParam.length) {
+			for (const param of noParam) param.classList.add('hljs-no-param');
+		}
+
+		params = document.querySelectorAll('.hljs-params:not(.hljs-no-param)');
+
+		if (!params.length) return;
+
+		for (const param of params) {
+			if (param.innerHTML.indexOf(',') > -1) {
+				const split = param.innerHTML.split(',');
+				for (let i = 0, len = split.length; i < len; i++) split[i] = split[i].trim();
+				param.innerHTML = split.join('<span class="hljs-separator">, </span>');
+			}
+		}
+	};
+
 	getWord(text) {
 		if(this.keywords.hasOwnProperty(text)) {
 			return this.keywords[text];
@@ -90,33 +115,16 @@ class JSMaterialThemeCodeblocks {
 	};
 
 	log(...ex) {
-		return console.log('%c[JSMaterialThemeCodeblocks]%c', 'color: #F95479; text-shadow: 0 0 1px black, 0 0 2px black, 0 0 3px black;', '', ...ex);
+		return console.log('%c[JSMaterialThemeCodeblocks]', 'color: #F95479; text-shadow: 0 0 1px black, 0 0 2px black, 0 0 3px black;', ...ex);
 	};
 
 	err(...ex) {
-		return console.error('%c[JSMaterialThemeCodeblocks]%c', 'color: #F95479; text-shadow: 0 0 1px black, 0 0 2px black, 0 0 3px black;', '', ...ex);
+		return console.error('%c[JSMaterialThemeCodeblocks]', 'color: #F95479; text-shadow: 0 0 1px black, 0 0 2px black, 0 0 3px black;', ...ex);
 	};
-
-	createElement(type = '', props = {}) {
-		if(typeof type !== 'string' || typeof props !== 'object') throw new TypeError('Parameter `type` must be a string, and parameter `props` must be an object.');
-
-		const e = document.createElement(type);
-
-		for(const prop in props) {
-			e[prop] = props[prop];
-		}
-
-		return e;
-	}
 
 	start() {
 		this.log('Started.');
-		this.css = this.createElement('style', {
-			id: 'JSMaterialThemeCodeblocksCSS',
-			type: 'text/css',
-			textContent: '@import url("https://gitcdn.xyz/repo/Arashiryuu/crap/master/Miscellanious/jsMaterialThemeCodeblocksCSS/src.css");'
-		});
-		$('head').append(this.css);
+		BdApi.injectCSS('JSMaterialThemeCodeblocksCSS', '@import url("https://gitcdn.xyz/repo/Arashiryuu/crap/master/Miscellanious/jsMaterialThemeCodeblocksCSS/src.css");');
 		this.watch();
 		this.createThisClass();
 		this.log('MaterialTheme classes integrated.');
@@ -144,11 +152,11 @@ class JSMaterialThemeCodeblocks {
 
 	observer({ addedNodes }) {
 		if(addedNodes.length && addedNodes[0].classList && this.messageList.includes(addedNodes[0].classList[0])) {
-			setTimeout(() => this.createThisClass(), 250);
+			setTimeout(() => { this.createThisClass(); setTimeout(() => this.paramParse(), 500); }, 250);
 		} else if(addedNodes.length && addedNodes[0].classList && this.switchList.includes(addedNodes[0].classList[0])) {
 			this.unwatch();
 			this.watch();
-			setTimeout(() => this.createThisClass(), 250); 
+			setTimeout(() => { this.createThisClass(); setTimeout(() => this.paramParse(), 500); }, 250); 
 			setTimeout(() => this.log('MaterialTheme classes integrated.'), 500);
 		}
 	};
