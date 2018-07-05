@@ -52,8 +52,8 @@ class JSMaterialThemeCodeblocks {
 		};
 
 		this.editObs = new MutationObserver((changes) => {
-			for(const change of changes) {
-				if(change && change.target && change.target.classList && change.target.classList.contains('message-group')) {
+			for (const change of changes) {
+				if (change && change.target && change.target.classList && change.target.classList.contains('message-group')) {
 					this.createThisClass();
 					this.paramParse();
 					setTimeout(() => { this.createThisClass(); setTimeout(() => this.paramParse(), 5e2); }, 5e2);
@@ -67,12 +67,12 @@ class JSMaterialThemeCodeblocks {
 	createThisClass() {
 		try {
 			let kws, t, w;
-			for(const s of this.selectors) {
+			for (const s of this.selectors) {
 				kws = document.querySelectorAll(s);
-				for(const k of kws) {
+				for (const k of kws) {
 					t = k.innerText;
 					w = this.getWord(t);
-					if(w && !$(k).hasClass(w)) {
+					if (w && !$(k).hasClass(w)) {
 						$(k).addClass(w);
 					}
 				}
@@ -99,15 +99,16 @@ class JSMaterialThemeCodeblocks {
 
 		for (const param of params) {
 			if (param.innerHTML.indexOf(',') > -1) {
-				const split = param.innerHTML.split(',');
-				for (let i = 0, len = split.length; i < len; i++) split[i] = split[i].trim();
+				const split = param.innerHTML.split(',')
+					, len = split.length;
+				for (let i = 0; i < len; i++) split[i] = split[i].trim();
 				param.innerHTML = split.join('<span class="hljs-separator">, </span>');
 			}
 		}
 	};
 
 	getWord(text) {
-		if(this.keywords.hasOwnProperty(text)) {
+		if (this.keywords.hasOwnProperty(text)) {
 			return this.keywords[text];
 		}
 
@@ -133,7 +134,7 @@ class JSMaterialThemeCodeblocks {
 	stop() { 
 		this.log('Stopped.');
 		this.unwatch();
-		$('#JSMaterialThemeCodeblocksCSS').remove();
+		BdApi.clearCSS('JSMaterialThemeCodeblocksCSS');
 	};
 
 	load() {
@@ -142,7 +143,7 @@ class JSMaterialThemeCodeblocks {
 
 	watch() {
 		const chat = document.querySelector('.chat');
-		if(!chat) return;
+		if (!chat) return;
 		this.editObs.observe(chat, { attributes: true, subtree: true });
 	}
 
@@ -151,9 +152,9 @@ class JSMaterialThemeCodeblocks {
 	}
 
 	observer({ addedNodes }) {
-		if(addedNodes.length && addedNodes[0].classList && this.messageList.includes(addedNodes[0].classList[0])) {
+		if (addedNodes.length && addedNodes[0].classList && this.messageList.includes(addedNodes[0].classList[0])) {
 			setTimeout(() => { this.createThisClass(); setTimeout(() => this.paramParse(), 500); }, 250);
-		} else if(addedNodes.length && addedNodes[0].classList && this.switchList.includes(addedNodes[0].classList[0])) {
+		} else if (addedNodes.length && addedNodes[0].classList && this.switchList.includes(addedNodes[0].classList[0])) {
 			this.unwatch();
 			this.watch();
 			setTimeout(() => { this.createThisClass(); setTimeout(() => this.paramParse(), 500); }, 250); 
