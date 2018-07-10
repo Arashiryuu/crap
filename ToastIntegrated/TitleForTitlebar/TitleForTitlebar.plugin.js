@@ -122,7 +122,6 @@ var TitleForTitlebar = (() => {
 				this.target = document.querySelector('#app-mount > div:first-child');
 				this.appendTitle();
 				this.manageTitle();
-				this.loadSettings(this.settings);
 				Toasts.info(`${this.name} ${this.version} has started!`, { icon: true, timeout: 2e3 });
 			}
 
@@ -231,14 +230,7 @@ var TitleForTitlebar = (() => {
 			}
 
 			get short() {
-				let string = '';
-
-				for (let i = 0, len = config.info.name.length; i < len; i++) {
-					const char = config.info.name[i];
-					if (char === char.toUpperCase()) string += char;
-				}
-
-				return string;
+				return config.info.name.split('').filter((char) => char === char.toUpperCase()).join('');
 			}
 
 			get author() {
