@@ -1,4 +1,4 @@
-//META{"name":"TitleForTitlebar","displayName":"TitleForTitlebar","website":"https://github.com/Arashiryuu","source":"https://github.com/Arashiryuu"}*//
+//META{"name":"TitleForTitlebar","displayName":"TitleForTitlebar","website":"https://github.com/Arashiryuu","source":"https://github.com/Arashiryuu/crap"}*//
 
 /*@cc_on
 @if (@_jscript)
@@ -55,7 +55,7 @@ var TitleForTitlebar = (() => {
 			version: '1.0.0',
 			description: 'Adds a title to the titlebar, dynamically changes as needed.',
 			github: 'https://github.com/Arashiryuu',
-			github_raw: ''
+			github_raw: 'https://raw.githubusercontent.com/Arashiryuu/crap/master/ToastIntegrated/TitleForTitlebar/TitleForTitlebar.plugin.js'
 		}
 	};
 
