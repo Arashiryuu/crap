@@ -1,4 +1,4 @@
-//META{"name":"HideUtils"}*//
+//META{"name":"HideUtils","displayName":"HideUtils","website":"https://github.com/Arashiryuu","source":"https://github.com/Arashiryuu/crap"}*//
 
 /*@cc_on
 @if (@_jscript)
@@ -46,6 +46,8 @@ class HideUtils {
 		this.user;
 		this.guild;
 		this.channel;
+		
+		this.mute;
 
 		this.blockCSS = `<style id="HideUtils-Block-CSS" type="text/css">
 			.message-group-blocked,
@@ -251,7 +253,7 @@ class HideUtils {
 
 	stop() {
 		this.Cancel();
-		this.hid = this.default;
+		this.resetSettings();
 		$('#HideUtils-Block-CSS, #HideUtils-Settings-CSS').remove();
 		this.allDiscon();
 		$('*').off('click.HideUtilsC, click.HideUtilsS, click.HideUtilsU');
@@ -282,6 +284,7 @@ class HideUtils {
 		this.channel = findByProps(['getChannel']);
 		this.guild = findByProps(['getGuild']);
 		this.user = findByProps(['getUser']);
+		this.mute = findByProps(['setLocalVolume']).setLocalVolume;
 		this.loadSettings();
 		this.TypingUsers = find((x) => {
 			try {
@@ -295,7 +298,8 @@ class HideUtils {
 				for(const user of this.hid.users.keys()) {
 					if(typingUsers[user]) delete typingUsers[user];
 				}
-			}
+			},
+			displayName: 'TypingUsers'
 		});
 		$('head').append(this.blockCSS, this.settingsCSS);
 		this.allObs();
@@ -535,7 +539,7 @@ class HideUtils {
 		if(o) {
 			const server = this.guild.getGuild(o);
 			if(server) {
-				const icon = $(`a[style*="${server.id}"]`).attr('style').split('"')[1];
+				const icon = server.getIconURL();
 				this.hid.servers.set(server.id, {
 					icon,
 					name: server.name,
@@ -567,7 +571,7 @@ class HideUtils {
 			}
 			const server = this.guild.getGuild(nServer);
 			if(server) {
-				const icon = $(`a[style*="${server.id}"]`).attr('style').split('"')[1];
+				const icon = server.getIconURL();
 				this.hid.servers.set(server.id, {
 					icon,
 					name: server.name,
@@ -623,7 +627,7 @@ class HideUtils {
 		if(!context) return;
 		if(!this.getReactInstance(context) || !this.getReactInstance(context).return.memoizedProps.user) return;
 		const contexts = ['user-name', 'avatar-small', 'avatar-large', 'username-1cB_5E', 'image-33JSyf', 'small-5Os1Bb', 'avatarWrapper-3B0ndJ'];
-		if(this.getReactInstance(context).return.memoizedProps.target && ( contexts.some((n) => this.getReactInstance(context).return.memoizedProps.target.className.includes(n)) )) {
+		if(this.getReactInstance(context).return.memoizedProps.target && typeof this.getReactInstance(context).return.memoizedProps.target.className !== 'object' && ( contexts.some((n) => this.getReactInstance(context).return.memoizedProps.target.className.includes(n)) )) {
 			$(context).find('.item-1Yvehc').first().after(this.userItem);
 			$(context).find('.item-1Yvehc.hideUser')
 				.off('click.HideUtilsU')
@@ -642,6 +646,7 @@ class HideUtils {
 		if(!context) return;
 		if(!this.getReactInstance(context).return.memoizedProps.user) return;
 		const user = this.getReactInstance(context).return.memoizedProps.user.id;
+		if(DiscordModules.UserInfoStore.getId() === user) return PluginUtilities.showToast('You cannot hide yourself.', { type: 'danger', icon: true, timeout: 3e3 });
 		if(!this.hid.users.has(user)) {
 			this.userPush(user);
 			this.saveSettings();
@@ -690,8 +695,16 @@ class HideUtils {
 			}
 			if(document.querySelector('.wrapperSelectedVoice-xzxa2u.wrapper-KpKNwI .userDefault-1qtQob')) {
 				$('.wrapperSelectedVoice-xzxa2u.wrapper-KpKNwI .userDefault-1qtQob').each((_, user) => {
-					if(user.nodeType === 1 && user instanceof Element && this.getReactInstance(user) && this.getReactInstance(user).child.memoizedProps.user)
-						this.hid.users.has(this.getReactInstance(user).child.memoizedProps.user.id) ? $(user).hide() : $(user).show();
+					const reactUser = this.getReactInstance(user);
+					if(user.nodeType === 1 && user instanceof Element && reactUser && reactUser.child.memoizedProps.user) {
+						if(this.hid.users.has(reactUser.child.memoizedProps.user.id)) {
+							$(user).hide();
+							this.mute(reactUser.child.memoizedProps.user.id, 0);
+						} else {
+							$(user).show();
+							this.mute(reactUser.child.memoizedProps.user.id, 100);
+						}
+					}
 				});
 			}
 		} catch(e) {
@@ -745,6 +758,10 @@ class HideUtils {
 			}
 			else if(this.hid.users.has(nUser)) {
 				field.val('Invalid entry: This user is already being hidden.');
+				return setTimeout(() => field.val(''), 2e3);
+			}
+			else if(DiscordModules.UserInfoStore.getId() === nUser) {
+				field.val('Invalid entry: You cannot hide yourself.');
 				return setTimeout(() => field.val(''), 2e3);
 			}
 			const user = this.user.getUser(nUser);
@@ -824,6 +841,13 @@ class HideUtils {
 			return PluginUtilities.showToast('HideUtils settings do not exist or are unable to be loaded.', { type: 'info', icon: true, timeout: 3e3 });
 		}
 		return PluginUtilities.showToast('HideUtils settings do not exist or are unable to be loaded.', { type: 'info', icon: true, timeout: 3e3 });
+	}
+
+	resetSettings() {
+		for(const entry in this.default) {
+			this.hid[entry] = this.default[entry];
+		}
+		return true;
 	}
 
 	settingSelect() {
@@ -1005,7 +1029,7 @@ class HideUtils {
 	}
 
 	getVersion() {
-		return '1.1.7';
+		return '1.1.8';
 	}
 
 	getDescription() {
