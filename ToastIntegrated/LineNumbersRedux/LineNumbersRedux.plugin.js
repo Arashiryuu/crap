@@ -1,4 +1,4 @@
-//META{"name":"LineNumbersRedux","displayName":"LineNumbersRedux","website":"https://github.com/Arashiryuu","source":"https://github.com/Arashiryuu/crap"}*//
+//META{"name":"LineNumbersRedux","displayName":"LineNumbersRedux","website":"https://github.com/Arashiryuu","source":"https://github.com/Arashiryuu/crap/blob/master/ToastIntegrated/LineNumbersRedux/LineNumbersRedux.plugin.js"}*//
 
 /*@cc_on
 @if (@_jscript)
