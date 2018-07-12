@@ -256,7 +256,7 @@ class HideUtils {
 		this.resetSettings();
 		$('#HideUtils-Block-CSS, #HideUtils-Settings-CSS').remove();
 		this.allDiscon();
-		$('*').off('click.HideUtilsC, click.HideUtilsS, click.HideUtilsU');
+		$('*').off('click.HideUtilsC click.HideUtilsS click.HideUtilsU');
 		this.stopHiding();
 		this.log('Stopped');
 	}
