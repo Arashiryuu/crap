@@ -1,4 +1,4 @@
-//META{"name":"messageTimestamps"}*//
+//META{"name":"messageTimestamps","displayName":"messageTimestamps","website":"https://github.com/Arashiryuu","source":"https://github.com/Arashiryuu/crap"}*//
 
 /*@cc_on
 @if (@_jscript)
@@ -27,12 +27,8 @@
 class messageTimestamps {
 	constructor() {
 		this.initialized = false;
-		this.default = {
-			tooltips: false
-		};
-		this.settings = {
-			tooltips: false
-		};
+		this.default = { tooltips: false };
+		this.settings = Object.assign({}, this.default);
 
 		this.contextMarkup = `<div class="itemGroup-1tL0uz messageTimestamps">
 			<div class="item-1Yvehc timestamp">
@@ -47,6 +43,7 @@ class messageTimestamps {
 					for(const node of change.addedNodes.values()) {
 						if(node.nodeType === 1 && node.classList && node.classList.contains('contextMenu-HLZMGh')) {
 							this.addContext(node);
+							setTimeout(() => this.updateContextPosition(node), 500);
 						}
 					}
 				}
@@ -96,6 +93,19 @@ class messageTimestamps {
 
 	discon() {
 		this.contextMO.disconnect();
+	}
+
+	updateContextPosition(context) {
+		if (!context) return;
+
+		const { bottom } = context.getBoundingClientRect();
+
+		if (bottom <= window.outerHeight) return;
+
+		const diff = bottom - window.outerHeight;
+		const origVal = parseInt(context.style.top);
+
+		context.style.top = (origVal - diff) + 'px';
 	}
 
 	addContext(node) {
@@ -152,6 +162,10 @@ class messageTimestamps {
 		return console.error(`[%c${this.getName()}%c]`, 'color: #59F;', '', ...errors);
 	}
 
+	revertSettings() {
+		for (const key in this.default) this.settings[key] = this.default[key];
+	}
+
 	get downLink() {
 		return `https://raw.githubusercontent.com/Arashiryuu/crap/master/ToastIntegrated/${this.getName()}/${this.getName()}.plugin.js`;
 	}
@@ -165,7 +179,7 @@ class messageTimestamps {
 	}
 
 	getVersion() {
-		return '1.1.2';
+		return '1.1.3';
 	}
 
 	getDescription() {
@@ -182,9 +196,7 @@ class messageTimestamps {
 			text: 'Reset To Default',
 			style: 'float: right;'
 		}).on('click.reset', () => {
-			for(const key in this.default) {
-				this.settings[key] = this.default[key];
-			}
+			this.revertSettings();
 			PluginUtilities.saveSettings(this.getName(), this.settings);
 			panel.empty();
 			this.genSettingsPanel(panel);
