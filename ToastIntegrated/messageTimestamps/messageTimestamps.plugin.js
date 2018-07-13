@@ -38,10 +38,10 @@ class messageTimestamps {
 		</div>`;
 
 		this.contextMO = new MutationObserver((changes) => {
-			for(const change of changes) {
-				if(change.addedNodes && change.addedNodes.length) {
-					for(const node of change.addedNodes.values()) {
-						if(node.nodeType === 1 && node.classList && node.classList.contains('contextMenu-HLZMGh')) {
+			for (const change of changes) {
+				if (change.addedNodes && change.addedNodes.length) {
+					for (const node of change.addedNodes.values()) {
+						if (node.nodeType === 1 && node.classList && node.classList.contains('contextMenu-HLZMGh')) {
 							this.addContext(node);
 							setTimeout(() => this.updateContextPosition(node), 500);
 						}
@@ -63,8 +63,9 @@ class messageTimestamps {
 
 	start() {
 		this.log('Started');
-		let libraryScript = document.querySelector('#zeresLibraryScript');
-		if(!libraryScript) {
+		let libraryScript = document.getElementById('zeresLibraryScript');
+
+		if (!libraryScript) {
 			libraryScript = document.createElement('script');
 			libraryScript.id = 'zeresLibraryScript';
 			libraryScript.src = 'https://rauenzi.github.io/BetterDiscordAddons/Plugins/PluginLibrary.js';
@@ -72,7 +73,7 @@ class messageTimestamps {
 			document.head.appendChild(libraryScript);
 		}
 
-		if(typeof window.ZeresLibrary !== 'undefined') this.initialize();
+		if (typeof window.ZeresLibrary !== 'undefined') this.initialize();
 		else libraryScript.addEventListener('load', () => this.initialize());
 	}
 
@@ -109,9 +110,9 @@ class messageTimestamps {
 	}
 
 	addContext(node) {
-		if(!node) return;
+		if (!node) return;
 		const refNode = this.getReactInstance(node);
-		if(refNode && refNode.return.memoizedProps.message && refNode.return.memoizedProps.type && refNode.return.memoizedProps.type.includes('MESSAGE')) {
+		if (refNode && refNode.return.memoizedProps.message && refNode.return.memoizedProps.type && refNode.return.memoizedProps.type.includes('MESSAGE')) {
 			$(node).find('.item-1Yvehc').first().before(this.contextMarkup);
 			$(node).find('.item-1Yvehc.timestamp')
 				.off('click.msgTimes')
@@ -128,11 +129,11 @@ class messageTimestamps {
 		const message = this.getReactInstance(menu).return.stateNode.props.target;
 		const msg = this.getReactInstance(menu).return.memoizedProps.message;
 
-		if(!menu || !msg) return;
+		if (!menu || !msg) return;
 
 		$(menu).slideUp(200);
 
-		if(!this.settings.tooltips) {
+		if (!this.settings.tooltips) {
 			PluginUtilities.showToast(msg.timestamp._d);
 		} else {
 			const timestamp = String(msg.timestamp._d).split(' ').slice(0, 5).join(' ');
@@ -207,7 +208,7 @@ class messageTimestamps {
 
 	getSettingsPanel() {
 		const panel = $('<form>').addClass('form').css('width', '100%');
-		if(this.initialized) this.genSettingsPanel(panel);
+		if (this.initialized) this.genSettingsPanel(panel);
 		return panel[0];
 	}
 };
