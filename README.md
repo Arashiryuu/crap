@@ -13,5 +13,3 @@
 **[hashTagging](https://github.com/Arashiryuu/crap/blob/master/hashTagging.plugin.js)** ー produces distinct `#hashtags`
 
 **[killxd](https://github.com/Arashiryuu/crap/blob/master/killxd.plugin.js)** ー replaces instances of XD, case-insensitively.
-
-**[chatUserIDs](https://github.com/Arashiryuu/crap/blob/master/chatUserIDs.plugin.js)** ー Adds a user's ID next to their names in the chat, makes accessing a user's ID simpler. Double-click the ID to copy it.
