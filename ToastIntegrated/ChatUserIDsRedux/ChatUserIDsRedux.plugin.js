@@ -52,7 +52,7 @@ var ChatUserIDsRedux = (() => {
 					twitter_username: ''
 				}
 			],
-			version: '1.0.0',
+			version: '1.0.1',
 			description: 'Adds a user\'s ID next to their name in chat, makes accessing a user ID simpler. Double-click to copy the ID.',
 			github: 'https://github.com/Arashiryuu',
 			github_raw: 'https://raw.githubusercontent.com/Arashiryuu/crap/master/ToastIntegrated/ChatUserIDsRedux/ChatUserIDsRedux.plugin.js'
@@ -216,10 +216,12 @@ var ChatUserIDsRedux = (() => {
 				});
 
 				Patcher.after(Message.prototype, 'render', (that, args, value) => {
-					if (!that.props.first || that.props.message.type !== 0) return value;
+					const props = this.getProps(value, '_owner.return.memoizedProps');
+
+					if (!props.first || that.props.className.indexOf('message') !== 0) return value;
 
 					const children = this.getProps(value, 
-						that.props.compact 
+						this.getProps(props, 'compact') 
 							? 'props.children.0.props.children.2'
 							: 'props.children.0.props.children.0.props.children'
 					);
@@ -227,15 +229,17 @@ var ChatUserIDsRedux = (() => {
 					if (!children || !Array.isArray(children)) return value;
 
 					const id = DiscordModules.React.createElement(ID, {
-						id: that.props.message.author.id,
+						id: this.getProps(props, 'message.author.id'),
 						onDoubleClick: (e) => this.double(e)
 					});
 
-					if (that.props.compact) {
+					if (this.getProps(props, 'compact')) {
 						const kids = this.getProps(children[1], 'props.children');
 						if (!kids || !Array.isArray(kids)) return value;
+						if (kids.some((item) => Object.is(item, id))) return value;
 						kids.unshift(id);
 					} else {
+						if (children.some((item) => Object.is(item, id))) return value;
 						children.unshift(id);
 					}
 
@@ -259,9 +263,7 @@ var ChatUserIDsRedux = (() => {
 			 * @author Zerebos
 			 */
 			getProps(obj, path) {
-				return path.split(/\s?\.\s?/).reduce((obj, prop) => {
-					return obj && obj[prop];
-				}, obj);
+				return path.split(/\s?\.\s?/).reduce((obj, prop) => obj && obj[prop], obj);
 			}
 
 			/* Observer */
