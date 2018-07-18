@@ -52,11 +52,18 @@ var ChatUserIDsRedux = (() => {
 					twitter_username: ''
 				}
 			],
-			version: '1.0.1',
+			version: '1.0.2',
 			description: 'Adds a user\'s ID next to their name in chat, makes accessing a user ID simpler. Double-click to copy the ID.',
 			github: 'https://github.com/Arashiryuu',
 			github_raw: 'https://raw.githubusercontent.com/Arashiryuu/crap/master/ToastIntegrated/ChatUserIDsRedux/ChatUserIDsRedux.plugin.js'
-		}
+		},
+		changelog: [
+			{
+				title: 'Bugs Squashed',
+				type: 'fixed',
+				items: ['Adapted to internal restructuring.']
+			}
+		]
 	};
 
 	/* Utility */
@@ -218,11 +225,11 @@ var ChatUserIDsRedux = (() => {
 				Patcher.after(Message.prototype, 'render', (that, args, value) => {
 					const props = this.getProps(value, '_owner.return.memoizedProps');
 
-					if (!props.first || that.props.className.indexOf('message') !== 0) return value;
+					if (!props.first || props.message.type !== 0) return value;
 
 					const children = this.getProps(value, 
-						this.getProps(props, 'compact') 
-							? 'props.children.0.props.children.2'
+						props.compact
+							? 'props.children.0.props.children.2.1.props.children'
 							: 'props.children.0.props.children.0.props.children'
 					);
 
@@ -233,15 +240,8 @@ var ChatUserIDsRedux = (() => {
 						onDoubleClick: (e) => this.double(e)
 					});
 
-					if (this.getProps(props, 'compact')) {
-						const kids = this.getProps(children[1], 'props.children');
-						if (!kids || !Array.isArray(kids)) return value;
-						if (kids.some((item) => Object.is(item, id))) return value;
-						kids.unshift(id);
-					} else {
-						if (children.some((item) => Object.is(item, id))) return value;
-						children.unshift(id);
-					}
+					if (props.compact) children.unshift(id);
+					else children.unshift(id);
 
 					return value;
 				});
