@@ -219,3 +219,9 @@
 #app-mount .hljs[class~="javascript" i] .hljs-separator {
     color: #eee;
 }
+
+#app-mount .hljs[class~="js" i] .hljs-regexp,
+#app-mount .hljs[class~="jsx" i] .hljs-regexp,
+#app-mount .hljs[class~="javascript" i] .hljs-regexp {
+    color: #89DDF3 !important;
+}
