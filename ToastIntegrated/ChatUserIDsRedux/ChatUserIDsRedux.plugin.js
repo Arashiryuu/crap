@@ -52,12 +52,17 @@ var ChatUserIDsRedux = (() => {
 					twitter_username: ''
 				}
 			],
-			version: '1.0.2',
+			version: '1.0.3',
 			description: 'Adds a user\'s ID next to their name in chat, makes accessing a user ID simpler. Double-click to copy the ID.',
 			github: 'https://github.com/Arashiryuu',
 			github_raw: 'https://raw.githubusercontent.com/Arashiryuu/crap/master/ToastIntegrated/ChatUserIDsRedux/ChatUserIDsRedux.plugin.js'
 		},
 		changelog: [
+			{
+				title: 'What\'s New',
+				type: 'added',
+				items: ['Compatibility with Quoter plugin.']
+			},
 			{
 				title: 'Bugs Squashed',
 				type: 'fixed',
@@ -91,8 +96,6 @@ var ChatUserIDsRedux = (() => {
 	const buildPlugin = ([Plugin, Api]) => {
 		const { Toasts, Logger, Patcher, Settings, ReactTools, DiscordModules, WebpackModules } = Api;
 
-		const { ComponentDispatch: Dispatcher } = WebpackModules.getByProps('ComponentDispatch');
-
 		const ID = class ID extends DiscordModules.React.Component {
 			constructor(props) {
 				super(props);
@@ -121,8 +124,7 @@ var ChatUserIDsRedux = (() => {
 					color: '#798AED'
 				};
 				this.settings = Object.assign({}, this.default);
-				this.switchList = ['app', 'chat', 'messages-wrapper'];
-				this.messageList = ['message', 'message-text', 'message-group'];
+				this._css;
 				this.css = `
 					@import 'https://fonts.googleapis.com/css?family=Roboto|Inconsolata';
 				
@@ -169,7 +171,7 @@ var ChatUserIDsRedux = (() => {
 					.message-group.compact .markup .message-content {
 						order: 3;
 					}
-				`.split(/\s+/g).join(' ').trim();
+				`;
 			}
 
 			/* Methods */
@@ -228,9 +230,11 @@ var ChatUserIDsRedux = (() => {
 					if (!props.first || props.message.type !== 0) return value;
 
 					const children = this.getProps(value, 
-						props.compact
-							? 'props.children.0.props.children.2.1.props.children'
-							: 'props.children.0.props.children.0.props.children'
+						!props.compact
+							? 'props.children.0.props.children.0.props.children'
+							: window.pluginCookie['Quoter']
+								? 'props.children.0.props.children.2.1.props.children'
+								: 'props.children.0.props.children.2.props.children'
 					);
 
 					if (!children || !Array.isArray(children)) return value;
@@ -240,8 +244,7 @@ var ChatUserIDsRedux = (() => {
 						onDoubleClick: (e) => this.double(e)
 					});
 
-					if (props.compact) children.unshift(id);
-					else children.unshift(id);
+					children.unshift(id);
 
 					return value;
 				});
@@ -266,14 +269,6 @@ var ChatUserIDsRedux = (() => {
 				return path.split(/\s?\.\s?/).reduce((obj, prop) => obj && obj[prop], obj);
 			}
 
-			/* Observer */
-
-			observer({ addedNodes }) {
-				if (addedNodes.length && addedNodes[0].classList && this.switchList.includes(addedNodes[0].classList[0])) {
-					// onSwitch
-				}
-			}
-
 			/* Utility */
 
 			revertSettings() {
@@ -292,11 +287,21 @@ var ChatUserIDsRedux = (() => {
 					)
 				);
 			}
+			
+			/* Setters */
+			
+			set css(styles = '') {
+				return this._css = styles.split(/\s+/g).join(' ').trim();
+			}
 
 			/* Getters */
 
 			get [Symbol.toStringTag]() {
 				return 'Plugin';
+			}
+			
+			get css() {
+				return this._css;
 			}
 
 			get name() {
