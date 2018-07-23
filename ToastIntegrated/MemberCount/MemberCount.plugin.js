@@ -34,28 +34,32 @@ class MemberCount {
 		this.loadedGuilds = [];
 
 		this.membMO = new MutationObserver((changes) => {
+			let reinject = false;
+			let memberCount = false;
 			for (const change of changes) {
 				if (change.type === 'childList' && change.addedNodes.length) {
 					for (const node of change.addedNodes.values()) {
 						if (node.classList && node.classList.contains('membersWrap-2h-GB4')) {
-							this.reinject();
+							reinject = true;
 						} else if (node.classList && ['chat', 'messages-wrapper'].includes(node.classList[0])) {
-							this.reinject();
+							reinject = true;
 						} else if (node.classList && node.classList.contains('member-3W1lQa')) {
-							this.memberCount();
+							memberCount = true;
 						}
 					}
 				} else if (change.type === 'childList' && change.removedNodes.length) {
 					for (const node of change.removedNodes.values()) {
 						if (node.classList && node.classList.contains('member-3W1lQa')) {
-							this.memberCount();
+							memberCount = true;
 						}
 					}
 				}
 				if (document.getElementById('memberCount')) {
-					this.memberCount();
+					memberCount = true;
 				}
 			}
+			if (reinject) this.reinject();
+			if (memberCount) this.memberCount();
 		});
 
 		this.styleCSS = `
@@ -263,7 +267,7 @@ class MemberCount {
 	}
 
 	getVersion() {
-		return '1.0.9';
+		return '1.0.10';
 	}
 
 	getDescription() {
