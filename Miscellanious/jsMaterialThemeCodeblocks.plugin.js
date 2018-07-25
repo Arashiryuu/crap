@@ -26,7 +26,7 @@
 
 class JSMaterialThemeCodeblocks {
 	constructor() {
-		this.messageList = ['message-group', 'message', 'markup'];
+		this.messageList = ['container-1YxwTf', 'message-1PNnaP', 'markup-2BOw-j'];
 		this.switchList = ['app', 'chat', 'messages-wrapper'];
 
 		this.selectors = [
@@ -53,7 +53,7 @@ class JSMaterialThemeCodeblocks {
 
 		this.editObs = new MutationObserver((changes) => {
 			for (const change of changes) {
-				if (change && change.target && change.target.classList && change.target.classList.contains('message-group')) {
+				if (change && change.target && change.target.classList && change.target.classList.contains('container-1YxwTf')) {
 					this.createThisClass();
 					this.paramParse();
 					setTimeout(() => { this.createThisClass(); setTimeout(() => this.paramParse(), 5e2); }, 5e2);
@@ -128,7 +128,6 @@ class JSMaterialThemeCodeblocks {
 		BdApi.injectCSS('JSMaterialThemeCodeblocksCSS', '@import url("https://gitcdn.xyz/repo/Arashiryuu/crap/master/Miscellanious/jsMaterialThemeCodeblocksCSS/src.css");');
 		this.watch();
 		this.createThisClass();
-		this.log('MaterialTheme classes integrated.');
 	};
 
 	stop() { 
@@ -157,8 +156,7 @@ class JSMaterialThemeCodeblocks {
 		} else if (addedNodes.length && addedNodes[0].classList && this.switchList.includes(addedNodes[0].classList[0])) {
 			this.unwatch();
 			this.watch();
-			setTimeout(() => { this.createThisClass(); setTimeout(() => this.paramParse(), 500); }, 250); 
-			setTimeout(() => this.log('MaterialTheme classes integrated.'), 500);
+			setTimeout(() => { this.createThisClass(); setTimeout(() => this.paramParse(), 500); }, 250);
 		}
 	};
 
