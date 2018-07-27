@@ -29,10 +29,10 @@ var ChatUserIDsRedux = (() => {
 	/* Setup */
 
 	if (!global.ZLibrary && !global.ZLibraryPromise) global.ZLibraryPromise = new Promise((resolve, reject) => {
-		require('request').get({ url: 'https://rauenzi.github.io/BetterDiscordAddons/Plugins/ZLibrary.js', timeout: 1e4 }, (err, res, body) => { // https://zackrauen.com/BetterDiscordApp/ZLibrary.js | https://rauenzi.github.io/BetterDiscordAddons/Plugins/ZLibrary.js
-			if (err || res.statusCode !== 200) reject(err || res.statusMessage);
+		require('request').get({ url: 'https://rauenzi.github.io/BDPluginLibrary/release/ZLibrary.js', timeout: 1e4 }, (err, res, body) => { // https://zackrauen.com/BetterDiscordApp/ZLibrary.js | https://rauenzi.github.io/BetterDiscordAddons/Plugins/ZLibrary.js
+			if (err || res.statusCode !== 200) return reject(err || res.statusMessage);
 			try {
-				const vm = require('vm'), script = new vm.Script(body, { displayErrors: true });
+				const { Script } = require('vm'), script = new Script(body, { displayErrors: true });
 				resolve(script.runInThisContext());
 			} catch(err) {
 				reject(err);
@@ -52,21 +52,16 @@ var ChatUserIDsRedux = (() => {
 					twitter_username: ''
 				}
 			],
-			version: '1.0.3',
+			version: '1.0.5',
 			description: 'Adds a user\'s ID next to their name in chat, makes accessing a user ID simpler. Double-click to copy the ID.',
 			github: 'https://github.com/Arashiryuu',
 			github_raw: 'https://raw.githubusercontent.com/Arashiryuu/crap/master/ToastIntegrated/ChatUserIDsRedux/ChatUserIDsRedux.plugin.js'
 		},
 		changelog: [
 			{
-				title: 'What\'s New',
-				type: 'added',
-				items: ['Compatibility with Quoter plugin.']
-			},
-			{
 				title: 'Bugs Squashed',
 				type: 'fixed',
-				items: ['Adapted to internal restructuring.']
+				items: ['Further fixes after recent Discord update.']
 			}
 		]
 	};
@@ -94,7 +89,7 @@ var ChatUserIDsRedux = (() => {
 	/* Build */
 
 	const buildPlugin = ([Plugin, Api]) => {
-		const { Toasts, Logger, Patcher, Settings, ReactTools, DiscordModules, WebpackModules } = Api;
+		const { Toasts, Patcher, Settings, ReactTools, DiscordModules, WebpackModules, DiscordSelectors } = Api;
 
 		const ID = class ID extends DiscordModules.React.Component {
 			constructor(props) {
@@ -145,31 +140,13 @@ var ChatUserIDsRedux = (() => {
 						font-family: 'Roboto', 'Inconsolata', 'Whitney', sans-serif;
 					}
 		
-					.message-group:not(.compact) h2 {
+					.container-1YxwTf h2 {
 						display: flex;
 						position: relative;
 					}
 					
-					.message-group .comment .message.first ~ div > .edit-message .edit-container-inner .old-h2 {
+					.container-1YxwTf .comment .message.first ~ div > .edit-message .edit-container-inner .headerCozy-2N9HOL {
 						display: none;
-					}
-
-					.message-group.compact .markup .tagID {
-						order: 0;
-					}
-		
-					.message-group.compact .markup .timestamp {
-						order: 1;
-						width: 35px;
-					}
-		
-					.message-group.compact .markup .username-wrapper {
-						order: 2;
-						display: initial;
-					}
-		
-					.message-group.compact .markup .message-content {
-						order: 3;
 					}
 				`;
 			}
@@ -211,36 +188,34 @@ var ChatUserIDsRedux = (() => {
 			 */
 			async patchMessages() {
 				const Message = await new Promise((resolve) => {
-					const message = document.querySelector('.message');
+					const message = document.querySelector(DiscordSelectors.Messages.message);
 					if (message) return resolve(ReactTools.getOwnerInstance(message).constructor);
 
-					const MessageGroup = WebpackModules.find((m) => m.defaultProps && m.defaultProps.renderReactions);
+					const MessageGroup = WebpackModules.getModule((m) => m.defaultProps && m.defaultProps.disableManageMessages);
 					const unpatch = Patcher.after(MessageGroup.prototype, 'componentDidMount', (that) => {
 						const elem = DiscordModules.ReactDOM.findDOMNode(that);
 						if (!elem) return;
 						unpatch();
-						const msg = elem.querySelector('.message');
+						const msg = elem.querySelector(DiscordSelectors.Messages.message);
 						resolve(ReactTools.getOwnerInstance(msg).constructor);
 					});
 				});
 
 				Patcher.after(Message.prototype, 'render', (that, args, value) => {
-					const props = this.getProps(value, '_owner.return.memoizedProps');
-
-					if (!props.first || props.message.type !== 0) return value;
+					if (!that.props.isHeader || that.props.message.type !== 0) return value;
 
 					const children = this.getProps(value, 
-						!props.compact
-							? 'props.children.0.props.children.0.props.children'
+						!that.props.isCompact
+							? 'props.children.0.props.children.1.props.children'
 							: window.pluginCookie['Quoter']
 								? 'props.children.0.props.children.2.1.props.children'
-								: 'props.children.0.props.children.2.props.children'
+								: 'props.children'
 					);
 
 					if (!children || !Array.isArray(children)) return value;
 
 					const id = DiscordModules.React.createElement(ID, {
-						id: this.getProps(props, 'message.author.id'),
+						id: this.getProps(that.props, 'message.author.id'),
 						onDoubleClick: (e) => this.double(e)
 					});
 
@@ -257,7 +232,7 @@ var ChatUserIDsRedux = (() => {
 			 * @author Zerebos
 			 */
 			updateMessages() {
-				const messages = document.querySelectorAll('.message');
+				const messages = document.querySelectorAll(DiscordSelectors.Messages.message);
 				for (let i = 0, len = messages.length; i < len; i++) ReactTools.getOwnerInstance(messages[i]).forceUpdate();
 			}
 
@@ -341,16 +316,16 @@ var ChatUserIDsRedux = (() => {
 				//
 			}
 			getName() {
-				return config.info.name.replace(/\s+/g, '');
+				return this.name;
 			}
 			getAuthor() {
-				return config.info.authors.map((author) => author.name).join(', ');
+				return this.author;
 			}
 			getVersion() {
-				return config.info.version;
+				return this.version;
 			}
 			getDescription() {
-				return config.info.description;
+				return this.description;
 			}
 			showAlert() {
 				window.mainCore.alert('Loading Error', 'Something went wrong trying to load the library for the plugin. Try reloading?');
@@ -366,8 +341,8 @@ var ChatUserIDsRedux = (() => {
 					new vm.Script(plugin, { displayErrors: true });
 				} catch(e) {
 					return bdpluginErrors.push({
-						name: this.getName(),
-						file: `${this.getName()}.plugin.js`,
+						name: this.name,
+						file: `${this.name}.plugin.js`,
 						reason: 'Plugin could not be compiled.',
 						error: {
 							message: e.message,
@@ -375,13 +350,13 @@ var ChatUserIDsRedux = (() => {
 						}
 					});
 				}
-				global[this.getName()] = plugin;
+				global[this.name] = plugin;
 				try {
-					new vm.Script(`new global["${this.getName()}"]();`, { displayErrors: true });
+					new vm.Script(`new global["${this.name}"]();`, { displayErrors: true });
 				} catch(e) {
 					return bdpluginErrors.push({
-						name: this.getName(),
-						file: `${this.getName()}.plugin.js`,
+						name: this.name,
+						file: `${this.name}.plugin.js`,
 						reason: 'Plugin could not be constructed.',
 						error: {
 							message: e.message,
@@ -389,8 +364,8 @@ var ChatUserIDsRedux = (() => {
 						}
 					});
 				}
-				bdplugins[this.getName()].plugin = new global[this.getName()]();
-				bdplugins[this.getName()].plugin.load();
+				bdplugins[this.name].plugin = new global[this.name]();
+				bdplugins[this.name].plugin.load();
 			}
 			async start() {
 				try {
@@ -398,12 +373,44 @@ var ChatUserIDsRedux = (() => {
 				} catch(e) {
 					return this.showAlert();
 				}
-				bdplugins[this.getName()].plugin.start();
+				bdplugins[this.name].plugin.start();
 			}
 			stop() {}
+
+			/* Getters */
+
 			get [Symbol.toStringTag]() {
 				return 'Plugin';
+			}
+
+			get name() {
+				return config.info.name;
+			}
+
+			get short() {
+				let string = '';
+
+				for (let i = 0, len = config.info.name.length; i < len; i++) {
+					const char = config.info.name[i];
+					if (char === char.toUpperCase()) string += char;
+				}
+
+				return string;
+			}
+
+			get author() {
+				return config.info.authors.map((author) => author.name).join(', ');
+			}
+
+			get version() {
+				return config.info.version;
+			}
+
+			get description() {
+				return config.info.description;
 			}
 		}
 		: buildPlugin(global.ZLibrary.buildPlugin(config));
 })();
+
+/*@end@*/
