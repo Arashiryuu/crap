@@ -48,15 +48,17 @@ class HideUtils {
 		this.channel;
 		
 		this.mute;
+		this._blockCSS;
+		this._settingsCSS;
 
-		this.blockCSS = `<style id="HideUtils-Block-CSS" type="text/css">
+		this.blockCSS = `
 			.message-group-blocked,
 			.unread-mentions-bar {
 				display: none;
 			}
-		</style>`;
+		`;
 
-		this.settingsCSS = `<style id="HideUtils-Settings-CSS" type="text/css">
+		this.settingsCSS = `
 			#HideUtils-Settings {
 				overflow-x: hidden;
 			}
@@ -136,7 +138,7 @@ class HideUtils {
 				min-width: 20pt !important;
 				background: rgba(255, 255, 255, 0.6) !important;
 			}
-		</style>`;
+		`;
 
 		this.chanItem = `<div class="itemGroup-1tL0uz HideUtils">
 			<div class="item-1Yvehc hideChannel">
@@ -160,10 +162,10 @@ class HideUtils {
 		</div>`;
 
 		this.chanMO = new MutationObserver((changes) => {
-			for(const change of changes) {
-				if(change.addedNodes) {
-					for(const node of change.addedNodes.values()) {
-						if(node.classList && node.classList.contains('containerDefault-1ZnADq')) {
+			for (const change of changes) {
+				if (change.addedNodes) {
+					for (const node of change.addedNodes.values()) {
+						if (node.classList && node.classList.contains('containerDefault-1ZnADq')) {
 							this.auditChannels();
 						}
 					}
@@ -172,13 +174,13 @@ class HideUtils {
 		});
 
 		this.chanCon = new MutationObserver((changes) => {
-			for(const change of changes) {
-				if(change.addedNodes) {
-					for(const node of change.addedNodes.values()) {
-						if(node.nodeType === 1 && node.classList && node.classList.contains('contextMenu-HLZMGh')) {
+			for (const change of changes) {
+				if (change.addedNodes) {
+					for (const node of change.addedNodes.values()) {
+						if (node.nodeType === 1 && node.classList && node.classList.contains('contextMenu-HLZMGh')) {
 							this.channelContext(node);
 						}
-						if(node.nodeType === 1 && node.classList && ( node.classList.contains('chat') || node.classList.contains('messages-wrapper') )) {
+						if (node.nodeType === 1 && node.classList && ( node.classList.contains('chat') || node.classList.contains('messages-wrapper') )) {
 							this.auditChannels();
 							this.chanMO.disconnect();
 							this.chanObs();
@@ -189,10 +191,10 @@ class HideUtils {
 		});
 
 		this.servMO = new MutationObserver((changes) => {
-			for(const change of changes) {
-				if(change.addedNodes) {
-					for(const node of change.addedNodes.values()) {
-						if(node.classList && node.classList.contains('guild')) {
+			for (const change of changes) {
+				if (change.addedNodes) {
+					for (const node of change.addedNodes.values()) {
+						if (node.classList && node.classList.contains('guild')) {
 							this.auditServers();
 						}
 					}
@@ -201,13 +203,13 @@ class HideUtils {
 		});
 
 		this.servCon = new MutationObserver((changes) => {
-			for(const change of changes) {
-				if(change.addedNodes) {
-					for(const node of change.addedNodes.values()) {
-						if(node.nodeType === 1 && node.classList && node.classList.contains('contextMenu-HLZMGh')) {
+			for (const change of changes) {
+				if (change.addedNodes) {
+					for (const node of change.addedNodes.values()) {
+						if (node.nodeType === 1 && node.classList && node.classList.contains('contextMenu-HLZMGh')) {
 							this.serverContext(node);
 						}
-						if(node.nodeType === 1 && node.classList && ( node.classList.contains('chat') || node.classList.contains('messages-wrapper') )) {
+						if (node.nodeType === 1 && node.classList && ( node.classList.contains('chat') || node.classList.contains('messages-wrapper') )) {
 							this.auditServers();
 							this.servDiscon();
 							this.servObs();
@@ -218,10 +220,10 @@ class HideUtils {
 		});
 
 		this.userMO = new MutationObserver((changes) => {
-			for(const change of changes) {
-				if(change.addedNodes) {
-					for(const node of change.addedNodes.values()) {
-						if(this.getReactInstance(node) && this.getReactInstance(node).return && this.getReactInstance(node).return.memoizedProps.user && this.hid.users.has(this.getReactInstance(node).return.memoizedProps.user.id)) {
+			for (const change of changes) {
+				if (change.addedNodes) {
+					for (const node of change.addedNodes.values()) {
+						if (this.getReactInstance(node) && this.getReactInstance(node).return && this.getReactInstance(node).return.memoizedProps.user && this.hid.users.has(this.getReactInstance(node).return.memoizedProps.user.id)) {
 							this.auditUsers();
 						}
 					}
@@ -230,13 +232,13 @@ class HideUtils {
 		});
 
 		this.userCon = new MutationObserver((changes) => {
-			for(const change of changes) {
-				if(change.addedNodes) {
-					for(const node of change.addedNodes.values()) {
-						if(node.nodeType === 1 && node.classList && node.classList.contains('contextMenu-HLZMGh')) {
+			for (const change of changes) {
+				if (change.addedNodes) {
+					for (const node of change.addedNodes.values()) {
+						if (node.nodeType === 1 && node.classList && node.classList.contains('contextMenu-HLZMGh')) {
 							this.userContext(node);
 						}
-						if(node.nodeType === 1 && node.classList && ( node.classList.contains('chat') || node.classList.contains('messages-wrapper') || node.classList.contains('membersWrap-2h-GB4') )) {
+						if (node.nodeType === 1 && node.classList && ( node.classList.contains('chat') || node.classList.contains('messages-wrapper') || node.classList.contains('membersWrap-2h-GB4') )) {
 							this.auditUsers();
 							this.userDiscon();
 							this.userObs();
@@ -247,6 +249,16 @@ class HideUtils {
 		});
 	}
 
+	/* Required Methods - Plugin Info */
+
+	getName() { return this.name; }
+	getAuthor() { return this.author; }
+	getVersion() { return this.version; }
+	getDescription() { return this.description; }
+	getSettingsPanel() { return this.settingsPanel; }
+
+	/* Required Methods - Main */
+
 	load() {
 		this.log('Loaded');
 	}
@@ -254,7 +266,7 @@ class HideUtils {
 	stop() {
 		this.Cancel();
 		this.resetSettings();
-		$('#HideUtils-Block-CSS, #HideUtils-Settings-CSS').remove();
+		this.removeCSS();
 		this.allDiscon();
 		$('*').off('click.HideUtilsC click.HideUtilsS click.HideUtilsU');
 		this.stopHiding();
@@ -263,8 +275,25 @@ class HideUtils {
 
 	start() {
 		this.log('Started');
-		let libraryScript = document.getElementById('#zeresLibraryScript');
-		if(!libraryScript) {
+		let libraryScript = window.zeresLibraryScript;
+		
+		if (!libraryScript) {
+			libraryScript = document.createElement('script');
+			libraryScript.id = 'zeresLibraryScript';
+			libraryScript.src = 'https://rauenzi.github.io/BetterDiscordAddons/Plugins/PluginLibrary.js';
+			libraryScript.type = 'text/javascript';
+			document.head.appendChild(libraryScript);
+		} else if (libraryScript instanceof HTMLCollection) {
+			for (let i = libraryScript.length - 1, len = 0; i > len; i--) libraryScript[i].remove();
+			libraryScript = window.zeresLibraryScript;
+			libraryScript.remove();
+			libraryScript = document.createElement('script');
+			libraryScript.id = 'zeresLibraryScript';
+			libraryScript.src = 'https://rauenzi.github.io/BetterDiscordAddons/Plugins/PluginLibrary.js';
+			libraryScript.type = 'text/javascript';
+			document.head.appendChild(libraryScript);
+		} else if (window.ZeresLibrary && window.ZeresLibrary.isOutdated) {
+			libraryScript.remove();
 			libraryScript = document.createElement('script');
 			libraryScript.id = 'zeresLibraryScript';
 			libraryScript.src = 'https://rauenzi.github.io/BetterDiscordAddons/Plugins/PluginLibrary.js';
@@ -272,12 +301,15 @@ class HideUtils {
 			document.head.appendChild(libraryScript);
 		}
 
-		if(typeof window.ZeresLibrary !== 'undefined') this.initialize();
+		if (typeof window.ZeresLibrary !== 'undefined') this.initialize();
 		else libraryScript.addEventListener('load', () => this.initialize());
 	}
 
+	/* Methods */
+
 	initialize() {
-		PluginUtilities.checkForUpdate(this.getName(), this.getVersion(), this.downLink);
+		PluginUtilities.checkForUpdate(this.name, this.version, this.link);
+		this.loadSettings();
 
 		const { WebpackModules: { find, findByProps } } = InternalUtilities;
 
@@ -285,7 +317,7 @@ class HideUtils {
 		this.guild = findByProps(['getGuild']);
 		this.user = findByProps(['getUser']);
 		this.mute = findByProps(['setLocalVolume']).setLocalVolume;
-		this.loadSettings();
+
 		this.TypingUsers = find((x) => {
 			try {
 				return x.displayName === 'FluxContainer(t)' && !(new x({channel: 0}));
@@ -293,20 +325,49 @@ class HideUtils {
 				return e.toString().includes('isPrivate');
 			}
 		});
+
 		this.Cancel = InternalUtilities.monkeyPatch(this.TypingUsers.prototype, 'render', {
 			before: ({ thisObject: { state: { typingUsers } } }) => {
-				for(const user of this.hid.users.keys()) {
-					if(typingUsers[user]) delete typingUsers[user];
+				for (const id in typingUsers) {
+					if (this.hid.users.has(id)) delete typingUsers[id];
 				}
 			},
 			displayName: 'TypingUsers'
 		});
-		$('head').append(this.blockCSS, this.settingsCSS);
+
+		this.injectCSS();
 		this.allObs();
-		this.initialized = true;
 		this.startHiding();
 
+		this.initialized = true;
 		PluginUtilities.showToast(`${this.getName()} ${this.getVersion()} has started.`, { type: 'info', icon: true, timeout: 2e3 });
+	}
+
+	injectCSS() {
+		const block = document.getElementById('HideUtils-Block-CSS');
+		const setting = document.getElementById('HideUtils-Settings-CSS');
+		if (!block) {
+			const e = document.createElement('style');
+			e.id = 'HideUtils-Block-CSS';
+			e.type = 'text/css';
+			e.textContent = this.blockCSS;
+			document.head.appendChild(e);
+		}
+		if (!setting) {
+			const e = document.createElement('style');
+			e.id = 'HideUtils-Settings-CSS';
+			e.type = 'text/css';
+			e.textContent = this.settingsCSS;
+			document.head.appendChild(e);
+		}
+	}
+
+	removeCSS() {
+		const block = document.getElementById('HideUtils-Block-CSS');
+		const setting = document.getElementById('HideUtils-Settings-CSS');
+
+		if (block) block.remove();
+		if (setting) setting.remove();
 	}
 
 	startHiding() {
@@ -362,8 +423,8 @@ class HideUtils {
 	}
 
 	channelContext(context) {
-		if(!context) return;
-		if(this.getReactInstance(context) && this.getReactInstance(context).return.memoizedProps.target && this.getReactInstance(context).return.memoizedProps.type && this.getReactInstance(context).return.memoizedProps.type.includes('CHANNEL_LIST') && this.getReactInstance(context).return.memoizedProps.channel && (this.getReactInstance(context).return.memoizedProps.channel.type === 0 || this.getReactInstance($('.contextMenu-HLZMGh')[0]).return.memoizedProps.channel.type === 2)) {
+		if (!context) return;
+		if (this.getReactInstance(context) && this.getReactInstance(context).return.memoizedProps.target && this.getReactInstance(context).return.memoizedProps.type && this.getReactInstance(context).return.memoizedProps.type.includes('CHANNEL_LIST') && this.getReactInstance(context).return.memoizedProps.channel && (this.getReactInstance(context).return.memoizedProps.channel.type === 0 || this.getReactInstance($('.contextMenu-HLZMGh')[0]).return.memoizedProps.channel.type === 2)) {
 			$(context).find('.item-1Yvehc').first().after(this.chanItem);
 			$(context).find('.item-1Yvehc.hideChannel')
 				.off('click.HideUtilsC')
@@ -372,10 +433,10 @@ class HideUtils {
 	}
 
 	chanConClick() {
-		if(!document.querySelector('.contextMenu-HLZMGh')) return;
-		if(!this.getReactInstance(document.querySelector('.contextMenu-HLZMGh')).return.memoizedProps.channel) return;
+		if (!document.querySelector('.contextMenu-HLZMGh')) return;
+		if (!this.getReactInstance(document.querySelector('.contextMenu-HLZMGh')).return.memoizedProps.channel) return;
 		const channel = this.getReactInstance(document.querySelector('.contextMenu-HLZMGh')).return.memoizedProps.channel.id;
-		if(!this.hid.channels.has(channel)) {
+		if (!this.hid.channels.has(channel)) {
 			this.chanPush(channel);
 			this.saveSettings();
 			this.auditChannels();
@@ -383,23 +444,26 @@ class HideUtils {
 	}
 
 	auditChannels() {
-		if(document.querySelector('div[class^="channels"] .containerDefault-1ZnADq')) {
-			$('div[class^="channels"] .containerDefault-1ZnADq').each((_, channel) => {
-				if(this.getReactInstance(channel) && this.getReactInstance(channel).return.memoizedProps.channel)
-					this.hid.channels.has(this.getReactInstance(channel).return.memoizedProps.channel.id) ? $(channel).hide() : $(channel).show();
-			});
+		if (document.querySelector('div[class^="channels"] .containerDefault-1ZnADq')) {
+			for (const channel of document.querySelectorAll('div[class^="channels"] .containerDefault-1ZnADq')) {
+				const c = this.getReactInstance(channel);
+				const r = this.getProp(c, 'return.memoizedProps.channel');
+				if (c && r) {
+					this.hid.channels.has(r.id) ? $(channel).hide() : $(channel).show();
+				}
+			}
 		}
 	}
 
 	hideChannels() {
-		if(!this.hid.channels.size) return;
+		if (!this.hid.channels.size) return;
 		this.auditChannels();
 	}
 
 	chanPush(o) {
-		if(o) {
+		if (o) {
 			const chan = this.channel.getChannel(o);
-			if(chan) {
+			if (chan) {
 				const guild = this.guild.getGuild(chan.guild_id);
 				this.hid.channels.set(chan.id, {
 					guild: guild.name,
@@ -412,24 +476,24 @@ class HideUtils {
 		} else {
 			const field = $('#ChanblockField');
 			const nChan = field.val();
-			if(isNaN(nChan)) {
+			if (isNaN(nChan)) {
 				field.val('Invalid entry: NaN; ID-Only.');
 				return setTimeout(() => field.val(''), 2e3);
 			}
-			else if(!nChan) {
+			else if (!nChan) {
 				field.val('Invalid entry: No-entry.');
 				return setTimeout(() => field.val(''), 2e3);
 			}
-			else if(!nChan.match(/^\d{16,18}$/)) {
+			else if (!nChan.match(/^\d{16,18}$/)) {
 				field.val('Invalid entry: Invalid length or characters.');
 				return setTimeout(() => field.val(''), 2e3);
 			}
-			else if(this.hid.channels.has(nChan)) {
+			else if (this.hid.channels.has(nChan)) {
 				field.val('Invalid entry: This channel is already being hidden.');
 				return setTimeout(() => field.val(''), 2e3);
 			}
 			const chan = this.channel.getChannel(nChan);
-			if(chan) {
+			if (chan) {
 				const guild = this.guild.getGuild(chan.guild_id);
 				this.hid.channels.set(chan.id, {
 					guild: guild.name,
@@ -449,8 +513,8 @@ class HideUtils {
 
 	chanClear(o) {
 		const field = $('#ChanblockField');
-		if(o) {
-			if(this.hid.channels.has(o)) {
+		if (o) {
+			if (this.hid.channels.has(o)) {
 				this.hid.channels.delete(o);
 				this.saveSettings();
 				$(`.button[id="${o}"]`).remove();
@@ -460,15 +524,15 @@ class HideUtils {
 			}
 		} else {
 			const oChan = field.val();
-			if(this.hid.channels.size) {
-				if(oChan.match(/^\d{16,18}$/) && this.hid.channels.has(oChan)) {
+			if (this.hid.channels.size) {
+				if (oChan.match(/^\d{16,18}$/) && this.hid.channels.has(oChan)) {
 					this.hid.channels.delete(oChan);
 					this.saveSettings();
 					$(`.button[id="${o}"]`).remove();
 					field.val('Channel successfully removed!');
 					setTimeout(() => field.val(''), 2e3);
 					this.auditChannels();
-				} else if(oChan.match() && !this.hid.channels.has(oChan)) {
+				} else if (oChan.match() && !this.hid.channels.has(oChan)) {
 					field.val('This channel is not being hidden.');
 					setTimeout(() => field.val(''), 2e3);
 				} else {
@@ -481,7 +545,7 @@ class HideUtils {
 
 	chanObs() {
 		const chanWrap = document.querySelector('.scroller-2v3d_F');
-		if(!chanWrap) return;
+		if (!chanWrap) return;
 		this.chanMO.observe(chanWrap, { childList: true, subtree: true });
 	}
 
@@ -490,8 +554,10 @@ class HideUtils {
 	}
 
 	serverContext(context) {
-		if(!context) return;
-		if(this.getReactInstance(context) && this.getReactInstance(context).return.memoizedProps.type === 'GUILD_ICON_BAR' && this.getReactInstance(context).return.memoizedProps.guild && !this.getReactInstance(context).return.memoizedProps.channel) {
+		if (!context) return;
+		const ctx = this.getReactInstance(context);
+		const props = this.getProp(ctx, 'return.memoizedProps');
+		if (ctx && props.type === 'GUILD_ICON_BAR' && props.guild && !props.channel) {
 			$(context).find('.item-1Yvehc').first().after(this.servItem);
 			$(context).find('.item-1Yvehc.hideServer')
 				.off('click.HideUtilsS')
@@ -501,10 +567,11 @@ class HideUtils {
 
 	servConClick() {
 		const context = document.querySelector('.contextMenu-HLZMGh');
-		if(!context) return;
-		if(!this.getReactInstance(context).return.memoizedProps.guild) return;
-		const server = this.getReactInstance(context).return.memoizedProps.guild.id;
-		if(!this.hid.servers.has(server)) {
+		if (!context) return;
+		const guild = this.getProp(this.getReactInstance(context), 'return.memoizedProps.guild');
+		if (!guild) return;
+		const server = guild.id;
+		if (!this.hid.servers.has(server)) {
 			this.servPush(server);
 			this.saveSettings();
 			this.hideServers();
@@ -512,22 +579,25 @@ class HideUtils {
 	}
 
 	auditServers() {
-		if(document.querySelector('.guild')) {
-			$('.guild').each((_, guild) => {
-				if(guild instanceof Element && this.getReactInstance(guild) && this.getReactInstance(guild).return.memoizedProps.guild)
-					this.hid.servers.has(this.getReactInstance(guild).return.memoizedProps.guild.id) ? $(guild).hide() : $(guild).show();
-			});
+		if (document.querySelector('.guild')) {
+			for (const guild of document.querySelectorAll('.guild')) {
+				const g = this.getReactInstance(guild);
+				const s = this.getProp(g, 'return.memoizedProps.guild');
+				if (g && s) {
+					this.hid.servers.has(s.id) && guild.style.display !== 'none' ? $(guild).hide() : $(guild).show();
+				}
+			}
 		}
 	}
 
 	hideServers() {
-		if(!this.hid.servers.size) return;
+		if (!this.hid.servers.size) return;
 		this.auditServers();
 	}
 
 	servObs() {
 		const guilds = document.querySelector('.guilds-wrapper');
-		if(!guilds) return;
+		if (!guilds) return;
 		this.servMO.observe(guilds, { childList: true, subtree: true });
 	}
 
@@ -536,9 +606,9 @@ class HideUtils {
 	}
 
 	servPush(o) {
-		if(o) {
+		if (o) {
 			const server = this.guild.getGuild(o);
-			if(server) {
+			if (server) {
 				const icon = server.getIconURL();
 				this.hid.servers.set(server.id, {
 					icon,
@@ -553,24 +623,24 @@ class HideUtils {
 		} else {
 			const field = $('#ServerHideField');
 			const nServer = field.val();
-			if(isNaN(nServer)) {
+			if (isNaN(nServer)) {
 				field.val('Invalid entry: NaN; ID-Only.');
 				return setTimeout(() => field.val(''), 2e3);
 			}
-			else if(!nServer) {
+			else if (!nServer) {
 				field.val('Invalid entry: No-entry.');
 				return setTimeout(() => field.val(''), 2e3);
 			}
-			else if(!nServer.match(/^\d{16,18}$/)) {
+			else if (!nServer.match(/^\d{16,18}$/)) {
 				field.val('Invalid entry: Invalid length or characters.');
 				return setTimeout(() => field.val(''), 2e3);
 			}
-			else if(this.hid.servers.has(nServer)) {
+			else if (this.hid.servers.has(nServer)) {
 				field.val('Invalid entry: This server is already being hidden.');
 				return setTimeout(() => field.val(''), 2e3);
 			}
 			const server = this.guild.getGuild(nServer);
-			if(server) {
+			if (server) {
 				const icon = server.getIconURL();
 				this.hid.servers.set(server.id, {
 					icon,
@@ -590,8 +660,8 @@ class HideUtils {
 
 	servClear(o) {
 		const field = $('#ServerHideField');
-		if(o) {
-			if(this.hid.servers.has(o)) {
+		if (o) {
+			if (this.hid.servers.has(o)) {
 				this.hid.servers.delete(o);
 				this.saveSettings();
 				$(`.button[id="${o}"]`).remove();
@@ -604,15 +674,15 @@ class HideUtils {
 			}
 		} else {
 			const oServer = field.val();
-			if(this.hid.servers.size) {
-				if(oServer.match(/^\d{16,18}$/) && this.hid.servers.has(oServer)) {
+			if (this.hid.servers.size) {
+				if (oServer.match(/^\d{16,18}$/) && this.hid.servers.has(oServer)) {
 					this.hid.servers.delete(oServer);
 					this.saveSettings();
 					$(`.button[id="${o}"]`).remove();
 					field.val('Server successfully removed!');
 					setTimeout(() => field.val(''), 2e3);
 					this.auditServers();
-				} else if(oServer.match(/^\d{16,18}$/) && !this.hid.servers.has(oServer)) {
+				} else if (oServer.match(/^\d{16,18}$/) && !this.hid.servers.has(oServer)) {
 					field.val('This server is not being hidden.');
 					setTimeout(() => field.val(''), 2e3);
 				} else {
@@ -624,16 +694,18 @@ class HideUtils {
 	}
 
 	userContext(context) {
-		if(!context) return;
-		if(!this.getReactInstance(context) || !this.getReactInstance(context).return.memoizedProps.user) return;
-		const contexts = ['user-name', 'avatar-small', 'avatar-large', 'username-1cB_5E', 'image-33JSyf', 'small-5Os1Bb', 'avatarWrapper-3B0ndJ'];
-		if(this.getReactInstance(context).return.memoizedProps.target && typeof this.getReactInstance(context).return.memoizedProps.target.className !== 'object' && ( contexts.some((n) => this.getReactInstance(context).return.memoizedProps.target.className.includes(n)) )) {
+		if (!context) return;
+		const ctx = this.getReactInstance(context);
+		const user = this.getProp(ctx, 'return.memoizedProps.user');
+		const props = this.getProp(ctx, 'return.memoizedProps');
+		if (!ctx || !user) return;
+		const contexts = ['user-name', 'avatar-small', 'avatar-large', 'username-_4ZSMR', 'image-33JSyf', 'small-5Os1Bb', 'wrapper-2F3Zv8', 'avatar-17mtNa'];
+		if (props.target && typeof props.target.className !== 'object' && ( contexts.some((n) => props.target.className.includes(n)) )) {
 			$(context).find('.item-1Yvehc').first().after(this.userItem);
 			$(context).find('.item-1Yvehc.hideUser')
 				.off('click.HideUtilsU')
 				.on('click.HideUtilsU', (o) => this.userConClick());
-		} else
-		if(this.getReactInstance(context).return.memoizedProps.type && this.getReactInstance(context).return.memoizedProps.type === 'USER_FRIEND_LIST' && this.getReactInstance(context).return.memoizedProps.user) {
+		} else if (props.type && props.type === 'USER_FRIEND_LIST' && user) {
 			$(context).find('.item-1Yvehc').first().after(this.userItem);
 			$(context).find('.item-1Yvehc.hideUser')
 				.off('click.HideUtilsU')
@@ -643,11 +715,11 @@ class HideUtils {
 
 	userConClick() {
 		const context = document.querySelector('.contextMenu-HLZMGh');
-		if(!context) return;
-		if(!this.getReactInstance(context).return.memoizedProps.user) return;
+		if (!context) return;
+		if (!this.getReactInstance(context).return.memoizedProps.user) return;
 		const user = this.getReactInstance(context).return.memoizedProps.user.id;
-		if(DiscordModules.UserInfoStore.getId() === user) return PluginUtilities.showToast('You cannot hide yourself.', { type: 'danger', icon: true, timeout: 3e3 });
-		if(!this.hid.users.has(user)) {
+		if (DiscordModules.UserInfoStore.getId() === user) return PluginUtilities.showToast('You cannot hide yourself.', { type: 'danger', icon: true, timeout: 3e3 });
+		if (!this.hid.users.has(user)) {
 			this.userPush(user);
 			this.saveSettings();
 			this.hideUsers();
@@ -656,56 +728,57 @@ class HideUtils {
 
 	auditUsers() {
 		try {
-			if(document.querySelector('.member-3W1lQa')) {
-				$('.member-3W1lQa').each((_, user) => {
-					if(user.nodeType === 1 && user instanceof Element && this.getReactInstance(user) && this.getReactInstance(user).return.memoizedProps.user) {
-						if(this.hid.users.has(this.getReactInstance(user).return.memoizedProps.user.id)) {
+			if (document.querySelector('.member-3W1lQa')) {
+				for (const user of document.querySelectorAll('.member-3W1lQa')) {
+					const reactUser = this.getReactInstance(user);
+					const u = this.getProp(reactUser, 'return.memoizedProps.user');
+					if (reactUser && u) {
+						if (this.hid.users.has(u.id)) {
 							$(user).hide();
 							const group = $('.membersGroup-v9BXpm');
-							if(group.length) {
+							if (group.length) {
 								const filtered = group.filter((_, o) => user.compareDocumentPosition(o) === 2).last();
-								if(user.previousElementSibling.className && user.previousElementSibling.className.includes('membersGroup-v9BXpm') && user.nextElementSibling.className && user.nextElementSibling.className.includes('membersGroup-v9BXpm')) {
+								if (user.previousElementSibling.className && user.previousElementSibling.className.includes('membersGroup-v9BXpm') && user.nextElementSibling.className && user.nextElementSibling.className.includes('membersGroup-v9BXpm')) {
 									filtered.hide();
 								}
 							}
 						} else {
 							$(user).show();
 							const group = $('.membersGroup-v9BXpm');
-							if(group.length) {
+							if (group.length) {
 								const filtered = group.filter((_, o) => user.compareDocumentPosition(o) === 2).last();
-								if(user.previousElementSibling.className && user.previousElementSibling.className.includes('membersGroup-v9BXpm') && user.nextElementSibling.className && user.nextElementSibling.className.includes('membersGroup-v9BXpm')) {
+								if (user.previousElementSibling.className && user.previousElementSibling.className.includes('membersGroup-v9BXpm') && user.nextElementSibling.className && user.nextElementSibling.className.includes('membersGroup-v9BXpm')) {
 									filtered.show();
 								}
 							}
 						}
 					}
-				});
-			}
-			if(document.querySelector('.message-group')) {
-				$('.message-group.hide-overflow').each((_, user) => {
-					if(user.nodeType === 1 && user instanceof Element && this.getReactInstance(user) && this.getReactInstance(user).return.memoizedProps.messages && this.getReactInstance(user).return.memoizedProps.messages[0] && this.getReactInstance(user).return.memoizedProps.messages[0].author)
-						this.hid.users.has(this.getReactInstance(user).return.memoizedProps.messages[0].author.id) ? $(user).hide() : $(user).show();
-				});
-				if($('.message-group:not(.hide-overflow)').length) {
-					$('.message-group:not(.hide-overflow)').each((_, user) => {
-						if(user.nodeType === 1 && user instanceof Element && this.getReactInstance(user) && this.getReactInstance(user).return.key && this.getReactInstance(user).return.key.includes('upload')  && this.getReactInstance(user).return.memoizedProps.user)
-							this.hid.users.has(this.getReactInstance(user).return.memoizedProps.user.id) ? $(user).hide() : $(user).show();
-					});
 				}
 			}
-			if(document.querySelector('.wrapperSelectedVoice-xzxa2u.wrapper-KpKNwI .userDefault-1qtQob')) {
-				$('.wrapperSelectedVoice-xzxa2u.wrapper-KpKNwI .userDefault-1qtQob').each((_, user) => {
+			if (document.querySelector('.container-1YxwTf')) {
+				for (const user of document.querySelectorAll('.container-1YxwTf')) {
+					const instance = this.getReactInstance(user);
+					const messages = this.getProp(instance, 'return.memoizedProps.messages');
+					if (instance && messages && messages.length) {
+						const { id } = messages[0].author;
+						this.hid.users.has(id) ? $(user).hide() : $(user).show();
+					}
+				}
+			}
+			if (document.querySelector('.wrapperSelectedVoice-xzxa2u.wrapper-KpKNwI .userDefault-1qtQob')) {
+				for (const user of document.querySelectorAll('.wrapperSelectedVoice-xzxa2u.wrapper-KpKNwI .userDefault-1qtQob')) {
 					const reactUser = this.getReactInstance(user);
-					if(user.nodeType === 1 && user instanceof Element && reactUser && reactUser.child.memoizedProps.user) {
-						if(this.hid.users.has(reactUser.child.memoizedProps.user.id)) {
+					const usr = this.getProp(reactUser, 'child.memoizedProps.user');
+					if (reactUser && usr) {
+						if (this.hid.users.has(usr.id)) {
 							$(user).hide();
-							this.mute(reactUser.child.memoizedProps.user.id, 0);
+							this.mute(usr.id, 0);
 						} else {
 							$(user).show();
-							this.mute(reactUser.child.memoizedProps.user.id, 100);
+							this.mute(usr.id, 100);
 						}
 					}
-				});
+				}
 			}
 		} catch(e) {
 			this.err(e.stack);
@@ -713,13 +786,13 @@ class HideUtils {
 	}
 
 	hideUsers() {
-		if(!this.hid.users.size) return;
+		if (!this.hid.users.size) return;
 		this.auditUsers();
 	}
 	
 	userObs() {
 		const memWrap = document.querySelector('.membersWrap-2h-GB4');
-		if(!memWrap) return;
+		if (!memWrap) return;
 		this.userMO.observe(memWrap, { childList: true, subtree: true });
 	}
 
@@ -728,9 +801,9 @@ class HideUtils {
 	}
 
 	userPush(o) {
-		if(o) {
+		if (o) {
 			const user = this.user.getUser(o);
-			if(user) {
+			if (user) {
 				this.hid.users.set(user.id, {
 					icon: user.avatarURL,
 					tag: user.tag,
@@ -744,28 +817,28 @@ class HideUtils {
 		} else {
 			const field = $('#blockField');
 			const nUser = field.val();
-			if(isNaN(nUser)) {
+			if (isNaN(nUser)) {
 				field.val('Invalid entry: NaN; ID-Only.');
 				return setTimeout(() => field.val(''), 2e3);
 			}
-			else if(!nUser) {
+			else if (!nUser) {
 				field.val('Invalid entry: No-entry.');
 				return setTimeout(() => field.val(''), 2e3);
 			}
-			else if(!nUser.match(/^\d{17,18}$/)) {
+			else if (!nUser.match(/^\d{17,18}$/)) {
 				field.val('Invalid entry: Invalid length or characters.');
 				return setTimeout(() => field.val(''), 2e3);
 			}
-			else if(this.hid.users.has(nUser)) {
+			else if (this.hid.users.has(nUser)) {
 				field.val('Invalid entry: This user is already being hidden.');
 				return setTimeout(() => field.val(''), 2e3);
 			}
-			else if(DiscordModules.UserInfoStore.getId() === nUser) {
+			else if (DiscordModules.UserInfoStore.getId() === nUser) {
 				field.val('Invalid entry: You cannot hide yourself.');
 				return setTimeout(() => field.val(''), 2e3);
 			}
 			const user = this.user.getUser(nUser);
-			if(user) {
+			if (user) {
 				this.hid.users.set(user.id, {
 					icon: user.avatarURL,
 					tag: user.tag,
@@ -784,8 +857,8 @@ class HideUtils {
 
 	userClear(o) {
 		const field = $('#blockField');
-		if(o) {
-			if(this.hid.users.has(o)) {
+		if (o) {
+			if (this.hid.users.has(o)) {
 				this.hid.users.delete(o);
 				this.saveSettings();
 				$(`.button[id="${o}"]`).remove();
@@ -797,15 +870,15 @@ class HideUtils {
 			}
 		} else {
 			const oUser = field.val();
-			if(this.hid.users.size) {
-				if(oUser.match(/^\d{17,18}$/) && this.hid.users.has(oUser)) {
+			if (this.hid.users.size) {
+				if (oUser.match(/^\d{17,18}$/) && this.hid.users.has(oUser)) {
 					this.hid.users.delete(oUser);
 					this.saveSettings();
 					$(`.button[id="${o}"]`).remove();
 					field.val('User successfully removed!');
 					setTimeout(() => field.val(''), 2e3);
 					this.auditUsers();
-				} else if(oUser.match(/^\d{17,18}$/) && !this.hid.users.has(oUser)) {
+				} else if (oUser.match(/^\d{17,18}$/) && !this.hid.users.has(oUser)) {
 					field.val('That user is not being hidden.');
 					setTimeout(() => field.val(''), 2e3);
 				} else {
@@ -815,6 +888,8 @@ class HideUtils {
 			}
 		}
 	}
+
+	/* Settings */
 
 	saveSettings() {
 		try {
@@ -828,11 +903,11 @@ class HideUtils {
 
 	loadSettings() {
 		const settings = bdPluginStorage.get('HideUtils', 'settings');
-		if(settings) {
+		if (settings) {
 			const parsed = JSON.parse(settings);
-			if(parsed instanceof Object && parsed.hasOwnProperty('channels')) {
-				for(const [key, data] of Object.entries(parsed)) {
-					for(const entry of data) {
+			if (parsed instanceof Object && parsed.hasOwnProperty('channels')) {
+				for (const [key, data] of Object.entries(parsed)) {
+					for (const entry of data) {
 						this.hid[key].set(entry[0], entry[1]);
 					}
 				}
@@ -844,7 +919,7 @@ class HideUtils {
 	}
 
 	resetSettings() {
-		for(const entry in this.default) {
+		for (const entry in this.default) {
 			this.hid[entry] = this.default[entry];
 		}
 		return true;
@@ -874,8 +949,8 @@ class HideUtils {
 				<div id="ChannelIcons" class="icons">
 				<div class="scroller-fzNley container scroller">`;
 
-				if(this.hid.channels.size) {
-					for(const entry of this.hid.channels.values()) {
+				if (this.hid.channels.size) {
+					for (const entry of this.hid.channels.values()) {
 						html += `<button type="button" class="button" id="${entry.id}" title="${entry.guild ? entry.guild : entry.name}" onclick=BdApi.getPlugin("${this.getName()}").chanClear("${entry.id}")>${entry.name}</button>`;
 					}
 				}
@@ -904,8 +979,8 @@ class HideUtils {
 				<div id="ServerIcons" class="icons">
 				<div class="scroller-fzNley container scroller">`;
 
-				if(this.hid.servers.size) {
-					for(const entry of this.hid.servers.values()) {
+				if (this.hid.servers.size) {
+					for (const entry of this.hid.servers.values()) {
 						html += `<button type="button" class="button" id="${entry.id}" title="${entry.name}" style="background-image: url(${entry.icon});" onclick=BdApi.getPlugin("${this.getName()}").servClear("${entry.id}")></button>`;
 					}
 				}
@@ -934,8 +1009,8 @@ class HideUtils {
 				<div id="UserIcons" class="icons">
 				<div class="scroller-fzNley container scroller">`;
 
-				if(this.hid.users.size) {
-					for(const entry of this.hid.users.values()) {
+				if (this.hid.users.size) {
+					for (const entry of this.hid.users.values()) {
 						html += `<button type="button" class="button" id="${entry.id}" title="${entry.tag}" style="background-image: url(${entry.icon});" onclick=BdApi.getPlugin("${this.getName()}").userClear("${entry.id}")></button>`;
 					}
 				}
@@ -984,14 +1059,17 @@ class HideUtils {
 		return setTimeout(() => settings.html(this.settingSelect()), 5e2);
 	}
 
+	/* Observer */
+
 	observer({ addedNodes, removedNodes }) {
-		if(addedNodes.length && addedNodes[0].classList && ( addedNodes[0].classList.contains('message') || addedNodes[0].classList.contains('message-group') || addedNodes[0].classList.contains('userDefault-1qtQob') )) {
+		if (addedNodes.length && addedNodes[0].classList && ( addedNodes[0].classList.contains('message-1PNnaP') || addedNodes[0].classList.contains('container-1YxwTf') || addedNodes[0].classList.contains('userDefault-1qtQob') )) {
 			this.auditUsers();
-		}
-		if(removedNodes.length && removedNodes[0].classList && removedNodes[0].classList.contains('folder')) {
+		} else if (removedNodes.length && removedNodes[0].classList && removedNodes[0].classList.contains('folder')) {
 			this.auditServers();
 		}
 	}
+
+	/* Utility */
 	
 	/**
 	 * @name getInternalInstance
@@ -1004,6 +1082,17 @@ class HideUtils {
 		return node[Object.keys(node).find((key) => key.startsWith('__reactInternalInstance'))];
 	}
 
+	/**
+	 * @name safelyGetNestedProp
+	 * @param {Object} obj
+	 * @param {String} path
+	 * @author Zerebos
+	 * @returns {*}
+	 */
+	getProp(obj, path) {
+		return path.split(/\s?\.\s?/).reduce((obj, prop) => obj && obj[prop], obj);
+	}
+
 	log(...extra) {
 		return console.log(`[%c${this.getName()}%c]`, 'color: #59F;', '', ...extra);
 	}
@@ -1012,31 +1101,65 @@ class HideUtils {
 		return console.error(`[%c${this.getName()}%c]`, 'color: #59F;', '', ...e);
 	}
 
-	get downLink() {
-		return `https://raw.githubusercontent.com/Arashiryuu/crap/master/ToastIntegrated/${this.getName()}/${this.getName()}.plugin.js`;
+	/* Setters */
+
+	set blockCSS(style = '') {
+		return this._blockCSS = style.split(/\s+/g).join(' ').trim();
 	}
+
+	set settingsCSS(style = '') {
+		return this._settingsCSS = style.split(/\s+/g).join(' ').trim();
+	}
+
+	/* Getters */
 
 	get [Symbol.toStringTag]() {
 		return 'Plugin';
 	}
 
-	getName() {
+	get blockCSS() {
+		return this._blockCSS;
+	}
+
+	get settingsCSS() {
+		return this._settingsCSS;
+	}
+
+	get short() {
+		let string = '';
+
+		for (let i = 0, len = this.name.length; i < len; i++) {
+			const char = this.name[i];
+			if (char === char.toUpperCase()) string += char;
+		}
+
+		return string;
+	}
+
+	get link() {
+		return `https://raw.githubusercontent.com/Arashiryuu/crap/master/ToastIntegrated/${this.name}/${this.name}.plugin.js`;
+	}
+
+	get name() {
 		return 'HideUtils';
 	}
 
-	getAuthor() {
+	get author() {
 		return 'Arashiryuu';
 	}
 
-	getVersion() {
-		return '1.1.8';
+	get version() {
+		return '1.1.9';
 	}
 
-	getDescription() {
+	get description() {
 		return 'Combination plugin packaging hideChannels, hideServers, and hideUsers into one.';
 	}
 
-	getSettingsPanel() {
+	/**
+	 * @returns {HTMLElement}
+	 */
+	get settingsPanel() {
 		return this.settingSelect();
 	}
 };
