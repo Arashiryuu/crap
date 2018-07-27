@@ -584,7 +584,7 @@ class HideUtils {
 				const g = this.getReactInstance(guild);
 				const s = this.getProp(g, 'return.memoizedProps.guild');
 				if (g && s) {
-					this.hid.servers.has(s.id) && guild.style.display !== 'none' ? $(guild).hide() : $(guild).show();
+					this.hid.servers.has(s.id) ? $(guild).hide() : $(guild).show();
 				}
 			}
 		}
