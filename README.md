@@ -6,10 +6,4 @@
 
 **[doesNotEqualsInsertion](https://github.com/Arashiryuu/crap/blob/master/doesNotEqualsInsertion.plugin.js)** ー replaces any instances of `=/=` in the textarea with `≠`.
 
-**[greenText](https://github.com/Arashiryuu/crap/blob/master/greenText.plugin.js)** _only works in cozy mode_ ー begin sentences with `>` to turn text green.
-
-**[orangeText](https://github.com/Arashiryuu/crap/blob/master/orangeTexting.plugin.js)** ー end sentences with `<` to turn text orange.
-
-**[hashTagging](https://github.com/Arashiryuu/crap/blob/master/hashTagging.plugin.js)** ー produces distinct `#hashtags`
-
-**[killxd](https://github.com/Arashiryuu/crap/blob/master/killxd.plugin.js)** ー replaces instances of XD, case-insensitively.
+**[greenText](https://github.com/Arashiryuu/crap/blob/master/greenText.plugin.js)** ー begin sentences with `>` to turn text green.
