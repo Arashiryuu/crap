@@ -30,7 +30,8 @@ class LineNumbersRedux {
 		this.default = { ignoreNoLanguage: true, noStyle: false };
 		this.settings = Object.assign({}, this.default);
 		this.switchList = ['app', 'chat', 'messages-wrapper'];
-		this.messageList = ['message-group', 'message'];
+		this.messageList = ['container-1YxwTf', 'message-1PNnaP'];
+		this._css;
 		this.css = `
 			.hljs ol {
 				list-style: none;
@@ -49,7 +50,7 @@ class LineNumbersRedux {
 			}
 
 			.theme-light .hljs ol li::before {
-				color: rgba(0, 0, 0, 0.5);
+				color: rgba(150, 150, 150, 0.5);
 			}
 
 			.hljs ol li::before {
@@ -63,7 +64,7 @@ class LineNumbersRedux {
 				-webkit-user-select: none;
 				user-select: none;
 			}
-		`.split(/\s+/g).join(' ').trim();
+		`;
 		this.mo = new MutationObserver((changes) => {
 			for (const change of changes) {
 				if (change.addedNodes.length) {
@@ -182,8 +183,7 @@ class LineNumbersRedux {
 	}
 
 	processCodeblocks() {
-		const codeblocks = Array.from(document.querySelectorAll('.hljs'))
-			, filtered = codeblocks.filter((cb) => this.noOl(cb)).filter((cb) => this.codeblockFilter(cb));
+		const codeblocks = Array.from(document.querySelectorAll('.hljs')), filtered = codeblocks.filter((cb) => this.noOl(cb)).filter((cb) => this.codeblockFilter(cb));
 		for (let i = 0, len = filtered.length; i < len; i++) {
 			const ol = document.createElement('ol');
 			ol.setAttribute('class', 'LineNumbers');
@@ -192,8 +192,7 @@ class LineNumbersRedux {
 	}
 
 	unprocessCodeblocks() {
-		const codeblocks = Array.from(document.querySelectorAll('.hljs'))
-			, filtered = codeblocks.filter((cb) => this.hasOl(cb));
+		const codeblocks = Array.from(document.querySelectorAll('.hljs')), filtered = codeblocks.filter((cb) => this.hasOl(cb));
 		for (let i = 0, len = filtered.length; i < len; i++) {
 			const ol = filtered[i].querySelector('ol');
 			if (ol) this.unwrap(ol);
@@ -259,10 +258,20 @@ class LineNumbersRedux {
 		panel.append(resetButton);
 	}
 
+	/* Setters */
+
+	set css(style = '') {
+		return this._css = style.split(/\s+/g).join(' ').trim();
+	}
+
 	/* Getters */
 
 	get [Symbol.toStringTag]() {
 		return 'Plugin';
+	}
+
+	get css() {
+		return this._css;
 	}
 
 	get short() {
@@ -282,7 +291,7 @@ class LineNumbersRedux {
 	}
 
 	get version() {
-		return '1.0.0';
+		return '1.0.1';
 	}
 
 	get description() {
