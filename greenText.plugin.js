@@ -1,4 +1,4 @@
-//META{"name":"GreenText","displayName":"GreenText","website":"https://github.com/Arashiryuu","source":"https://github.com/Arashiryuu/crap"}*//
+//META{"name":"GreenText","displayName":"GreenText","website":"https://github.com/Arashiryuu","source":"https://github.com/Arashiryuu/crap/blob/master/greenText.plugin.js"}*//
 
 /*@cc_on
 @if (@_jscript)
@@ -55,7 +55,7 @@ var GreenText = (() => {
 			version: '1.0.0',
 			description: 'Turns sentences beginning with "\>" green.',
 			github: 'https://github.com/Arashiryuu',
-			github_raw: ''
+			github_raw: 'https://raw.githubusercontent.com/Arashiryuu/crap/master/greenText.plugin.js'
 		}
 	};
 
@@ -116,15 +116,14 @@ var GreenText = (() => {
 			}
 
 			run() {
-				const messages = document.querySelectorAll('.' + WebpackModules.getByProps(['markup']).markup);
+				const messages = document.querySelectorAll('.' + WebpackModules.getByProps('markup').markup);
 				for (const message of messages) {
 					const regex = /^&gt;.+|^>.+/gm;
 					const mark = Array.from(message.childNodes).filter((child) => child.nodeType === 3);
 					if (mark.length) {
 						for (const m of mark) {
-							const data = m.data;
-							if (regex.test(data)) {
-								const el = DOMTools.parseHTML(`<span id="GreenText">${data}</span>`);
+							if (regex.test(m.data)) {
+								const el = DOMTools.parseHTML(`<span id="GreenText">${m.data}</span>`);
 								m.replaceWith(el);
 							}
 						}
@@ -317,3 +316,5 @@ var GreenText = (() => {
 		}
 		: buildPlugin(global.ZLibrary.buildPlugin(config));
 })();
+
+/*@end@*/
