@@ -194,7 +194,7 @@ class HideUtils {
 			for (const change of changes) {
 				if (change.addedNodes) {
 					for (const node of change.addedNodes.values()) {
-						if (node.classList && node.classList.contains('guild')) {
+						if (node.classList && node.classList.contains('guild-1EfMGQ')) {
 							this.auditServers();
 						}
 					}
@@ -579,8 +579,8 @@ class HideUtils {
 	}
 
 	auditServers() {
-		if (document.querySelector('.guild')) {
-			for (const guild of document.querySelectorAll('.guild')) {
+		if (document.querySelector('.guild-1EfMGQ')) {
+			for (const guild of document.querySelectorAll('.guild-1EfMGQ')) {
 				const g = this.getReactInstance(guild);
 				const s = this.getProp(g, 'return.memoizedProps.guild');
 				if (g && s) {
@@ -596,7 +596,7 @@ class HideUtils {
 	}
 
 	servObs() {
-		const guilds = document.querySelector('.guilds-wrapper');
+		const guilds = document.querySelector('.guildsWrapper-5TJh6A');
 		if (!guilds) return;
 		this.servMO.observe(guilds, { childList: true, subtree: true });
 	}
@@ -1094,11 +1094,11 @@ class HideUtils {
 	}
 
 	log(...extra) {
-		return console.log(`[%c${this.getName()}%c]`, 'color: #59F;', '', ...extra);
+		return console.log(`[%c${this.name}%c]`, 'color: #59F;', '', ...extra);
 	}
 
 	err(...e) {
-		return console.error(`[%c${this.getName()}%c]`, 'color: #59F;', '', ...e);
+		return console.error(`[%c${this.name}%c]`, 'color: #59F;', '', ...e);
 	}
 
 	/* Setters */
@@ -1149,7 +1149,7 @@ class HideUtils {
 	}
 
 	get version() {
-		return '1.1.9';
+		return '1.1.10';
 	}
 
 	get description() {
