@@ -29,7 +29,7 @@ var ChatUserIDsRedux = (() => {
 	/* Setup */
 
 	if (!global.ZLibrary && !global.ZLibraryPromise) global.ZLibraryPromise = new Promise((resolve, reject) => {
-		require('request').get({ url: 'https://rauenzi.github.io/BDPluginLibrary/release/ZLibrary.js', timeout: 1e4 }, (err, res, body) => { // https://zackrauen.com/BetterDiscordApp/ZLibrary.js | https://rauenzi.github.io/BetterDiscordAddons/Plugins/ZLibrary.js
+		require('request').get({ url: 'https://rauenzi.github.io/BDPluginLibrary/release/ZLibrary.js', timeout: 1e4 }, (err, res, body) => {
 			if (err || res.statusCode !== 200) return reject(err || res.statusMessage);
 			try {
 				const { Script } = require('vm'), script = new Script(body, { displayErrors: true });
@@ -52,7 +52,7 @@ var ChatUserIDsRedux = (() => {
 					twitter_username: ''
 				}
 			],
-			version: '1.0.5',
+			version: '1.0.6',
 			description: 'Adds a user\'s ID next to their name in chat, makes accessing a user ID simpler. Double-click to copy the ID.',
 			github: 'https://github.com/Arashiryuu',
 			github_raw: 'https://raw.githubusercontent.com/Arashiryuu/crap/master/ToastIntegrated/ChatUserIDsRedux/ChatUserIDsRedux.plugin.js'
@@ -61,7 +61,7 @@ var ChatUserIDsRedux = (() => {
 			{
 				title: 'Bugs Squashed',
 				type: 'fixed',
-				items: ['Further fixes after recent Discord update.']
+				items: ['Now works in Compact mode... again.']
 			}
 		]
 	};
@@ -140,13 +140,14 @@ var ChatUserIDsRedux = (() => {
 						font-family: 'Roboto', 'Inconsolata', 'Whitney', sans-serif;
 					}
 		
-					.container-1YxwTf h2 {
+					${DiscordSelectors.Messages.containerCozy.value.trim()} h2 {
 						display: flex;
 						position: relative;
 					}
-					
-					.container-1YxwTf .comment .message.first ~ div > .edit-message .edit-container-inner .headerCozy-2N9HOL {
-						display: none;
+
+					${DiscordSelectors.Messages.messageCompact.value.trim()} .tagID {
+						margin-right: -34px;
+						margin-left: 14px;
 					}
 				`;
 			}
@@ -207,9 +208,7 @@ var ChatUserIDsRedux = (() => {
 					const children = this.getProps(value, 
 						!that.props.isCompact
 							? 'props.children.0.props.children.1.props.children'
-							: window.pluginCookie['Quoter']
-								? 'props.children.0.props.children.2.1.props.children'
-								: 'props.children'
+							: 'props.children'
 					);
 
 					if (!children || !Array.isArray(children)) return value;
