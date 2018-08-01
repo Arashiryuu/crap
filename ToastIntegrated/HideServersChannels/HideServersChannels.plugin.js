@@ -1,4 +1,4 @@
-//META{"name":"HideServersChannels"}*//
+//META{"name":"HideServersChannels","displayName":"HideServersChannels","website":"https://github.com/Arashiryuu","source":"https://github.com/Arashiryuu/crap"}*//
 
 /*@cc_on
 @if (@_jscript)
@@ -34,21 +34,31 @@ class HideServersChannels {
 		this.tipC;
 	}
 
+	/* Required Methods - Info */
+
+	getName() { return this.name; }
+	getAuthor() { return this.author; }
+	getVersion() { return this.version; }
+	getDescription() { return this.description }
+
+	/* Required Methods - Main */
+
 	load() {
 		this.log('Loaded');
 	}
 
 	stop() {
-		for(const button of [this.buttonS, this.buttonC]) 
-			if(document.contains(button[0]))
-				button.remove();
+		for (const button of [this.buttonS, this.buttonC]) {
+			if (document.contains(button[0])) button.remove();
+		}
 		this.log('Stopped');
 	}
 
 	start() {
 		this.log('Started');
 		let libraryScript = document.getElementById('zeresLibraryScript');
-		if(!libraryScript) {
+
+		if (!libraryScript) {
 			libraryScript = document.createElement('script');
 			libraryScript.id = 'zeresLibraryScript';
 			libraryScript.src = 'https://rauenzi.github.io/BetterDiscordAddons/Plugins/PluginLibrary.js';
@@ -56,22 +66,24 @@ class HideServersChannels {
 			document.head.appendChild(libraryScript);
 		}
 
-		if(typeof window.ZeresLibrary !== 'undefined') this.initialize();
+		if (typeof window.ZeresLibrary !== 'undefined') this.initialize();
 		else libraryScript.addEventListener('load', () => this.initialize());
 	}
 
+	/* Methods */
+
 	initialize() {
-		PluginUtilities.checkForUpdate(this.getName(), this.getVersion(), this.downLink);
+		PluginUtilities.checkForUpdate(this.name, this.version, this.link);
 
 		this.inject();
 		this.initialized = true;
 
-		PluginUtilities.showToast(`${this.getName()} ${this.getVersion()} has started.`);
+		PluginUtilities.showToast(`${this.name} ${this.version} has started.`);
 	}
 
 	inject() {
 		const toolbar = $('div[class^="titleText"] ~ div[class^="flex"]');
-		if(!toolbar[0] || toolbar.find('.HideServers, .HideChannels').length > 0) return false;
+		if (!toolbar[0] || toolbar.find('.HideServers, .HideChannels').length > 0) return false;
 		toolbar.prepend('<svg class="iconInactive-g2AXfB icon-1R19_H iconMargin-2YXk4F HideServers" name="HideServers" width="24" height="24" viewBox="-2 -2 28 28" fill="#FFFFFF" xmlns="http://www.w3.org/2000/svg"><path class="iconForeground-2c7s3m" d="M0 0h24v24H0z" fill="none"/><path class="ServerPath" d="M20 13H4c-.55 0-1 .45-1 1v6c0 .55.45 1 1 1h16c.55 0 1-.45 1-1v-6c0-.55-.45-1-1-1zM7 19c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zM20 3H4c-.55 0-1 .45-1 1v6c0 .55.45 1 1 1h16c.55 0 1-.45 1-1V4c0-.55-.45-1-1-1zM7 9c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2z"/></svg>');
 
 		this.buttonS = $('.HideServers');
@@ -94,7 +106,7 @@ class HideServersChannels {
 			}
 		};
 
-		for(const type in utils) {
+		for (const type in utils) {
 			const { button, tooltip } = utils[type];
 			button.on('click.HSCT', (e) => this.click(e))
 			.on('mouseenter.HSCT', () => {
@@ -113,13 +125,13 @@ class HideServersChannels {
 	click(e) {
 		const clicked = e.target;
 
-		if(!this.buttonS.length || !this.buttonC.length) return;
+		if (!this.buttonS.length || !this.buttonC.length) return;
 
 		const buttons = {
 			servers: {
 				button: this.buttonS[0],
 				$elem: this.buttonS,
-				$toggle: $('.guilds-wrapper'),
+				$toggle: $('.guildsWrapper-5TJh6A'),
 				$classList: this.buttonS.attr('class')
 			},
 			channels: {
@@ -130,13 +142,13 @@ class HideServersChannels {
 			}
 		};
 
-		for(const buttonType in buttons) {
+		for (const buttonType in buttons) {
 			const { button, $elem, $toggle } = buttons[buttonType];
 			let { $classList } = buttons[buttonType];
-			if(clicked === button || clicked.parentNode === button) {
+			if (clicked === button || clicked.parentNode === button) {
 				$toggle.toggle();
 				const $display = $toggle.css('display');
-				if($display === 'none') {
+				if ($display === 'none') {
 					$classList = $classList.replace('iconInactive-g2AXfB', 'iconActive-AKd_jq');
 					$elem.attr('class', $classList);
 				} else {
@@ -147,11 +159,15 @@ class HideServersChannels {
 		}
 	}
 
+	/* Observer */
+
 	observer({ addedNodes }) {
-		if(addedNodes.length && addedNodes[0].classList && this.switchList.includes(addedNodes[0].classList[0])) {
+		if (addedNodes.length && addedNodes[0].classList && this.switchList.includes(addedNodes[0].classList[0])) {
 			this.inject();
 		}
 	}
+
+	/* Utility */
 
 	log(...extra) {
 		return console.log(`[%c${this.getName()}%c]`, 'color: #59F;', '', ...extra);
@@ -161,23 +177,25 @@ class HideServersChannels {
 		return console.error(`[%c${this.getName()}%c] `, 'color: #59F;', '', ...errors);
 	}
 
-	get downLink() {
+	/* Getters */
+
+	get link() {
 		return 'https://raw.githubusercontent.com/Arashiryuu/crap/master/ToastIntegrated/HideServersChannels/HideServersChannels.plugin.js';
 	}
 
-	getName() {
+	get name() {
 		return 'Hide Servers and Channels';
 	}
 
-	getAuthor() {
+	get author() {
 		return 'Arashiryuu';
 	}
 
-	getVersion() {
-		return '1.0.4';
+	get version() {
+		return '1.0.5';
 	}
 
-	getDescription() {
+	get description() {
 		return 'Adds a button for hiding the servers list, and a button for hiding the channels list.';
 	}
 };
