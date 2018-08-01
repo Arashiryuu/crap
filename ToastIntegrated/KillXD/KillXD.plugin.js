@@ -1,4 +1,4 @@
-//META{"name":"KillXD","displayName":"KillXD","website":"https://github.com/Arashiryuu","source":"https://github.com/Arashiryuu/crap"}*//
+//META{"name":"KillXD","displayName":"KillXD","website":"https://github.com/Arashiryuu","source":"https://github.com/Arashiryuu/crap/blob/master/ToastIntegrated/KillXD/KillXD.plugin.js"}*//
 
 /*@cc_on
 @if (@_jscript)
