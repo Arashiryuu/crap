@@ -29,10 +29,10 @@ var TitleForTitlebar = (() => {
 	/* Setup */
 
 	if (!global.ZLibrary && !global.ZLibraryPromise) global.ZLibraryPromise = new Promise((resolve, reject) => {
-		require('request').get({ url: 'https://rauenzi.github.io/BetterDiscordAddons/Plugins/ZLibrary.js', timeout: 1e4 }, (err, res, body) => { // https://zackrauen.com/BetterDiscordApp/ZLibrary.js | https://rauenzi.github.io/BetterDiscordAddons/Plugins/ZLibrary.js
-			if (err || res.statusCode !== 200) reject(err || res.statusMessage);
+		require('request').get({ url: 'https://rauenzi.github.io/BDPluginLibrary/release/ZLibrary.js', timeout: 1e4 }, (err, res, body) => {
+			if (err || res.statusCode !== 200) return reject(err || res.statusMessage);
 			try {
-				const vm = require('vm'), script = new vm.Script(body, { displayErrors: true });
+				const { Script } = require('vm'), script = new Script(body, { displayErrors: true });
 				resolve(script.runInThisContext());
 			} catch(err) {
 				reject(err);
@@ -52,11 +52,18 @@ var TitleForTitlebar = (() => {
 					twitter_username: ''
 				}
 			],
-			version: '1.0.0',
+			version: '1.0.1',
 			description: 'Adds a title to the titlebar, dynamically changes as needed.',
 			github: 'https://github.com/Arashiryuu',
 			github_raw: 'https://raw.githubusercontent.com/Arashiryuu/crap/master/ToastIntegrated/TitleForTitlebar/TitleForTitlebar.plugin.js'
-		}
+		},
+		changelog: [
+			{
+				title: 'Bugs Squashed',
+				type: 'fixed',
+				items: ['Title updates on switch again.']
+			}
+		]
 	};
 
 	/* Utility */
@@ -82,7 +89,7 @@ var TitleForTitlebar = (() => {
 	/* Build */
 
 	const buildPlugin = ([Plugin, Api]) => {
-		const { Toasts, DiscordModules } = Api;
+		const { Toasts, Settings, DOMTools, DiscordModules, WebpackModules, DiscordSelectors } = Api;
 		
 		return class TitleForTitlebar extends Plugin {
 			constructor() {
@@ -93,16 +100,9 @@ var TitleForTitlebar = (() => {
 				this.titleText;
 				this.target;
 				this.title;
-				this.switchList = ['app', 'chat', 'messages-wrapper'];
-			}
-
-			/* Methods */
-
-			onStart() {
-				BdApi.injectCSS('TitleForTitlebarCSS', `
-                    @import 'https://fonts.googleapis.com/css?family=Roboto|Inconsolata';
-
-					#app-mount .chat .title-wrap .title {
+				this._css;
+				this.css = `
+					#app-mount ${DiscordSelectors.TitleWrap.chat.value.trim()} ${DiscordSelectors.TitleWrap.titleWrapper.value.trim()} ${DiscordSelectors.TitleWrap.title.value.trim()} {
 						display: none;
 					}
 
@@ -115,42 +115,65 @@ var TitleForTitlebar = (() => {
 						font-family: 'Inconsolata', sans-serif;
 						text-transform: capitalize;
 					}
-				`.split(/\s+/g).join(' ').trim());
+				`;
+				this.switchList = [
+					'app',
+					DiscordSelectors.TitleWrap.chat.value.slice(2),
+					WebpackModules.getByProps('messages', 'messagesWrapper').messagesWrapper
+				];
+			}
+
+			/* Methods */
+
+			onStart() {
 				const { ChannelStore: { getChannel }, SelectedChannelStore: { getChannelId } } = DiscordModules;
+
 				this.getChannel = getChannel;
 				this.activeChannel = getChannelId;
 				this.target = document.querySelector('#app-mount > div:first-child');
+
+				this.appendStyle();
 				this.appendTitle();
 				this.manageTitle();
+
 				Toasts.info(`${this.name} ${this.version} has started!`, { icon: true, timeout: 2e3 });
 			}
 
 			onStop() {
+				this.removeStyle();
 				this.removeTitle();
 				Toasts.info(`${this.name} ${this.version} has stopped!`, { icon: true, timeout: 2e3 });
 			}
 
+			appendStyle() {
+				const e = DOMTools.parseHTML(`<link href="https://fonts.googleapis.com/css?family=Roboto|Inconsolata" rel="preload stylesheet" as="font" crossorigin/>`);
+				DOMTools.appendTo(e, document.head);
+				BdApi.injectCSS('TitleForTitlebarCSS', this.css);
+			}
+
+			removeStyle() {
+				BdApi.clearCSS('TitleForTitlebarCSS');
+			}
+
 			removeTitle() {
-				if (document.contains(this.title)) {
-					this.title.remove();
-				}
+				if (document.contains(this.title)) this.title.remove();
 			}
 
 			handleTitle() {
-				if (!document.contains(this.title)) {
-					this.appendTitle();
-				}
+				if (!document.contains(this.title)) this.appendTitle();
 			}
 
 			appendTitle() {
 				this.title = document.createElement('span');
 				this.title.id = 'TitleForTitlebar';
 				this.title.textContent = 'Initialised';
+
 				try {
 					this.target.appendChild(this.title);
 				} catch(r) {
 					err(r);
 				}
+
 				return this.title;
 			}
 
@@ -166,8 +189,10 @@ var TitleForTitlebar = (() => {
 				let users = [];
 				const { name, type, recipients } = channel;
 
-				if (recipients && recipients.length)
-					for (let i = 0, len = recipients.length; i < len; i++) users.push(DiscordModules.UserStore.getUser(recipients[i]).username);
+				if (recipients && recipients.length) {
+					const len = recipients.length;
+					for (let i = 0; i < len; i++) users.push(DiscordModules.UserStore.getUser(recipients[i]).username);
+				}
 
 				const user = !name ? users.join(', ') : name;
 				this.titleText = user;
@@ -219,10 +244,20 @@ var TitleForTitlebar = (() => {
 				}
 			}
 
+			/* Setters */
+
+			set css(style = '') {
+				return this._css = style.split(/\s+/g).join(' ').trim();
+			}
+
 			/* Getters */
 
 			get [Symbol.toStringTag]() {
 				return 'Plugin';
+			}
+			
+			get css() {
+				return this._css;
 			}
 
 			get name() {
@@ -321,3 +356,5 @@ var TitleForTitlebar = (() => {
 		}
 		: buildPlugin(global.ZLibrary.buildPlugin(config));
 })();
+
+/*@end@*/
