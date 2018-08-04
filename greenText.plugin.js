@@ -52,7 +52,7 @@ var GreenText = (() => {
 					twitter_username: ''
 				}
 			],
-			version: '1.0.0',
+			version: '1.0.1',
 			description: 'Turns sentences beginning with "\>" green.',
 			github: 'https://github.com/Arashiryuu',
 			github_raw: 'https://raw.githubusercontent.com/Arashiryuu/crap/master/greenText.plugin.js'
@@ -98,7 +98,7 @@ var GreenText = (() => {
 						font-weight: bold;
 					}
 				`;
-				this.switchList = ['app', 'chat', 'messages-wrapper'];
+				this.switchList = ['app', DiscordSelectors.TitleWrap.chat.value.slice(2), WebpackModules.getByProps('messages', 'messagesWrapper').messagesWrapper];
 				this.messageList = [DiscordSelectors.Messages.container.value.slice(2), DiscordSelectors.Messages.message.value.slice(2)];
 			}
 
