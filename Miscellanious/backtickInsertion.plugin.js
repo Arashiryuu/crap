@@ -43,7 +43,7 @@ class backtickInsertion {
 		return console.log(`[%c${this.getName()}%c] ${text}`, 'color: #59F; text-shadow: 0 0 1px black, 0 0 2px black, 0 0 3px black;', '');
 	}
 	observer({ addedNodes, removedNodes }) {
-		if(addedNodes && addedNodes[0] && addedNodes[0].classList && addedNodes[0].classList.contains('messages-wrapper')) {
+		if(addedNodes && addedNodes[0] && addedNodes[0].classList && addedNodes[0].classList.contains('messagesWrapper-3lZDfY')) {
 			this.init();
 		}
 	}
@@ -64,7 +64,7 @@ class backtickInsertion {
 		return 'Arashiryuu';
 	}
 	getVersion() {
-		return '1.1';
+		return '1.1.1';
 	}
 	getDescription() {
 		return 'Replace any consecutive triple apostrophies \'\'\' that you may have input with \`\`\` consecutive triple backticks; AKA grave-accents, making markdown for codeblocks slightly simpler to achieve.';
