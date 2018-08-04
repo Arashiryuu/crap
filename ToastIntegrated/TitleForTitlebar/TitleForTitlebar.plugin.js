@@ -152,8 +152,12 @@ var TitleForTitlebar = (() => {
 			}
 
 			removeStyle() {
-				const link = DOMTools.query('link[as="font"]', document);
-				if (link) link.remove();
+				const links = DOMTools.queryAll('link[href="https://fonts.googleapis.com/css?family=Roboto|Inconsolata"]', document);
+
+				if (links.length) {
+					for (const link of links) link.remove();
+				}
+				
 				BdApi.clearCSS('TitleForTitlebarCSS');
 			}
 
