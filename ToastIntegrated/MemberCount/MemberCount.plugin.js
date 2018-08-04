@@ -1,4 +1,4 @@
-//META{"name":"MemberCount"}*//
+//META{"name":"MemberCount","displayName":"MemberCount","website":"https://github.com/Arashiryuu","source":"https://github.com/Arashiryuu/crap/blob/master/ToastIntegrated/MemberCount/MemberCount.plugin.js"}*//
 
 /*@cc_on
 @if (@_jscript)
