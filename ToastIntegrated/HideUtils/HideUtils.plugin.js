@@ -180,7 +180,7 @@ class HideUtils {
 						if (node.nodeType === 1 && node.classList && node.classList.contains('contextMenu-HLZMGh')) {
 							this.channelContext(node);
 						}
-						if (node.nodeType === 1 && node.classList && ( node.classList.contains('chat') || node.classList.contains('messages-wrapper') )) {
+						if (node.nodeType === 1 && node.classList && ( node.classList.contains('chat-3bRxxu') || node.classList.contains('messagesWrapper-3lZDfY') )) {
 							this.auditChannels();
 							this.chanMO.disconnect();
 							this.chanObs();
@@ -209,7 +209,7 @@ class HideUtils {
 						if (node.nodeType === 1 && node.classList && node.classList.contains('contextMenu-HLZMGh')) {
 							this.serverContext(node);
 						}
-						if (node.nodeType === 1 && node.classList && ( node.classList.contains('chat') || node.classList.contains('messages-wrapper') )) {
+						if (node.nodeType === 1 && node.classList && ( node.classList.contains('chat-3bRxxu') || node.classList.contains('messagesWrapper-3lZDfY') )) {
 							this.auditServers();
 							this.servDiscon();
 							this.servObs();
@@ -238,7 +238,7 @@ class HideUtils {
 						if (node.nodeType === 1 && node.classList && node.classList.contains('contextMenu-HLZMGh')) {
 							this.userContext(node);
 						}
-						if (node.nodeType === 1 && node.classList && ( node.classList.contains('chat') || node.classList.contains('messages-wrapper') || node.classList.contains('membersWrap-2h-GB4') )) {
+						if (node.nodeType === 1 && node.classList && ( node.classList.contains('chat-3bRxxu') || node.classList.contains('messagesWrapper-3lZDfY') || node.classList.contains('membersWrap-2h-GB4') )) {
 							this.auditUsers();
 							this.userDiscon();
 							this.userObs();
@@ -1149,7 +1149,7 @@ class HideUtils {
 	}
 
 	get version() {
-		return '1.1.10';
+		return '1.1.11';
 	}
 
 	get description() {
