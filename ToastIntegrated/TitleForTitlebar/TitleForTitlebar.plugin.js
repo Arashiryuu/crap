@@ -102,7 +102,7 @@ var TitleForTitlebar = (() => {
 				this.title;
 				this._css;
 				this.css = `
-					#app-mount ${DiscordSelectors.TitleWrap.chat.value.trim()} ${DiscordSelectors.TitleWrap.titleWrapper.value.trim()} ${DiscordSelectors.TitleWrap.title.value.trim()} {
+					#app-mount ${DiscordSelectors.TitleWrap.chat.value.trim()} ${DiscordSelectors.TitleWrap.titleWrapper.value.trim()} ${DiscordSelectors.TitleWrap.titleText.value.trim()} {
 						display: none;
 					}
 
@@ -152,6 +152,8 @@ var TitleForTitlebar = (() => {
 			}
 
 			removeStyle() {
+				const link = DOMTools.query('link[as="font"]', document);
+				if (link) link.remove();
 				BdApi.clearCSS('TitleForTitlebarCSS');
 			}
 
