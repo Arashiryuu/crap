@@ -73,8 +73,8 @@ class catImg {
 	}
 
 	observer({ addedNodes }) {
-		if(addedNodes && addedNodes[0] && addedNodes[0].classList && addedNodes[0].classList.contains('chat')
-		|| addedNodes && addedNodes[0] && addedNodes[0].classList && addedNodes[0].classList.contains('messages-wrapper')) {
+		if(addedNodes && addedNodes[0] && addedNodes[0].classList && addedNodes[0].classList.contains('chat-3bRxxu')
+		|| addedNodes && addedNodes[0] && addedNodes[0].classList && addedNodes[0].classList.contains('messagesWrapper-3lZDfY')) {
 			this.textListen();
 		}
 	}
@@ -101,7 +101,7 @@ class catImg {
 	}
 
 	getVersion() {
-		return '1.0.1';
+		return '1.0.2';
 	}
 
 	getDescription() {
