@@ -52,8 +52,8 @@ class HideUtils {
 		this._settingsCSS;
 
 		this.blockCSS = `
-			.message-group-blocked,
-			.unread-mentions-bar {
+			.messageGroupBlocked-3wrQQX,
+			.unreadMentionsBar-1VrBNe {
 				display: none;
 			}
 		`;
@@ -137,6 +137,12 @@ class HideUtils {
 				min-height: 20pt !important;
 				min-width: 20pt !important;
 				background: rgba(255, 255, 255, 0.6) !important;
+			}
+			#ServerHideField, #ChanHideField, #UserHideField {
+				resize: none;
+				position: relative;
+				left: 10%;
+				width: 80%;
 			}
 		`;
 
@@ -956,7 +962,7 @@ class HideUtils {
 				}
 
 				html += `</div></div><br/><br/>
-				<input id="ChanblockField" type="text" placeholder="ID" style="resize: none; width: 80%; position: relative; left: 10%;" /><br/><br/>
+				<input id="ChanHideField" type="text" placeholder="ID" /><br/><br/>
 				<br/><div class="buttonGroupi">
 				<button class="button apply" onclick=BdApi.getPlugin("${this.getName()}").chanPush()>Apply</button>
 				<button class="button remove" onclick=BdApi.getPlugin("${this.getName()}").chanClear()>Remove</button>
@@ -986,7 +992,7 @@ class HideUtils {
 				}
 
 				html += `</div></div><br/><br/>
-				<input id="ServerHideField" type="text" placeholder="ID" style="resize: none; width: 80%; position: relative; left: 10%;" /><br/><br/>
+				<input id="ServerHideField" type="text" placeholder="ID" /><br/><br/>
 				<br/><div class="buttonGroupi">
 				<button class="button apply" onclick=BdApi.getPlugin("${this.getName()}").servPush()>Apply</button>
 				<button class="button remove" onclick=BdApi.getPlugin("${this.getName()}").servClear()>Remove</button>
@@ -1016,7 +1022,7 @@ class HideUtils {
 				}
 
 				html += `</div></div><br/><br/>
-				<input id="blockField" type="text" placeholder="ID" style="resize: none; width: 80%; position: relative; left: 10%;" /><br/><br/>
+				<input id="UserHideField" type="text" placeholder="ID" /><br/><br/>
 				<br/><div class="buttonGroupi">
 				<button class="button apply" onclick=BdApi.getPlugin("${this.getName()}").userPush()>Apply</button>
 				<button class="button remove" onclick=BdApi.getPlugin("${this.getName()}").userClear()>Remove</button>
@@ -1149,7 +1155,7 @@ class HideUtils {
 	}
 
 	get version() {
-		return '1.1.11';
+		return '1.1.12';
 	}
 
 	get description() {
