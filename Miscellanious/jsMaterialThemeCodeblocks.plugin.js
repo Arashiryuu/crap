@@ -27,7 +27,7 @@
 class JSMaterialThemeCodeblocks {
 	constructor() {
 		this.messageList = ['container-1YxwTf', 'message-1PNnaP', 'markup-2BOw-j'];
-		this.switchList = ['app', 'chat', 'messages-wrapper'];
+		this.switchList = ['app', 'chat-3bRxxu', 'messagesWrapper-3lZDfY'];
 
 		this.selectors = [
 			'.hljs[class~="js" i] .hljs-keyword', 
@@ -60,8 +60,6 @@ class JSMaterialThemeCodeblocks {
 				}
 			}
 		});
-
-		this.css;
 	};
 
 	createThisClass() {
@@ -115,25 +113,42 @@ class JSMaterialThemeCodeblocks {
 		return null;
 	};
 
-	log(...ex) {
-		return console.log('%c[JSMaterialThemeCodeblocks]', 'color: #F95479; text-shadow: 0 0 1px black, 0 0 2px black, 0 0 3px black;', ...ex);
+	log() {
+		return console.log('%c[JSMaterialThemeCodeblocks]', 'color: #F95479; text-shadow: 0 0 1px black, 0 0 2px black, 0 0 3px black;', ...arguments);
 	};
 
-	err(...ex) {
-		return console.error('%c[JSMaterialThemeCodeblocks]', 'color: #F95479; text-shadow: 0 0 1px black, 0 0 2px black, 0 0 3px black;', ...ex);
+	err() {
+		return console.error('%c[JSMaterialThemeCodeblocks]', 'color: #F95479; text-shadow: 0 0 1px black, 0 0 2px black, 0 0 3px black;', ...arguments);
 	};
+
+	inject() {
+		let sheet = document.getElementById('MaterialCodeblocksCSS');
+		if (!sheet || !document.contains(sheet)) {
+			sheet = document.createElement('link');
+			sheet.setAttribute('id', 'MaterialCodeblocksCSS');
+			sheet.setAttribute('rel', 'stylesheet preload');
+			sheet.setAttribute('as', 'style');
+			sheet.setAttribute('href', 'https://gitcdn.xyz/repo/Arashiryuu/crap/master/Miscellanious/jsMaterialThemeCodeblocksCSS/src.css');
+			document.head.appendChild(sheet);
+		}
+	}
+
+	eject() {
+		const sheet = document.getElementById('MaterialCodeblocksCSS');
+		if (sheet && document.contains(sheet)) sheet.remove();
+	}
 
 	start() {
-		this.log('Started.');
-		BdApi.injectCSS('JSMaterialThemeCodeblocksCSS', '@import url("https://gitcdn.xyz/repo/Arashiryuu/crap/master/Miscellanious/jsMaterialThemeCodeblocksCSS/src.css");');
+		this.inject();
 		this.watch();
 		this.createThisClass();
+		this.log('Started.');
 	};
 
-	stop() { 
-		this.log('Stopped.');
+	stop() {
+		this.eject();
 		this.unwatch();
-		BdApi.clearCSS('JSMaterialThemeCodeblocksCSS');
+		this.log('Stopped.');
 	};
 
 	load() {
@@ -156,7 +171,7 @@ class JSMaterialThemeCodeblocks {
 		} else if (addedNodes.length && addedNodes[0].classList && this.switchList.includes(addedNodes[0].classList[0])) {
 			this.unwatch();
 			this.watch();
-			setTimeout(() => { this.createThisClass(); setTimeout(() => this.paramParse(), 500); }, 250);
+			setTimeout(() => { this.createThisClass(); setTimeout(() => this.paramParse(), 500); }, 250); 
 		}
 	};
 
