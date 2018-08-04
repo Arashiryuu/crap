@@ -114,7 +114,11 @@ class MemberCount {
 			});
 			document.head.appendChild(libraryScript);
 		} else if (libraryScript && libraryScript.isOutdated) {
-			libraryScript.remove();
+			const lib = document.querySelectorAll('zeresLibraryScript');
+			if (lib.length) {
+				const len = lib.length;
+				for (let i = 0; i < len; i++) lib[i].remove();
+			}
 			libraryScript = this.createElement('script', {
 				id: 'zeresLibraryScript',
 				src: 'https://rauenzi.github.io/BetterDiscordAddons/Plugins/PluginLibrary.js',
