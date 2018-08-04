@@ -41,7 +41,7 @@ class MemberCount {
 					for (const node of change.addedNodes.values()) {
 						if (node.classList && node.classList.contains('membersWrap-2h-GB4')) {
 							reinject = true;
-						} else if (node.classList && ['chat', 'messages-wrapper'].includes(node.classList[0])) {
+						} else if (node.classList && ['chat-3bRxxu', 'messagesWrapper-3lZDfY'].includes(node.classList[0])) {
 							reinject = true;
 						} else if (node.classList && node.classList.contains('member-3W1lQa')) {
 							memberCount = true;
@@ -104,7 +104,7 @@ class MemberCount {
 
 	start() {
 		this.log('Started');
-		let libraryScript = document.getElementById('zeresLibraryScript');
+		let libraryScript = window.ZeresLibrary;
 		
 		if (!libraryScript) {
 			libraryScript = this.createElement('script', {
@@ -267,7 +267,7 @@ class MemberCount {
 	}
 
 	getVersion() {
-		return '1.0.10';
+		return '1.0.11';
 	}
 
 	getDescription() {
