@@ -55,7 +55,7 @@ var HideServersChannelsRedux = (() => {
 			version: '1.0.0',
 			description: 'Adds buttons to the header for hiding the servers list and channels list.',
 			github: 'https://github.com/Arashiryuu',
-			github_raw: ''
+			github_raw: 'https://raw.githubusercontent.com/Arashiryuu/crap/master/ToastIntegrated/HideServersChannelsRedux/HideServersChannelsRedux.plugin.js'
 		},
 		changelog: [
 			{
