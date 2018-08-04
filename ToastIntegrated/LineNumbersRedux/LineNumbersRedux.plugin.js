@@ -29,7 +29,7 @@ class LineNumbersRedux {
 		this.initialized = false;
 		this.default = { ignoreNoLanguage: true, noStyle: false };
 		this.settings = Object.assign({}, this.default);
-		this.switchList = ['app', 'chat', 'messages-wrapper'];
+		this.switchList = ['app', 'chat-3bRxxu', 'messagesWrapper-3lZDfY'];
 		this.messageList = ['container-1YxwTf', 'message-1PNnaP'];
 		this._css;
 		this.css = `
@@ -291,7 +291,7 @@ class LineNumbersRedux {
 	}
 
 	get version() {
-		return '1.0.1';
+		return '1.0.2';
 	}
 
 	get description() {
