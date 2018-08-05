@@ -158,7 +158,11 @@ var HideServersChannelsRedux = (() => {
 			constructor() {
 				super();
 				this._css;
-				this.switchList = ['app', 'chat-3bRxxu', 'messagesWrapper-3lZDfY'];
+				this.switchList = [
+					'app',
+					DiscordSelectors.TitleWrap.chat.value.slice(2),
+					WebpackModules.getByProps('messages', 'messagesWrapper').messagesWrapper
+				];
 				this.css = `
 					.icon-1R19_H[name="ServerButton"], .icon-1R19_H[name="ChannelButton"] {
 						fill: #FFF;
