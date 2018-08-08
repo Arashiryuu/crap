@@ -69,7 +69,7 @@ class LineNumbersRedux {
 			for (const change of changes) {
 				if (change.addedNodes.length) {
 					for (const node of change.addedNodes.values()) {
-						if (node.classList && this.messageList.includes(node.classList[0])) this.processCodeblocks();
+						if (node.classList && this.messageList.includes(node.classList[node.classList.length - 1])) this.processCodeblocks();
 					}
 				}
 			}
@@ -291,7 +291,7 @@ class LineNumbersRedux {
 	}
 
 	get version() {
-		return '1.0.2';
+		return '1.0.3';
 	}
 
 	get description() {
