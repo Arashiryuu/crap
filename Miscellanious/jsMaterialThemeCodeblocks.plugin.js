@@ -50,16 +50,6 @@ class JSMaterialThemeCodeblocks {
 			'in':'in',
 			'of':'of'
 		};
-
-		this.editObs = new MutationObserver((changes) => {
-			for (const change of changes) {
-				if (change && change.target && change.target.classList && change.target.classList.contains('container-1YxwTf')) {
-					this.createThisClass();
-					this.paramParse();
-					setTimeout(() => { this.createThisClass(); setTimeout(() => this.paramParse(), 5e2); }, 5e2);
-				}
-			}
-		});
 	};
 
 	createThisClass() {
@@ -140,14 +130,12 @@ class JSMaterialThemeCodeblocks {
 
 	start() {
 		this.inject();
-		this.watch();
 		this.createThisClass();
 		this.log('Started.');
 	};
 
 	stop() {
 		this.eject();
-		this.unwatch();
 		this.log('Stopped.');
 	};
 
@@ -155,22 +143,10 @@ class JSMaterialThemeCodeblocks {
 		this.log('Loaded.');
 	};
 
-	watch() {
-		const chat = document.querySelector('.chat');
-		if (!chat) return;
-		this.editObs.observe(chat, { attributes: true, subtree: true });
-	}
-
-	unwatch() {
-		this.editObs.disconnect();
-	}
-
 	observer({ addedNodes }) {
-		if (addedNodes.length && addedNodes[0].classList && this.messageList.includes(addedNodes[0].classList[0])) {
+		if (addedNodes.length && addedNodes[0].classList && this.messageList.includes(addedNodes[0].classList[addedNodes[0].classList.length - 1])) {
 			setTimeout(() => { this.createThisClass(); setTimeout(() => this.paramParse(), 500); }, 250);
 		} else if (addedNodes.length && addedNodes[0].classList && this.switchList.includes(addedNodes[0].classList[0])) {
-			this.unwatch();
-			this.watch();
 			setTimeout(() => { this.createThisClass(); setTimeout(() => this.paramParse(), 500); }, 250); 
 		}
 	};
