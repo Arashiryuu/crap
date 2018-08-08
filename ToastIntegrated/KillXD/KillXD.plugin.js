@@ -34,7 +34,7 @@ class KillXD {
 			for (const change of changes) {
 				if (change.addedNodes.length) {
 					for (const node of change.addedNodes.values()) {
-						if (node.classList && this.messageList.includes(node.classList[1])) this.process();
+						if (node.classList && this.messageList.includes(node.classList[node.classList.length - 1])) this.process();
 					}
 				}
 			}
@@ -174,7 +174,7 @@ class KillXD {
 	}
 
 	get version() {
-		return '1.0.1';
+		return '1.0.2';
 	}
 
 	get description() {
