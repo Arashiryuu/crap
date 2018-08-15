@@ -52,16 +52,16 @@ var TitleForTitlebar = (() => {
 					twitter_username: ''
 				}
 			],
-			version: '1.0.1',
+			version: '1.0.2',
 			description: 'Adds a title to the titlebar, dynamically changes as needed.',
 			github: 'https://github.com/Arashiryuu',
 			github_raw: 'https://raw.githubusercontent.com/Arashiryuu/crap/master/ToastIntegrated/TitleForTitlebar/TitleForTitlebar.plugin.js'
 		},
 		changelog: [
 			{
-				title: 'Bugs Squashed',
-				type: 'fixed',
-				items: ['Title updates on switch again.']
+				title: 'What\'s New?',
+				type: 'added',
+				items: ['Settings toggle for hiding the normal Discord channel-name in the header.']
 			}
 		]
 	};
@@ -94,6 +94,8 @@ var TitleForTitlebar = (() => {
 		return class TitleForTitlebar extends Plugin {
 			constructor() {
 				super();
+				this.default = { hideChannelName: true };
+				this.settings = Object.assign({}, this.default);
 				this.getChannel;
 				this.activeChannel;
 				this.titlePrefix;
@@ -101,11 +103,8 @@ var TitleForTitlebar = (() => {
 				this.target;
 				this.title;
 				this._css;
+				this._optCSS;
 				this.css = `
-					#app-mount ${DiscordSelectors.TitleWrap.chat.value.trim()} ${DiscordSelectors.TitleWrap.titleWrapper.value.trim()} ${DiscordSelectors.TitleWrap.titleText.value.trim()} {
-						display: none;
-					}
-
 					#TitleForTitlebar {
 						position: absolute;
 						color: #EEE;
@@ -114,6 +113,11 @@ var TitleForTitlebar = (() => {
 						font-size: 13pt;
 						font-family: 'Inconsolata', sans-serif;
 						text-transform: capitalize;
+					}
+				`;
+				this.optInCSS = `
+					#app-mount ${DiscordSelectors.TitleWrap.chat.value.trim()} ${DiscordSelectors.TitleWrap.titleWrapper.value.trim()} ${DiscordSelectors.TitleWrap.titleText.value.trim()} {
+						display: none;
 					}
 				`;
 				this.switchList = [
@@ -148,7 +152,7 @@ var TitleForTitlebar = (() => {
 			appendStyle() {
 				const e = DOMTools.parseHTML(`<link href="https://fonts.googleapis.com/css?family=Roboto|Inconsolata" rel="preload stylesheet" as="font" crossorigin/>`);
 				DOMTools.appendTo(e, document.head);
-				BdApi.injectCSS('TitleForTitlebarCSS', this.css);
+				BdApi.injectCSS('TitleForTitlebarCSS', !this.settings.hideChannelName ? this.css : this.css + this.optInCSS);
 			}
 
 			removeStyle() {
@@ -250,10 +254,28 @@ var TitleForTitlebar = (() => {
 				}
 			}
 
+			/* Settings Panel */
+
+			getSettingsPanel() {
+				return Settings.SettingPanel.build(() => this.saveSettings(this.settings),
+					new Settings.SettingGroup('Plugin Settings').append(
+						new Settings.Switch('Hide Channel Name', 'Default is enabled; hides the channel-name in the header.', this.settings.hideChannelName, (i) => {
+							this.settings.hideChannelName = i;
+							this.removeStyle();
+							this.appendStyle();
+						})
+					)
+				);
+			}
+
 			/* Setters */
 
 			set css(style = '') {
 				return this._css = style.split(/\s+/g).join(' ').trim();
+			}
+
+			set optInCSS(style = '') {
+				return this._optCSS = style.split(/\s+/g).join(' ').trim();
 			}
 
 			/* Getters */
@@ -264,6 +286,10 @@ var TitleForTitlebar = (() => {
 			
 			get css() {
 				return this._css;
+			}
+
+			get optInCSS() {
+				return this._optCSS;
 			}
 
 			get name() {
