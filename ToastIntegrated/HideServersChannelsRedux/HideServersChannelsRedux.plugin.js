@@ -52,16 +52,16 @@ var HideServersChannelsRedux = (() => {
 					twitter_username: ''
 				}
 			],
-			version: '1.0.0',
+			version: '1.0.1',
 			description: 'Adds buttons to the header for hiding the servers list and channels list.',
 			github: 'https://github.com/Arashiryuu',
 			github_raw: 'https://raw.githubusercontent.com/Arashiryuu/crap/master/ToastIntegrated/HideServersChannelsRedux/HideServersChannelsRedux.plugin.js'
 		},
 		changelog: [
 			{
-				title: 'Upgrades',
-				type: 'improved',
-				items: ['Now renders alongside the natural elements via React!']
+				title: 'What\'s New?',
+				type: 'added',
+				items: ['Transitions for hiding and unhiding the servers and channels lists.']
 			}
 		]
 	};
@@ -167,6 +167,32 @@ var HideServersChannelsRedux = (() => {
 					.icon-1R19_H[name="ServerButton"], .icon-1R19_H[name="ChannelButton"] {
 						fill: #FFF;
 					}
+
+					.closed {
+						display: none;
+					}
+
+					.closing {
+						animation: close 400ms linear;
+					}
+
+					.opening {
+						animation: open 400ms linear;
+					}
+
+					/* Animations */
+
+					@keyframes close {
+						to {
+							width: 0;
+						}
+					}
+
+					@keyframes open {
+						from {
+							width: 0;
+						}
+					}
 				`;
 			}
 
@@ -189,24 +215,48 @@ var HideServersChannelsRedux = (() => {
 				const button = document.querySelector('.icon-1R19_H[name="ServerButton"]');
 				const element = document.querySelector('.' + WebpackModules.getByProps('guildsWrapper').guildsWrapper);
 				
-				if (button) {
-					DOMTools.toggleClass(button, 'iconInactive-g2AXfB');
-					DOMTools.toggleClass(button, 'iconActive-AKd_jq')
-				}
+				if (!button) return;
+				DOMTools.toggleClass(button, 'iconInactive-g2AXfB');
+				DOMTools.toggleClass(button, 'iconActive-AKd_jq');
 
-				element.style.display = element.style.display === 'none' ? '' : 'none';
+				if (!DOMTools.hasClass(element, 'closed')) {
+					DOMTools.addClass(element, 'closing');
+					setTimeout(() => {
+						DOMTools.addClass(element, 'closed')
+						DOMTools.removeClass(element, 'closing');
+					}, 400);
+				} else {
+					element.style.width = '0';
+					DOMTools.removeClass(element, 'closed');
+					DOMTools.addClass(element, 'opening');
+					element.style.width = '';
+					setTimeout(() => {
+						DOMTools.removeClass(element, 'opening')
+					}, 400);
+				}
 			}
 			
 			onChannelButtonClick() {
 				const button = document.querySelector('.icon-1R19_H[name="ChannelButton"]');
 				const element = document.querySelector(DiscordSelectors.ChannelList.channels.value.trim());
 				
-				if (button) {
-					DOMTools.toggleClass(button, 'iconInactive-g2AXfB');
-					DOMTools.toggleClass(button, 'iconActive-AKd_jq')
-				}
+				if (!button) return;
+				DOMTools.toggleClass(button, 'iconInactive-g2AXfB');
+				DOMTools.toggleClass(button, 'iconActive-AKd_jq')
 
-				element.style.display = element.style.display === 'none' ? '' : 'none';
+				if (!DOMTools.hasClass(element, 'closed')) {
+					DOMTools.addClass(element, 'closing');
+					setTimeout(() => {
+						DOMTools.addClass(element, 'closed')
+						DOMTools.removeClass(element, 'closing');
+					}, 400);
+				} else {
+					element.style.width = '0';
+					DOMTools.removeClass(element, 'closed');
+					DOMTools.addClass(element, 'opening');
+					element.style.width = '';
+					setTimeout(() => DOMTools.removeClass(element, 'opening'), 400);
+				}
 			}
 
 			async patchHeader() {
