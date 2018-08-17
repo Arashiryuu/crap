@@ -52,7 +52,7 @@ var HideServersChannelsRedux = (() => {
 					twitter_username: ''
 				}
 			],
-			version: '1.0.1',
+			version: '1.0.2',
 			description: 'Adds buttons to the header for hiding the servers list and channels list.',
 			github: 'https://github.com/Arashiryuu',
 			github_raw: 'https://raw.githubusercontent.com/Arashiryuu/crap/master/ToastIntegrated/HideServersChannelsRedux/HideServersChannelsRedux.plugin.js'
@@ -61,7 +61,7 @@ var HideServersChannelsRedux = (() => {
 			{
 				title: 'What\'s New?',
 				type: 'added',
-				items: ['Transitions for hiding and unhiding the servers and channels lists.']
+				items: ['Compatibility with DevilBro\'s ServerFolders plugin.']
 			}
 		]
 	};
@@ -168,7 +168,7 @@ var HideServersChannelsRedux = (() => {
 						fill: #FFF;
 					}
 
-					.closed {
+					._closed {
 						display: none;
 					}
 
@@ -219,15 +219,15 @@ var HideServersChannelsRedux = (() => {
 				DOMTools.toggleClass(button, 'iconInactive-g2AXfB');
 				DOMTools.toggleClass(button, 'iconActive-AKd_jq');
 
-				if (!DOMTools.hasClass(element, 'closed')) {
+				if (!DOMTools.hasClass(element, '_closed')) {
 					DOMTools.addClass(element, 'closing');
 					setTimeout(() => {
-						DOMTools.addClass(element, 'closed')
+						DOMTools.addClass(element, '_closed')
 						DOMTools.removeClass(element, 'closing');
 					}, 400);
 				} else {
 					element.style.width = '0';
-					DOMTools.removeClass(element, 'closed');
+					DOMTools.removeClass(element, '_closed');
 					DOMTools.addClass(element, 'opening');
 					element.style.width = '';
 					setTimeout(() => {
@@ -244,15 +244,15 @@ var HideServersChannelsRedux = (() => {
 				DOMTools.toggleClass(button, 'iconInactive-g2AXfB');
 				DOMTools.toggleClass(button, 'iconActive-AKd_jq')
 
-				if (!DOMTools.hasClass(element, 'closed')) {
+				if (!DOMTools.hasClass(element, '_closed')) {
 					DOMTools.addClass(element, 'closing');
 					setTimeout(() => {
-						DOMTools.addClass(element, 'closed')
+						DOMTools.addClass(element, '_closed')
 						DOMTools.removeClass(element, 'closing');
 					}, 400);
 				} else {
 					element.style.width = '0';
-					DOMTools.removeClass(element, 'closed');
+					DOMTools.removeClass(element, '_closed');
 					DOMTools.addClass(element, 'opening');
 					element.style.width = '';
 					setTimeout(() => DOMTools.removeClass(element, 'opening'), 400);
