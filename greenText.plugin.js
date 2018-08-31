@@ -52,11 +52,18 @@ var GreenText = (() => {
 					twitter_username: ''
 				}
 			],
-			version: '1.0.2',
+			version: '1.0.3',
 			description: 'Turns sentences beginning with "\>" green.',
 			github: 'https://github.com/Arashiryuu',
 			github_raw: 'https://raw.githubusercontent.com/Arashiryuu/crap/master/greenText.plugin.js'
-		}
+		},
+		changelog: [
+			{
+				title: 'Updated',
+				type: 'improved',
+				items: ['Works better.']
+			}
+		]
 	};
 
 	/* Utility */
@@ -125,17 +132,11 @@ var GreenText = (() => {
 			run() {
 				const messages = document.querySelectorAll('.' + WebpackModules.getByProps('markup').markup);
 				for (const message of messages) {
-					const regex = /^&gt;.+|^>.+/gm;
-					const mark = Array.from(message.childNodes).filter((child) => child.nodeType === 3);
-					if (mark.length) {
-						for (const m of mark) {
-							if (regex.test(m.data)) {
-								const el = DOMTools.parseHTML(`<span id="GreenText">${m.data}</span>`);
-								m.replaceWith(el);
-							}
-						}
-					} else if (regex.test(message.innerHTML)) {
-						message.setAttribute('id', 'GreenText');
+					const regex = /^&gt;\S.+|^>\S.+/igm;
+					const matches = message.innerHTML.match(regex);
+					if (matches && matches.length) {
+						const html = message.innerHTML;
+						message.innerHTML = html.replace(regex, '<span id="GreenText">$&</span>');
 					}
 				}
 			}
