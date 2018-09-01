@@ -77,7 +77,6 @@ var HashTagsReborn = (() => {
 			/* Methods */
 
 			onStart() {
-				this.loadSettings(this.settings);
 				this.handleCSS();
 				this.addTags();
 				Toasts.info(`${this.name} ${this.version} has started!`, { icon: true, timeout: 2e3 });
