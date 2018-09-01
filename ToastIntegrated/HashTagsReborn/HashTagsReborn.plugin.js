@@ -1,4 +1,4 @@
-//META{"name":"HashTagsReborn","displayName":"HashTagsReborn","website":"https://github.com/Arashiryuu","source":"https://github.com/Arashiryuu/crap"}*//
+//META{"name":"HashTagsReborn","displayName":"HashTagsReborn","website":"https://github.com/Arashiryuu","source":"https://github.com/Arashiryuu/crap/blob/master/ToastIntegrated/HashTagsReborn/HashTagsReborn.plugin.js"}*//
 
 /*@cc_on
 @if (@_jscript)
