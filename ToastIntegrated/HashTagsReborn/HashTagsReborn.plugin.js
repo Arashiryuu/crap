@@ -43,7 +43,7 @@ var HashTagsReborn = (() => {
 			version: '1.0.0',
 			description: 'Lets you use hashtags on Discord!',
 			github: 'https://github.com/Arashiryuu',
-			github_raw: ''
+			github_raw: 'https://raw.githubusercontent.com/Arashiryuu/crap/master/ToastIntegrated/HashTagsReborn/HashTagsReborn.plugin.js'
 		}
 	};
 
