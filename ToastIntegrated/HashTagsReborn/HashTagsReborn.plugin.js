@@ -40,7 +40,7 @@ var HashTagsReborn = (() => {
 					twitter_username: ''
 				}
 			],
-			version: '1.0.0',
+			version: '1.0.1',
 			description: 'Lets you use hashtags on Discord!',
 			github: 'https://github.com/Arashiryuu',
 			github_raw: 'https://raw.githubusercontent.com/Arashiryuu/crap/master/ToastIntegrated/HashTagsReborn/HashTagsReborn.plugin.js'
@@ -56,7 +56,7 @@ var HashTagsReborn = (() => {
 			constructor() {
 				super();
 				this._css;
-				this.regex = /\B#\w+/igm;
+				this.regex = /\B#[A-Z0-9a-z_-]+/igm;
 				this.css = `
 					${DiscordSelectors.Messages.message.value.trim()} #HashTag {
 						color: #3898FF;
@@ -105,7 +105,13 @@ var HashTagsReborn = (() => {
 					const matches = message.innerHTML.match(this.regex);
 					if (matches && matches.length) {
 						const html = message.innerHTML;
-						message.innerHTML = html.replace(this.regex, '<span id="HashTag">$&</span>');
+						const index = html.indexOf('#');
+						if (index > 0) {
+							const pre = html[index - 1] === '/' ? true : false;
+							if (!pre) message.innerHTML = html.replace(this.regex, '<span id="HashTag">$&</span>');
+						} else {
+							message.innerHTML = html.replace(this.regex, '<span id="HashTag">$&</span>');
+						}
 					}
 				}
 			}
