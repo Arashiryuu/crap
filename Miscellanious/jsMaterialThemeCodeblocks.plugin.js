@@ -43,7 +43,7 @@ var JSMaterialThemeCodeblocksRedux = (() => {
 			version: '1.0.0',
 			description: 'Applies the "Material Theme" to JavaScript codeblocks.',
 			github: 'https://github.com/Arashiryuu',
-			github_raw: ''
+			github_raw: 'https://raw.githubusercontent.com/Arashiryuu/crap/master/Miscellanious/jsMaterialThemeCodeblocks.plugin.js'
 		}
 	};
 
