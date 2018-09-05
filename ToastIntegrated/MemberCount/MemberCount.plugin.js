@@ -27,13 +27,15 @@
 class MemberCount {
 	constructor() {
 		this.initialized = false;
-		this.stylesheet;
-		this.counter;
+		this.default = { blacklist: [], placeholder: 'Server ID' };
+		this.defaultSettings();
+		this._css;
 		this.guildStore;
 		this.memberStore;
+
 		this.loadedGuilds = [];
 
-		this.membMO = new MutationObserver((changes) => {
+		this.mo = new MutationObserver((changes) => {
 			let reinject = false;
 			let memberCount = false;
 			for (const change of changes) {
@@ -54,7 +56,7 @@ class MemberCount {
 						}
 					}
 				}
-				if (document.getElementById('memberCount')) {
+				if (document.getElementById('MemberCount')) {
 					memberCount = true;
 				}
 			}
@@ -62,8 +64,8 @@ class MemberCount {
 			if (memberCount) this.memberCount();
 		});
 
-		this.styleCSS = `
-			#memberCount {
+		this.css = `
+			#MemberCount {
 				position: absolute;
 				font-size: 12px;
 				letter-spacing: 0.08em;
@@ -76,12 +78,12 @@ class MemberCount {
 				z-index: 5;
 			}
 
-			.theme-dark #memberCount {
+			.theme-dark #MemberCount {
 				color: hsla(0, 0%, 100%, 0.4);
 				background: #2f3136;
 			} 
 			
-			.theme-light #memberCount {
+			.theme-light #MemberCount {
 				color: #99aab5;
 				background: #f3f3f3;
 			}
@@ -91,6 +93,16 @@ class MemberCount {
 			}
 		`;
 	}
+
+	/* Required Methods - Plugin Info */
+
+	getName() { return this.name; }
+	getAuthor() { return this.author; }
+	getVersion() { return this.version; }
+	getDescription() { return this.description; }
+	getSettingsPanel() { return this.settingsPanel; }
+
+	/* Required Methods - Main */
 
 	load() {
 		this.log('Loaded');
@@ -104,26 +116,29 @@ class MemberCount {
 
 	start() {
 		this.log('Started');
-		let libraryScript = window.ZeresLibrary;
+		let libraryScript = window.zeresLibraryScript;
 		
 		if (!libraryScript) {
-			libraryScript = this.createElement('script', {
-				id: 'zeresLibraryScript',
-				src: 'https://rauenzi.github.io/BetterDiscordAddons/Plugins/PluginLibrary.js',
-				type: 'text/javascript'
-			});
+			libraryScript = document.createElement('script');
+			libraryScript.id = 'zeresLibraryScript';
+			libraryScript.src = 'https://rauenzi.github.io/BetterDiscordAddons/Plugins/PluginLibrary.js';
+			libraryScript.type = 'text/javascript';
 			document.head.appendChild(libraryScript);
-		} else if (libraryScript && libraryScript.isOutdated) {
-			const lib = document.querySelectorAll('zeresLibraryScript');
-			if (lib.length) {
-				const len = lib.length;
-				for (let i = 0; i < len; i++) lib[i].remove();
-			}
-			libraryScript = this.createElement('script', {
-				id: 'zeresLibraryScript',
-				src: 'https://rauenzi.github.io/BetterDiscordAddons/Plugins/PluginLibrary.js',
-				type: 'text/javascript'
-			});
+		} else if (libraryScript instanceof HTMLCollection) {
+			for (let i = libraryScript.length - 1, len = 0; i > len; i--) libraryScript[i].remove();
+			libraryScript = window.zeresLibraryScript;
+			libraryScript.remove();
+			libraryScript = document.createElement('script');
+			libraryScript.id = 'zeresLibraryScript';
+			libraryScript.src = 'https://rauenzi.github.io/BetterDiscordAddons/Plugins/PluginLibrary.js';
+			libraryScript.type = 'text/javascript';
+			document.head.appendChild(libraryScript);
+		} else if (window.ZeresLibrary && window.ZeresLibrary.isOutdated) {
+			libraryScript.remove();
+			libraryScript = document.createElement('script');
+			libraryScript.id = 'zeresLibraryScript';
+			libraryScript.src = 'https://rauenzi.github.io/BetterDiscordAddons/Plugins/PluginLibrary.js';
+			libraryScript.type = 'text/javascript';
 			document.head.appendChild(libraryScript);
 		}
 
@@ -131,8 +146,11 @@ class MemberCount {
 		else libraryScript.addEventListener('load', () => this.initialize());
 	}
 
+	/* Methods */
+
 	initialize() {
-		PluginUtilities.checkForUpdate(this.getName(), this.getVersion(), this.downLink);
+		PluginUtilities.checkForUpdate(this.name, this.version, this.link);
+		PluginUtilities.loadSettings(this.name, this.settings.blacklist);
 
 		this.guildStore = DiscordModules.SelectedGuildStore;
 		this.memberStore = DiscordModules.GuildMemberStore;
@@ -142,71 +160,55 @@ class MemberCount {
 		this.watch();
 
 		this.initialized = true;
-
-		PluginUtilities.showToast(`${this.getName()} ${this.getVersion()} has started.`);
+		PluginUtilities.showToast(`${this.name} ${this.version} has started.`, { type: 'info', icon: true, timeout: 2e3 });
 	}
 
 	watch() {
 		const app = document.querySelector('.app');
 		if (!app) return false;
-		this.membMO.observe(app, { childList: true, subtree: true, attributes: true });
+		this.mo.observe(app, { childList: true, subtree: true, attributes: true });
 		return true;
 	}
 
 	unwatch() {
-		this.membMO.disconnect();
+		this.mo.disconnect();
 		return true;
 	}
 
 	reinject() {
-		const m = document.querySelector('.membersWrap-2h-GB4');
+		const m = document.querySelector('.members-1998pB');
 		if (!m) return false;
+
+		const id = this.guildStore.getGuildId();
+		if (this.settings.blacklist.includes(id)) return false;
 
 		this.inject();
 
-		return this.memberCount(this.guildStore.getGuildId());
+		return this.memberCount(id);
 	}
 
 	inject() {
-		const ss = document.getElementById('memberCountCSS');
-		const c = document.getElementById('memberCount');
-		const members = document.querySelector('.membersWrap-2h-GB4');
+		const sheet = document.getElementById('MemberCountCSS');
+		const counter = document.getElementById('MemberCount');
+		const members = document.querySelector('.members-1998pB');
 		if (!members) return false;
 
-		if (!ss && !c) {
-			this.stylesheet = this.createElement('style', { id: 'memberCountCSS', textContent: this.styleCSS });
-			document.head.appendChild(this.stylesheet);
-	
-			this.counter = this.createElement('div', { id: 'memberCount', className: 'membersGroup-v9BXpm', textContent: '&nbsp;' });
-			members.appendChild(this.counter);
-	
-			return true;
-		} else if (!c || !ss) {
-			$('#memberCountCSS, #memberCount').remove();
-			this.stylesheet = this.createElement('style', { id: 'memberCountCSS', textContent: this.styleCSS });
-			document.head.appendChild(this.stylesheet);
-	
-			this.counter = this.createElement('div', { id: 'memberCount', className: 'membersGroup-v9BXpm', textContent: '&nbsp;' });
-			members.appendChild(this.counter);
-	
-			return true;
+		if (!sheet) {
+			const style = this.createElement('style', { id: 'MemberCountCSS', textContent: this.styleCSS });
+			document.head.appendChild(style);
 		}
-
-		return false;
+		
+		if (!counter) {
+			const e = this.createElement('div', { id: 'MemberCount', className: 'membersGroup-v9BXpm', textContent: '&nbsp;' });
+			members.prepend(e);
+		}
 	}
 
 	remove() {
-		if (document.contains(this.stylesheet) && document.contains(this.counter)) {
-			try {
-				document.head.removeChild(this.stylesheet);
-				document.querySelector('.membersWrap-2h-GB4').removeChild(this.counter);
-				return true;
-			} catch(e) {
-				this.err(e.stack);
-			}
-		}
-
-		return false;
+		const sheet = document.getElementById('MemberCountCSS');
+		const counter = document.getElementById('MemberCount');
+		if (sheet) sheet.remove();
+		if (counter) counter.remove();
 	}
 
 	createElement(type = '', properties = {}) {
@@ -220,7 +222,7 @@ class MemberCount {
 	}
 
 	memberCount(guildId) {
-		const members = document.querySelector('.membersWrap-2h-GB4');
+		const members = document.querySelector('.members-1998pB');
 		if (!members) return false;
 
 		if (guildId && !this.loadedGuilds.includes(guildId)) {
@@ -233,7 +235,7 @@ class MemberCount {
 		}
 		
 		const total = this.memberStore.getMemberIds(this.guildStore.getGuildId()).length;
-		const mCount = document.getElementById('memberCount');
+		const mCount = document.getElementById('MemberCount');
 
 		if (mCount) {
 			mCount.textContent = `Members—${total}`;
@@ -243,6 +245,8 @@ class MemberCount {
 		return false;
 	}
 
+	/* Observer */
+
 	observer({ addedNodes }) {
 		if (addedNodes.length && addedNodes[0].classList && addedNodes[0].classList.contains('app')) {
 			this.unwatch();
@@ -250,32 +254,137 @@ class MemberCount {
 		}
 	}
 
-	log(...extra) {
-		return console.log(`[%c${this.getName()}%c]`, 'color: #59F;', '', ...extra);
+	/* Utility */
+
+	log() {
+		return console.log(`%c[${this.name}]`, 'color: #59F; font-weight: 700;', ...arguments);
 	}
 
-	err(...errors) {
-		return console.error(`[%c${this.getName()}%c] `, 'color: #59F;', '', ...errors);
+	err() {
+		return console.error(`%c[${this.name}]`, 'color: #59F; font-weight: 700;', ...arguments);
 	}
 
-	get downLink() {
-		return `https://raw.githubusercontent.com/Arashiryuu/crap/master/ToastIntegrated/${this.getName()}/${this.getName()}.plugin.js`;
+	/**
+	 * @param {*} value
+	 * @author Zerebos 
+	 */
+	deepClone(value) {
+		if (typeof value !== 'object') return value;
+		
+		if (value instanceof Array) return value.map((i) => this.deepClone(i));
+
+		const clone = Object.assign({}, value);
+
+		for (const key in clone) {
+			clone[key] = this.deepClone(clone[key]);
+		}
+
+		return clone;
 	}
 
-	getName() {
+	defaultSettings() {
+		this.settings = this.deepClone(this.default);
+	}
+
+	/* Settings Panel */
+
+	async handleInput(e) {
+		const input = $('.input-wrapper input[placeholder="Server ID"]');
+		const isRemoval = (x) => (/^r$|^r\d{16,18}$/).test(x);
+		const isID = (x) => (/^\d{16,18}$/).test(x);
+
+		await new Promise((resolve) => setTimeout(resolve, 2e3));
+
+		if (isRemoval(e)) {
+			if (e.length > 1 && this.settings.blacklist.includes(e.slice(1))) this.settings.blacklist.splice(this.settings.blacklist.indexOf(e.slice(1)), 1);
+			else this.settings.blacklist.pop();
+			input.val('Removed from blacklist!');
+			PluginUtilities.saveSettings(this.name, JSON.stringify(this.settings.blacklist));
+			return setTimeout(() => input.val(''), 2e3);
+		}
+
+		if (!isID(e)) return;
+		if (!this.settings.blacklist.includes(e)) this.settings.blacklist.push(e);
+		if (!input) return;
+
+		input.val('Added to blacklist!');
+		PluginUtilities.saveSettings(this.name, JSON.stringify(this.settings.blacklist));
+		setTimeout(() => input.val(''), 2e3);
+	}
+
+	generate(panel) {
+		new PluginSettings.ControlGroup('Plugin Settings', () => PluginUtilities.saveSettings(this.name, JSON.stringify(this.settings.blacklist))).appendTo(panel).append(
+			new PluginSettings.Textbox('Blacklist', 'Servers to disable the member-count on. Removals e.g. `r234780924003221506`, or `r`.', '', this.settings.placeholder, (i) => this.handleInput(i))
+		);
+
+		const resetButton = $('<button>', {
+			type: 'button',
+			text: 'Reset To Default',
+			style: 'float: right;'
+		}).on('click.reset', () => {
+			this.defaultSettings();
+			PluginUtilities.saveSettings(this.name, JSON.stringify(this.settings.blacklist));
+			panel.empty();
+			this.generate(panel);
+		});
+
+		panel.append(resetButton);
+	}
+
+	/* Setters */
+
+	set css(style = '') {
+		return this._css = style.split(/\s+/g).join(' ').trim();
+	}
+
+	/* Getters */
+
+	get [Symbol.toStringTag]() {
+		return 'Plugin';
+	}
+
+	get css() {
+		return this._css;
+	}
+
+	get short() {
+		let string = '';
+
+		for (let i = 0, len = this.name.length; i < len; i++) {
+			const char = this.name[i];
+			if (char === char.toUpperCase()) string += char;
+		}
+
+		return string;
+	}
+
+	get link() {
+		return `https://raw.githubusercontent.com/Arashiryuu/crap/master/ToastIntegrated/${this.name}/${this.name}.plugin.js`;
+	}
+
+	get name() {
 		return 'MemberCount';
 	}
 
-	getAuthor() {
+	get author() {
 		return 'Arashiryuu';
 	}
 
-	getVersion() {
-		return '1.0.11';
+	get version() {
+		return '1.1.1';
 	}
 
-	getDescription() {
-		return 'Displays a server\'s member-count at the top of the member-list, can be styled with the #memberCount selector.';
+	get description() {
+		return 'Displays a server\'s member-count at the top of the member-list, can be styled with the #MemberCount selector.';
+	}
+
+	/**
+	 * @returns {HTMLElement}
+	 */
+	get settingsPanel() {
+		const panel = $('<form>').addClass('form').css('width', '100%');
+		if (this.initialized) this.generate(panel);
+		return panel[0];
 	}
 };
 
