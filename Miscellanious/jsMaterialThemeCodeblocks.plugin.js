@@ -40,6 +40,7 @@ class JSMaterialThemeCodeblocks {
 
 		this.keywords = {
 			'instanceof':'instanceof',
+			'arguments':'arguments',
 			'parseInt':'parseInt',
 			'require':'require',
 			'typeof':'typeof',
