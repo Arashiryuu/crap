@@ -119,9 +119,7 @@ var JSMaterialThemeCodeblocksRedux = (() => {
 				if (noParam.length) {
 					for (const param of noParam) DOMTools.addClass(param, 'hljs-no-param');
 				}
-				Logger.log(params);
 				params = DOMTools.queryAll('.hljs-params:not(.hljs-no-param)');
-				Logger.log(params);
 				if (!params.length) return;
 				for (const param of params) {
 					if (param.innerHTML.indexOf(',') > -1) {
