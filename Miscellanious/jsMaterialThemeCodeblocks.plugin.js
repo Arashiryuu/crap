@@ -1,4 +1,4 @@
-//META{"name":"JSMaterialThemeCodeblocksRedux","displayName":"JSMaterialThemeCodeblocksRedux","website":"https://github.com/Arashiryuu","source":"https://github.com/Arashiryuu/crap"}*//
+//META{"name":"JSMaterialThemeCodeblocksRedux","displayName":"JSMaterialThemeCodeblocksRedux","website":"https://github.com/Arashiryuu","source":"https://github.com/Arashiryuu/crap/blob/master/Miscellanious/jsMaterialThemeCodeblocks.plugin.js"}*//
 
 /*@cc_on
 @if (@_jscript)
