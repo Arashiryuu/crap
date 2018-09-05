@@ -6,6 +6,10 @@
     color: #82AAFF !important;
 }
 
+#app-mount .hljs-built_in.arguments {
+    color: #F95479 !important;
+}
+
 #app-mount .chat > .content .messages .message-group .markup pre code.hljs[class~="js" i] {
     background: #263239 !important;
     color: #eee !important;
