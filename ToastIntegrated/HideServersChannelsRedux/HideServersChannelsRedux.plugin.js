@@ -52,16 +52,16 @@ var HideServersChannelsRedux = (() => {
 					twitter_username: ''
 				}
 			],
-			version: '1.0.2',
+			version: '1.0.3',
 			description: 'Adds buttons to the header for hiding the servers list and channels list.',
 			github: 'https://github.com/Arashiryuu',
 			github_raw: 'https://raw.githubusercontent.com/Arashiryuu/crap/master/ToastIntegrated/HideServersChannelsRedux/HideServersChannelsRedux.plugin.js'
 		},
 		changelog: [
 			{
-				title: 'What\'s New?',
-				type: 'added',
-				items: ['Compatibility with DevilBro\'s ServerFolders plugin.']
+				title: 'Evolving?',
+				type: 'progress',
+				items: ['Switched from using static class names to using Discord\'s modular class references.']
 			}
 		]
 	};
@@ -92,6 +92,8 @@ var HideServersChannelsRedux = (() => {
 		const { Toasts, Patcher, DOMTools, ReactTools, DiscordModules, WebpackModules, DiscordSelectors } = Api;
 		const TooltipWrapper = WebpackModules.getByPrototypes('showDelayed');
 
+		const icons = WebpackModules.getByProps('iconMargin');
+
 		const ServerButton = class ServerButton extends DiscordModules.React.Component {
 			constructor(props) {
 				super(props);
@@ -110,7 +112,7 @@ var HideServersChannelsRedux = (() => {
 				},
 					DiscordModules.React.createElement('svg', {
 						name: 'ServerButton',
-						className: 'iconInactive-g2AXfB icon-1R19_H iconMargin-2YXk4F',
+						className: `${icons.iconInactive} ${icons.iconMargin}`,
 						onClick: this.onClick,
 						width: 24,
 						height: 24,
@@ -141,7 +143,7 @@ var HideServersChannelsRedux = (() => {
 				},
 					DiscordModules.React.createElement('svg', {
 						name: 'ChannelButton',
-						className: 'iconInactive-g2AXfB icon-1R19_H iconMargin-2YXk4F',
+						className: `${icons.iconInactive} ${icons.iconMargin}`,
 						onClick: this.onClick,
 						width: 24,
 						height: 24,
@@ -164,7 +166,7 @@ var HideServersChannelsRedux = (() => {
 					WebpackModules.getByProps('messages', 'messagesWrapper').messagesWrapper
 				];
 				this.css = `
-					.icon-1R19_H[name="ServerButton"], .icon-1R19_H[name="ChannelButton"] {
+					.${icons.icon}[name="ServerButton"], .${icons.icon}[name="ChannelButton"] {
 						fill: #FFF;
 					}
 
@@ -212,12 +214,16 @@ var HideServersChannelsRedux = (() => {
 			}
 
 			onServerButtonClick() {
-				const button = document.querySelector('.icon-1R19_H[name="ServerButton"]');
-				const element = document.querySelector('.' + WebpackModules.getByProps('guildsWrapper').guildsWrapper);
+				const button = document.querySelector(`.${icons.icon}[name="ServerButton"]`);
+				const element = document.querySelector(`.${WebpackModules.getByProps('guildsWrapper').guildsWrapper}`);
 				
 				if (!button) return;
-				DOMTools.toggleClass(button, 'iconInactive-g2AXfB');
-				DOMTools.toggleClass(button, 'iconActive-AKd_jq');
+
+				const [inactive] = icons.iconInactive.split(' ');
+				const [active] = icons.iconActive.split(' ');
+
+				DOMTools.toggleClass(button, inactive);
+				DOMTools.toggleClass(button, active);
 
 				if (!DOMTools.hasClass(element, '_closed')) {
 					DOMTools.addClass(element, 'closing');
@@ -230,19 +236,21 @@ var HideServersChannelsRedux = (() => {
 					DOMTools.removeClass(element, '_closed');
 					DOMTools.addClass(element, 'opening');
 					element.style.width = '';
-					setTimeout(() => {
-						DOMTools.removeClass(element, 'opening')
-					}, 400);
+					setTimeout(() => DOMTools.removeClass(element, 'opening'), 400);
 				}
 			}
 			
 			onChannelButtonClick() {
-				const button = document.querySelector('.icon-1R19_H[name="ChannelButton"]');
+				const button = document.querySelector(`.${icons.icon}[name="ChannelButton"]`);
 				const element = document.querySelector(DiscordSelectors.ChannelList.channels.value.trim());
 				
 				if (!button) return;
-				DOMTools.toggleClass(button, 'iconInactive-g2AXfB');
-				DOMTools.toggleClass(button, 'iconActive-AKd_jq')
+
+				const [inactive] = icons.iconInactive.split(' ');
+				const [active] = icons.iconActive.split(' ');
+
+				DOMTools.toggleClass(button, inactive);
+				DOMTools.toggleClass(button, active);
 
 				if (!DOMTools.hasClass(element, '_closed')) {
 					DOMTools.addClass(element, 'closing');
@@ -416,6 +424,7 @@ var HideServersChannelsRedux = (() => {
 				try {
 					await global.ZLibraryPromise;
 				} catch(e) {
+					err(e);
 					return this.showAlert();
 				}
 				bdplugins[this.name].plugin.start();
