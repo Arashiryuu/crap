@@ -52,16 +52,16 @@ var ChatUserIDsRedux = (() => {
 					twitter_username: ''
 				}
 			],
-			version: '1.0.6',
+			version: '1.0.7',
 			description: 'Adds a user\'s ID next to their name in chat, makes accessing a user ID simpler. Double-click to copy the ID.',
 			github: 'https://github.com/Arashiryuu',
 			github_raw: 'https://raw.githubusercontent.com/Arashiryuu/crap/master/ToastIntegrated/ChatUserIDsRedux/ChatUserIDsRedux.plugin.js'
 		},
 		changelog: [
 			{
-				title: 'Bugs Squashed',
-				type: 'fixed',
-				items: ['Now works in Compact mode... again.']
+				title: 'Evolving?',
+				type: 'progress',
+				items: ['Improved how the plugin initializes its settings.', 'Trimmed excess fat.']
 			}
 		]
 	};
@@ -89,7 +89,7 @@ var ChatUserIDsRedux = (() => {
 	/* Build */
 
 	const buildPlugin = ([Plugin, Api]) => {
-		const { Toasts, Patcher, Settings, ReactTools, DiscordModules, WebpackModules, DiscordSelectors } = Api;
+		const { Toasts, Patcher, Settings, Utilities, ReactTools, DiscordModules, WebpackModules, DiscordSelectors } = Api;
 
 		const ID = class ID extends DiscordModules.React.Component {
 			constructor(props) {
@@ -118,7 +118,7 @@ var ChatUserIDsRedux = (() => {
 					],
 					color: '#798AED'
 				};
-				this.settings = Object.assign({}, this.default);
+				this.settings = Utilities.deepclone(this.default);
 				this._css;
 				this.css = `
 					@import 'https://fonts.googleapis.com/css?family=Roboto|Inconsolata';
@@ -241,12 +241,6 @@ var ChatUserIDsRedux = (() => {
 			 */
 			getProps(obj, path) {
 				return path.split(/\s?\.\s?/).reduce((obj, prop) => obj && obj[prop], obj);
-			}
-
-			/* Utility */
-
-			revertSettings() {
-				for (const key in this.default) this.settings[key] = this.default[key];
 			}
 
 			/* Settings Panel */
