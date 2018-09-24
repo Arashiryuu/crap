@@ -52,16 +52,21 @@ var HideServersChannelsRedux = (() => {
 					twitter_username: ''
 				}
 			],
-			version: '1.0.3',
+			version: '1.0.4',
 			description: 'Adds buttons to the header for hiding the servers list and channels list.',
 			github: 'https://github.com/Arashiryuu',
 			github_raw: 'https://raw.githubusercontent.com/Arashiryuu/crap/master/ToastIntegrated/HideServersChannelsRedux/HideServersChannelsRedux.plugin.js'
 		},
 		changelog: [
 			{
-				title: 'Evolving?',
-				type: 'progress',
-				items: ['Switched from using static class names to using Discord\'s modular class references.']
+				title: 'Bugs Squashed',
+				type: 'fixed',
+				items: ['Punk Discord updates, smh.']
+			},
+			{
+				title: 'Features?',
+				type: 'added',
+				items: ['Keybinds to toggle the channels/servers. Enable in plugin settings.']
 			}
 		]
 	};
@@ -89,7 +94,8 @@ var HideServersChannelsRedux = (() => {
 	/* Build */
 
 	const buildPlugin = ([Plugin, Api]) => {
-		const { Toasts, Patcher, DOMTools, ReactTools, DiscordModules, WebpackModules, DiscordSelectors } = Api;
+		const { Toasts, Patcher, DOMTools, Settings, ReactTools, DiscordModules, WebpackModules, DiscordSelectors } = Api;
+		const { SettingPanel, Switch } = Settings;
 		const TooltipWrapper = WebpackModules.getByPrototypes('showDelayed');
 
 		const icons = WebpackModules.getByProps('iconMargin');
@@ -159,6 +165,8 @@ var HideServersChannelsRedux = (() => {
 		return class HideServersChannelsRedux extends Plugin {
 			constructor() {
 				super();
+				this.default = { keybinds: false };
+				this.settings = Object.assign({}, this.default);
 				this._css;
 				this.switchList = [
 					'app',
@@ -201,16 +209,37 @@ var HideServersChannelsRedux = (() => {
 			/* Methods */
 
 			onStart() {
+				this.loadSettings(this.settings);
 				BdApi.injectCSS(this.short, this.css);
 				this.patchHeader();
+				this.handleKeybinds();
 				Toasts.info(`${this.name} ${this.version} has started!`, { icon: true, timeout: 2e3 });
 			}
 
 			onStop() {
 				Patcher.unpatchAll();
 				this.updateHeader();
+				this.removeKeybinds();
 				BdApi.clearCSS(this.short);
 				Toasts.info(`${this.name} ${this.version} has stopped!`, { icon: true, timeout: 2e3 });
+			}
+
+			removeKeybinds() {
+				DOMTools.off(document, `keyup.${this.short}`);
+			}
+
+			handleKeybinds() {
+				this.removeKeybinds();
+				if (this.settings.keybinds) DOMTools.on(document, `keyup.${this.short}`, (e) => this.onKeyup(e));
+			}
+
+			onKeyup({ altKey, ctrlKey, key }) {
+				if (!altKey || ctrlKey) return;
+				key.toLowerCase() === 'c' 
+					? this.onChannelButtonClick() 
+					: key.toLowerCase() === 'g' 
+						? this.onServerButtonClick() 
+						: void 0;
 			}
 
 			onServerButtonClick() {
@@ -227,17 +256,17 @@ var HideServersChannelsRedux = (() => {
 
 				if (!DOMTools.hasClass(element, '_closed')) {
 					DOMTools.addClass(element, 'closing');
-					setTimeout(() => {
+					return setTimeout(() => {
 						DOMTools.addClass(element, '_closed')
 						DOMTools.removeClass(element, 'closing');
 					}, 400);
-				} else {
-					element.style.width = '0';
-					DOMTools.removeClass(element, '_closed');
-					DOMTools.addClass(element, 'opening');
-					element.style.width = '';
-					setTimeout(() => DOMTools.removeClass(element, 'opening'), 400);
 				}
+
+				element.style.width = '0';
+				DOMTools.removeClass(element, '_closed');
+				DOMTools.addClass(element, 'opening');
+				element.style.width = '';
+				setTimeout(() => DOMTools.removeClass(element, 'opening'), 400);
 			}
 			
 			onChannelButtonClick() {
@@ -254,17 +283,17 @@ var HideServersChannelsRedux = (() => {
 
 				if (!DOMTools.hasClass(element, '_closed')) {
 					DOMTools.addClass(element, 'closing');
-					setTimeout(() => {
+					return setTimeout(() => {
 						DOMTools.addClass(element, '_closed')
 						DOMTools.removeClass(element, 'closing');
 					}, 400);
-				} else {
-					element.style.width = '0';
-					DOMTools.removeClass(element, '_closed');
-					DOMTools.addClass(element, 'opening');
-					element.style.width = '';
-					setTimeout(() => DOMTools.removeClass(element, 'opening'), 400);
 				}
+
+				element.style.width = '0';
+				DOMTools.removeClass(element, '_closed');
+				DOMTools.addClass(element, 'opening');
+				element.style.width = '';
+				setTimeout(() => DOMTools.removeClass(element, 'opening'), 400);
 			}
 
 			async patchHeader() {
@@ -277,7 +306,7 @@ var HideServersChannelsRedux = (() => {
 				});
 
 				Patcher.after(Header.prototype, 'render', (that, args, value) => {
-					const children = this.getProps(value, 'props.children.2.props.children.0');
+					const children = this.getProps(value, 'props.children.3.props.children.0');
 
 					if (!children || !Array.isArray(children)) return value;
 
@@ -303,6 +332,17 @@ var HideServersChannelsRedux = (() => {
 			 */
 			getProps(obj, path) {
 				return path.split(/\s?\.\s?/).reduce((object, prop) => object && object[prop], obj);
+			}
+
+			/* Settings Panel */
+
+			getSettingsPanel() {
+				return SettingPanel.build(() => this.saveSettings(this.settings),
+					new Switch('Enable Keybinds', 'Guilds: Alt + G. Channels: Alt + C.', this.settings.keybinds, (i) => {
+						this.settings.keybinds = i;
+						this.handleKeybinds();
+					})
+				);
 			}
 
 			/* Setters */
