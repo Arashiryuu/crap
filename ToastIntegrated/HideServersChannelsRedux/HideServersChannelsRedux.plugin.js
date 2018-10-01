@@ -173,6 +173,11 @@ var HideServersChannelsRedux = (() => {
 					DiscordSelectors.TitleWrap.chat.value.slice(2),
 					WebpackModules.getByProps('messages', 'messagesWrapper').messagesWrapper
 				];
+				this.keys = ['c', 'g'];
+				this.keyFns = {
+					c: () => this.onChannelButtonClick(),
+					g: () => this.onServerButtonClick()
+				};
 				this.css = `
 					.${icons.icon}[name="ServerButton"], .${icons.icon}[name="ChannelButton"] {
 						fill: #FFF;
@@ -234,12 +239,9 @@ var HideServersChannelsRedux = (() => {
 			}
 
 			onKeyup({ altKey, ctrlKey, key }) {
-				if (!altKey || ctrlKey) return;
-				key.toLowerCase() === 'c' 
-					? this.onChannelButtonClick() 
-					: key.toLowerCase() === 'g' 
-						? this.onServerButtonClick() 
-						: void 0;
+				key = key.toLowerCase();
+				if (!altKey || ctrlKey || !this.keys.includes(key)) return;
+				this.keyFns[key]();
 			}
 
 			onServerButtonClick() {
