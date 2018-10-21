@@ -39,9 +39,6 @@ class HideUtils {
 			servers: new Map(),
 			users: new Map()
 		};
-		
-		this.TypingUsers;
-		this.Cancel;
 
 		this.user;
 		this.guild;
@@ -253,6 +250,8 @@ class HideUtils {
 				}
 			}
 		});
+
+		this.patches = [];
 	}
 
 	/* Required Methods - Plugin Info */
@@ -270,7 +269,7 @@ class HideUtils {
 	}
 
 	stop() {
-		this.Cancel();
+		this.unpatchAll();
 		this.resetSettings();
 		this.removeCSS();
 		this.allDiscon();
@@ -317,22 +316,22 @@ class HideUtils {
 		PluginUtilities.checkForUpdate(this.name, this.version, this.link);
 		this.loadSettings();
 
-		const { WebpackModules: { find, findByProps } } = InternalUtilities;
+		const { WebpackModules: { find, findByProps }, monkeyPatch } = InternalUtilities;
 
-		this.channel = findByProps(['getChannel']);
-		this.guild = findByProps(['getGuild']);
-		this.user = findByProps(['getUser']);
+		this.channel = DiscordModules.ChannelStore;
+		this.guild = DiscordModules.GuildStore;
+		this.user = DiscordModules.UserStore;
 		this.mute = findByProps(['setLocalVolume']).setLocalVolume;
 
-		this.TypingUsers = find((x) => {
+		const TypingUsers = find((x) => {
 			try {
-				return x.displayName === 'FluxContainer(t)' && !(new x({channel: 0}));
+				return x.displayName === 'FluxContainer(t)' && !(new x({ channel: 0 }));
 			} catch(e) {
 				return e.toString().includes('isPrivate');
 			}
 		});
 
-		this.Cancel = InternalUtilities.monkeyPatch(this.TypingUsers.prototype, 'render', {
+		let patch = monkeyPatch(TypingUsers.prototype, 'render', {
 			before: ({ thisObject: { state: { typingUsers } } }) => {
 				for (const id in typingUsers) {
 					if (this.hid.users.has(id)) delete typingUsers[id];
@@ -341,12 +340,27 @@ class HideUtils {
 			displayName: 'TypingUsers'
 		});
 
+		this.patches.push(patch);
+
+		patch = monkeyPatch(DiscordModules.RelationshipStore, 'isBlocked', {
+			after: ({ methodArguments: args }) => {
+				if (this.hid.users.has(args[0])) return false;
+			},
+			displayName: 'RelationshipStore'
+		});
+
+		this.patches.push(patch);
+
 		this.injectCSS();
 		this.allObs();
 		this.startHiding();
 
 		this.initialized = true;
 		PluginUtilities.showToast(`${this.getName()} ${this.getVersion()} has started.`, { type: 'info', icon: true, timeout: 2e3 });
+	}
+
+	unpatchAll() {
+		for (const cancel of this.patches) cancel();
 	}
 
 	injectCSS() {
@@ -480,7 +494,7 @@ class HideUtils {
 				this.hideChannels();
 			}
 		} else {
-			const field = $('#ChanblockField');
+			const field = $('#ChanHideField');
 			const nChan = field.val();
 			if (isNaN(nChan)) {
 				field.val('Invalid entry: NaN; ID-Only.');
@@ -518,7 +532,7 @@ class HideUtils {
 	}
 
 	chanClear(o) {
-		const field = $('#ChanblockField');
+		const field = $('#ChanHideField');
 		if (o) {
 			if (this.hid.channels.has(o)) {
 				this.hid.channels.delete(o);
@@ -821,7 +835,7 @@ class HideUtils {
 				this.log('Unable to find that user to hide.');
 			}
 		} else {
-			const field = $('#blockField');
+			const field = $('#UserHideField');
 			const nUser = field.val();
 			if (isNaN(nUser)) {
 				field.val('Invalid entry: NaN; ID-Only.');
@@ -862,7 +876,7 @@ class HideUtils {
 	}
 
 	userClear(o) {
-		const field = $('#blockField');
+		const field = $('#UserHideField');
 		if (o) {
 			if (this.hid.users.has(o)) {
 				this.hid.users.delete(o);
@@ -899,7 +913,7 @@ class HideUtils {
 
 	saveSettings() {
 		try {
-			bdPluginStorage.set('HideUtils', 'settings', JSON.stringify(this.hid));
+			BdApi.saveData('HideUtils', 'settings', JSON.stringify(this.hid));
 			return true;
 		} catch(e) {
 			this.err(e);
@@ -908,7 +922,7 @@ class HideUtils {
 	}
 
 	loadSettings() {
-		const settings = bdPluginStorage.get('HideUtils', 'settings');
+		const settings = BdApi.loadData('HideUtils', 'settings');
 		if (settings) {
 			const parsed = JSON.parse(settings);
 			if (parsed instanceof Object && parsed.hasOwnProperty('channels')) {
@@ -1155,7 +1169,7 @@ class HideUtils {
 	}
 
 	get version() {
-		return '1.1.12';
+		return '1.1.13';
 	}
 
 	get description() {
