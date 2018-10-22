@@ -325,7 +325,7 @@ class HideUtils {
 
 		const TypingUsers = find((x) => {
 			try {
-				return x.displayName === 'FluxContainer(t)' && !(new x({ channel: 0 }));
+				return x.displayName === 'FluxContainer(l)' && !(new x({ channel: 0 }));
 			} catch(e) {
 				return e.toString().includes('isPrivate');
 			}
@@ -1167,7 +1167,7 @@ class HideUtils {
 	}
 
 	get version() {
-		return '1.1.14';
+		return '1.1.15';
 	}
 
 	get description() {
