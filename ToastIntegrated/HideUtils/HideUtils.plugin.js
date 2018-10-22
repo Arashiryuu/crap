@@ -716,31 +716,29 @@ class HideUtils {
 	userContext(context) {
 		if (!context) return;
 		const ctx = this.getReactInstance(context);
-		const user = this.getProp(ctx, 'return.memoizedProps.user');
-		const props = this.getProp(ctx, 'return.memoizedProps');
+		const props = this.getProp(ctx, 'return.return.return.return.memoizedProps');
+		const user = this.getProp(props, 'user');
 		if (!ctx || !user) return;
 		const contexts = ['user-name', 'avatar-small', 'avatar-large', 'username-_4ZSMR', 'image-33JSyf', 'small-5Os1Bb', 'wrapper-2F3Zv8', 'avatar-17mtNa'];
 		if (props.target && typeof props.target.className !== 'object' && ( contexts.some((n) => props.target.className.includes(n)) )) {
 			$(context).find('.item-1Yvehc').first().after(this.userItem);
 			$(context).find('.item-1Yvehc.hideUser')
 				.off('click.HideUtilsU')
-				.on('click.HideUtilsU', (o) => this.userConClick());
+				.on('click.HideUtilsU', (o) => this.userConClick(user.id));
 		} else if (props.type && props.type === 'USER_FRIEND_LIST' && user) {
 			$(context).find('.item-1Yvehc').first().after(this.userItem);
 			$(context).find('.item-1Yvehc.hideUser')
 				.off('click.HideUtilsU')
-				.on('click.HideUtilsU', (o) => this.userConClick());
+				.on('click.HideUtilsU', (o) => this.userConClick(user.id));
 		}
 	}
 
-	userConClick() {
+	userConClick(userId) {
 		const context = document.querySelector('.contextMenu-HLZMGh');
-		if (!context) return;
-		if (!this.getReactInstance(context).return.memoizedProps.user) return;
-		const user = this.getReactInstance(context).return.memoizedProps.user.id;
-		if (DiscordModules.UserInfoStore.getId() === user) return PluginUtilities.showToast('You cannot hide yourself.', { type: 'danger', icon: true, timeout: 3e3 });
-		if (!this.hid.users.has(user)) {
-			this.userPush(user);
+		if (!context || !userId) return;
+		if (DiscordModules.UserInfoStore.getId() === userId) return PluginUtilities.showToast('You cannot hide yourself.', { type: 'danger', icon: true, timeout: 3e3 });
+		if (!this.hid.users.has(userId)) {
+			this.userPush(userId);
 			this.saveSettings();
 			this.hideUsers();
 		}
@@ -1110,15 +1108,15 @@ class HideUtils {
 	 * @returns {*}
 	 */
 	getProp(obj, path) {
-		return path.split(/\s?\.\s?/).reduce((obj, prop) => obj && obj[prop], obj);
+		return path.split(/\s?\.\s?/).reduce((object, prop) => object && object[prop], obj);
 	}
 
-	log(...extra) {
-		return console.log(`[%c${this.name}%c]`, 'color: #59F;', '', ...extra);
+	log() {
+		return console.log(`[%c${this.name}%c]`, 'color: #59F;', '', ...arguments);
 	}
 
-	err(...e) {
-		return console.error(`[%c${this.name}%c]`, 'color: #59F;', '', ...e);
+	err() {
+		return console.error(`[%c${this.name}%c]`, 'color: #59F;', '', ...arguments);
 	}
 
 	/* Setters */
@@ -1169,7 +1167,7 @@ class HideUtils {
 	}
 
 	get version() {
-		return '1.1.13';
+		return '1.1.14';
 	}
 
 	get description() {
