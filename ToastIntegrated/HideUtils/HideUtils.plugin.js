@@ -1092,9 +1092,9 @@ class HideUtils {
 	/**
 	 * Function to return the react internal data of the element.
 	 * @name getInternalInstance
-	 * @param {Node} node - the element we want the internal data from
+	 * @param {Element} node The element we want the internal data from.
 	 * @author noodlebox
-	 * @returns {Node}
+	 * @returns {Object}
 	 */
 	getReactInstance(node) {
 		return node[Object.keys(node).find((key) => key.startsWith('__reactInternalInstance'))];
