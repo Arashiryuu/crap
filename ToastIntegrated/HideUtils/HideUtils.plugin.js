@@ -316,20 +316,14 @@ class HideUtils {
 		PluginUtilities.checkForUpdate(this.name, this.version, this.link);
 		this.loadSettings();
 
-		const { WebpackModules: { find, findByProps }, monkeyPatch } = InternalUtilities;
+		const { WebpackModules: { findByDisplayName: findByName, findByProps }, monkeyPatch } = InternalUtilities;
 
 		this.channel = DiscordModules.ChannelStore;
 		this.guild = DiscordModules.GuildStore;
 		this.user = DiscordModules.UserStore;
 		this.mute = findByProps(['setLocalVolume']).setLocalVolume;
 
-		const TypingUsers = find((x) => {
-			try {
-				return x.displayName === 'FluxContainer(l)' && !(new x({ channel: 0 }));
-			} catch(e) {
-				return e.toString().includes('isPrivate');
-			}
-		});
+		const TypingUsers = findByName('FluxContainer(TypingUsers)');
 
 		let patch = monkeyPatch(TypingUsers.prototype, 'render', {
 			before: ({ thisObject: { state: { typingUsers } } }) => {
@@ -1167,7 +1161,7 @@ class HideUtils {
 	}
 
 	get version() {
-		return '1.1.15';
+		return '1.1.16';
 	}
 
 	get description() {
