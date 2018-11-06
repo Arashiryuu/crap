@@ -28,18 +28,6 @@ var HideServersChannelsRedux = (() => {
 
 	/* Setup */
 
-	if (!global.ZLibrary && !global.ZLibraryPromise) global.ZLibraryPromise = new Promise((resolve, reject) => {
-		require('request').get({ url: 'https://rauenzi.github.io/BDPluginLibrary/release/ZLibrary.js', timeout: 1e4 }, (err, res, body) => {
-			if (err || res.statusCode !== 200) return reject(err || res.statusMessage);
-			try {
-				const { Script } = require('vm'), script = new Script(body, { displayErrors: true });
-				resolve(script.runInThisContext());
-			} catch(err) {
-				reject(err);
-			}
-		});
-	});
-
 	const config = {
 		main: 'index.js',
 		info: {
@@ -52,49 +40,29 @@ var HideServersChannelsRedux = (() => {
 					twitter_username: ''
 				}
 			],
-			version: '1.0.4',
+			version: '1.0.5',
 			description: 'Adds buttons to the header for hiding the servers list and channels list.',
 			github: 'https://github.com/Arashiryuu',
 			github_raw: 'https://raw.githubusercontent.com/Arashiryuu/crap/master/ToastIntegrated/HideServersChannelsRedux/HideServersChannelsRedux.plugin.js'
 		},
 		changelog: [
 			{
-				title: 'Bugs Squashed',
-				type: 'fixed',
-				items: ['Punk Discord updates, smh.']
+				title: 'Evolving?',
+				type: 'improved',
+				items: ['Now uses the local library of ZeresPluginLibrary.']
 			},
 			{
-				title: 'Features?',
+				title: 'What\'s New?',
 				type: 'added',
-				items: ['Keybinds to toggle the channels/servers. Enable in plugin settings.']
+				items: ['Compatibility with the normalized classes option of BBD\'s Bandages settings.']
 			}
 		]
-	};
-
-	/* Utility */
-
-	const log = function() {
-		/**
-		 * @type {Array}
-		 */
-		const args = Array.prototype.slice.call(arguments);
-		args.unshift(`%c[${config.info.name}]`, 'color: #3A71C1; font-weight: 700;');
-		return console.log.apply(this, args);
-	};
-
-	const err = function() {
-		/**
-		 * @type {Array}
-		 */
-		const args = Array.prototype.slice.call(arguments);
-		args.unshift(`%c[${config.info.name}]`, 'color: #3A71C1; font-weight: 700;');
-		return console.error.apply(this, args);
 	};
 
 	/* Build */
 
 	const buildPlugin = ([Plugin, Api]) => {
-		const { Toasts, Patcher, DOMTools, Settings, ReactTools, DiscordModules, WebpackModules, DiscordSelectors } = Api;
+		const { Toasts, Logger, Patcher, DOMTools, Settings, ReactTools, DiscordModules, WebpackModules, DiscordSelectors } = Api;
 		const { SettingPanel, Switch } = Settings;
 		const TooltipWrapper = WebpackModules.getByPrototypes('showDelayed');
 
@@ -122,7 +90,8 @@ var HideServersChannelsRedux = (() => {
 						onClick: this.onClick,
 						width: 24,
 						height: 24,
-						viewBox: '-2 -2 28 28'
+						viewBox: '-2 -2 28 28',
+						fill: '#FFF'
 					},
 						DiscordModules.React.createElement('path', { d: 'M0 0h24v24H0z', fill: 'none' }),
 						DiscordModules.React.createElement('path', { d: 'M20 13H4c-.55 0-1 .45-1 1v6c0 .55.45 1 1 1h16c.55 0 1-.45 1-1v-6c0-.55-.45-1-1-1zM7 19c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zM20 3H4c-.55 0-1 .45-1 1v6c0 .55.45 1 1 1h16c.55 0 1-.45 1-1V4c0-.55-.45-1-1-1zM7 9c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2z' })
@@ -153,7 +122,8 @@ var HideServersChannelsRedux = (() => {
 						onClick: this.onClick,
 						width: 24,
 						height: 24,
-						viewBox: '2 2 20 20'
+						viewBox: '2 2 20 20',
+						fill: '#FFF'
 					},
 						DiscordModules.React.createElement('path', { d: 'M5 13h14v-2H5v2zm-2 4h14v-2H3v2zM7 7v2h14V7H7z' }),
 						DiscordModules.React.createElement('path', { d: 'M0 0h24v24H0z', fill: 'none' })
@@ -179,10 +149,6 @@ var HideServersChannelsRedux = (() => {
 					g: () => this.onServerButtonClick()
 				};
 				this.css = `
-					.${icons.icon}[name="ServerButton"], .${icons.icon}[name="ChannelButton"] {
-						fill: #FFF;
-					}
-
 					._closed {
 						display: none;
 					}
@@ -240,13 +206,37 @@ var HideServersChannelsRedux = (() => {
 
 			onKeyup({ altKey, ctrlKey, key }) {
 				key = key.toLowerCase();
+				
 				if (!altKey || ctrlKey || !this.keys.includes(key)) return;
+
 				this.keyFns[key]();
 			}
 
+			isNotClosed(el) {
+				return !DOMTools.hasClass(el, '_closed');
+			}
+
+			closeElement(el) {
+				DOMTools.addClass(el, 'closing');
+				setTimeout(() => {
+					DOMTools.addClass(el, '_closed');
+					DOMTools.removeClass(el, 'closing');
+				}, 400);
+			}
+
+			openElement(el) {
+				el.style.width = '0';
+				DOMTools.removeClass(el, '_closed');
+				DOMTools.addClass(el, 'opening');
+				el.style.width = '';
+				setTimeout(() => DOMTools.removeClass(el, 'opening'), 400);
+			}
+
 			onServerButtonClick() {
-				const button = document.querySelector(`.${icons.icon}[name="ServerButton"]`);
-				const element = document.querySelector(`.${WebpackModules.getByProps('guildsWrapper').guildsWrapper}`);
+				const iconClass = icons.icon.split(' ').join('.');
+				const guildsWrapper = WebpackModules.getByProps('guildsWrapper').guildsWrapper.split(' ').join('.');
+				const button = document.querySelector(`.${iconClass}[name="ServerButton"]`);
+				const element = document.querySelector(`.${guildsWrapper}`);
 				
 				if (!button) return;
 
@@ -256,23 +246,14 @@ var HideServersChannelsRedux = (() => {
 				DOMTools.toggleClass(button, inactive);
 				DOMTools.toggleClass(button, active);
 
-				if (!DOMTools.hasClass(element, '_closed')) {
-					DOMTools.addClass(element, 'closing');
-					return setTimeout(() => {
-						DOMTools.addClass(element, '_closed')
-						DOMTools.removeClass(element, 'closing');
-					}, 400);
-				}
+				if (this.isNotClosed(element)) return this.closeElement(element);
 
-				element.style.width = '0';
-				DOMTools.removeClass(element, '_closed');
-				DOMTools.addClass(element, 'opening');
-				element.style.width = '';
-				setTimeout(() => DOMTools.removeClass(element, 'opening'), 400);
+				this.openElement(element);
 			}
 			
 			onChannelButtonClick() {
-				const button = document.querySelector(`.${icons.icon}[name="ChannelButton"]`);
+				const iconClass = icons.icon.split(' ').join('.');
+				const button = document.querySelector(`.${iconClass}[name="ChannelButton"]`);
 				const element = document.querySelector(DiscordSelectors.ChannelList.channels.value.trim());
 				
 				if (!button) return;
@@ -283,19 +264,9 @@ var HideServersChannelsRedux = (() => {
 				DOMTools.toggleClass(button, inactive);
 				DOMTools.toggleClass(button, active);
 
-				if (!DOMTools.hasClass(element, '_closed')) {
-					DOMTools.addClass(element, 'closing');
-					return setTimeout(() => {
-						DOMTools.addClass(element, '_closed')
-						DOMTools.removeClass(element, 'closing');
-					}, 400);
-				}
+				if (this.isNotClosed(element)) return this.closeElement(element);
 
-				element.style.width = '0';
-				DOMTools.removeClass(element, '_closed');
-				DOMTools.addClass(element, 'opening');
-				element.style.width = '';
-				setTimeout(() => DOMTools.removeClass(element, 'opening'), 400);
+				this.openElement(element);
 			}
 
 			async patchHeader() {
@@ -329,8 +300,12 @@ var HideServersChannelsRedux = (() => {
 			}
 
 			/**
-			 * @name safelyGetNestedProp
+			 * Function to access properties of an object safely, returns false instead of erroring if the property / properties do not exist.
+			 * @name safelyGetNestedProps
 			 * @author Zerebos
+			 * @param {Object} obj The object we are accessing.
+			 * @param {String} path The properties we want to traverse or access.
+			 * @returns {*}
 			 */
 			getProps(obj, path) {
 				return path.split(/\s?\.\s?/).reduce((object, prop) => object && object[prop], obj);
@@ -394,7 +369,7 @@ var HideServersChannelsRedux = (() => {
 
 	/* Finalize */
 
-	return !global.ZLibrary 
+	return !global.ZeresPluginLibrary
 		? class {
 			constructor() {
 				this.initialized = false;
@@ -416,60 +391,16 @@ var HideServersChannelsRedux = (() => {
 				return this.description;
 			}
 
-			showAlert() {
-				window.mainCore.alert('Loading Error', 'Something went wrong trying to load the library for the plugin. Try reloading?');
-			}
-
 			stop() {
-				log('Stopped!');
+				Logger.log('Stopped!');
 			}
 
-			async load() {
-				try {
-					await global.ZLibraryPromise;
-				} catch(e) {
-					return this.showAlert();
-				}
-				const { Script } = require('vm'), plugin = buildPlugin(global.ZLibrary.buildPlugin(config));
-				try {
-					new Script(plugin, { displayErrors: true });
-				} catch(e) {
-					return bdpluginErrors.push({
-						name: this.name,
-						file: `${this.name}.plugin.js`,
-						reason: 'Plugin could not be compiled.',
-						error: {
-							message: e.message,
-							stack: e.stack
-						}
-					});
-				}
-				global[this.name] = plugin;
-				try {
-					new Script(`new global["${this.name}"]();`, { displayErrors: true });
-				} catch(e) {
-					return bdpluginErrors.push({
-						name: this.name,
-						file: `${this.name}.plugin.js`,
-						reason: 'Plugin could not be constructed.',
-						error: {
-							message: e.message,
-							stack: e.stack
-						}
-					});
-				}
-				bdplugins[this.name].plugin = new global[this.name]();
-				bdplugins[this.name].plugin.load();
+			load() {
+				window.BdApi.alert('Missing Library', `The library plugin needed for ${config.info.name} is missing.<br /><br /> <a href="https://betterdiscord.net/ghdl?url=https://raw.githubusercontent.com/rauenzi/BDPluginLibrary/master/release/0PluginLibrary.plugin.js">Click here to download the library!</a>`);
 			}
 
-			async start() {
-				try {
-					await global.ZLibraryPromise;
-				} catch(e) {
-					err(e);
-					return this.showAlert();
-				}
-				bdplugins[this.name].plugin.start();
+			start() {
+				Logger.log('Started!');
 			}
 
 			/* Getters */
@@ -505,7 +436,7 @@ var HideServersChannelsRedux = (() => {
 				return config.info.description;
 			}
 		}
-		: buildPlugin(global.ZLibrary.buildPlugin(config));
+		: buildPlugin(global.ZeresPluginLibrary.buildPlugin(config));
 })();
 
 /*@end@*/
