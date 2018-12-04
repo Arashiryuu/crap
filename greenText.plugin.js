@@ -28,18 +28,6 @@ var GreenText = (() => {
 
 	/* Setup */
 
-	if (!global.ZLibrary && !global.ZLibraryPromise) global.ZLibraryPromise = new Promise((resolve, reject) => {
-		require('request').get({ url: 'https://rauenzi.github.io/BDPluginLibrary/release/ZLibrary.js', timeout: 1e4 }, (err, res, body) => {
-			if (err || res.statusCode !== 200) return reject(err || res.statusMessage);
-			try {
-				const { Script } = require('vm'), script = new Script(body, { displayErrors: true });
-				resolve(script.runInThisContext());
-			} catch(err) {
-				reject(err);
-			}
-		});
-	});
-
 	const config = {
 		main: 'index.js',
 		info: {
@@ -52,7 +40,7 @@ var GreenText = (() => {
 					twitter_username: ''
 				}
 			],
-			version: '1.0.3',
+			version: '1.0.4',
 			description: 'Turns sentences beginning with "\>" green.',
 			github: 'https://github.com/Arashiryuu',
 			github_raw: 'https://raw.githubusercontent.com/Arashiryuu/crap/master/greenText.plugin.js'
@@ -61,7 +49,7 @@ var GreenText = (() => {
 			{
 				title: 'Updated',
 				type: 'improved',
-				items: ['Works better.']
+				items: []
 			}
 		]
 	};
@@ -95,6 +83,7 @@ var GreenText = (() => {
 			constructor() {
 				super();
 				this._css;
+				this.regex = /^&gt;\S.+|^>\S.+/igm;
 				this.css = `
 					${DiscordSelectors.Messages.message.value.trim()} #GreenText {
 						color: #709900 !important;
@@ -107,7 +96,7 @@ var GreenText = (() => {
 				`;
 				this.switchList = [
 					'app',
-					DiscordSelectors.TitleWrap.chat.value.slice(2),
+					DiscordSelectors.TitleWrap.chat.value.split('.')[1],
 					WebpackModules.getByProps('messages', 'messagesWrapper').messagesWrapper
 				];
 				this.messageList = [
@@ -130,23 +119,18 @@ var GreenText = (() => {
 			}
 
 			run() {
-				const messages = document.querySelectorAll('.' + WebpackModules.getByProps('markup').markup);
+				const messages = document.querySelectorAll(`.${WebpackModules.getByProps('markup').markup}`);
 				for (const message of messages) {
-					const regex = /^&gt;\S.+|^>\S.+/igm;
-					const matches = message.innerHTML.match(regex);
-					if (matches && matches.length) {
-						const html = message.innerHTML;
-						message.innerHTML = html.replace(regex, '<span id="GreenText">$&</span>');
-					}
+					const matches = message.innerHTML.match(this.regex);
+					if (!matches || !matches.length) continue;
+					const html = message.innerHTML;
+					message.innerHTML = html.replace(this.regex, '<span id="GreenText">$&</span>');
 				}
 			}
 
 			injectCSS() {
-				const s = document.createElement('style');
-				s.id = 'GreenTextCSS';
-				s.type = 'text/css';
-				s.textContent = this.css;
-				document.head.appendChild(s);
+				const s = DOMTools.parseHTML(`<style id="GreenTextCSS" type="text/css">${this.css}</style>`);
+				DOMTools.appendTo(s, document.head);
 			}
 
 			removeCSS() {
@@ -212,117 +196,70 @@ var GreenText = (() => {
 
 	/* Finalize */
 
-	return !global.ZLibrary 
-		? class {
-			constructor() {
-				this.initialized = false;
-			}
-
-			getName() {
-				return this.name.replace(/\s+/g, '');
-			}
-
-			getAuthor() {
-				return this.author;
-			}
-
-			getVersion() {
-				return this.version;
-			}
-
-			getDescription() {
-				return this.description;
-			}
-
-			showAlert() {
-				window.mainCore.alert('Loading Error', 'Something went wrong trying to load the library for the plugin. Try reloading?');
-			}
-
-			stop() {
-				log('Stopped!');
-			}
-
-			async load() {
-				try {
-					await global.ZLibraryPromise;
-				} catch(e) {
-					return this.showAlert();
-				}
-				const { Script } = require('vm'), plugin = buildPlugin(global.ZLibrary.buildPlugin(config));
-				try {
-					new Script(plugin, { displayErrors: true });
-				} catch(e) {
-					return bdpluginErrors.push({
-						name: this.name,
-						file: `${this.name}.plugin.js`,
-						reason: 'Plugin could not be compiled.',
-						error: {
-							message: e.message,
-							stack: e.stack
-						}
-					});
-				}
-				global[this.name] = plugin;
-				try {
-					new Script(`new global["${this.name}"]();`, { displayErrors: true });
-				} catch(e) {
-					return bdpluginErrors.push({
-						name: this.name,
-						file: `${this.name}.plugin.js`,
-						reason: 'Plugin could not be constructed.',
-						error: {
-							message: e.message,
-							stack: e.stack
-						}
-					});
-				}
-				bdplugins[this.name].plugin = new global[this.name]();
-				bdplugins[this.name].plugin.load();
-			}
-
-			async start() {
-				try {
-					await global.ZLibraryPromise;
-				} catch(e) {
-					return this.showAlert();
-				}
-				bdplugins[this.name].plugin.start();
-			}
-
-			/* Getters */
-
-			get [Symbol.toStringTag]() {
-				return 'Plugin';
-			}
-
-			get name() {
-				return config.info.name;
-			}
-
-			get short() {
-				let string = '';
-
-				for (let i = 0, len = config.info.name.length; i < len; i++) {
-					const char = config.info.name[i];
-					if (char === char.toUpperCase()) string += char;
-				}
-
-				return string;
-			}
-
-			get author() {
-				return config.info.authors.map((author) => author.name).join(', ');
-			}
-
-			get version() {
-				return config.info.version;
-			}
-
-			get description() {
-				return config.info.description;
-			}
+	return !global.ZeresPluginLibrary 
+	? class {
+		getName() {
+			return this.name.replace(/\s+/g, '');
 		}
-		: buildPlugin(global.ZLibrary.buildPlugin(config));
+
+		getAuthor() {
+			return this.author;
+		}
+
+		getVersion() {
+			return this.version;
+		}
+
+		getDescription() {
+			return this.description;
+		}
+
+		stop() {
+			Logger.log('Stopped!');
+		}
+
+		load() {
+			window.BdApi.alert('Missing Library', `The library plugin needed for ${config.info.name} is missing.<br /><br /> <a href="https://betterdiscord.net/ghdl?url=https://raw.githubusercontent.com/rauenzi/BDPluginLibrary/master/release/0PluginLibrary.plugin.js" target="_blank">Click here to download the library!</a>`);
+		}
+
+		start() {
+			Logger.log('Started!');
+		}
+
+		/* Getters */
+
+		get [Symbol.toStringTag]() {
+			return 'Plugin';
+		}
+
+		get name() {
+			return config.info.name;
+		}
+
+		get short() {
+			let string = '';
+
+			for (let i = 0, len = config.info.name.length; i < len; i++) {
+				const char = config.info.name[i];
+				if (char === char.toUpperCase()) string += char;
+			}
+
+			return string;
+		}
+
+		get author() {
+			return config.info.authors.map((author) => author.name).join(', ');
+		}
+
+		get version() {
+			return config.info.version;
+		}
+
+		get description() {
+			return config.info.description;
+		}
+	}
+	: buildPlugin(global.ZeresPluginLibrary.buildPlugin(config));
 })();
 
 /*@end@*/
