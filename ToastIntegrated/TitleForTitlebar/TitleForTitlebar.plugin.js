@@ -28,18 +28,6 @@ var TitleForTitlebar = (() => {
 
 	/* Setup */
 
-	if (!global.ZLibrary && !global.ZLibraryPromise) global.ZLibraryPromise = new Promise((resolve, reject) => {
-		require('request').get({ url: 'https://rauenzi.github.io/BDPluginLibrary/release/ZLibrary.js', timeout: 1e4 }, (err, res, body) => {
-			if (err || res.statusCode !== 200) return reject(err || res.statusMessage);
-			try {
-				const { Script } = require('vm'), script = new Script(body, { displayErrors: true });
-				resolve(script.runInThisContext());
-			} catch(err) {
-				reject(err);
-			}
-		});
-	});
-
 	const config = {
 		main: 'index.js',
 		info: {
@@ -52,16 +40,16 @@ var TitleForTitlebar = (() => {
 					twitter_username: ''
 				}
 			],
-			version: '1.0.2',
+			version: '1.0.3',
 			description: 'Adds a title to the titlebar, dynamically changes as needed.',
 			github: 'https://github.com/Arashiryuu',
 			github_raw: 'https://raw.githubusercontent.com/Arashiryuu/crap/master/ToastIntegrated/TitleForTitlebar/TitleForTitlebar.plugin.js'
 		},
 		changelog: [
 			{
-				title: 'What\'s New?',
-				type: 'added',
-				items: ['Settings toggle for hiding the normal Discord channel-name in the header.']
+				title: 'Evolving?',
+				type: 'progress',
+				items: ['Now uses local version of the library.']
 			}
 		]
 	};
@@ -89,7 +77,7 @@ var TitleForTitlebar = (() => {
 	/* Build */
 
 	const buildPlugin = ([Plugin, Api]) => {
-		const { Toasts, Settings, DOMTools, DiscordModules, WebpackModules, DiscordSelectors } = Api;
+		const { Toasts, Logger, Settings, DOMTools, DiscordModules, WebpackModules, DiscordSelectors } = Api;
 		
 		return class TitleForTitlebar extends Plugin {
 			constructor() {
@@ -122,7 +110,7 @@ var TitleForTitlebar = (() => {
 				`;
 				this.switchList = [
 					'app',
-					DiscordSelectors.TitleWrap.chat.value.slice(2),
+					DiscordSelectors.TitleWrap.chat.value.split('.')[1],
 					WebpackModules.getByProps('messages', 'messagesWrapper').messagesWrapper
 				];
 			}
@@ -316,77 +304,70 @@ var TitleForTitlebar = (() => {
 
 	/* Finalize */
 
-	return !global.ZLibrary 
+	return !global.ZeresPluginLibrary 
 		? class {
-			constructor() {
-				//
-			}
 			getName() {
-				return config.info.name.replace(/\s+/g, '');
+				return this.name.replace(/\s+/g, '');
 			}
+
 			getAuthor() {
-				return config.info.authors.map((author) => author.name).join(', ');
+				return this.author;
 			}
+
 			getVersion() {
-				return config.info.version;
+				return this.version;
 			}
+
 			getDescription() {
-				return config.info.description;
+				return this.description;
 			}
-			showAlert() {
-				window.mainCore.alert('Loading Error', 'Something went wrong trying to load the library for the plugin. Try reloading?');
+
+			stop() {
+				Logger.log('Stopped!');
 			}
-			async load() {
-				try {
-					await global.ZLibraryPromise;
-				} catch(e) {
-					return this.showAlert();
-				}
-				const vm = require('vm'), plugin = buildPlugin(global.ZLibrary.buildPlugin(config));
-				try {
-					new vm.Script(plugin, { displayErrors: true });
-				} catch(e) {
-					return bdpluginErrors.push({
-						name: this.getName(),
-						file: `${this.getName()}.plugin.js`,
-						reason: 'Plugin could not be compiled.',
-						error: {
-							message: e.message,
-							stack: e.stack
-						}
-					});
-				}
-				global[this.getName()] = plugin;
-				try {
-					new vm.Script(`new global["${this.getName()}"]();`, { displayErrors: true });
-				} catch(e) {
-					return bdpluginErrors.push({
-						name: this.getName(),
-						file: `${this.getName()}.plugin.js`,
-						reason: 'Plugin could not be constructed.',
-						error: {
-							message: e.message,
-							stack: e.stack
-						}
-					});
-				}
-				bdplugins[this.getName()].plugin = new global[this.getName()]();
-				bdplugins[this.getName()].plugin.load();
+
+			load() {
+				window.BdApi.alert('Missing Library', `The library plugin needed for ${config.info.name} is missing.<br /><br /> <a href="https://betterdiscord.net/ghdl?url=https://raw.githubusercontent.com/rauenzi/BDPluginLibrary/master/release/0PluginLibrary.plugin.js" target="_blank">Click here to download the library!</a>`);
 			}
-			async start() {
-				try {
-					await global.ZLibraryPromise;
-				} catch(e) {
-					return this.showAlert();
-				}
-				bdplugins[this.getName()].plugin.start();
+
+			start() {
+				Logger.log('Started!');
 			}
-			stop() {}
+
+			/* Getters */
+
 			get [Symbol.toStringTag]() {
 				return 'Plugin';
 			}
+
+			get name() {
+				return config.info.name;
+			}
+
+			get short() {
+				let string = '';
+
+				for (let i = 0, len = config.info.name.length; i < len; i++) {
+					const char = config.info.name[i];
+					if (char === char.toUpperCase()) string += char;
+				}
+
+				return string;
+			}
+
+			get author() {
+				return config.info.authors.map((author) => author.name).join(', ');
+			}
+
+			get version() {
+				return config.info.version;
+			}
+
+			get description() {
+				return config.info.description;
+			}
 		}
-		: buildPlugin(global.ZLibrary.buildPlugin(config));
+		: buildPlugin(global.ZeresPluginLibrary.buildPlugin(config));
 })();
 
 /*@end@*/
