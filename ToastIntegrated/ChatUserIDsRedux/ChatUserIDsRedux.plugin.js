@@ -28,18 +28,6 @@ var ChatUserIDsRedux = (() => {
 
 	/* Setup */
 
-	if (!global.ZLibrary && !global.ZLibraryPromise) global.ZLibraryPromise = new Promise((resolve, reject) => {
-		require('request').get({ url: 'https://rauenzi.github.io/BDPluginLibrary/release/ZLibrary.js', timeout: 1e4 }, (err, res, body) => {
-			if (err || res.statusCode !== 200) return reject(err || res.statusMessage);
-			try {
-				const { Script } = require('vm'), script = new Script(body, { displayErrors: true });
-				resolve(script.runInThisContext());
-			} catch(err) {
-				reject(err);
-			}
-		});
-	});
-
 	const config = {
 		main: 'index.js',
 		info: {
@@ -52,7 +40,7 @@ var ChatUserIDsRedux = (() => {
 					twitter_username: ''
 				}
 			],
-			version: '1.0.7',
+			version: '1.0.8',
 			description: 'Adds a user\'s ID next to their name in chat, makes accessing a user ID simpler. Double-click to copy the ID.',
 			github: 'https://github.com/Arashiryuu',
 			github_raw: 'https://raw.githubusercontent.com/Arashiryuu/crap/master/ToastIntegrated/ChatUserIDsRedux/ChatUserIDsRedux.plugin.js'
@@ -61,7 +49,7 @@ var ChatUserIDsRedux = (() => {
 			{
 				title: 'Evolving?',
 				type: 'progress',
-				items: ['Improved how the plugin initializes its settings.', 'Trimmed excess fat.']
+				items: ['Now uses local version of the library.']
 			}
 		]
 	};
@@ -89,7 +77,8 @@ var ChatUserIDsRedux = (() => {
 	/* Build */
 
 	const buildPlugin = ([Plugin, Api]) => {
-		const { Toasts, Patcher, Settings, Utilities, ReactTools, DiscordModules, WebpackModules, DiscordSelectors } = Api;
+		const { Toasts, Logger, Patcher, Settings, Utilities, ReactTools, DiscordModules, WebpackModules, DiscordSelectors } = Api;
+		const { SettingPanel, SettingGroup, ColorPicker } = Settings;
 
 		const ID = class ID extends DiscordModules.React.Component {
 			constructor(props) {
@@ -246,9 +235,9 @@ var ChatUserIDsRedux = (() => {
 			/* Settings Panel */
 
 			getSettingsPanel() {
-				return Settings.SettingPanel.build(() => this.saveSettings(this.settings),
-					new Settings.SettingGroup('Plugin Settings').append(
-						new Settings.ColorPicker('ID Background Color', 'Determines what color the background for the IDs will be.', this.default.color, (i) => {
+				return SettingPanel.build(() => this.saveSettings(this.settings),
+					new SettingGroup('Plugin Settings').append(
+						new ColorPicker('ID Background Color', 'Determines what color the background for the IDs will be.', this.default.color, (i) => {
 							this.settings.color = i;
 							this.reinjectCSS();
 						}, { colors: this.settings.colors })
@@ -303,72 +292,35 @@ var ChatUserIDsRedux = (() => {
 
 	/* Finalize */
 
-	return !global.ZLibrary 
+	return !global.ZeresPluginLibrary 
 		? class {
-			constructor() {
-				//
-			}
 			getName() {
-				return this.name;
+				return this.name.replace(/\s+/g, '');
 			}
+
 			getAuthor() {
 				return this.author;
 			}
+
 			getVersion() {
 				return this.version;
 			}
+
 			getDescription() {
 				return this.description;
 			}
-			showAlert() {
-				window.mainCore.alert('Loading Error', 'Something went wrong trying to load the library for the plugin. Try reloading?');
+
+			stop() {
+				Logger.log('Stopped!');
 			}
-			async load() {
-				try {
-					await global.ZLibraryPromise;
-				} catch(e) {
-					return this.showAlert();
-				}
-				const vm = require('vm'), plugin = buildPlugin(global.ZLibrary.buildPlugin(config));
-				try {
-					new vm.Script(plugin, { displayErrors: true });
-				} catch(e) {
-					return bdpluginErrors.push({
-						name: this.name,
-						file: `${this.name}.plugin.js`,
-						reason: 'Plugin could not be compiled.',
-						error: {
-							message: e.message,
-							stack: e.stack
-						}
-					});
-				}
-				global[this.name] = plugin;
-				try {
-					new vm.Script(`new global["${this.name}"]();`, { displayErrors: true });
-				} catch(e) {
-					return bdpluginErrors.push({
-						name: this.name,
-						file: `${this.name}.plugin.js`,
-						reason: 'Plugin could not be constructed.',
-						error: {
-							message: e.message,
-							stack: e.stack
-						}
-					});
-				}
-				bdplugins[this.name].plugin = new global[this.name]();
-				bdplugins[this.name].plugin.load();
+
+			load() {
+				window.BdApi.alert('Missing Library', `The library plugin needed for ${config.info.name} is missing.<br /><br /> <a href="https://betterdiscord.net/ghdl?url=https://raw.githubusercontent.com/rauenzi/BDPluginLibrary/master/release/0PluginLibrary.plugin.js" target="_blank">Click here to download the library!</a>`);
 			}
-			async start() {
-				try {
-					await global.ZLibraryPromise;
-				} catch(e) {
-					return this.showAlert();
-				}
-				bdplugins[this.name].plugin.start();
+
+			start() {
+				Logger.log('Started!');
 			}
-			stop() {}
 
 			/* Getters */
 
@@ -403,7 +355,7 @@ var ChatUserIDsRedux = (() => {
 				return config.info.description;
 			}
 		}
-		: buildPlugin(global.ZLibrary.buildPlugin(config));
+		: buildPlugin(global.ZeresPluginLibrary.buildPlugin(config));
 })();
 
 /*@end@*/
