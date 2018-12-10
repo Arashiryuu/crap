@@ -105,7 +105,7 @@ var GreenText = (() => {
 				];
 			}
 
-			/* Methods */
+			/* Start | Stop */
 
 			onStart() {
 				this.injectCSS();
@@ -117,6 +117,8 @@ var GreenText = (() => {
 				this.removeCSS();
 				Toasts.info(`${this.name} ${this.version} has stopped!`, { icon: true, timeout: 2e3 });
 			}
+			
+			/* Methods */
 
 			run() {
 				const messages = document.querySelectorAll(`.${WebpackModules.getByProps('markup').markup}`);
