@@ -40,7 +40,7 @@ var GreenText = (() => {
 					twitter_username: ''
 				}
 			],
-			version: '1.0.5',
+			version: '1.0.6',
 			description: 'Turns sentences beginning with "\>" green.',
 			github: 'https://github.com/Arashiryuu',
 			github_raw: 'https://raw.githubusercontent.com/Arashiryuu/crap/master/greenText.plugin.js'
@@ -49,7 +49,7 @@ var GreenText = (() => {
 			{
 				title: 'Updated',
 				type: 'improved',
-				items: ['Now supports compact mode.']
+				items: ['Compact mode improvements.']
 			}
 		]
 	};
@@ -105,7 +105,7 @@ var GreenText = (() => {
 				];
 			}
 
-			/* Start | Stop */
+			/* Methods */
 
 			onStart() {
 				this.injectCSS();
@@ -117,8 +117,6 @@ var GreenText = (() => {
 				this.removeCSS();
 				Toasts.info(`${this.name} ${this.version} has stopped!`, { icon: true, timeout: 2e3 });
 			}
-			
-			/* Methods */
 
 			run() {
 				const messages = document.querySelectorAll(`.${WebpackModules.getByProps('markup').markup}`);
@@ -127,9 +125,21 @@ var GreenText = (() => {
 					for (const message of messages) {
 						const textNodes = Array.from(message.childNodes).filter((node) => node.nodeType === 3);
 						for (const node of textNodes) {
-							if (!node.data.match(this.regex)) continue;
-							const replacement = DOMTools.parseHTML(`<span id="GreenText">${node.data}</span>`);
-							node.replaceWith(replacement);
+							const matches = node.data.match(this.regex);
+							if (!matches || !matches.length) continue;
+							const data = node.data.split('\n');
+							const replaceNodes = data.reduce((arr, text) => {
+								if (text.match(this.regex)) {
+									const el = DOMTools.parseHTML(`<span id="GreenText">${text}</span>`);
+									arr.push(el);
+									return arr;
+								}
+								arr.push(document.createTextNode(`\n${text}\n`));
+								return arr;
+							}, []);
+							if (!replaceNodes[0].id) replaceNodes[0].data = `${replaceNodes[0].data.trim()}\n`;
+							if (!replaceNodes[replaceNodes.length - 1].id) replaceNodes[replaceNodes.length - 1].data = `\n${replaceNodes[replaceNodes.length - 1].data.trim()}`;
+							node.replaceWith(...replaceNodes);
 						}
 					}
 				}
@@ -154,7 +164,9 @@ var GreenText = (() => {
 			}
 
 			isCompact() {
-				return DOMTools.query(`.${WebpackModules.getByProps('markup').markup}`, document).classList.contains(WebpackModules.getByProps('isCompact').isCompact);
+				const message = document.querySelector(`.${WebpackModules.getByProps('markup').markup}`);
+				if (!message) return false;
+				return message.classList.contains(WebpackModules.getByProps('isCompact').isCompact);
 			}
 
 			/* Observer */
