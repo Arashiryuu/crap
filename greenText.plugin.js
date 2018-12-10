@@ -40,7 +40,7 @@ var GreenText = (() => {
 					twitter_username: ''
 				}
 			],
-			version: '1.0.4',
+			version: '1.0.5',
 			description: 'Turns sentences beginning with "\>" green.',
 			github: 'https://github.com/Arashiryuu',
 			github_raw: 'https://raw.githubusercontent.com/Arashiryuu/crap/master/greenText.plugin.js'
@@ -49,7 +49,7 @@ var GreenText = (() => {
 			{
 				title: 'Updated',
 				type: 'improved',
-				items: []
+				items: ['Now supports compact mode.']
 			}
 		]
 	};
@@ -77,7 +77,7 @@ var GreenText = (() => {
 	/* Build */
 
 	const buildPlugin = ([Plugin, Api]) => {
-		const { Toasts, DOMTools, WebpackModules, DiscordSelectors } = Api;
+		const { Toasts, Logger, DOMTools, WebpackModules, DiscordSelectors } = Api;
 		
 		return class GreenText extends Plugin {
 			constructor() {
@@ -120,6 +120,18 @@ var GreenText = (() => {
 
 			run() {
 				const messages = document.querySelectorAll(`.${WebpackModules.getByProps('markup').markup}`);
+
+				if (this.isCompact()) {
+					for (const message of messages) {
+						const textNodes = Array.from(message.childNodes).filter((node) => node.nodeType === 3);
+						for (const node of textNodes) {
+							if (!node.data.match(this.regex)) continue;
+							const replacement = DOMTools.parseHTML(`<span id="GreenText">${node.data}</span>`);
+							node.replaceWith(replacement);
+						}
+					}
+				}
+
 				for (const message of messages) {
 					const matches = message.innerHTML.match(this.regex);
 					if (!matches || !matches.length) continue;
@@ -137,6 +149,10 @@ var GreenText = (() => {
 				const e = document.getElementById('GreenTextCSS');
 				if (!e) return;
 				e.remove();
+			}
+
+			isCompact() {
+				return DOMTools.query(`.${WebpackModules.getByProps('markup').markup}`, document).classList.contains(WebpackModules.getByProps('isCompact').isCompact);
 			}
 
 			/* Observer */
