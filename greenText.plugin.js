@@ -40,7 +40,7 @@ var GreenText = (() => {
 					twitter_username: ''
 				}
 			],
-			version: '1.0.6',
+			version: '1.0.7',
 			description: 'Turns sentences beginning with "\>" green.',
 			github: 'https://github.com/Arashiryuu',
 			github_raw: 'https://raw.githubusercontent.com/Arashiryuu/crap/master/greenText.plugin.js'
@@ -130,15 +130,15 @@ var GreenText = (() => {
 							const data = node.data.split('\n');
 							const replaceNodes = data.reduce((arr, text) => {
 								if (text.match(this.regex)) {
-									const el = DOMTools.parseHTML(`<span id="GreenText">${text}</span>`);
+									const el = DOMTools.parseHTML(`<span id="GreenText">${text}\n</span>`);
 									arr.push(el);
 									return arr;
 								}
-								arr.push(document.createTextNode(`\n${text}\n`));
+								arr.push(document.createTextNode(`${text}\n`));
 								return arr;
 							}, []);
 							if (!replaceNodes[0].id) replaceNodes[0].data = `${replaceNodes[0].data.trim()}\n`;
-							if (!replaceNodes[replaceNodes.length - 1].id) replaceNodes[replaceNodes.length - 1].data = `\n${replaceNodes[replaceNodes.length - 1].data.trim()}`;
+							if (!replaceNodes[replaceNodes.length - 1].id) replaceNodes[replaceNodes.length - 1].data = `${replaceNodes[replaceNodes.length - 1].data.trim()}`;
 							node.replaceWith(...replaceNodes);
 						}
 					}
