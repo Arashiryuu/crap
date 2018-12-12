@@ -1,4 +1,4 @@
-//META{"name":"JSMaterialThemeCodeblocksRedux","displayName":"JSMaterialThemeCodeblocksRedux","website":"https://github.com/Arashiryuu","source":"https://github.com/Arashiryuu/crap/blob/master/Miscellanious/jsMaterialThemeCodeblocks.plugin.js"}*//
+//META{"name":"JSMaterialThemeCodeblocksRedux","displayName":"JSMaterialThemeCodeblocksRedux","website":"https://github.com/Arashiryuu","source":"https://github.com/Arashiryuu/crap"}*//
 
 /*@cc_on
 @if (@_jscript)
@@ -40,7 +40,7 @@ var JSMaterialThemeCodeblocksRedux = (() => {
 					twitter_username: ''
 				}
 			],
-			version: '1.0.0',
+			version: '1.0.1',
 			description: 'Applies the "Material Theme" to JavaScript codeblocks.',
 			github: 'https://github.com/Arashiryuu',
 			github_raw: 'https://raw.githubusercontent.com/Arashiryuu/crap/master/Miscellanious/jsMaterialThemeCodeblocks.plugin.js'
@@ -50,20 +50,11 @@ var JSMaterialThemeCodeblocksRedux = (() => {
 	/* Build */
 
 	const buildPlugin = ([Plugin, Api]) => {
-		const { Toasts, Logger, DOMTools, DiscordModules, WebpackModules, DiscordSelectors } = Api;
+		const { Toasts, Logger, Patcher, DOMTools, ReactTools, DiscordModules, WebpackModules, DiscordSelectors } = Api;
 		
 		return class JSMaterialThemeCodeblocksRedux extends Plugin {
 			constructor() {
 				super();
-				this.switchList = [
-					'app',
-					DiscordSelectors.TitleWrap.chat.value.slice(2),
-					WebpackModules.getByProps('messages', 'messagesWrapper').messagesWrapper
-				];
-				this.messageList = [
-					DiscordSelectors.Messages.container.value.slice(2),
-					DiscordSelectors.Messages.message.value.slice(2)
-				];
 				this.selectors = [
 					'.hljs[class~="js" i] .hljs-keyword', 
 					'.hljs[class~="jsx" i] .hljs-keyword', 
@@ -93,7 +84,42 @@ var JSMaterialThemeCodeblocksRedux = (() => {
 			onStart() {
 				Toasts.info(`${this.name} ${this.version} has started!`, { icon: true, timeout: 2e3 });
 				this.injectCSS();
+				this.patchMessages();
 				this.addClasses();
+			}
+
+			async patchMessages() {
+				const Message = await new Promise((resolve) => {
+					const message = document.querySelector(DiscordSelectors.Messages.message);
+					if (message) return resolve(ReactTools.getOwnerInstance(message).constructor);
+
+					const MessageGroup = WebpackModules.getModule((m) => m.defaultProps && m.defaultProps.disableManageMessages);
+					const unpatch = Patcher.after(MessageGroup.prototype, 'componentDidMount', (that) => {
+						const elem = DiscordModules.ReactDOM.findDOMNode(that);
+						if (!elem) return;
+						unpatch();
+						const msg = elem.querySelector(DiscordSelectors.Messages.message);
+						resolve(ReactTools.getOwnerInstance(msg).constructor);
+					});
+				});
+
+				Patcher.after(Message.prototype, 'render', (that, args, value) => {
+					if (that.props.message.type !== 0) return value;
+					
+					setTimeout(() => {
+						this.addClasses();
+						this.paramParse();
+					}, 50);
+
+					return value;
+				});
+
+				this.updateMessages();
+			}
+
+			updateMessages() {
+				const messages = document.querySelectorAll(DiscordSelectors.Messages.message.value.trim());
+				for (let i = 0, len = messages.length; i < len; i++) ReactTools.getOwnerInstance(messages[i]).forceUpdate();
 			}
 
 			addClasses() {
@@ -142,18 +168,10 @@ var JSMaterialThemeCodeblocksRedux = (() => {
 			}
 
 			onStop() {
+				Patcher.unpatchAll();
+				this.updateMessages();
 				this.removeCSS();
 				Toasts.info(`${this.name} ${this.version} has stopped!`, { icon: true, timeout: 2e3 });
-			}
-
-			/* Observer */
-
-			observer({ addedNodes }) {
-				if (addedNodes.length && addedNodes[0].classList && this.switchList.includes(addedNodes[0].classList[0])) {
-					setTimeout(() => { this.addClasses(); setTimeout(() => this.paramParse(), 500); }, 500);
-				} else if (addedNodes.length && addedNodes[0].classList && this.messageList.includes(addedNodes[0].classList[addedNodes[0].classList.length - 1])) {
-					setTimeout(() => { this.addClasses(); setTimeout(() => this.paramParse(), 500); }, 500);
-				}
 			}
 
 			/* Getters */
