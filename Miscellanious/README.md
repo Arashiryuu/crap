@@ -6,5 +6,3 @@
 **[statusProfileContainer](https://github.com/Arashiryuu/crap/blob/master/Miscellanious/statusProfileContainer.plugin.js)** ー Colours the profile container to align with your current status.
 
 **[backtickInsertion](https://github.com/Arashiryuu/crap/blob/master/Miscellanious/backtickInsertion.plugin.js)** ー Replaces user-input consecutive triple apostrophies \'\'\' with backticks \`\`\`, making markdown codeblocks easier to achieve.
-
-**[catImg](https://github.com/Arashiryuu/crap/blob/master/Miscellanious/catImg.plugin.js)** ー Replaces instances of `/cat` in the textarea with a randomly generated link to a cat image or gif.
