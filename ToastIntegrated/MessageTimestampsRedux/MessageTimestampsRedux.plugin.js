@@ -130,8 +130,6 @@ var MessageTimestampsRedux = (() => {
 
 					if (!Array.isArray(children)) return value;
 
-					const { id } = message;
-
 					const item = DiscordModules.React.createElement(Item, {
 						onClick: () => {
 							!this.settings.tooltips ? this.showTimestamp(message, that) : this.showTooltip(message, that);
