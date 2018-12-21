@@ -1,4 +1,4 @@
-//META{"name":"MessageTimestampsRedux","displayName":"MessageTimestampsRedux","website":"https://github.com/Arashiryuu","source":"https://github.com/Arashiryuu/crap"}*//
+//META{"name":"MessageTimestampsRedux","displayName":"MessageTimestampsRedux","website":"https://github.com/Arashiryuu","source":"https://github.com/Arashiryuu/crap/blob/master/ToastIntegrated/MessageTimestampsRedux/MessageTimestampsRedux.plugin.js"}*//
 
 /*@cc_on
 @if (@_jscript)
@@ -43,7 +43,7 @@ var MessageTimestampsRedux = (() => {
 			version: '1.0.0',
 			description: 'Displays the timestamp for a message, simply right-click and select "Show Timestamp."',
 			github: 'https://github.com/Arashiryuu',
-			github_raw: ''
+			github_raw: 'https://raw.githubusercontent.com/Arashiryuu/crap/master/ToastIntegrated/MessageTimestampsRedux/MessageTimestampsRedux.plugin.js'
 		},
 		changelog: [
 			{
