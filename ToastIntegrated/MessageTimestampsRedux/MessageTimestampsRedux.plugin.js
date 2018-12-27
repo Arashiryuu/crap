@@ -40,7 +40,7 @@ var MessageTimestampsRedux = (() => {
 					twitter_username: ''
 				}
 			],
-			version: '1.0.0',
+			version: '1.0.1',
 			description: 'Displays the timestamp for a message, simply right-click and select "Show Timestamp."',
 			github: 'https://github.com/Arashiryuu',
 			github_raw: 'https://raw.githubusercontent.com/Arashiryuu/crap/master/ToastIntegrated/MessageTimestampsRedux/MessageTimestampsRedux.plugin.js'
@@ -93,7 +93,7 @@ var MessageTimestampsRedux = (() => {
 			 */
 			onStart() {
 				this.loadSettings(this.settings);
-				this.getContextMenu().catch((err) => Toasts.error(err.message, { icon: true, timeout: 2e3 }));
+				this.getContextMenu().catch((err) => this.didError(err));
 				Toasts.info(`${this.name} ${this.version} has started!`, { icon: true, timeout: 2e3 });
 			}
 
@@ -105,13 +105,22 @@ var MessageTimestampsRedux = (() => {
 				Patcher.unpatchAll();
 				Toasts.info(`${this.name} ${this.version} has stopped!`, { icon: true, timeout: 2e3 });
 			}
+
+			/**
+			 * @param {Error} error
+			 * @returns {Void}
+			 */
+			didError(error) {
+				Toasts.error(err.message, { icon: true, timeout: 2e3 });
+				Logger.err(error);
+			}
 			
 			/**
 			 * Asynchronously gets the MessageContextMenu component as it renders, then patches it.
-			 * @returns {Void}
+			 * @returns {Promise<Void>}
 			 */
 			async getContextMenu() {
-				const { component: ContextMenu } = await ReactComponents.getComponent('MessageContextMenu', DiscordSelectors.ContextMenu.contextMenu.toString());
+				const { component: ContextMenu } = await ReactComponents.getComponent('MessageContextMenu', DiscordSelectors.ContextMenu.contextMenu.toString(), (component) => component.name === 't' && component.displayName === 'MessageContextMenu');
 				this.patchContextMenu(ContextMenu);
 			}
 
