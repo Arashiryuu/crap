@@ -111,7 +111,7 @@ var MessageTimestampsRedux = (() => {
 			 * @returns {Void}
 			 */
 			didError(error) {
-				Toasts.error(err.message, { icon: true, timeout: 2e3 });
+				Toasts.error(error.message, { icon: true, timeout: 2e3 });
 				Logger.err(error);
 			}
 			
