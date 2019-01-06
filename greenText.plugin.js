@@ -83,7 +83,7 @@ var GreenText = (() => {
 			constructor() {
 				super();
 				this._css;
-				this.regex = /^&gt;\S.+|^>\S.+/igm;
+				this.regex = /^&gt;\S?.+|^>\S?.+/igm;
 				this.css = `
 					${DiscordSelectors.Messages.message.value.trim()} #GreenText {
 						color: #709900 !important;
