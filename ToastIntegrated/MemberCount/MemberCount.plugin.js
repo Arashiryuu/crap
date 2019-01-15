@@ -88,7 +88,7 @@ class MemberCount {
 				background: #f3f3f3;
 			}
 
-			.membersWrap-2h-GB4 .members-1998pB {
+			.membersWrap-2h-GB4 .membersGroup-v9BXpm:nth-of-type(3) {
 				margin-top: 2vh;
 			}
 		`;
@@ -160,11 +160,11 @@ class MemberCount {
 		this.watch();
 
 		this.initialized = true;
-		PluginUtilities.showToast(`${this.name} ${this.version} has started.`, { type: 'info', icon: true, timeout: 2e3 });
+		// PluginUtilities.showToast(`${this.name} ${this.version} has started.`, { type: 'info', icon: true, timeout: 2e3 });
 	}
 
 	watch() {
-		const app = document.querySelector('.app');
+		const app = document.querySelector('.app-2rEoOp');
 		if (!app) return false;
 		this.mo.observe(app, { childList: true, subtree: true, attributes: true });
 		return true;
@@ -194,7 +194,7 @@ class MemberCount {
 		if (!members) return false;
 
 		if (!sheet) {
-			const style = this.createElement('style', { id: 'MemberCountCSS', textContent: this.styleCSS });
+			const style = this.createElement('style', { id: 'MemberCountCSS', textContent: this.css });
 			document.head.appendChild(style);
 		}
 		
@@ -248,7 +248,7 @@ class MemberCount {
 	/* Observer */
 
 	observer({ addedNodes }) {
-		if (addedNodes.length && addedNodes[0].classList && addedNodes[0].classList.contains('app')) {
+		if (addedNodes.length && addedNodes[0].classList && addedNodes[0].classList.contains('app-2rEoOp')) {
 			this.unwatch();
 			this.watch();
 		}
@@ -270,14 +270,11 @@ class MemberCount {
 	 */
 	deepClone(value) {
 		if (typeof value !== 'object') return value;
-		
 		if (value instanceof Array) return value.map((i) => this.deepClone(i));
 
 		const clone = Object.assign({}, value);
 
-		for (const key in clone) {
-			clone[key] = this.deepClone(clone[key]);
-		}
+		for (const key in clone) clone[key] = this.deepClone(clone[key]);
 
 		return clone;
 	}
@@ -371,7 +368,7 @@ class MemberCount {
 	}
 
 	get version() {
-		return '1.1.1';
+		return '1.1.2';
 	}
 
 	get description() {
