@@ -28,7 +28,7 @@ class KillXD {
 	constructor() {
 		this.initialized = false;
 		this.regex = /\bX(D){1,}\b/igm;
-		this.switchList = ['app', 'chat-3bRxxu', 'messagesWrapper-3lZDfY'];
+		this.switchList = ['app-2rEoOp', 'chat-3bRxxu', 'messagesWrapper-3lZDfY'];
 		this.messageList = ['message-1PNnaP', 'container-1YxwTf'];
 		this.mo = new MutationObserver((changes) => {
 			for (const change of changes) {
@@ -101,7 +101,7 @@ class KillXD {
 		this.process();
 		this.initialized = true;
 
-		PluginUtilities.showToast(`${this.name} ${this.version} has started.`, { type: 'info', icon: true, timeout: 2e3 });
+		// PluginUtilities.showToast(`${this.name} ${this.version} has started.`, { type: 'info', icon: true, timeout: 2e3 });
 	}
 
 	process() {
@@ -174,7 +174,7 @@ class KillXD {
 	}
 
 	get version() {
-		return '1.0.2';
+		return '1.0.3';
 	}
 
 	get description() {
