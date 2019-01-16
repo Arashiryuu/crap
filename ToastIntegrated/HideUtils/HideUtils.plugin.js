@@ -350,7 +350,7 @@ class HideUtils {
 		this.startHiding();
 
 		this.initialized = true;
-		PluginUtilities.showToast(`${this.getName()} ${this.getVersion()} has started.`, { type: 'info', icon: true, timeout: 2e3 });
+		// PluginUtilities.showToast(`${this.getName()} ${this.getVersion()} has started.`, { type: 'info', icon: true, timeout: 2e3 });
 	}
 
 	unpatchAll() {
@@ -730,7 +730,7 @@ class HideUtils {
 	userConClick(userId) {
 		const context = document.querySelector('.contextMenu-HLZMGh');
 		if (!context || !userId) return;
-		if (DiscordModules.UserInfoStore.getId() === userId) return PluginUtilities.showToast('You cannot hide yourself.', { type: 'danger', icon: true, timeout: 3e3 });
+		if (DiscordModules.UserInfoStore.getId() === userId) return; // PluginUtilities.showToast('You cannot hide yourself.', { type: 'danger', icon: true, timeout: 3e3 });
 		if (!this.hid.users.has(userId)) {
 			this.userPush(userId);
 			this.saveSettings();
@@ -923,11 +923,11 @@ class HideUtils {
 						this.hid[key].set(entry[0], entry[1]);
 					}
 				}
-				return PluginUtilities.showToast('HideUtils settings found and successfully loaded.', { type: 'success', icon: true, timeout: 3e3 });
+				return /*PluginUtilities.showToast*/ console.log('HideUtils settings found and successfully loaded.', { type: 'success', icon: true, timeout: 3e3 });
 			}
-			return PluginUtilities.showToast('HideUtils settings do not exist or are unable to be loaded.', { type: 'info', icon: true, timeout: 3e3 });
+			return /*PluginUtilities.showToast*/ console.log('HideUtils settings do not exist or are unable to be loaded.', { type: 'info', icon: true, timeout: 3e3 });
 		}
-		return PluginUtilities.showToast('HideUtils settings do not exist or are unable to be loaded.', { type: 'info', icon: true, timeout: 3e3 });
+		return /*PluginUtilities.showToast*/ console.log('HideUtils settings do not exist or are unable to be loaded.', { type: 'info', icon: true, timeout: 3e3 });
 	}
 
 	resetSettings() {
@@ -1161,7 +1161,7 @@ class HideUtils {
 	}
 
 	get version() {
-		return '1.1.16';
+		return '1.1.17';
 	}
 
 	get description() {
