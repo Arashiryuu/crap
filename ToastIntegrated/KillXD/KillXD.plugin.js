@@ -115,7 +115,7 @@ class KillXD {
 	}
 
 	watch() {
-		const app = document.querySelector('.app');
+		const app = document.querySelector('.app-2rEoOp');
 		if (!app) return;
 		this.mo.observe(app, { childList: true, subtree: true });
 	}
@@ -174,7 +174,7 @@ class KillXD {
 	}
 
 	get version() {
-		return '1.0.3';
+		return '1.0.4';
 	}
 
 	get description() {
