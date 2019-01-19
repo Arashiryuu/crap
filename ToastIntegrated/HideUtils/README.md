@@ -10,6 +10,8 @@
 - Hides users from the Typing indicator.
 ### v1.1.5
 - Improved the settings UI to allow for simpler & more flexible removals.
+### v1.2.0
+- Moved to local library version.
 
 ## Preview
 ### Settings hub-page:
