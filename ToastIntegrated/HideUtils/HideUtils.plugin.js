@@ -40,11 +40,18 @@ var HideUtils = (() => {
 					twitter_username: ''
 				}
 			],
-			version: '1.2.0',
+			version: '1.2.1',
 			description: 'Combination plugin packaging hideChannels, hideServers, and hideUsers into one.',
 			github: 'https://github.com/Arashiryuu',
 			github_raw: 'https://raw.githubusercontent.com/Arashiryuu/crap/master/ToastIntegrated/HideUtils/HideUtils.plugin.js'
-		}
+		},
+		changelog: [
+			{
+				title: 'What\'s New?',
+				type: 'added',
+				items: ['Now hides context menu on item click.']
+			}
+		]
 	};
 
 	/* Build */
@@ -367,6 +374,11 @@ var HideUtils = (() => {
 				this.appDiscon();
 				this.moDiscon();
 			}
+
+			hideContext(context) {
+				if (!context) return;
+				$(context).hide();
+			}
 		
 			channelContext(context) {
 				if (!context) return;
@@ -379,12 +391,14 @@ var HideUtils = (() => {
 			}
 		
 			chanConClick() {
-				if (!document.querySelector(DiscordSelectors.ContextMenu.contextMenu.value.trim())) return;
-				if (!this.getReactInstance(document.querySelector(DiscordSelectors.ContextMenu.contextMenu.value.trim())).return.memoizedProps.channel) return;
-				const channel = this.getReactInstance(document.querySelector(DiscordSelectors.ContextMenu.contextMenu.value.trim())).return.memoizedProps.channel.id;
-				if (!this.hid.channels.has(channel)) {
-					this.chanPush(channel);
+				const context = document.querySelector(DiscordSelectors.ContextMenu.contextMenu.value.trim());
+				if (!context) return;
+				const channel = this.getReactInstance(context).return.memoizedProps.channel;
+				if (!channel) return;
+				if (!this.hid.channels.has(channel.id)) {
+					this.chanPush(channel.id);
 					this.saveSettings();
+					this.hideContext(context);
 					this.auditChannels();
 				}
 			}
@@ -520,6 +534,7 @@ var HideUtils = (() => {
 				if (!this.hid.servers.has(server)) {
 					this.servPush(server);
 					this.saveSettings();
+					this.hideContext(context);
 					this.hideServers();
 				}
 			}
@@ -564,7 +579,7 @@ var HideUtils = (() => {
 						this.saveSettings();
 						this.hideServers();
 					} else {
-						this.log('Unable to find that server to hide.');
+						Logger.log('Unable to find that server to hide.');
 					}
 				} else {
 					const field = $('#ServerHideField');
@@ -666,6 +681,7 @@ var HideUtils = (() => {
 				if (!this.hid.users.has(userId)) {
 					this.userPush(userId);
 					this.saveSettings();
+					this.hideContext(context);
 					this.hideUsers();
 				}
 			}
@@ -756,7 +772,7 @@ var HideUtils = (() => {
 						this.saveSettings();
 						this.hideUsers();
 					} else {
-						this.log('Unable to find that user to hide.');
+						Logger.log('Unable to find that user to hide.');
 					}
 				} else {
 					const field = $('#UserHideField');
