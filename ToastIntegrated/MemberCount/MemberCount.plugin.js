@@ -180,7 +180,7 @@ class MemberCount {
 		if (!m) return false;
 
 		const id = this.guildStore.getGuildId();
-		if (this.settings.blacklist.includes(id)) return false;
+		if (this.settings.blacklist.includes(id) || !id) return false;
 
 		this.inject();
 
@@ -214,9 +214,7 @@ class MemberCount {
 	createElement(type = '', properties = {}) {
 		const element = document.createElement(type);
 		
-		for (const prop in properties) {
-			element[prop] = properties[prop];
-		}
+		for (const prop in properties) element[prop] = properties[prop];
 
 		return element;
 	}
@@ -368,7 +366,7 @@ class MemberCount {
 	}
 
 	get version() {
-		return '1.1.2';
+		return '1.1.3';
 	}
 
 	get description() {
