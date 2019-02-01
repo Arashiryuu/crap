@@ -40,7 +40,7 @@ var HideServersChannelsRedux = (() => {
 					twitter_username: ''
 				}
 			],
-			version: '1.0.5',
+			version: '1.0.6',
 			description: 'Adds buttons to the header for hiding the servers list and channels list.',
 			github: 'https://github.com/Arashiryuu',
 			github_raw: 'https://raw.githubusercontent.com/Arashiryuu/crap/master/ToastIntegrated/HideServersChannelsRedux/HideServersChannelsRedux.plugin.js'
@@ -57,6 +57,15 @@ var HideServersChannelsRedux = (() => {
 				items: ['Compatibility with the normalized classes option of BBD\'s Bandages settings.']
 			}
 		]
+	};
+	
+	const log = function() {
+		/**
+		 * @type {Array}
+		 */
+		const args = Array.prototype.slice.call(arguments);
+		args.unshift(`%c[${config.info.name}]`, 'color: #3A71C1; font-weight: 700;');
+		return console.log.apply(this, args);
 	};
 
 	/* Build */
@@ -392,7 +401,7 @@ var HideServersChannelsRedux = (() => {
 			}
 
 			stop() {
-				Logger.log('Stopped!');
+				log('Stopped!');
 			}
 
 			load() {
@@ -400,7 +409,7 @@ var HideServersChannelsRedux = (() => {
 			}
 
 			start() {
-				Logger.log('Started!');
+				log('Started!');
 			}
 
 			/* Getters */
