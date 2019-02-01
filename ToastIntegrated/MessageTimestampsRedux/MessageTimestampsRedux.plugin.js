@@ -40,7 +40,7 @@ var MessageTimestampsRedux = (() => {
 					twitter_username: ''
 				}
 			],
-			version: '1.0.1',
+			version: '1.0.2',
 			description: 'Displays the timestamp for a message, simply right-click and select "Show Timestamp."',
 			github: 'https://github.com/Arashiryuu',
 			github_raw: 'https://raw.githubusercontent.com/Arashiryuu/crap/master/ToastIntegrated/MessageTimestampsRedux/MessageTimestampsRedux.plugin.js'
@@ -52,6 +52,15 @@ var MessageTimestampsRedux = (() => {
 				items: ['Now uses the local version of ZeresPluginLibrary.']
 			}
 		]
+	};
+	
+	const log = function() {
+		/**
+		 * @type {Array}
+		 */
+		const args = Array.prototype.slice.call(arguments);
+		args.unshift(`%c[${config.info.name}]`, 'color: #3A71C1; font-weight: 700;');
+		return console.log.apply(this, args);
 	};
 
 	/* Build */
@@ -328,7 +337,7 @@ var MessageTimestampsRedux = (() => {
 			}
 
 			stop() {
-				Logger.log('Stopped!');
+				log('Stopped!');
 			}
 
 			load() {
@@ -336,7 +345,7 @@ var MessageTimestampsRedux = (() => {
 			}
 
 			start() {
-				Logger.log('Started!');
+				log('Started!');
 			}
 
 			/* Getters */
