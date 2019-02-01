@@ -40,7 +40,7 @@ var HideUtils = (() => {
 					twitter_username: ''
 				}
 			],
-			version: '1.2.1',
+			version: '1.2.2',
 			description: 'Combination plugin packaging hideChannels, hideServers, and hideUsers into one.',
 			github: 'https://github.com/Arashiryuu',
 			github_raw: 'https://raw.githubusercontent.com/Arashiryuu/crap/master/ToastIntegrated/HideUtils/HideUtils.plugin.js'
@@ -52,6 +52,15 @@ var HideUtils = (() => {
 				items: ['Now hides context menu on item click.']
 			}
 		]
+	};
+	
+	const log = function() {
+		/**
+		 * @type {Array}
+		 */
+		const args = Array.prototype.slice.call(arguments);
+		args.unshift(`%c[${config.info.name}]`, 'color: #3A71C1; font-weight: 700;');
+		return console.log.apply(this, args);
 	};
 
 	/* Build */
@@ -1118,7 +1127,7 @@ var HideUtils = (() => {
 			}
 
 			stop() {
-				Logger.log('Stopped!');
+				log('Stopped!');
 			}
 
 			load() {
@@ -1126,7 +1135,7 @@ var HideUtils = (() => {
 			}
 
 			start() {
-				Logger.log('Started!');
+				log('Started!');
 			}
 
 			/* Getters */
