@@ -40,11 +40,20 @@ var HashTagsReborn = (() => {
 					twitter_username: ''
 				}
 			],
-			version: '1.0.1',
+			version: '1.0.2',
 			description: 'Lets you use hashtags on Discord!',
 			github: 'https://github.com/Arashiryuu',
 			github_raw: 'https://raw.githubusercontent.com/Arashiryuu/crap/master/ToastIntegrated/HashTagsReborn/HashTagsReborn.plugin.js'
 		}
+	};
+	
+	const log = function() {
+		/**
+		 * @type {Array}
+		 */
+		const args = Array.prototype.slice.call(arguments);
+		args.unshift(`%c[${config.info.name}]`, 'color: #3A71C1; font-weight: 700;');
+		return console.log.apply(this, args);
 	};
 
 	/* Build */
@@ -192,7 +201,7 @@ var HashTagsReborn = (() => {
 			}
 
 			stop() {
-				Logger.log('Stopped!');
+				log('Stopped!');
 			}
 
 			load() {
@@ -200,7 +209,7 @@ var HashTagsReborn = (() => {
 			}
 
 			start() {
-				Logger.log('Started!');
+				log('Started!');
 			}
 
 			/* Getters */
