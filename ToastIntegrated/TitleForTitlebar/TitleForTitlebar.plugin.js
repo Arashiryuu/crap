@@ -40,7 +40,7 @@ var TitleForTitlebar = (() => {
 					twitter_username: ''
 				}
 			],
-			version: '1.0.3',
+			version: '1.0.4',
 			description: 'Adds a title to the titlebar, dynamically changes as needed.',
 			github: 'https://github.com/Arashiryuu',
 			github_raw: 'https://raw.githubusercontent.com/Arashiryuu/crap/master/ToastIntegrated/TitleForTitlebar/TitleForTitlebar.plugin.js'
@@ -323,7 +323,7 @@ var TitleForTitlebar = (() => {
 			}
 
 			stop() {
-				Logger.log('Stopped!');
+				log('Stopped!');
 			}
 
 			load() {
@@ -331,7 +331,7 @@ var TitleForTitlebar = (() => {
 			}
 
 			start() {
-				Logger.log('Started!');
+				log('Started!');
 			}
 
 			/* Getters */
