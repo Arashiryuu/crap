@@ -40,7 +40,7 @@ var MemberCount = (() => {
 					twitter_username: ''
 				}
 			],
-			version: '2.0.1',
+			version: '2.0.2',
 			description: 'Displays a server\'s member-count at the top of the member-list, can be styled with the #MemberCount selector.',
 			github: 'https://github.com/Arashiryuu',
 			github_raw: 'https://raw.githubusercontent.com/Arashiryuu/crap/master/ToastIntegrated/MemberCount/MemberCount.plugin.js'
@@ -52,6 +52,15 @@ var MemberCount = (() => {
 				items: ['Moved to local library version.', 'Now renders in the memberlist using React.']
 			}
 		]
+	};
+	
+	const log = function() {
+		/**
+		 * @type {Array}
+		 */
+		const args = Array.prototype.slice.call(arguments);
+		args.unshift(`%c[${config.info.name}]`, 'color: #3A71C1; font-weight: 700;');
+		return console.log.apply(this, args);
 	};
 
 	/* Build */
@@ -318,7 +327,7 @@ var MemberCount = (() => {
 			}
 
 			stop() {
-				Logger.log('Stopped!');
+				log('Stopped!');
 			}
 
 			load() {
@@ -326,7 +335,7 @@ var MemberCount = (() => {
 			}
 
 			start() {
-				Logger.log('Started!');
+				log('Started!');
 			}
 
 			/* Getters */
