@@ -40,7 +40,7 @@ var MemberCount = (() => {
 					twitter_username: ''
 				}
 			],
-			version: '2.0.4',
+			version: '2.0.5',
 			description: 'Displays a server\'s member-count at the top of the member-list, can be styled with the #MemberCount selector.',
 			github: 'https://github.com/Arashiryuu',
 			github_raw: 'https://raw.githubusercontent.com/Arashiryuu/crap/master/ToastIntegrated/MemberCount/MemberCount.plugin.js'
@@ -50,6 +50,11 @@ var MemberCount = (() => {
 				title: 'What\'s New?',
 				type: 'added',
 				items: ['Moved to local library version.', 'Now renders in the memberlist using React.', 'Added popup addressing incorrect use issues.']
+			},
+			{
+				title: 'Mutations?',
+				type: 'improved',
+				items: ['Popup no longer stops plugin from working.']
 			}
 		]
 	};
@@ -151,15 +156,12 @@ var MemberCount = (() => {
 
 			/* Methods */
 			
-			shouldNotStart() {
+			usingNormalizedClasses() {
 				return window.settingsCookie['fork-ps-4'];
 			}
 
 			onStart() {
-				if (this.shouldNotStart()) {
-					window.BdApi.alert('Unsupported setting - Normalize Classes.', 'Disable the normalize classes setting from User Settings, and then reload your Discord client! <br/><br/>User Settings \u2192 Bandages \u2192 Normalize Classes.');
-					return this.onStop();
-				}
+				if (this.usingNormalizedClasses()) window.BdApi.alert(this.name, 'The normalize classes option is enabled, this may cause bugs &mdash; visual or otherwise, and may even stop the plugin from working.');
 				this.loadSettings();
 				BdApi.injectCSS(this.name, this.css);
 				this.patchMemberList();
