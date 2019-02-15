@@ -233,7 +233,7 @@ var MessageTimestampsRedux = (() => {
 			 * @returns {Void}
 			 */
 			updateContextMenu() {
-				const menu = document.querySelectorAll('.' + DiscordClassModules.ContextMenu.contextMenu);
+				const menu = document.querySelectorAll(DiscordSelectors.ContextMenu.contextMenu.toString());
 				if (!menu.length) return;
 				for (let i = 0, len = menu.length; i < len; i++) ReactTools.getOwnerInstance(menu[i]).forceUpdate();
 			}
