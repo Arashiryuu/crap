@@ -40,7 +40,7 @@ var MemberCount = (() => {
 					twitter_username: ''
 				}
 			],
-			version: '2.0.5',
+			version: '2.0.6',
 			description: 'Displays a server\'s member-count at the top of the member-list, can be styled with the #MemberCount selector.',
 			github: 'https://github.com/Arashiryuu',
 			github_raw: 'https://raw.githubusercontent.com/Arashiryuu/crap/master/ToastIntegrated/MemberCount/MemberCount.plugin.js'
@@ -49,12 +49,7 @@ var MemberCount = (() => {
 			{
 				title: 'What\'s New?',
 				type: 'added',
-				items: ['Moved to local library version.', 'Now renders in the memberlist using React.', 'Added popup addressing incorrect use issues.']
-			},
-			{
-				title: 'Mutations?',
-				type: 'improved',
-				items: ['Popup no longer stops plugin from working.']
+				items: ['Moved to local library version.', 'Now renders in the memberlist using React.']
 			}
 		]
 	};
@@ -84,17 +79,13 @@ var MemberCount = (() => {
 				this.updateCount = this.updateCount.bind(this);
 			}
 
-			componentWillMount() {
+			componentDidMount() {
 				Dispatcher.subscribe('COUNT_MEMBERS', this.updateCount);
+				this.updateCount();
 			}
 
 			componentWillUnmount() {
 				Dispatcher.unsubscribe('COUNT_MEMBERS', this.updateCount);
-			}
-
-			componentDidMount() {
-				if (!DiscordModules.SelectedGuildStore.getGuildId()) return;
-				this.updateCount();
 			}
 
 			updateCount() {
@@ -102,8 +93,6 @@ var MemberCount = (() => {
 			}
 
 			render() {
-				const id = DiscordModules.SelectedGuildStore.getGuildId();
-				if (this.props.blacklist && this.props.blacklist.includes(id) || !id) return null;
 				return DiscordModules.React.createElement('div', {
 					className: DiscordClasses.MemberList.membersGroup.value,
 					id: 'MemberCount'
@@ -148,46 +137,41 @@ var MemberCount = (() => {
 						background: #f3f3f3;
 					}
 		
-					.${DiscordClasses.MemberList.membersWrap} .${DiscordClasses.MemberList.membersGroup}:nth-of-type(3) {
+					${DiscordSelectors.MemberList.membersWrap} ${DiscordSelectors.MemberList.membersGroup}:nth-of-type(3) {
 						margin-top: 2vh;
 					}
 				`;
 			}
 
 			/* Methods */
-			
-			usingNormalizedClasses() {
-				return window.settingsCookie['fork-ps-4'];
-			}
 
 			onStart() {
-				if (this.usingNormalizedClasses()) window.BdApi.alert(this.name, 'The normalize classes option is enabled, this may cause bugs &mdash; visual or otherwise, and may even stop the plugin from working.');
 				this.loadSettings();
-				BdApi.injectCSS(this.name, this.css);
+				BdApi.injectCSS(this.short, this.css);
 				this.patchMemberList();
 				Toasts.info(`${this.name} ${this.version} has started!`, { icon: true, timeout: 2e3 });
 			}
 
 			onStop() {
-				BdApi.clearCSS(this.name);
+				BdApi.clearCSS(this.short);
 				Patcher.unpatchAll();
 				Toasts.info(`${this.name} ${this.version} has stopped!`, { icon: true, timeout: 2e3 });
 			}
 
 			patchMemberList() {
-				const MemberList = WebpackModules.find((m) => m.hasOwnProperty('Themes') && m.hasOwnProperty('defaultProps'));
+				const Scroller = WebpackModules.getByDisplayName('VerticalScroller');
 				
-				Patcher.after(MemberList.prototype, 'render', (that, args, value) => {
-					const channels = this.getProps(that, 'props.children.2.0.key');
-					if (typeof channels === 'string' && channels.includes('section-container')) return value;
+				Patcher.after(Scroller.prototype, 'render', (that, args, value) => {
+					const key = this.getProps(that, 'props.children.2.0.key');
+					if (typeof key === 'string' && key.includes('section-container')) return value;
 
 					const children = this.getProps(value, 'props.children.0.props.children.1.2');
 					if (!children || !Array.isArray(children)) return value;
 					
 					const guildId = DiscordModules.SelectedGuildStore.getGuildId();
-					if (this.settings.blacklist.includes(guildId)) return value;
+					if (this.settings.blacklist.includes(guildId) || !guildId) return value;
 
-					const counter = DiscordModules.React.createElement(Counter, { blacklist: this.settings.blacklist });
+					const counter = DiscordModules.React.createElement(Counter, {});
 
 					children.unshift([counter, null]);
 
