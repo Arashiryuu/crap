@@ -12,6 +12,9 @@
 - Improved the settings UI to allow for simpler & more flexible removals.
 ### v1.2.0
 - Moved to local library version.
+### v2.0.0
+- Uses React.
+- Reworked how settings are handled.
 
 ## Preview
 ### Settings hub-page:
