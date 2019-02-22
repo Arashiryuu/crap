@@ -40,7 +40,7 @@ var HideServersChannelsRedux = (() => {
 					twitter_username: ''
 				}
 			],
-			version: '1.0.6',
+			version: '1.0.7',
 			description: 'Adds buttons to the header for hiding the servers list and channels list.',
 			github: 'https://github.com/Arashiryuu',
 			github_raw: 'https://raw.githubusercontent.com/Arashiryuu/crap/master/ToastIntegrated/HideServersChannelsRedux/HideServersChannelsRedux.plugin.js'
@@ -72,10 +72,12 @@ var HideServersChannelsRedux = (() => {
 
 	const buildPlugin = ([Plugin, Api]) => {
 		const { Toasts, Logger, Patcher, DOMTools, Settings, ReactTools, DiscordModules, WebpackModules, DiscordSelectors } = Api;
-		const { SettingPanel, Switch } = Settings;
-		const TooltipWrapper = WebpackModules.getByPrototypes('showDelayed');
+		const { SettingPanel, SettingGroup, Switch } = Settings;
 
+		const has = Object.prototype.hasOwnProperty;
+		const TooltipWrapper = WebpackModules.getByPrototypes('showDelayed');
 		const icons = WebpackModules.getByProps('iconMargin');
+		const guilds = WebpackModules.getByProps('guildsWrapper');
 
 		const ServerButton = class ServerButton extends DiscordModules.React.Component {
 			constructor(props) {
@@ -93,17 +95,23 @@ var HideServersChannelsRedux = (() => {
 					position: 'bottom',
 					text: 'Toggle Servers'
 				},
-					DiscordModules.React.createElement('svg', {
-						name: 'ServerButton',
-						className: `${icons.iconInactive} ${icons.iconMargin}`,
-						onClick: this.onClick,
-						width: 24,
-						height: 24,
-						viewBox: '-2 -2 28 28',
-						fill: '#FFF'
-					},
-						DiscordModules.React.createElement('path', { d: 'M0 0h24v24H0z', fill: 'none' }),
-						DiscordModules.React.createElement('path', { d: 'M20 13H4c-.55 0-1 .45-1 1v6c0 .55.45 1 1 1h16c.55 0 1-.45 1-1v-6c0-.55-.45-1-1-1zM7 19c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zM20 3H4c-.55 0-1 .45-1 1v6c0 .55.45 1 1 1h16c.55 0 1-.45 1-1V4c0-.55-.45-1-1-1zM7 9c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2z' })
+					DiscordModules.React.createElement('span', {
+						tabindex: 0,
+						className: icons.iconMargin,
+						role: 'button'
+					}, 
+						DiscordModules.React.createElement('svg', {
+							name: 'ServerButton',
+							className: icons.iconInactive,
+							onClick: this.onClick,
+							width: 24,
+							height: 24,
+							viewBox: '-2 -2 28 28',
+							fill: '#FFF'
+						},
+							DiscordModules.React.createElement('path', { d: 'M0 0h24v24H0z', fill: 'none' }),
+							DiscordModules.React.createElement('path', { d: 'M20 13H4c-.55 0-1 .45-1 1v6c0 .55.45 1 1 1h16c.55 0 1-.45 1-1v-6c0-.55-.45-1-1-1zM7 19c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zM20 3H4c-.55 0-1 .45-1 1v6c0 .55.45 1 1 1h16c.55 0 1-.45 1-1V4c0-.55-.45-1-1-1zM7 9c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2z' })
+						)
 					)
 				);
 			}
@@ -125,17 +133,23 @@ var HideServersChannelsRedux = (() => {
 					position: 'bottom',
 					text: 'Toggle Channels'
 				},
-					DiscordModules.React.createElement('svg', {
-						name: 'ChannelButton',
-						className: `${icons.iconInactive} ${icons.iconMargin}`,
-						onClick: this.onClick,
-						width: 24,
-						height: 24,
-						viewBox: '2 2 20 20',
-						fill: '#FFF'
+					DiscordModules.React.createElement('span', {
+						tabindex: 0,
+						className: icons.iconMargin,
+						role: 'button'
 					},
-						DiscordModules.React.createElement('path', { d: 'M5 13h14v-2H5v2zm-2 4h14v-2H3v2zM7 7v2h14V7H7z' }),
-						DiscordModules.React.createElement('path', { d: 'M0 0h24v24H0z', fill: 'none' })
+						DiscordModules.React.createElement('svg', {
+							name: 'ChannelButton',
+							className: icons.iconInactive,
+							onClick: this.onClick,
+							width: 24,
+							height: 24,
+							viewBox: '2 2 20 20',
+							fill: '#FFF'
+						},
+							DiscordModules.React.createElement('path', { d: 'M5 13h14v-2H5v2zm-2 4h14v-2H3v2zM7 7v2h14V7H7z' }),
+							DiscordModules.React.createElement('path', { d: 'M0 0h24v24H0z', fill: 'none' })
+						)
 					)
 				);
 			}
@@ -147,12 +161,6 @@ var HideServersChannelsRedux = (() => {
 				this.default = { keybinds: false };
 				this.settings = Object.assign({}, this.default);
 				this._css;
-				this.switchList = [
-					'app',
-					DiscordSelectors.TitleWrap.chat.value.slice(2),
-					WebpackModules.getByProps('messages', 'messagesWrapper').messagesWrapper
-				];
-				this.keys = ['c', 'g'];
 				this.keyFns = {
 					c: () => this.onChannelButtonClick(),
 					g: () => this.onServerButtonClick()
@@ -216,7 +224,7 @@ var HideServersChannelsRedux = (() => {
 			onKeyup({ altKey, ctrlKey, key }) {
 				key = key.toLowerCase();
 				
-				if (!altKey || ctrlKey || !this.keys.includes(key)) return;
+				if (!altKey || ctrlKey || !has.call(this.keyFns, key)) return;
 
 				this.keyFns[key]();
 			}
@@ -243,7 +251,7 @@ var HideServersChannelsRedux = (() => {
 
 			onServerButtonClick() {
 				const iconClass = icons.icon.split(' ').join('.');
-				const guildsWrapper = WebpackModules.getByProps('guildsWrapper').guildsWrapper.split(' ').join('.');
+				const guildsWrapper = guilds.guildsWrapper.split(' ').join('.');
 				const button = document.querySelector(`.${iconClass}[name="ServerButton"]`);
 				const element = document.querySelector(`.${guildsWrapper}`);
 				
@@ -324,10 +332,12 @@ var HideServersChannelsRedux = (() => {
 
 			getSettingsPanel() {
 				return SettingPanel.build(() => this.saveSettings(this.settings),
-					new Switch('Enable Keybinds', 'Guilds: Alt + G. Channels: Alt + C.', this.settings.keybinds, (i) => {
-						this.settings.keybinds = i;
-						this.handleKeybinds();
-					})
+					new SettingGroup('Plugin Settings', { shown: true }).append(
+						new Switch('Enable Keybinds', 'Guilds: Alt + G. Channels: Alt + C.', this.settings.keybinds, (i) => {
+							this.settings.keybinds = i;
+							this.handleKeybinds();
+						})
+					)
 				);
 			}
 
