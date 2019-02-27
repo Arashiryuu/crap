@@ -40,7 +40,7 @@ var HideUtils = (() => {
 					twitter_username: ''
 				}
 			],
-			version: '2.0.0',
+			version: '2.0.1',
 			description: 'Allows you to hide users, servers, and channels individually.',
 			github: 'https://github.com/Arashiryuu',
 			github_raw: 'https://raw.githubusercontent.com/Arashiryuu/crap/master/ToastIntegrated/HideUtils/HideUtils.plugin.js'
@@ -254,13 +254,10 @@ var HideUtils = (() => {
 				});
 			}
 
-			patchTypingUsers() {
-				const TypingUsers = WebpackModules.getByDisplayName('FluxContainer(TypingUsers)');
-
-				Patcher.before(TypingUsers.prototype, 'render', ({ state: { typingUsers } }) => {
-					for (const id in typingUsers) {
-						if (has.call(this.settings.users, id)) delete typingUsers[id];
-					}
+			async patchTypingUsers() {
+				const { component: TypingUsers } = await ReactComponents.getComponentByName('TypingUsers', DiscordSelectors.Typing.typing.toString()); // WebpackModules.getByDisplayName('FluxContainer(TypingUsers)');
+				Patcher.before(TypingUsers.prototype, 'render', ({ props: { typingUsers } }) => {
+					for (const id in typingUsers) has.call(this.settings.users, id) && delete typingUsers[id];
 				}, { displayName: 'TypingUsers' });
 			}
 
