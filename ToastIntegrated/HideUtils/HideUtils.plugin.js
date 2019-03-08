@@ -40,7 +40,7 @@ var HideUtils = (() => {
 					twitter_username: ''
 				}
 			],
-			version: '2.0.2',
+			version: '2.0.3',
 			description: 'Allows you to hide users, servers, and channels individually.',
 			github: 'https://github.com/Arashiryuu',
 			github_raw: 'https://raw.githubusercontent.com/Arashiryuu/crap/master/ToastIntegrated/HideUtils/HideUtils.plugin.js'
@@ -49,7 +49,7 @@ var HideUtils = (() => {
 			{
 				title: 'Wrench in the works?',
 				type: 'fixed',
-				items: ['Discord pushed an internal change, this update adapts to that.']
+				items: ['Discord pushed an internal change, then decided to undo it... What a waste of two patch versions.']
 			}
 		]
 	};
@@ -83,7 +83,7 @@ var HideUtils = (() => {
 		const has = Object.prototype.hasOwnProperty;
 		const MenuActions = DiscordModules.ContextMenuActions;
 		const MenuItem = WebpackModules.getByRegex(/(?=.*disabled)(?=.*brand)/);
-		const guilds = WebpackModules.getByProps('wrapper', 'unreadMentionsIndicatorTop');
+		const guilds = WebpackModules.getByProps('guildsWrapper'/*'wrapper', 'unreadMentionsIndicatorTop'*/);
 		const buttons = WebpackModules.getByProps('button');
 		const positionedContainer = WebpackModules.getByProps('positionedContainer');
 		const messagesWrapper = WebpackModules.getByProps('messages', 'messagesWrapper');
@@ -382,7 +382,7 @@ var HideUtils = (() => {
 
 			async patchGuilds() {
 				const Guilds = await new Promise((resolve) => {
-					const guildsWrapper = document.querySelector(`.${guilds.wrapper.replace(/\s/, '.')}`);
+					const guildsWrapper = document.querySelector(`.${guilds.guildsWrapper.replace(/\s/, '.')}`);
 					if (guildsWrapper) return resolve(ReactTools.getOwnerInstance(guildsWrapper).constructor);
 				});
 
@@ -393,10 +393,10 @@ var HideUtils = (() => {
 					const children = this.getProps(value, 'props.children.1.props.children');
 					if (!children || !Array.isArray(children)) return value;
 
-					const guilds = this.getProps(children, '5');
+					const guilds = this.getProps(children, '3');
 					if (!guilds || !Array.isArray(guilds)) return value;
 
-					children[5] = guilds.filter((guild) => !guild || !guild.key || !has.call(this.settings.servers, guild.key));
+					children[3] = guilds.filter((guild) => !guild || !guild.key || !has.call(this.settings.servers, guild.key));
 
 					return value;
 				});
@@ -405,7 +405,7 @@ var HideUtils = (() => {
 			}
 
 			updateGuilds() {
-				const guildWrapper = document.querySelector(`.${guilds.wrapper.replace(/\s/, '.')}`);
+				const guildWrapper = document.querySelector(`.${guilds.guildsWrapper.replace(/\s/, '.')}`);
 				if (guildWrapper) ReactTools.getOwnerInstance(guildWrapper).forceUpdate();
 			}
 
