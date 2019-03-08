@@ -40,23 +40,11 @@ var HideServersChannelsRedux = (() => {
 					twitter_username: ''
 				}
 			],
-			version: '1.0.7',
+			version: '1.0.8',
 			description: 'Adds buttons to the header for hiding the servers list and channels list.',
 			github: 'https://github.com/Arashiryuu',
 			github_raw: 'https://raw.githubusercontent.com/Arashiryuu/crap/master/ToastIntegrated/HideServersChannelsRedux/HideServersChannelsRedux.plugin.js'
-		},
-		changelog: [
-			{
-				title: 'Evolving?',
-				type: 'improved',
-				items: ['Now uses the local library of ZeresPluginLibrary.']
-			},
-			{
-				title: 'What\'s New?',
-				type: 'added',
-				items: ['Compatibility with the normalized classes option of BBD\'s Bandages settings.']
-			}
-		]
+		}
 	};
 	
 	const log = function() {
@@ -77,7 +65,7 @@ var HideServersChannelsRedux = (() => {
 		const has = Object.prototype.hasOwnProperty;
 		const TooltipWrapper = WebpackModules.getByPrototypes('showDelayed');
 		const icons = WebpackModules.getByProps('iconMargin');
-		const guilds = WebpackModules.getByProps('guildsWrapper');
+		const guilds = WebpackModules.getByProps('wrapper', 'unreadMentionsIndicatorTop');
 
 		const ServerButton = class ServerButton extends DiscordModules.React.Component {
 			constructor(props) {
@@ -251,7 +239,7 @@ var HideServersChannelsRedux = (() => {
 
 			onServerButtonClick() {
 				const iconClass = icons.icon.split(' ').join('.');
-				const guildsWrapper = guilds.guildsWrapper.split(' ').join('.');
+				const guildsWrapper = guilds.wrapper.split(' ').join('.');
 				const button = document.querySelector(`.${iconClass}[name="ServerButton"]`);
 				const element = document.querySelector(`.${guildsWrapper}`);
 				
