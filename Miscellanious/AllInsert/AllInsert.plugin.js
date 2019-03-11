@@ -1,4 +1,4 @@
-//META{"name":"AllInsert","displayName":"AllInsert","website":"https://github.com/Arashiryuu","source":"https://github.com/Arashiryuu/crap"}*//
+//META{"name":"AllInsert","displayName":"AllInsert","website":"https://github.com/Arashiryuu","source":"https://github.com/Arashiryuu/crap/blob/master/Miscellanious/AllInsert/AllInsert.plugin.js"}*//
 
 /*@cc_on
 @if (@_jscript)
