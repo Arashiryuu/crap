@@ -43,7 +43,7 @@ var AllInsert = (() => {
 			version: '1.0.0',
 			description: 'Replaces text and inserts replacement strings.',
 			github: 'https://github.com/Arashiryuu',
-			github_raw: ''
+			github_raw: 'https://raw.githubusercontent.com/Arashiryuu/crap/master/Miscellanious/AllInsert/AllInsert.plugin.js'
 		}
 	};
 
