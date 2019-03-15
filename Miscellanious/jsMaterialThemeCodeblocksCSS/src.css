@@ -229,3 +229,10 @@
 #app-mount .hljs[class~="javascript" i] .hljs-regexp {
     color: #89DDF3 !important;
 }
+
+#app-mount code.hljs[class~="js" i] .hljs-comment,
+#app-mount code.hljs[class~="jsx" i] .hljs-comment,
+#app-mount code.hljs[class~="javascript" i] .hljs-comment {
+	color: #718184 !important;
+	font-style: normal !important;
+}
