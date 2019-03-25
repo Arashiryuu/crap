@@ -40,16 +40,16 @@ var HideUtils = (() => {
 					twitter_username: ''
 				}
 			],
-			version: '2.0.4',
+			version: '2.0.5',
 			description: 'Allows you to hide users, servers, and channels individually.',
 			github: 'https://github.com/Arashiryuu',
 			github_raw: 'https://raw.githubusercontent.com/Arashiryuu/crap/master/ToastIntegrated/HideUtils/HideUtils.plugin.js'
 		},
 		changelog: [
 			{
-				title: 'Wrench in the works?',
-				type: 'fixed',
-				items: ['Discord pushed an internal change, then decided to undo it, then decided to re-do it... What a waste of two patch versions.']
+				title: 'Evolving?',
+				type: 'progress',
+				items: ['Fixed issues with delaying BBD\'s startup.']
 			}
 		]
 	};
@@ -82,7 +82,7 @@ var HideUtils = (() => {
 		
 		const has = Object.prototype.hasOwnProperty;
 		const MenuActions = DiscordModules.ContextMenuActions;
-		const MenuItem = WebpackModules.getByRegex(/(?=.*disabled)(?=.*brand)/);
+		const MenuItem = WebpackModules.getByString('disabled', 'brand');
 		const guilds = WebpackModules.getByProps('wrapper', 'unreadMentionsIndicatorTop');
 		const buttons = WebpackModules.getByProps('button');
 		const positionedContainer = WebpackModules.getByProps('positionedContainer');
@@ -290,7 +290,7 @@ var HideUtils = (() => {
 						action: () => {
 							MenuActions.closeContextMenu();
 							const guild = this.getProps(that, 'props.guild');
-							this.servPush(guild.id)
+							this.servPush(guild.id);
 						}
 					});
 
@@ -851,7 +851,7 @@ var HideUtils = (() => {
 			get description() {
 				return config.info.description;
 			}
-		}
+		};
 	};
 
 	/* Finalize */
