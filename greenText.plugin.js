@@ -103,7 +103,9 @@ var GreenText = (() => {
 				];
 				this.messageList = [
 					DiscordSelectors.Messages.container.value.split('.')[1],
-					DiscordSelectors.Messages.message.value.split('.')[1]
+					DiscordSelectors.Messages.message.value.split('.')[1],
+					'da-message',
+					'da-container'
 				];
 			}
 
