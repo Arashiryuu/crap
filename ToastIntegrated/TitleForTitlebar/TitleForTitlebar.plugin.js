@@ -40,7 +40,7 @@ var TitleForTitlebar = (() => {
 					twitter_username: ''
 				}
 			],
-			version: '1.0.4',
+			version: '1.0.5',
 			description: 'Adds a title to the titlebar, dynamically changes as needed.',
 			github: 'https://github.com/Arashiryuu',
 			github_raw: 'https://raw.githubusercontent.com/Arashiryuu/crap/master/ToastIntegrated/TitleForTitlebar/TitleForTitlebar.plugin.js'
@@ -109,9 +109,9 @@ var TitleForTitlebar = (() => {
 					}
 				`;
 				this.switchList = [
-					'app',
+					WebpackModules.getByProps('app').app.split(' ')[0],
 					DiscordSelectors.TitleWrap.chat.value.split('.')[1],
-					WebpackModules.getByProps('messages', 'messagesWrapper').messagesWrapper
+					WebpackModules.getByProps('messages', 'messagesWrapper').messagesWrapper.split(' ')[0]
 				];
 			}
 
