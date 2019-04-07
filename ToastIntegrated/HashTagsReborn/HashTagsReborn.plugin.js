@@ -40,7 +40,7 @@ var HashTagsReborn = (() => {
 					twitter_username: ''
 				}
 			],
-			version: '1.0.2',
+			version: '1.0.3',
 			description: 'Lets you use hashtags on Discord!',
 			github: 'https://github.com/Arashiryuu',
 			github_raw: 'https://raw.githubusercontent.com/Arashiryuu/crap/master/ToastIntegrated/HashTagsReborn/HashTagsReborn.plugin.js'
@@ -60,6 +60,9 @@ var HashTagsReborn = (() => {
 
 	const buildPlugin = ([Plugin, Api]) => {
 		const { Toasts, Logger, DOMTools, WebpackModules, DiscordSelectors } = Api;
+		const { container: MessageContainer, message: Message } = DiscordSelectors.Messages;
+		
+		const markup = WebpackModules.getByProps('markup').markup.split(' ')[0];
 		
 		return class HashTagsReborn extends Plugin {
 			constructor() {
@@ -67,19 +70,19 @@ var HashTagsReborn = (() => {
 				this._css;
 				this.regex = /\B#[A-Z0-9a-z_-]+/igm;
 				this.css = `
-					${DiscordSelectors.Messages.message.value.trim()} #HashTag {
+					${Message.value.trim()} #HashTag {
 						color: #3898FF;
 						font-weight: bold;
 					}
 				`;
 				this.switchList = [
-					'app',
+					WebpackModules.getByProps('app').app.split(' ')[0],
 					DiscordSelectors.TitleWrap.chat.value.slice(2),
-					WebpackModules.getByProps('messages', 'messagesWrapper').messagesWrapper
+					WebpackModules.getByProps('messages', 'messagesWrapper').messagesWrapper.split(' ')[0]
 				];
 				this.messageList = [
-					DiscordSelectors.Messages.container.value.slice(2),
-					DiscordSelectors.Messages.message.value.slice(2)
+					...MessageContainer.value.split('.').slice(1),
+					...Message.value.split('.').slice(1)
 				];
 			}
 
@@ -108,7 +111,7 @@ var HashTagsReborn = (() => {
 			}
 
 			addTags() {
-				const messages = DOMTools.queryAll(`.${WebpackModules.getByProps('markup').markup}`);
+				const messages = DOMTools.queryAll(`.${markup}`);
 				for (let i = 0, len = messages.length; i < len; i++) {
 					const message = messages[i];
 					const matches = message.innerHTML.match(this.regex);
