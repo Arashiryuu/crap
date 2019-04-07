@@ -85,7 +85,7 @@ var LineNumbersRedux = (() => {
 				];
 				this.messageList = [
 					...MessageContainer.value.split('.').slice(1),
-					...Message.value.trim('.').slice(1)
+					...Message.value.split('.').slice(1)
 				];
 				this.css = `
 					.hljs ol {
