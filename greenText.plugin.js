@@ -40,7 +40,7 @@ var GreenText = (() => {
 					twitter_username: ''
 				}
 			],
-			version: '1.0.8',
+			version: '1.1.0',
 			description: 'Turns sentences beginning with "\>" green.',
 			github: 'https://github.com/Arashiryuu',
 			github_raw: 'https://raw.githubusercontent.com/Arashiryuu/crap/master/greenText.plugin.js'
@@ -49,7 +49,7 @@ var GreenText = (() => {
 			{
 				title: 'Updated',
 				type: 'improved',
-				items: ['Compact mode improvements.']
+				items: ['Compact mode improvements.', 'Compatibility with Normalized Classes.']
 			}
 		]
 	};
@@ -78,6 +78,8 @@ var GreenText = (() => {
 
 	const buildPlugin = ([Plugin, Api]) => {
 		const { Toasts, Logger, DOMTools, WebpackModules, DiscordSelectors } = Api;
+
+		const markup = WebpackModules.getByProps('markup').markup.split(' ')[0];
 		
 		return class GreenText extends Plugin {
 			constructor() {
@@ -95,13 +97,13 @@ var GreenText = (() => {
 					}
 				`;
 				this.switchList = [
-					'app',
+					WebpackModules.getByProps('app').app.split(' ')[0],
 					DiscordSelectors.TitleWrap.chat.value.split('.')[1],
-					WebpackModules.getByProps('messages', 'messagesWrapper').messagesWrapper
+					WebpackModules.getByProps('messages', 'messagesWrapper').messagesWrapper.split(' ')[0]
 				];
 				this.messageList = [
-					DiscordSelectors.Messages.container.value.slice(2),
-					DiscordSelectors.Messages.message.value.slice(2)
+					DiscordSelectors.Messages.container.value.split('.')[1],
+					DiscordSelectors.Messages.message.value.split('.')[1]
 				];
 			}
 
@@ -119,7 +121,7 @@ var GreenText = (() => {
 			}
 
 			run() {
-				const messages = document.querySelectorAll(`.${WebpackModules.getByProps('markup').markup}`);
+				const messages = document.querySelectorAll(`.${markup}`);
 
 				if (this.isCompact()) {
 					for (const message of messages) {
@@ -164,7 +166,7 @@ var GreenText = (() => {
 			}
 
 			isCompact() {
-				const message = document.querySelector(`.${WebpackModules.getByProps('markup').markup}`);
+				const message = document.querySelector(`.${markup}`);
 				if (!message) return false;
 				return message.classList.contains(WebpackModules.getByProps('isCompact').isCompact);
 			}
@@ -221,7 +223,7 @@ var GreenText = (() => {
 			get description() {
 				return config.info.description;
 			}
-		}
+		};
 	};
 
 	/* Finalize */
@@ -245,7 +247,7 @@ var GreenText = (() => {
 		}
 
 		stop() {
-			Logger.log('Stopped!');
+			log('Stopped!');
 		}
 
 		load() {
@@ -253,7 +255,7 @@ var GreenText = (() => {
 		}
 
 		start() {
-			Logger.log('Started!');
+			log('Started!');
 		}
 
 		/* Getters */
