@@ -40,11 +40,18 @@ var HideServersChannelsRedux = (() => {
 					twitter_username: ''
 				}
 			],
-			version: '1.0.8',
+			version: '1.0.9',
 			description: 'Adds buttons to the header for hiding the servers list and channels list.',
 			github: 'https://github.com/Arashiryuu',
 			github_raw: 'https://raw.githubusercontent.com/Arashiryuu/crap/master/ToastIntegrated/HideServersChannelsRedux/HideServersChannelsRedux.plugin.js'
-		}
+		},
+		changelog: [
+			{
+				title: 'Bugs Squashed!',
+				type: 'fixed',
+				items: ['No longer causes Discord to crash after their latest update.']
+			}
+		]
 	};
 	
 	const log = function() {
@@ -63,7 +70,7 @@ var HideServersChannelsRedux = (() => {
 		const { SettingPanel, SettingGroup, Switch } = Settings;
 
 		const has = Object.prototype.hasOwnProperty;
-		const TooltipWrapper = WebpackModules.getByPrototypes('showDelayed');
+		const TooltipWrapper = WebpackModules.getByPrototypes('renderTooltip');
 		const icons = WebpackModules.getByProps('iconMargin');
 		const guilds = WebpackModules.getByProps('wrapper', 'unreadMentionsIndicatorTop');
 
@@ -79,15 +86,14 @@ var HideServersChannelsRedux = (() => {
 
 			render() {
 				return DiscordModules.React.createElement(TooltipWrapper, {
-					color: 'black',
-					position: 'bottom',
-					text: 'Toggle Servers'
-				},
-					DiscordModules.React.createElement('span', {
+					color: TooltipWrapper.Colors.BLACK,
+					position: TooltipWrapper.Positions.BOTTOM,
+					text: 'Toggle Servers',
+					children: (props) => DiscordModules.React.createElement('span', Object.assign({
 						tabindex: 0,
 						className: icons.iconMargin,
 						role: 'button'
-					}, 
+					}, props), 
 						DiscordModules.React.createElement('svg', {
 							name: 'ServerButton',
 							className: icons.iconInactive,
@@ -101,9 +107,9 @@ var HideServersChannelsRedux = (() => {
 							DiscordModules.React.createElement('path', { d: 'M20 13H4c-.55 0-1 .45-1 1v6c0 .55.45 1 1 1h16c.55 0 1-.45 1-1v-6c0-.55-.45-1-1-1zM7 19c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zM20 3H4c-.55 0-1 .45-1 1v6c0 .55.45 1 1 1h16c.55 0 1-.45 1-1V4c0-.55-.45-1-1-1zM7 9c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2z' })
 						)
 					)
-				);
+				});
 			}
-		}
+		};
 
 		const ChannelButton = class ChannelButton extends DiscordModules.React.Component {
 			constructor(props) {
@@ -117,15 +123,14 @@ var HideServersChannelsRedux = (() => {
 
 			render() {
 				return DiscordModules.React.createElement(TooltipWrapper, {
-					color: 'black',
-					position: 'bottom',
-					text: 'Toggle Channels'
-				},
-					DiscordModules.React.createElement('span', {
+					color: TooltipWrapper.Colors.BLACK,
+					position: TooltipWrapper.Positions.BOTTOM,
+					text: 'Toggle Channels',
+					children: (props) => DiscordModules.React.createElement('span', Object.assign({
 						tabindex: 0,
 						className: icons.iconMargin,
 						role: 'button'
-					},
+					}, props),
 						DiscordModules.React.createElement('svg', {
 							name: 'ChannelButton',
 							className: icons.iconInactive,
@@ -139,9 +144,9 @@ var HideServersChannelsRedux = (() => {
 							DiscordModules.React.createElement('path', { d: 'M0 0h24v24H0z', fill: 'none' })
 						)
 					)
-				);
+				});
 			}
-		}
+		};
 		
 		return class HideServersChannelsRedux extends Plugin {
 			constructor() {
@@ -371,7 +376,7 @@ var HideServersChannelsRedux = (() => {
 			get description() {
 				return config.info.description;
 			}
-		}
+		};
 	};
 
 	/* Finalize */
