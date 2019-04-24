@@ -40,7 +40,7 @@ var HideUtils = (() => {
 					twitter_username: ''
 				}
 			],
-			version: '2.0.5',
+			version: '2.0.6',
 			description: 'Allows you to hide users, servers, and channels individually.',
 			github: 'https://github.com/Arashiryuu',
 			github_raw: 'https://raw.githubusercontent.com/Arashiryuu/crap/master/ToastIntegrated/HideUtils/HideUtils.plugin.js'
@@ -50,6 +50,11 @@ var HideUtils = (() => {
 				title: 'Evolving?',
 				type: 'progress',
 				items: ['Fixed issues with delaying BBD\'s startup.']
+			},
+			{
+				title: 'Bugs Squashed!',
+				type: 'fixed',
+				items: ['Hides servers again.']
 			}
 		]
 	};
@@ -98,11 +103,6 @@ var HideUtils = (() => {
 					users: {}
 				};
 				this.settings = Utilities.deepclone(this.default);
-				this.switchList = [
-					WebpackModules.getByProps('app').app,
-					DiscordSelectors.TitleWrap.chat.value.split('.')[1],
-					messagesWrapper.messagesWrapper
-				];
 				this.css = `
 					.${WebpackModules.getByProps('messageGroupBlocked').messageGroupBlocked.replace(/\s/, '.')},
 					.${WebpackModules.getByProps('unreadMentionsBar').unreadMentionsBar.replace(/\s/, '.')} {
@@ -393,10 +393,10 @@ var HideUtils = (() => {
 					const children = this.getProps(value, 'props.children.1.props.children');
 					if (!children || !Array.isArray(children)) return value;
 
-					const guilds = this.getProps(children, '5');
+					const guilds = this.getProps(children, '4');
 					if (!guilds || !Array.isArray(guilds)) return value;
 
-					children[5] = guilds.filter((guild) => !guild || !guild.key || !has.call(this.settings.servers, guild.key));
+					children[4] = guilds.filter((guild) => !guild || !guild.key || !has.call(this.settings.servers, guild.key));
 
 					return value;
 				});
