@@ -40,18 +40,11 @@ var TitleForTitlebar = (() => {
 					twitter_username: ''
 				}
 			],
-			version: '1.0.5',
+			version: '1.0.6',
 			description: 'Adds a title to the titlebar, dynamically changes as needed.',
 			github: 'https://github.com/Arashiryuu',
 			github_raw: 'https://raw.githubusercontent.com/Arashiryuu/crap/master/ToastIntegrated/TitleForTitlebar/TitleForTitlebar.plugin.js'
-		},
-		changelog: [
-			{
-				title: 'Evolving?',
-				type: 'progress',
-				items: ['Now uses local version of the library.']
-			}
-		]
+		}
 	};
 
 	/* Utility */
@@ -78,6 +71,7 @@ var TitleForTitlebar = (() => {
 
 	const buildPlugin = ([Plugin, Api]) => {
 		const { Toasts, Logger, Settings, DOMTools, DiscordModules, WebpackModules, DiscordSelectors } = Api;
+		const { titleBar } = WebpackModules.getByProps('titleBar');
 		
 		return class TitleForTitlebar extends Plugin {
 			constructor() {
@@ -104,8 +98,8 @@ var TitleForTitlebar = (() => {
 					}
 				`;
 				this.optInCSS = `
-					#app-mount ${DiscordSelectors.TitleWrap.chat.value.trim()} ${DiscordSelectors.TitleWrap.titleWrapper.value.trim()} ${DiscordSelectors.TitleWrap.titleText.value.trim()} {
-						display: none;
+					#app-mount ${DiscordSelectors.TitleWrap.chat.value.trim()} ${DiscordSelectors.TitleWrap.title.value.trim()} > div:first-of-type {
+						visibility: hidden;
 					}
 				`;
 				this.switchList = [
@@ -122,7 +116,7 @@ var TitleForTitlebar = (() => {
 
 				this.getChannel = getChannel;
 				this.activeChannel = getChannelId;
-				this.target = document.querySelector('#app-mount > div:first-child');
+				this.target = document.querySelector(`.${titleBar.replace(/\s/g, '.')}`);
 
 				this.appendStyle();
 				this.appendTitle();
@@ -227,7 +221,7 @@ var TitleForTitlebar = (() => {
 			observer({ addedNodes, removedNodes }) {
 				if (addedNodes.length && addedNodes[0].classList && this.switchList.includes(addedNodes[0].classList[0])) {
 					this.manageTitle();
-				} else if (addedNodes.length && addedNodes[0].id && addedNodes[0].id.toLowerCase() === 'friends') {
+				} else if (addedNodes.length && addedNodes[0].className && addedNodes[0].className.includes && addedNodes[0].className.includes('container-3gCOGc')) {
 					this.setTitle('[UI]', 'Friends');
 				} else if (addedNodes.length && addedNodes[0].classList && addedNodes[0].classList.contains('layer-3QrUeG')) {
 					setTimeout(() => {
@@ -236,7 +230,7 @@ var TitleForTitlebar = (() => {
 						else this.setTitle('[UI]', 'User Settings');
 					}, 250);
 				} else if (removedNodes.length && removedNodes[0].classList && removedNodes[0].classList.contains('layer-3QrUeG')) {
-					const friends = document.getElementById('friends');
+					const friends = document.querySelector('.container-3gCOGc');
 					if (friends) this.setTitle('[UI]', 'Friends');
 					else this.manageTitle();
 				}
@@ -299,7 +293,7 @@ var TitleForTitlebar = (() => {
 			get description() {
 				return config.info.description;
 			}
-		}
+		};
 	};
 
 	/* Finalize */
