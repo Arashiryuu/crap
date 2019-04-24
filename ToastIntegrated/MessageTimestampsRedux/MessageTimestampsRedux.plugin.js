@@ -40,7 +40,7 @@ var MessageTimestampsRedux = (() => {
 					twitter_username: ''
 				}
 			],
-			version: '1.0.2',
+			version: '1.0.3',
 			description: 'Displays the timestamp for a message, simply right-click and select "Show Timestamp."',
 			github: 'https://github.com/Arashiryuu',
 			github_raw: 'https://raw.githubusercontent.com/Arashiryuu/crap/master/ToastIntegrated/MessageTimestampsRedux/MessageTimestampsRedux.plugin.js'
@@ -50,6 +50,11 @@ var MessageTimestampsRedux = (() => {
 				title: 'What\'s New?',
 				type: 'improved',
 				items: ['Now uses the local version of ZeresPluginLibrary.']
+			},
+			{
+				title: 'Bugs Squashed!',
+				type: 'fixed',
+				items: ['Renders in the message context menu again.']
 			}
 		]
 	};
@@ -85,7 +90,7 @@ var MessageTimestampsRedux = (() => {
 					onClick: this.onClick
 				}, 'Show Timestamp');
 			}
-		}
+		};
 		
 		return class MessageTimestampsRedux extends Plugin {
 			constructor() {
@@ -129,7 +134,7 @@ var MessageTimestampsRedux = (() => {
 			 * @returns {Promise<Void>}
 			 */
 			async getContextMenu() {
-				const { component: ContextMenu } = await ReactComponents.getComponent('MessageContextMenu', DiscordSelectors.ContextMenu.contextMenu.toString(), (component) => component.name === 't' && component.displayName === 'MessageContextMenu');
+				const { component: ContextMenu } = await ReactComponents.getComponentByName('MessageContextMenu', DiscordSelectors.ContextMenu.contextMenu.toString());
 				this.patchContextMenu(ContextMenu);
 			}
 
@@ -313,7 +318,7 @@ var MessageTimestampsRedux = (() => {
 			get description() {
 				return config.info.description;
 			}
-		}
+		};
 	};
 
 	/* Finalize */
