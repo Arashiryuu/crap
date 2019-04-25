@@ -40,7 +40,7 @@ var HideServersChannelsRedux = (() => {
 					twitter_username: ''
 				}
 			],
-			version: '1.0.10',
+			version: '1.0.11',
 			description: 'Adds buttons to the header for hiding the servers list and channels list.',
 			github: 'https://github.com/Arashiryuu',
 			github_raw: 'https://raw.githubusercontent.com/Arashiryuu/crap/master/ToastIntegrated/HideServersChannelsRedux/HideServersChannelsRedux.plugin.js'
@@ -268,7 +268,7 @@ var HideServersChannelsRedux = (() => {
 
 				const { selected } = icons;
 
-				DOMTools.toggleClass(button, selected);
+				DOMTools.toggleClass(button.parentElement, selected);
 
 				if (this.isNotClosed(element)) return this.closeElement(element);
 
@@ -284,7 +284,7 @@ var HideServersChannelsRedux = (() => {
 
 				const { selected } = icons;
 
-				DOMTools.toggleClass(button, selected);
+				DOMTools.toggleClass(button.parentElement, selected);
 
 				if (this.isNotClosed(element)) return this.closeElement(element);
 
