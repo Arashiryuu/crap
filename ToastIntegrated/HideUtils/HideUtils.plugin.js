@@ -40,7 +40,7 @@ var HideUtils = (() => {
 					twitter_username: ''
 				}
 			],
-			version: '2.0.7',
+			version: '2.0.8',
 			description: 'Allows you to hide users, servers, and channels individually.',
 			github: 'https://github.com/Arashiryuu',
 			github_raw: 'https://raw.githubusercontent.com/Arashiryuu/crap/master/ToastIntegrated/HideUtils/HideUtils.plugin.js'
@@ -388,10 +388,11 @@ var HideUtils = (() => {
 					const children = this.getProps(value, 'props.children.1.props.children');
 					if (!children || !Array.isArray(children)) return value;
 
-					const guilds = this.getProps(children, '5');
+					const guildIndex = window.pluginCookie.OnlineFriendCount ? 5 : 4;
+					const guilds = this.getProps(children, guildIndex.toString());
 					if (!guilds || !Array.isArray(guilds)) return value;
 
-					children[5] = guilds.filter((guild) => !guild || !guild.key || !has.call(this.settings.servers, guild.key));
+					children[guildIndex] = guilds.filter((guild) => !guild || !guild.key || !has.call(this.settings.servers, guild.key));
 
 					return value;
 				});
