@@ -40,11 +40,18 @@ var TitleForTitlebar = (() => {
 					twitter_username: ''
 				}
 			],
-			version: '1.0.6',
+			version: '1.0.8',
 			description: 'Adds a title to the titlebar, dynamically changes as needed.',
 			github: 'https://github.com/Arashiryuu',
 			github_raw: 'https://raw.githubusercontent.com/Arashiryuu/crap/master/ToastIntegrated/TitleForTitlebar/TitleForTitlebar.plugin.js'
-		}
+		},
+		changelog: [
+			{
+				title: 'What\'s New?',
+				type: 'added',
+				items: ['Now supports News and Store channel types.']
+			}
+		]
 	};
 
 	/* Utility */
@@ -70,8 +77,10 @@ var TitleForTitlebar = (() => {
 	/* Build */
 
 	const buildPlugin = ([Plugin, Api]) => {
-		const { Toasts, Logger, Settings, DOMTools, DiscordModules, WebpackModules, DiscordSelectors } = Api;
+		const { Toasts, Logger, Settings, DOMTools, DiscordModules, WebpackModules, DiscordSelectors, PluginUtilities } = Api;
 		const { titleBar } = WebpackModules.getByProps('titleBar');
+		const { children } = WebpackModules.getByProps('children', 'container', 'clickable');
+		const { topic, expandable } = WebpackModules.getByProps('topic', 'expandable');
 		
 		return class TitleForTitlebar extends Plugin {
 			constructor() {
@@ -90,7 +99,7 @@ var TitleForTitlebar = (() => {
 					#TitleForTitlebar {
 						position: absolute;
 						color: #EEE;
-						top: 1ex;
+						top: 0;
 						left: 26vw;
 						font-size: 13pt;
 						font-family: 'Inconsolata', sans-serif;
@@ -98,7 +107,7 @@ var TitleForTitlebar = (() => {
 					}
 				`;
 				this.optInCSS = `
-					#app-mount ${DiscordSelectors.TitleWrap.chat.value.trim()} ${DiscordSelectors.TitleWrap.title.value.trim()} > div:first-of-type {
+					#app-mount ${DiscordSelectors.TitleWrap.chat.value.trim()} ${DiscordSelectors.TitleWrap.title.value.trim()} > .${children.replace(/\s+/g, '.')} > :not([class="${topic} ${expandable}"]) {
 						visibility: hidden;
 					}
 				`;
@@ -134,7 +143,7 @@ var TitleForTitlebar = (() => {
 			appendStyle() {
 				const e = DOMTools.parseHTML(`<link href="https://fonts.googleapis.com/css?family=Roboto|Inconsolata" rel="preload stylesheet" as="font" crossorigin/>`);
 				DOMTools.appendTo(e, document.head);
-				BdApi.injectCSS('TitleForTitlebarCSS', !this.settings.hideChannelName ? this.css : this.css + this.optInCSS);
+				PluginUtilities.addStyle('TitleForTitlebarCSS', !this.settings.hideChannelName ? this.css : this.css + this.optInCSS);
 			}
 
 			removeStyle() {
@@ -144,7 +153,7 @@ var TitleForTitlebar = (() => {
 					for (const link of links) link.remove();
 				}
 				
-				BdApi.clearCSS('TitleForTitlebarCSS');
+				PluginUtilities.removeStyle('TitleForTitlebarCSS');
 			}
 
 			removeTitle() {
@@ -195,6 +204,8 @@ var TitleForTitlebar = (() => {
 				 * 2 - Voice Channel
 				 * 3 - Group DM
 				 * 4 - Categories
+				 * 5 - Guild Channel - News
+				 * 6 - Guild Channel - Store
 				 */
 				switch (type) {
 					case 1:
@@ -202,6 +213,12 @@ var TitleForTitlebar = (() => {
 					break;
 					case 3:
 						this.titlePrefix = '[Group DM]';
+					break;
+					case 5:
+						this.titlePrefix = '[News Channel]';
+					break;
+					case 6:
+						this.titlePrefix = '[Store Channel]';
 					break;
 					default:
 						this.titlePrefix = '[Guild Channel]';
