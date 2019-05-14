@@ -40,16 +40,16 @@ var HideUtils = (() => {
 					twitter_username: ''
 				}
 			],
-			version: '2.0.8',
+			version: '2.0.9',
 			description: 'Allows you to hide users, servers, and channels individually.',
 			github: 'https://github.com/Arashiryuu',
 			github_raw: 'https://raw.githubusercontent.com/Arashiryuu/crap/master/ToastIntegrated/HideUtils/HideUtils.plugin.js'
 		},
 		changelog: [
 			{
-				title: 'Bugs Squashed!',
-				type: 'fixed',
-				items: ['Hides servers again.']
+				title: 'Evolving?',
+				type: 'progress',
+				items: ['Better handles blocked messages by unrendering them instead of hiding with css.', 'Prevents unread notifications from hidden/blocked users.']
 			}
 		]
 	};
@@ -99,10 +99,6 @@ var HideUtils = (() => {
 				};
 				this.settings = Utilities.deepclone(this.default);
 				this.css = `
-					.${WebpackModules.getByProps('messageGroupBlocked').messageGroupBlocked.replace(/\s/, '.')},
-					.${WebpackModules.getByProps('unreadMentionsBar').unreadMentionsBar.replace(/\s/, '.')} {
-						display: none;
-					}
 					#HideUtils-Settings {
 						overflow-x: hidden;
 					}
@@ -224,7 +220,7 @@ var HideUtils = (() => {
 				this.patchGuilds();
 				this.patchChannels();
 				this.patchMessages();
-				this.patchIsBlocked();
+				this.patchReceiveMessages();
 				this.patchMemberList();
 				this.patchTypingUsers();
 				this.patchContextMenu();
@@ -238,9 +234,11 @@ var HideUtils = (() => {
 				this.updateContextMenu();
 			}
 
-			patchIsBlocked() {
-				Patcher.after(DiscordModules.RelationshipStore, 'isBlocked', (that, args, value) => {
-					if (has.call(this.settings.users, args[0])) return false;
+			patchReceiveMessages() {
+				Patcher.instead(DiscordModules.MessageActions, 'receiveMessage', (that, args, value) => {
+					const [channelId, { author }] = args;
+					if (has.call(this.settings.users, author.id) || DiscordModules.RelationshipStore.isBlocked(author.id)) return;
+					return value(...args);
 				});
 			}
 
@@ -357,7 +355,8 @@ var HideUtils = (() => {
 
 					props.children = messageGroups.filter((group) => {
 						const author = this.getProps(group, 'props.children.props.messages.0.author');
-						return !group || !group.key || !author || (author && !has.call(this.settings.users, author.id));
+						const blocked = group.key === '36' || group.type.displayName === 'BlockedMessageGroups';
+						return !blocked && author && !has.call(this.settings.users, author.id);
 					});
 
 					return value;
