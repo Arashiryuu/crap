@@ -40,7 +40,7 @@ var HideUtils = (() => {
 					twitter_username: ''
 				}
 			],
-			version: '2.0.9',
+			version: '2.0.10',
 			description: 'Allows you to hide users, servers, and channels individually.',
 			github: 'https://github.com/Arashiryuu',
 			github_raw: 'https://raw.githubusercontent.com/Arashiryuu/crap/master/ToastIntegrated/HideUtils/HideUtils.plugin.js'
@@ -49,7 +49,11 @@ var HideUtils = (() => {
 			{
 				title: 'Evolving?',
 				type: 'progress',
-				items: ['Better handles blocked messages by unrendering them instead of hiding with css.', 'Prevents unread notifications from hidden/blocked users.']
+				items: [
+					'Better handles blocked messages by unrendering them instead of hiding with css.',
+					'Prevents unread notifications from hidden and blocked users.',
+					'Suppresses mentions from hidden users.'
+				]
 			}
 		]
 	};
@@ -220,10 +224,11 @@ var HideUtils = (() => {
 				this.patchGuilds();
 				this.patchChannels();
 				this.patchMessages();
-				this.patchReceiveMessages();
 				this.patchMemberList();
 				this.patchTypingUsers();
 				this.patchContextMenu();
+				this.patchIsMentioned();
+				this.patchReceiveMessages();
 			}
 
 			updateAll() {
@@ -238,6 +243,15 @@ var HideUtils = (() => {
 				Patcher.instead(DiscordModules.MessageActions, 'receiveMessage', (that, args, value) => {
 					const [channelId, { author }] = args;
 					if (has.call(this.settings.users, author.id) || DiscordModules.RelationshipStore.isBlocked(author.id)) return;
+					return value(...args);
+				});
+			}
+
+			patchIsMentioned() {
+				const Module = WebpackModules.getByProps('isMentioned');
+				Patcher.instead(Module, 'isMentioned', (that, args, value) => {
+					const [{ author }] = args;
+					if (has.call(this.settings.users, author.id)) return false;
 					return value(...args);
 				});
 			}
