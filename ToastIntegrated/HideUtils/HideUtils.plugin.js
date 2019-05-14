@@ -356,7 +356,7 @@ var HideUtils = (() => {
 					props.children = messageGroups.filter((group) => {
 						const author = this.getProps(group, 'props.children.props.messages.0.author');
 						const blocked = group.key === '36' || group.type.displayName === 'BlockedMessageGroups';
-						return !blocked && author && !has.call(this.settings.users, author.id);
+						return !blocked && author && !has.call(this.settings.users, author.id) || !blocked;
 					});
 
 					return value;
