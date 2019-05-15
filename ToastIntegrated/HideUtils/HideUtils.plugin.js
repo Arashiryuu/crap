@@ -40,7 +40,7 @@ var HideUtils = (() => {
 					twitter_username: ''
 				}
 			],
-			version: '2.0.10',
+			version: '2.0.11',
 			description: 'Allows you to hide users, servers, and channels individually.',
 			github: 'https://github.com/Arashiryuu',
 			github_raw: 'https://raw.githubusercontent.com/Arashiryuu/crap/master/ToastIntegrated/HideUtils/HideUtils.plugin.js'
@@ -48,12 +48,17 @@ var HideUtils = (() => {
 		changelog: [
 			{
 				title: 'Evolving?',
-				type: 'progress',
+				type: 'improved',
 				items: [
 					'Better handles blocked messages by unrendering them instead of hiding with css.',
 					'Prevents unread notifications from hidden and blocked users.',
-					'Suppresses mentions from hidden users.'
+					'Suppresses mentions from hidden users.',
 				]
+			},
+			{
+				title: 'What\'s New?',
+				type: 'progress',
+				items: ['Added new checkbox setting for hiding blocked user messages. Default is enabled.']
 			}
 		]
 	};
@@ -99,7 +104,8 @@ var HideUtils = (() => {
 				this.default = {
 					channels: {},
 					servers: {},
-					users: {}
+					users: {},
+					hideBlocked: true
 				};
 				this.settings = Utilities.deepclone(this.default);
 				this.css = `
@@ -187,6 +193,22 @@ var HideUtils = (() => {
 						position: relative;
 						left: 10%;
 						width: 80%;
+					}
+					#HideUtils-BlockedSetting {
+						display: flex;
+						contain: content;
+						width: 100%;
+						height: 1rem;
+					}
+					#HideUtils-BlockedSetting * {
+						bottom: 0;
+						text-align: center;
+					}
+					#HideUtils-BlockedSetting label {
+						margin: 0 0 0 auto;
+					}
+					#HideUtils-BlockedSetting .setting {
+						margin: 2px auto 0 1rem;
 					}
 				`;
 				this.idRegex = /^\d{16,18}$/;
@@ -369,7 +391,7 @@ var HideUtils = (() => {
 
 					props.children = messageGroups.filter((group) => {
 						const author = this.getProps(group, 'props.children.props.messages.0.author');
-						const blocked = group.key === '36' || group.type.displayName === 'BlockedMessageGroups';
+						const blocked = (group.key === '36' || group.type.displayName === 'BlockedMessageGroups') && this.settings.hideBlocked;
 						return !blocked && author && !has.call(this.settings.users, author.id) || !blocked && !author;
 					});
 
@@ -462,7 +484,18 @@ var HideUtils = (() => {
 						const channels = this.getProps(children[i], 'props');
 						const channelList = this.getProps(channels, 'children');
 						if (!channelList || !Array.isArray(channelList)) continue;
-						channels.children = channelList.filter((channel) => !channel || !channel.key || (channel.key && !has.call(this.settings.channels, channel.key)));
+						channels.children = channelList.filter((channel) => {
+							if (!channel) return channel;
+							const props = this.getProps(channel, 'props');
+							if (!props.voiceStates || !Array.isArray(props.voiceStates)) return !channel.key || (channel.key && !has.call(this.settings.channels, channel.key));
+							props.voiceStates = props.voiceStates.filter((user) => {
+								const { voiceState: { userId } } = user;
+								if (!has.call(this.settings.users, userId)) return true;
+								this.mute(userId, 0);
+								return false;
+							});
+							return true;
+						});
 					}
 
 					return value;
@@ -670,6 +703,14 @@ var HideUtils = (() => {
 				this.updateAll();
 			}
 
+			toggleBlocked() {
+				const element = document.querySelector('#HideUtils-BlockedSetting .setting');
+				if (!element) return;
+				this.settings.hideBlocked = element.checked;
+				this.saveSettings(this.settings);
+				this.updateAll();
+			}
+
 			/**
 			 * @name safelyGetNestedProps
 			 * @author Zerebos
@@ -693,6 +734,10 @@ var HideUtils = (() => {
 							<button id="HideUtils-servers" class="button" onclick=BdApi.getPlugin("${this.name}").serverSettings()>Servers</button>
 							<button id="HideUtils-users" class="button" onclick=BdApi.getPlugin("${this.name}").userSettings()>Users</button>
 							<button id="HideUtils-instructions" class="button" onclick=BdApi.getPlugin("${this.name}").instructionPanel()>Instructions</button>
+						</div>
+						<div id="HideUtils-BlockedSetting">
+							<label for="block-setting">Hide Blocked User Messages</label>
+							<input type="checkbox" class="setting" name="block-setting" ${this.settings.hideBlocked ? 'checked' : ''} onClick=BdApi.getPlugin("${this.name}").toggleBlocked()>
 						</div>
 					</div>
 				</div>`;
