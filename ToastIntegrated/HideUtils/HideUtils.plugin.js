@@ -40,7 +40,7 @@ var HideUtils = (() => {
 					twitter_username: ''
 				}
 			],
-			version: '2.0.11',
+			version: '2.1.0',
 			description: 'Allows you to hide users, servers, and channels individually.',
 			github: 'https://github.com/Arashiryuu',
 			github_raw: 'https://raw.githubusercontent.com/Arashiryuu/crap/master/ToastIntegrated/HideUtils/HideUtils.plugin.js'
@@ -50,15 +50,8 @@ var HideUtils = (() => {
 				title: 'Evolving?',
 				type: 'improved',
 				items: [
-					'Better handles blocked messages by unrendering them instead of hiding with css.',
-					'Prevents unread notifications from hidden and blocked users.',
-					'Suppresses mentions from hidden users.',
+					'Reworked plugin settings menu \u2014 now uses React, and creates a modal for managing what has been hidden.'
 				]
-			},
-			{
-				title: 'What\'s New?',
-				type: 'progress',
-				items: ['Added new checkbox setting for hiding blocked user messages. Default is enabled.']
 			}
 		]
 	};
@@ -86,16 +79,249 @@ var HideUtils = (() => {
 	/* Build */
 
 	const buildPlugin = ([Plugin, Api]) => {
-		const { Toasts, Patcher, Settings, Utilities, DOMTools, ReactTools, ReactComponents, DiscordModules, DiscordClasses, WebpackModules, DiscordSelectors } = Api;
-		const { SettingPanel, SettingField, SettingGroup, Textbox } = Settings;
+		const { Toasts, Patcher, Settings, Utilities, DOMTools, ReactTools, ReactComponents, DiscordModules, DiscordClasses, WebpackModules, DiscordSelectors, PluginUtilities } = Api;
+		const { SettingPanel, SettingField, SettingGroup, Switch } = Settings;
+		const { ComponentDispatch: Dispatcher } = WebpackModules.getByProps('ComponentDispatch');
+
+		const TextElement = WebpackModules.getByProps('Sizes', 'Weights');
+		const TooltipWrapper = WebpackModules.getByPrototypes('renderTooltip');
 		
 		const has = Object.prototype.hasOwnProperty;
+		const React = DiscordModules.React;
 		const MenuActions = DiscordModules.ContextMenuActions;
+		const ModalStack = DiscordModules.ModalStack;
 		const MenuItem = WebpackModules.getByString('disabled', 'brand');
 		const guilds = WebpackModules.getByProps('wrapper', 'unreadMentionsIndicatorTop');
 		const buttons = WebpackModules.getByProps('button');
 		const positionedContainer = WebpackModules.getByProps('positionedContainer');
 		const messagesWrapper = WebpackModules.getByProps('messages', 'messagesWrapper');
+		const wrapper = WebpackModules.getByProps('messagesPopoutWrap');
+		const scroller = WebpackModules.getByProps('scrollerWrap');
+
+		const Button = class Button extends React.Component {
+			constructor(props) {
+				super(props);
+				this.onClick = this.onClick.bind(this);
+			}
+
+			onClick(e) {
+				if (this.props.action) this.props.action(e);
+			}
+
+			render() {
+				const style = this.props.style || {};
+				return React.createElement('button', {
+					id: 'HideUtils-Button',
+					className: this.props.className || 'button',
+					style,
+					onClick: this.onClick,
+				}, this.props.text);
+			}
+		};
+
+		const CloseButton = class CloseButton extends React.Component {
+			constructor(props) {
+				super(props);
+				this.onClick = this.onClick.bind(this);
+			}
+
+			onClick() {
+				if (this.props.onClick) this.props.onClick();
+			}
+
+			render() {
+				return React.createElement('svg', {
+					id: 'HideUtils-CloseButton',
+					className: 'close-button',
+					width: 16,
+					height: 16,
+					viewBox: '0 0 24 24',
+					onClick: this.onClick
+				},
+					React.createElement('path', { d: 'M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z' }),
+					React.createElement('path', { d: 'M0 0h24v24H0z', fill: 'none' })
+				);
+			}
+		};
+
+		const Modal = class Modal extends React.Component {
+			constructor(props) {
+				super(props);
+				this.close = this.close.bind(this);
+			}
+
+			close() {
+				ModalStack.popWithKey('HideUtils-SettingsModal');
+			}
+
+			render() {
+				const l = this.props.name.toLowerCase();
+				let toRender = l !== 'instructions'
+					? Object.values(this.props[l]).map((value) => {
+						const isChannel = Boolean(value.guild);
+						const isGuild = value.name && !value.guild && !value.tag;
+						const isUser = Boolean(value.tag);
+						const Tip = (isGuild && `ID: ${value.id}\nGuild: ${value.name}`) || (isChannel && `ID: ${value.id}\nGuild: ${value.guild}\nChannel: ${value.name}`) || (`ID: ${value.id}\nTag: ${value.tag}`);
+						return React.createElement(TooltipWrapper, {
+							text: Tip,
+							color: TooltipWrapper.Colors.BLACK,
+							position: TooltipWrapper.Positions.TOP,
+							children: (props) => {
+								const style = (isUser && {
+									backgroundImage: `url(${value.icon})`,
+									backgroundSize: 'cover',
+									backgroundPosition: 'center'
+								}) || {};
+								return React.createElement('div', Object.assign({
+									id: 'HideUtils-Tooltip',
+									className: 'buttonWrapper'
+								}, props),
+									React.createElement(Button, {
+										text: (isChannel && value.name) || (isGuild && value.name) || (isUser && value.tag),
+										className: (isChannel && 'channel-button') || (isGuild && 'guild-button') || (isUser && 'user-button'),
+										style,
+										action: () => {
+											if (isChannel) Dispatcher.dispatch('HIDEUTILS_BUTTON_CHANNELCLEAR', value.id);
+											else if (isGuild) Dispatcher.dispatch('HIDEUTILS_BUTTON_SERVERCLEAR', value.id);
+											else if (isUser) Dispatcher.dispatch('HIDEUTILS_BUTTON_USERCLEAR', value.id);
+											this.forceUpdate();
+										}
+									})
+								);
+							}
+						});
+					})
+					: [
+						React.createElement('div', {
+							id: 'HideUtils-Instructions',
+							className: 'instructions'
+						},	
+							TextElement.default({
+								color: TextElement.Colors.PRIMARY,
+								children: [
+									TextElement.default({
+										weight: TextElement.Weights.BOLD,
+										children: ['[ How to ]:']
+									}),
+									'\u2022 Right-click on a channel, server, or user.',
+									React.createElement('br', {}),
+									'\u000A\u2022\u2022 Left-click the hide option in the context-menu.',
+									TextElement.default({
+										weight: TextElement.Weights.BOLD,
+										children: ['[ NOTE ]:']
+									}),
+									'\u2022 Unhiding requires use of the settings-panel, and is not handled within a context-menu.'
+								]
+							})
+						)
+					];
+				const no = [
+					TextElement.default({
+						color: TextElement.Colors.PRIMARY,
+						children: ['No elements hidden.']
+					})
+				];
+				return React.createElement('div', {
+					className: `${wrapper.messagesPopoutWrap} ${DiscordClasses.Popouts.themedPopout}`
+				},
+					React.createElement('div', {
+						className: `${wrapper.header} ${DiscordClasses.Popouts.header}`
+					},
+						React.createElement(CloseButton, {
+							onClick: this.close
+						}),
+						TextElement.default({
+							className: wrapper.title,
+							color: TextElement.Colors.PRIMARY,
+							children: ['HideUtils \u2014 ', this.props.name]
+						})
+					),
+					React.createElement('div', {
+						className: scroller.scrollerWrap
+					},
+						React.createElement('div', {
+							className: `${scroller.scroller} ${scroller.systemPad} ${wrapper.messagesPopout}`,
+							scrollable: true,
+							children: toRender.length ? toRender : no
+						})
+					)
+				);
+			}
+		};
+
+		const Select = class Select extends React.Component {
+			constructor(props) {
+				super(props);
+				this.openInstructions = this.openInstructions.bind(this);
+				this.openChannels = this.openChannels.bind(this);
+				this.openServers = this.openServers.bind(this);
+				this.openUsers = this.openUsers.bind(this);
+			}
+
+			openChannels() {
+				ModalStack.push(Modal, { name: 'Channels', channels: this.props.channels }, 'HideUtils-SettingsModal');
+			}
+
+			openServers() {
+				ModalStack.push(Modal, { name: 'Servers', servers: this.props.servers }, 'HideUtils-SettingsModal');
+			}
+
+			openUsers() {
+				ModalStack.push(Modal, { name: 'Users', users: this.props.users }, 'HideUtils-SettingsModal');
+			}
+
+			openInstructions() {
+				ModalStack.push(Modal, { name: 'Instructions' }, 'HideUtils-SettingsModal');
+			}
+
+			render() {
+				return React.createElement('div', {
+					id: 'HideUtils-Settings',
+					className: 'HUSettings'
+				},
+					React.createElement('div', {
+						id: 'Setting-Select',
+						className: 'container'
+					},
+						React.createElement('h3', {
+							className: 'settingsHeader'
+						},
+							React.createElement('div', {
+								id: 'HideUtils-ButtonGroup',
+								className: 'buttonGroup'
+							},
+								React.createElement(Button, {
+									text: 'Channels',
+									action: this.openChannels
+								}),
+								React.createElement(Button, {
+									text: 'Servers',
+									action: this.openServers
+								}),
+								React.createElement(Button, {
+									text: 'Users',
+									action: this.openUsers
+								}),
+								React.createElement(Button, {
+									text: 'Instructions',
+									action: this.openInstructions
+								})
+							)
+						)
+					)
+				);
+			}
+		};
+
+		const SelectionField = class SelectionField extends SettingField {
+			constructor(name, note, data, onChange, options = {}) {
+				super(name, note, onChange, Select, {
+					users: data.users,
+					servers: data.servers,
+					channels: data.channels
+				});
+			}
+		};
 		
 		return class HideUtils extends Plugin {
 			constructor() {
@@ -109,6 +335,16 @@ var HideUtils = (() => {
 				};
 				this.settings = Utilities.deepclone(this.default);
 				this.css = `
+					#HideUtils-CloseButton {
+						fill: white;
+						cursor: pointer;
+						opacity: 0.6;
+						float: right;
+						transition: opacity 200ms ease;
+					}
+					#HideUtils-CloseButton:hover {
+						opacity: 1;
+					}
 					#HideUtils-Settings {
 						overflow-x: hidden;
 					}
@@ -116,12 +352,7 @@ var HideUtils = (() => {
 						text-align: center;
 						color: #CCC;
 					}
-					#HideUtils-Settings #HideUtils-buttonGroup {
-						margin-top: -30px;
-						padding: 5px;
-						padding-left: 15%;
-					}
-					#HideUtils-Settings #HideUtils-buttonGroup button {
+					#HideUtils-Settings #HideUtils-ButtonGroup .button {
 						background: #7289DA;
 						color: #FFF;
 						border-radius: 5px;
@@ -131,39 +362,28 @@ var HideUtils = (() => {
 						min-width: 6vw;
 						padding: 0 1vw;
 					}
-					#HideUtils-Settings button {
+					#HideUtils-Settings button,
+					#HideUtils-Button {
 						background: #7289DA;
 						color: #FFF;
-						border-radius: 5px;
-						height: 30px;
 						width: 5vw;
-						margin: 5px;
+						height: 30px;
+						border-radius: 5px;
 						padding: 0;
 						font-size: 14px;
 					}
-					#HideUtils-Settings .buttonGroupi {
-						padding-left: 20%;
-					}
-					#HideUtils-Settings #HideUtils-instructions {
-						color: #BBB;
-					}
-					#HideUtils-Settings .icons {
-						max-width: 80%;
-						position: relative;
-						left: 10%;
-						display: flex;
-						flex-flow: row wrap;
-					}
-					#HideUtils-Settings .icons .container {
-						max-height: 6vh;
+					#HideUtils-Tooltip {
+						display: inline-block;
+						margin: 5px;
 						overflow-y: auto;
-						display: flex;
-						flex-flow: row wrap;
 					}
-					#HideUtils-Settings .icons .container .button {
-						background-repeat: no-repeat;
-						background-position: center;
-						background-size: cover;
+					#HideUtils-Tooltip button {
+						/*overflow: hidden;
+						width: 5vw;
+						height: 30px;
+						word-break: break-word;
+						white-space: nowrap;
+						text-overflow: ellipsis;*/
 						min-height: 5vh;
 						min-width: 5vw;
 						height: 5vh;
@@ -188,29 +408,11 @@ var HideUtils = (() => {
 						min-width: 20pt !important;
 						background: rgba(255, 255, 255, 0.6) !important;
 					}
-					#ServerHideField, #ChanHideField, #UserHideField {
-						resize: none;
-						position: relative;
-						left: 10%;
-						width: 80%;
-					}
-					#HideUtils-BlockedSetting {
-						display: flex;
-						contain: content;
-						width: 100%;
-						height: 1rem;
-					}
-					#HideUtils-BlockedSetting * {
-						bottom: 0;
-						text-align: center;
-					}
-					#HideUtils-BlockedSetting label {
-						margin: 0 0 0 auto;
-					}
-					#HideUtils-BlockedSetting .setting {
-						margin: 2px auto 0 1rem;
-					}
 				`;
+				
+				this.userClear = this.userClear.bind(this);
+				this.servClear = this.servClear.bind(this);
+				this.chanClear = this.chanClear.bind(this);
 				this.idRegex = /^\d{16,18}$/;
 				this.channel;
 				this.guild;
@@ -227,16 +429,30 @@ var HideUtils = (() => {
 				this.mute = WebpackModules.getByProps('setLocalVolume').setLocalVolume;
 			}
 
+			subscribe() {
+				Dispatcher.subscribe('HIDEUTILS_BUTTON_USERCLEAR', this.userClear);
+				Dispatcher.subscribe('HIDEUTILS_BUTTON_SERVERCLEAR', this.servClear);
+				Dispatcher.subscribe('HIDEUTILS_BUTTON_CHANNELCLEAR', this.chanClear);
+			}
+
+			unsubscribe() {
+				Dispatcher.unsubscribe('HIDEUTILS_BUTTON_USERCLEAR', this.userClear);
+				Dispatcher.unsubscribe('HIDEUTILS_BUTTON_SERVERCLEAR', this.servClear);
+				Dispatcher.unsubscribe('HIDEUTILS_BUTTON_CHANNELCLEAR', this.chanClear);
+			}
+
 			onStart() {
 				this.loadSettings(this.settings);
-				this.injectCSS();
+				PluginUtilities.addStyle(this.short, this.css);
 				this.setup();
+				this.subscribe();
 				this.patchAll();
 				Toasts.info(`${this.name} ${this.version} has started!`, { icon: true, timeout: 2e3 });
 			}
 
 			onStop() {
-				this.removeCSS();
+				PluginUtilities.removeStyle(this.short);
+				this.unsubscribe();
 				Patcher.unpatchAll();
 				this.updateAll();
 				Toasts.info(`${this.name} ${this.version} has stopped!`, { icon: true, timeout: 2e3 });
@@ -509,105 +725,33 @@ var HideUtils = (() => {
 				if (channels) ReactTools.getOwnerInstance(channels).forceUpdate();
 			}
 
-			injectCSS() {
-				let sheet = document.getElementById(this.short);
-				if (sheet) return;
-				sheet = DOMTools.parseHTML(`<style id="${this.short}" type="text/css">${this.css}</style>`);
-				DOMTools.appendTo(sheet, document.head);
-			}
-
-			removeCSS() {
-				const sheet = document.getElementById(this.short);
-				if (!sheet) return;
-				sheet.remove();
-			}
-
-			resetField(field, text) {
-				if (!field || !field.length || !text) return;
-				field.val(text);
-				setTimeout(() => field.val(''), 3e3);
-			}
-
 			userPush(id) {
-				const field = $('#UserHideField');
-
-				if (!field.length && !id) return;
-				if (field.length && field.val()) {
-					const val = field.val();
-					if (!val.match(this.idRegex)) return this.resetField(field, 'Invalid ID.');
-				}
-
-				const user = this.user(id || (field.length && field.val()));
-				if (!user) return Toasts.error('Unable to find user to hide.', { icon: true, timeout: 2e3 });
-
-				if (has.call(this.settings.users, user.id)) {
-					if (field.length) return this.resetField(field, 'This user is already being hidden.');
-					return Toasts.info('This user is already being hidden.', { icon: true, timeout: 2e3 });
-				}
-
-				if ([id, field.val()].includes(DiscordModules.UserInfoStore.getId())) return Toasts.info('You cannot hide yourself.', { icon: true, timeout: 3e3 });
-
+				if (!id) return;
+				const user = this.user(id);
+				if (!user) return Toasts.error('Unable to find user to hide.', { icon: true, timeout: 3e3 });
+				if (has.call(this.settings.users, user.id)) return Toasts.info('This user is already being hidden.', { icon: true, timeout: 3e3 });
+				if (id === DiscordModules.UserInfoStore.getId()) return Toasts.info('You cannot hide yourself.', { icon: true, timeout: 3e3 });
 				this.settings.users[user.id] = {
 					id: user.id,
 					tag: user.tag,
 					icon: user.getAvatarURL()
 				};
-
-				if (field.length) this.resetField(field, 'User successfully hidden.');
-				else Toasts.info('User is now being hidden!', { icon: true, timeout: 2e3 });
-
+				Toasts.info('User is now being hidden!', { icon: true, timeout: 3e3 });
 				this.saveSettings(this.settings);
 				this.updateAll();
 			}
 
 			userClear(id) {
-				const field = $('#UserHideField');
-
-				if (id) {
-					if (!has.call(this.settings.users, id)) return Toasts.info('This user is not being hidden.', { icon: true, timeout: 2e3 });
-					delete this.settings.users[id];
-					this.resetField(field, 'User has been unhidden.');
-					this.saveSettings(this.settings);
-					return this.updateAll();
-				}
-
-				const val = field.val();
-				if (!val) return this.resetField(field, 'Please provide a user ID to unhide.');
-
-				const matches = val.match(this.idRegex);
-				if (!matches || !matches.length) return this.resetField(field, 'Please provide a user ID to unhide.');
-
-				const [matchedId] = matches;
-				if (!has.call(this.settings.users, matchedId)) return this.resetField(field, 'That user is not currently being hidden.');
-				if (!matchedId) return this.resetField(field, 'No ID provided.');
-
-				delete this.settings.users[matchedId];
-				this.resetField(field, 'User has been unhidden!');
+				if (!id) return;
+				if (!has.call(this.settings.users, id)) return Toasts.info('This user is not being hidden.', { icon: true, timeout: 3e3 });
+				delete this.settings.users[id];
+				Toasts.info('User has been unhidden.', { icon: true, timeout: 3e3 });
 				this.saveSettings(this.settings);
-				this.updateAll();
+				return this.updateAll();
 			}
 
 			servPush(id) {
-				const field = $('#ServerHideField');
-
-				if (!id) {
-					const val = field.val();
-					const matches = val.match(this.idRegex);
-					if (!matches || !matches.length) return this.resetField(field, 'Please provide an ID.');
-					const [matchedId] = matches;
-					if (has.call(this.settings.servers, matchedId)) return this.resetField(field, 'This server is already being hidden.');
-					const guild = this.guild(matchedId);
-					if (!guild) return this.resetField(field, 'Unable to find server to hide.');
-					this.settings.servers[matchedId] = {
-						id: guild.id,
-						name: guild.name,
-						icon: guild.getIconURL()
-					};
-					this.resetField(field, 'Server has successfully been hidden.');
-					this.saveSettings(this.settings);
-					return this.updateAll();
-				}
-
+				if (!id) return;
 				if (has.call(this.settings.servers, id)) return Toasts.info('That server is already being hidden.', { icon: true, timeout: 3e3 });
 				const guild = this.guild(id);
 				if (!guild) return Toasts.info('Unable to find server to hide.');
@@ -616,56 +760,22 @@ var HideUtils = (() => {
 					name: guild.name,
 					icon: guild.getIconURL()
 				};
-				Toasts.info('Server has successfully been hidden.', { icon: true, timeout: 2e3 });
+				Toasts.info('Server has successfully been hidden.', { icon: true, timeout: 3e3 });
 				this.saveSettings(this.settings);
 				this.updateAll();
 			}
 
 			servClear(id) {
-				const field = $('#ServerHideField');
-
-				if (!id) {
-					const val = field.val();
-					const matches = val.match(this.idRegex);
-					if (!matches || !matches.length) return this.resetField(field, 'Please provide an ID.');
-					const [matchedId] = matches;
-					if (!has.call(this.settings.servers, matchedId)) return this.resetField(field, 'That server is not currently being hidden.');
-					if (!matchedId) return this.resetField(field, 'No ID provided.');
-					delete this.settings.servers[matchedId];
-					this.resetField(field, 'Server has been unhidden.');
-					this.saveSettings(this.settings);
-					return this.updateAll();
-				}
-
-				if (!has.call(this.settings.servers, id)) return this.resetField(field, 'That server is not currently being hidden.', { icon: true, timeout: 3e3 });
+				if (!id) return;
+				if (!has.call(this.settings.servers, id)) return Toasts.info('That server is not currently being hidden.', { icon: true, timeout: 3e3 });
 				delete this.settings.servers[id];
-				this.resetField(field, 'Server successfully removed!');
+				Toasts.info('Server successfully removed!', { icon: true, timeout: 3e3 });
 				this.saveSettings(this.settings);
 				this.updateAll();
 			}
 
 			chanPush(id) {
-				const field = $('#ChanHideField');
-
-				if (!id) {
-					const val = field.val();
-					const matches = val.match(this.idRegex);
-					if (!matches || !matches.length) return this.resetField(field, 'Please provide an ID.');
-					const [matchedId] = matches;
-					if (has.call(this.settings.channels, matchedId)) return this.resetField(field, 'That channel is already being hidden.');
-					const channel = this.channel(matchedId);
-					if (!channel) return this.resetField(field, 'Unable to find channel to hide.');
-					const guild = this.guild(channel.guild_id);
-					this.settings.channels[matchedId] = {
-						id: channel.id,
-						name: channel.name,
-						guild: guild.name
-					};
-					this.resetField(field, 'Channel has successfully been hidden.');
-					this.saveSettings(this.settings);
-					this.updateAll();
-				}
-
+				if (!id) return;
 				if (has.call(this.settings.channels, id)) return Toasts.info('This channel is already being hidden.', { icon: true, timeout: 3e3 });
 				const channel = this.channel(id);
 				if (!channel) return Toasts.info('Unable to find channel to hide.', { icon: true, timeout: 3e3 });
@@ -681,32 +791,10 @@ var HideUtils = (() => {
 			}
 
 			chanClear(id) {
-				const field = $('#ChanHideField');
-
-				if (!id) {
-					const val = field.val();
-					const matches = val.match(this.idRegex);
-					if (!matches || !matches.length) return this.resetField(field, 'Please provide an ID.');
-					const [matchedId] = matches;
-					if (!has.call(this.settings.channels, matchedId)) return this.resetField(field, 'This channel is not currently being hidden.');
-					if (!matchedId) return this.resetField(field, 'No ID provided.');
-					delete this.settings.channels[matchedId];
-					this.resetField(field, 'Channel successfully removed.');
-					this.saveSettings(this.settings);
-					return this.updateAll();
-				}
-
-				if (!has.call(this.settings.channels, id)) return this.resetField(field, 'This channel is not currently being hidden.');
+				if (!id) return;
+				if (!has.call(this.settings.channels, id)) return Toasts.info('This channel is not currently being hidden.', { icon: true, timeout: 3e3 });
 				delete this.settings.channels[id];
-				this.resetField(field, 'Channel successfully removed.');
-				this.saveSettings(this.settings);
-				this.updateAll();
-			}
-
-			toggleBlocked() {
-				const element = document.querySelector('#HideUtils-BlockedSetting .setting');
-				if (!element) return;
-				this.settings.hideBlocked = element.checked;
+				Toasts.info('Channel successfully removed.', { icon: true, timeout: 3e3 });
 				this.saveSettings(this.settings);
 				this.updateAll();
 			}
@@ -722,145 +810,15 @@ var HideUtils = (() => {
 			/* Settings Panel */
 
 			getSettingsPanel() {
-				return this.settingSelect();
-			}
-
-			settingSelect() {
-				return `<div id="HideUtils-Settings" class="HUSettings">
-					<div id="settingSelect" class="container">
-						<h3 class="settingsHeader">Settings Selection</h3><br/><br/>
-						<div id="HideUtils-buttonGroup" class="buttonGroup">
-							<button id="HideUtils-channels" class="button" onclick=BdApi.getPlugin("${this.name}").channelSettings()>Channels</button>
-							<button id="HideUtils-servers" class="button" onclick=BdApi.getPlugin("${this.name}").serverSettings()>Servers</button>
-							<button id="HideUtils-users" class="button" onclick=BdApi.getPlugin("${this.name}").userSettings()>Users</button>
-							<button id="HideUtils-instructions" class="button" onclick=BdApi.getPlugin("${this.name}").instructionPanel()>Instructions</button>
-						</div>
-						<div id="HideUtils-BlockedSetting">
-							<label for="block-setting">Hide Blocked User Messages</label>
-							<input type="checkbox" class="setting" name="block-setting" ${this.settings.hideBlocked ? 'checked' : ''} onClick=BdApi.getPlugin("${this.name}").toggleBlocked()>
-						</div>
-					</div>
-				</div>`;
-			}
-
-			channelSettings() {
-				const settings = $('#HideUtils-Settings');
-				settings.fadeOut();
-				settings.fadeIn(1500);
-				let html = `<div id="HideUtils-Settings-Inner" class="HUSettings">
-					<div id="HideUtils-plugin-settings-div" class="scroller-fzNley container scroller">
-						<h3>HideUtils Plugin \u2192 Settings \u2192 Channels</h3><br/><br/>
-						<div id="ChannelIcons" class="icons">
-						<div class="scroller-fzNley container scroller">`;
-
-						if (Object.keys(this.settings.channels).length) {
-							for (const entry of Object.values(this.settings.channels)) {
-								html += `<button type="button" class="button" id="${entry.id}" title="${entry.guild ? entry.guild : entry.name}" onclick=BdApi.getPlugin("${this.name}").chanClear("${entry.id}")>${entry.name}</button>`;
-							}
-						}
-
-						html += `</div></div><br/><br/>
-						<input id="ChanHideField" type="text" placeholder="ID" /><br/><br/>
-						<br/><div class="buttonGroupi">
-						<button class="button apply" onclick=BdApi.getPlugin("${this.name}").chanPush()>Apply</button>
-						<button class="button remove" onclick=BdApi.getPlugin("${this.name}").chanClear()>Remove</button>
-						<button class="button save" onclick=BdApi.getPlugin("${this.name}").saveSettings()>Save</button>
-						<button class="button load" onclick=BdApi.getPlugin("${this.name}").loadSettings()>Load</button>
-						</div><br/><br/>
-						<button id="HideUtils-Return" class="button returnButton" onclick=BdApi.getPlugin("${this.name}").returnSettings()>Return</button><br/>
-					</div>
-				</div>`;
-				return setTimeout(() => settings.html(html), 5e2);
-			}
-
-			serverSettings() {
-				const settings = $('#HideUtils-Settings');
-				settings.fadeOut();
-				settings.fadeIn(1800);
-				let html = `<div id="HideUtils-Settings-Inner" class="HUSettings">
-					<div id="HideUtils-plugin-settings-div" class="scroller-fzNley container scroller">
-						<h3>HideUtils Plugin \u2192 Settings \u2192 Servers</h3><br/><br/>
-						<div id="ServerIcons" class="icons">
-						<div class="scroller-fzNley container scroller">`;
-
-						if (Object.keys(this.settings.servers).length) {
-							for (const entry of Object.values(this.settings.servers)) {
-								html += `<button type="button" class="button" id="${entry.id}" title="${entry.name}" style="background-image: url(${entry.icon});" onclick=BdApi.getPlugin("${this.name}").servClear("${entry.id}")></button>`;
-							}
-						}
-
-						html += `</div></div><br/><br/>
-						<input id="ServerHideField" type="text" placeholder="ID" /><br/><br/>
-						<br/><div class="buttonGroupi">
-						<button class="button apply" onclick=BdApi.getPlugin("${this.name}").servPush()>Apply</button>
-						<button class="button remove" onclick=BdApi.getPlugin("${this.name}").servClear()>Remove</button>
-						<button class="button save" onclick=BdApi.getPlugin("${this.name}").saveSettings()>Save</button>
-						<button class="button load" onclick=BdApi.getPlugin("${this.name}").loadSettings()>Load</button>
-						</div><br/><br/>
-						<button id="HideUtils-Return" class="button returnButton" onclick=BdApi.getPlugin("${this.name}").returnSettings()>Return</button><br/>
-					</div>
-				</div>`;
-				return setTimeout(() => settings.html(html), 5e2);
-			}
-
-			userSettings() {
-				const settings = $('#HideUtils-Settings');
-				settings.fadeOut();
-				settings.fadeIn(1800);
-				let html = `<div id="HideUtils-Settings-Inner" class="HUSettings">
-					<div id="HideUtils-plugin-settings-div" class="scroller-fzNley container scroller">
-						<h3>HideUtils Plugin \u2192 Settings \u2192 Users</h3><br/><br/>
-						<div id="UserIcons" class="icons">
-						<div class="scroller-fzNley container scroller">`;
-
-						if (Object.keys(this.settings.users).length) {
-							for (const entry of Object.values(this.settings.users)) {
-								html += `<button type="button" class="button" id="${entry.id}" title="${entry.tag}" style="background-image: url(${entry.icon});" onclick=BdApi.getPlugin("${this.name}").userClear("${entry.id}")></button>`;
-							}
-						}
-
-						html += `</div></div><br/><br/>
-						<input id="UserHideField" type="text" placeholder="ID" /><br/><br/>
-						<br/><div class="buttonGroupi">
-						<button class="button apply" onclick=BdApi.getPlugin("${this.name}").userPush()>Apply</button>
-						<button class="button remove" onclick=BdApi.getPlugin("${this.name}").userClear()>Remove</button>
-						<button class="button save" onclick=BdApi.getPlugin("${this.name}").saveSettings()>Save</button>
-						<button class="button load" onclick=BdApi.getPlugin("${this.name}").loadSettings()>Load</button>
-						</div><br/><br/>
-						<button id="HideUtils-Return" class="button returnButton" onclick=BdApi.getPlugin("${this.name}").returnSettings()>Return</button><br/>
-					</div>
-				</div>`;
-				return setTimeout(() => settings.html(html), 5e2);
-			}
-
-			instructionPanel() {
-				const settings = $('#HideUtils-Settings');
-				settings.fadeOut();
-				settings.fadeIn(1800);
-				return setTimeout(() => settings.html(`<div id="HideUtils-Settings-Inner" class="HUSettings">
-					<div id="HideUtils-plugin-settings-div" class="container">
-						<h3>HideUtils Plugin \u2192 Settings \u2192 Instructions</h3><br/>
-						<p id="HideUtils-instructions" class="instructions">
-						<b>[ A ]:</b><br/><br/>
-						\u2022 Right-click on a channel, server, or user.<br/>
-						\u2022\u2022 Left-click the hide option.<br/><br/>
-						<b>[ B ]:</b><br/><br/>
-						\u2022 User Settings \u2192 Appearance \u2192 Developer Mode, then right-click a user, channel, or server, and "Copy ID."<br/>
-						\u2022\u2022 Insert the ID.<br/>
-						\u2022\u2022\u2022 Click "apply."<br/><br/>
-						<b>[ NOTE ]:</b><br/><br/>
-						\u2022 Unhiding requires use of the settings-panel, and is not handled within a context-menu.
-						</p><br/>
-						<button id="HideUtils-Return" class="button returnButton" onclick=BdApi.getPlugin("${this.name}").returnSettings()>Return</button><br/>
-					</div>
-				</div>`), 5e2);
-			}
-
-			returnSettings() {
-				const settings = $('#HideUtils-Settings');
-				settings.fadeOut();
-				settings.fadeIn(1500);
-				return setTimeout(() => settings.html(this.settingSelect()), 5e2);
+				return SettingPanel.build(() => this.saveSettings(this.settings),
+					new SettingGroup('Plugin Settings').append(
+						new SelectionField('HideUtils Setting Select', 'Select which settings you would like to visit.', this.settings, () => {}),
+						new Switch('Hide Blocked User Messages', 'Whether or not to unrender messages from blocked users.', this.settings.hideBlocked, (i) => {
+							this.settings.hideBlocked = i;
+							this.updateAll();
+						})
+					)
+				);
 			}
 
 			/* Setters */
