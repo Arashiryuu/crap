@@ -15,12 +15,14 @@
 ### v2.0.0
 - Uses React.
 - Reworked how settings are handled.
+### v2.1.0
+- Reworked settings again, settings panel now uses React and displays with modals.
 
 ## Preview
 ### Settings hub-page:
-![hub](../Previews/HideUtils/settings-hub-default.png)
-### Settings page:
-![page](../Previews/HideUtils/settings-servers.png)
+![settings](../Previews/HideUtils/HideUtilsNewSettings.png)
+### Instructions page:
+![modal](../Previews/HideUtils/HideUtilsNewSettingsModal.png)
 ### Context-menus:
 ![context](../Previews/HideUtils/contextsM.png)
 ![context](../Previews/HideUtils/contextsM2.png)
