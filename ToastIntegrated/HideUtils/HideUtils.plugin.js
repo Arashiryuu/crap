@@ -40,7 +40,7 @@ var HideUtils = (() => {
 					twitter_username: ''
 				}
 			],
-			version: '2.1.0',
+			version: '2.1.1',
 			description: 'Allows you to hide users, servers, and channels individually.',
 			github: 'https://github.com/Arashiryuu',
 			github_raw: 'https://raw.githubusercontent.com/Arashiryuu/crap/master/ToastIntegrated/HideUtils/HideUtils.plugin.js'
@@ -156,8 +156,54 @@ var HideUtils = (() => {
 
 			render() {
 				const l = this.props.name.toLowerCase();
-				let toRender = l !== 'instructions'
-					? Object.values(this.props[l]).map((value) => {
+				const isInstructions = l === 'instructions';
+				const toRender = { children: [], instructions: false };
+				if (isInstructions) {
+					toRender.instructions = true;
+					toRender.children.push(
+						React.createElement('div', {
+							id: 'HideUtils-Instructions',
+							className: 'instructions'
+						},	
+							TextElement.default({
+								color: TextElement.Colors.PRIMARY,
+								children: [
+									TextElement.default({
+										weight: TextElement.Weights.BOLD,
+										color: TextElement.Colors.BRAND,
+										size: TextElement.Sizes.MEDIUM,
+										style: {
+											textTransform: 'uppercase',
+											borderBottom: '2px solid currentColor',
+											marginBottom: '4px'
+										},
+										children: ['How to']
+									}),
+									'\u2022 Right-click on a channel, server, or user.',
+									React.createElement('br', {}),
+									'\u2022\u2022 Left-click the hide option in the context-menu.',
+									React.createElement('hr', {}),
+									TextElement.default({
+										weight: TextElement.Weights.BOLD,
+										color: TextElement.Colors.BRAND,
+										size: TextElement.Sizes.MEDIUM,
+										style: {
+											textTransform: 'uppercase',
+											borderBottom: '2px solid currentColor',
+											marginBottom: '4px'
+										},
+										children: ['Note']
+									}),
+									'\u2022 Unhiding requires use of the settings-panel, and is not handled within a context-menu.',
+									React.createElement('br', {}),
+									'\u2022\u2022 Click on a hidden element in its respective settings modal to unhide it.'
+								]
+							})
+						)
+					);
+				} else {
+					toRender.instructions = false;
+					toRender.children.push(...Object.values(this.props[l]).map((value) => {
 						const isChannel = Boolean(value.guild);
 						const isGuild = value.name && !value.guild && !value.tag;
 						const isUser = Boolean(value.tag);
@@ -190,37 +236,22 @@ var HideUtils = (() => {
 								);
 							}
 						});
-					})
-					: [
-						React.createElement('div', {
-							id: 'HideUtils-Instructions',
-							className: 'instructions'
-						},	
-							TextElement.default({
-								color: TextElement.Colors.PRIMARY,
-								children: [
-									TextElement.default({
-										weight: TextElement.Weights.BOLD,
-										children: ['[ How to ]:']
-									}),
-									'\u2022 Right-click on a channel, server, or user.',
-									React.createElement('br', {}),
-									'\u000A\u2022\u2022 Left-click the hide option in the context-menu.',
-									TextElement.default({
-										weight: TextElement.Weights.BOLD,
-										children: ['[ NOTE ]:']
-									}),
-									'\u2022 Unhiding requires use of the settings-panel, and is not handled within a context-menu.'
-								]
-							})
-						)
-					];
-				const no = [
+					}));
+				}
+				if (!toRender.instructions) toRender.children.unshift(
 					TextElement.default({
-						color: TextElement.Colors.PRIMARY,
-						children: ['No elements hidden.']
-					})
-				];
+						weight: TextElement.Weights.BOLD,
+						color: TextElement.Colors.BRAND,
+						size: TextElement.Sizes.MEDIUM,
+						style: {
+							textTransform: 'uppercase',
+							borderBottom: '2px solid currentColor',
+							marginBottom: '4px'
+						},
+						children: [this.props.name, ' hidden \u2014 ', toRender.children.length]
+					}),
+					React.createElement('hr', {})
+				);
 				return React.createElement('div', {
 					className: `${wrapper.messagesPopoutWrap} ${DiscordClasses.Popouts.themedPopout}`
 				},
@@ -242,7 +273,7 @@ var HideUtils = (() => {
 						React.createElement('div', {
 							className: `${scroller.scroller} ${scroller.systemPad} ${wrapper.messagesPopout}`,
 							scrollable: true,
-							children: toRender.length ? toRender : no
+							children: toRender.children
 						})
 					)
 				);
