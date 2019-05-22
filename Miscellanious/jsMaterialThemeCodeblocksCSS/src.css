@@ -48,7 +48,7 @@
 }
 
 #app-mount .hljs[class~="js" i] .hljs-keyword.this {
-    color: #f95479;
+    color: #f95479 !important;
     font-style: normal;
 }
 
@@ -58,7 +58,7 @@
 }
 
 #app-mount .hljs[class~="js" i] .hljs-built_in.require {
-    color: #82aaff;
+    color: #82aaff !important;
 }
 
 #app-mount .hljs[class~="js" i] .hljs-keyword.in,
@@ -67,7 +67,7 @@
 #app-mount .hljs[class~="js" i] .hljs-keyword.void,
 #app-mount .hljs[class~="js" i] .hljs-keyword.typeof,
 #app-mount .hljs[class~="js" i] .hljs-keyword.instanceof {
-    color: #89ddf3;
+    color: #89ddf3 !important;
 }
 
 .theme-dark .hljs[class~="js" i] .hljs-name, .theme-dark .hljs[class~="js" i] .hljs-section, .theme-dark .hljs[class~="js" i] .hljs-selector-class, .theme-dark .hljs[class~="js" i] .hljs-selector-id, .theme-dark .hljs[class~="js" i] .hljs-title {
@@ -112,7 +112,7 @@
 }
 
 #app-mount .hljs[class~="jsx" i] .hljs-keyword.this {
-    color: #f95479;
+    color: #f95479 !important;
     font-style: normal;
 }
 
@@ -122,7 +122,7 @@
 }
 
 #app-mount .hljs[class~="jsx" i] .hljs-built_in.require {
-    color: #82aaff;
+    color: #82aaff !important;
 }
 
 #app-mount .hljs[class~="jsx" i] .hljs-keyword.in,
@@ -131,7 +131,7 @@
 #app-mount .hljs[class~="jsx" i] .hljs-keyword.void,
 #app-mount .hljs[class~="jsx" i] .hljs-keyword.typeof,
 #app-mount .hljs[class~="jsx" i] .hljs-keyword.instanceof {
-    color: #89ddf3;
+    color: #89ddf3 !important;
 }
 
 .theme-dark .hljs[class~="jsx" i] .hljs-name, .theme-dark .hljs[class~="jsx" i] .hljs-section, .theme-dark .hljs[class~="jsx" i] .hljs-selector-class, .theme-dark .hljs[class~="jsx" i] .hljs-selector-id, .theme-dark .hljs[class~="jsx" i] .hljs-title {
@@ -180,7 +180,7 @@
 }
 
 #app-mount .hljs[class~="javascript" i] .hljs-keyword.this {
-    color: #f95479;
+    color: #f95479 !important;
     font-style: normal;
 }
 
@@ -190,7 +190,7 @@
 }
 
 #app-mount .hljs[class~="javascript" i] .hljs-built_in.require {
-    color: #82aaff;
+    color: #82aaff !important;
 }
 
 #app-mount .hljs[class~="javascript" i] .hljs-keyword.in,
@@ -199,7 +199,7 @@
 #app-mount .hljs[class~="javascript" i] .hljs-keyword.void,
 #app-mount .hljs[class~="javascript" i] .hljs-keyword.typeof,
 #app-mount .hljs[class~="javascript" i] .hljs-keyword.instanceof {
-    color: #89ddf3;
+    color: #89ddf3 !important;
 }
 
 .theme-dark .hljs[class~="javascript" i] .hljs-name, .theme-dark .hljs[class~="javascript" i] .hljs-section, .theme-dark .hljs[class~="javascript" i] .hljs-selector-class, .theme-dark .hljs[class~="javascript" i] .hljs-selector-id, .theme-dark .hljs[class~="javascript" i] .hljs-title {
