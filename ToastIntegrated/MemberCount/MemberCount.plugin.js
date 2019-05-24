@@ -168,10 +168,9 @@ var MemberCount = (() => {
 
 					children.unshift([counter, null]);
 
-					if (this.loadedGuilds.includes(guildId) && GuildMemberStore.getMemberIds(SelectedGuildStore.getGuildId()).length < 200 || !this.loadedGuilds.includes(guildId)) {
+					if (!this.loadedGuilds.includes(guildId)) {
 						GuildActions.requestMembers([guildId], '', 0);
-						const index = this.loadedGuilds.indexOf(guildId);
-						index === -1 && this.loadedGuilds.push(guildId);
+						this.loadedGuilds.push(guildId);
 					}
 
 					Dispatcher.dispatch('COUNT_MEMBERS');
