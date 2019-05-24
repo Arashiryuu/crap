@@ -40,7 +40,7 @@ var MemberCount = (() => {
 					twitter_username: ''
 				}
 			],
-			version: '2.0.7',
+			version: '2.0.8',
 			description: 'Displays a server\'s member-count at the top of the member-list, can be styled with the #MemberCount selector.',
 			github: 'https://github.com/Arashiryuu',
 			github_raw: 'https://raw.githubusercontent.com/Arashiryuu/crap/master/ToastIntegrated/MemberCount/MemberCount.plugin.js'
@@ -68,9 +68,10 @@ var MemberCount = (() => {
 	const buildPlugin = ([Plugin, Api]) => {
 		const { Toasts, Logger, Patcher, Settings, Utilities, DOMTools, ReactTools, ReactComponents, DiscordModules, DiscordClasses, WebpackModules, DiscordSelectors, PluginUtilities } = Api;
 		const { SettingPanel, SettingGroup, SettingField, Textbox } = Settings;
+		const { React, GuildActions, GuildMemberStore, SelectedGuildStore } = DiscordModules;
 		const { ComponentDispatch: Dispatcher } = WebpackModules.getByProps('ComponentDispatch');
 
-		const Counter = class Counter extends DiscordModules.React.Component {
+		const Counter = class Counter extends React.Component {
 			constructor(props) {
 				super(props);
 				this.state = {
@@ -89,16 +90,17 @@ var MemberCount = (() => {
 			}
 
 			updateCount() {
-				this.setState({ count: DiscordModules.GuildMemberStore.getMemberIds(DiscordModules.SelectedGuildStore.getGuildId()).length });
+				this.setState({ count: GuildMemberStore.getMemberIds(SelectedGuildStore.getGuildId()).length });
 			}
 
 			render() {
-				return DiscordModules.React.createElement('div', {
+				return React.createElement('div', {
 					className: DiscordClasses.MemberList.membersGroup.value,
-					id: 'MemberCount'
-				}, `Members—${this.state.count}`);
+					id: 'MemberCount',
+					children: ['Members', '—', this.state.count]
+				});
 			}
-		}
+		};
 		
 		return class MemberCount extends Plugin {
 			constructor() {
@@ -107,24 +109,15 @@ var MemberCount = (() => {
 				this.default = { blacklist: [], placeholder: 'Server ID' };
 				this.settings = Utilities.deepclone(this.default);
 				this.loadedGuilds = [];
-				this.switchList = [
-					WebpackModules.getByProps('app').app,
-					DiscordSelectors.TitleWrap.chat.value.split('.')[1],
-					WebpackModules.getByProps('messages', 'messagesWrapper').messagesWrapper
-				];
 				this.css = `
 					#MemberCount {
 						position: absolute;
-						font-size: 12px;
-						letter-spacing: 0.08em;
-						font-weight: 500;
-						text-transform: uppercase;
-						display: block;
 						width: 97%;
 						text-align: center;
-						padding: 0.9vh 0 0.9vh 3%;
+						padding: 1.8vh 0 0 3%;
 						z-index: 5;
 						top: 0;
+						margin-top: -10px;
 					}
 		
 					.theme-dark #MemberCount {
@@ -147,13 +140,13 @@ var MemberCount = (() => {
 
 			onStart() {
 				this.loadSettings();
-				BdApi.injectCSS(this.short, this.css);
+				PluginUtilities.addStyle(this.short, this.css);
 				this.patchMemberList();
 				Toasts.info(`${this.name} ${this.version} has started!`, { icon: true, timeout: 2e3 });
 			}
 
 			onStop() {
-				BdApi.clearCSS(this.short);
+				PluginUtilities.removeStyle(this.short);
 				Patcher.unpatchAll();
 				Toasts.info(`${this.name} ${this.version} has stopped!`, { icon: true, timeout: 2e3 });
 			}
@@ -162,22 +155,23 @@ var MemberCount = (() => {
 				const Scroller = WebpackModules.getByDisplayName('VerticalScroller');
 				
 				Patcher.after(Scroller.prototype, 'render', (that, args, value) => {
-					const key = this.getProps(that, 'props.children.2.0.key');
-					if (typeof key === 'string' && key.includes('section-container')) return value;
+					const key = this.getProps(value, 'props.children.0._owner.return.key');
+					if (!key || key === 'guild-channels') return value;
 
 					const children = this.getProps(value, 'props.children.0.props.children.1.2');
 					if (!children || !Array.isArray(children)) return value;
 					
-					const guildId = DiscordModules.SelectedGuildStore.getGuildId();
+					const guildId = SelectedGuildStore.getGuildId();
 					if (this.settings.blacklist.includes(guildId) || !guildId) return value;
 
-					const counter = DiscordModules.React.createElement(Counter, {});
+					const counter = React.createElement(Counter, {});
 
 					children.unshift([counter, null]);
 
-					if (!this.loadedGuilds.includes(guildId)) {
-						DiscordModules.GuildActions.requestMembers([guildId], '', 0);
-						this.loadedGuilds.push(guildId);
+					if (this.loadedGuilds.includes(guildId) && GuildMemberStore.getMemberIds(SelectedGuildStore.getGuildId()).length < 200 || !this.loadedGuilds.includes(guildId)) {
+						GuildActions.requestMembers([guildId], '', 0);
+						const index = this.loadedGuilds.indexOf(guildId);
+						index === -1 && this.loadedGuilds.push(guildId);
 					}
 
 					Dispatcher.dispatch('COUNT_MEMBERS');
@@ -297,7 +291,7 @@ var MemberCount = (() => {
 			get description() {
 				return config.info.description;
 			}
-		}
+		};
 	};
 
 	/* Finalize */
