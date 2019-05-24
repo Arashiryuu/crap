@@ -728,10 +728,9 @@ var HideUtils = (() => {
 					if (!children || !Array.isArray(children)) return value;
 
 					for (let i = 0, len = children.length; i < len; i++) {
-						const channels = this.getProps(children[i], 'props');
-						const channelList = this.getProps(channels, 'children');
+						const channelList = children[i];
 						if (!channelList || !Array.isArray(channelList)) continue;
-						channels.children = channelList.filter((channel) => {
+						children[i] = channelList.filter((channel) => {
 							if (!channel) return channel;
 							const props = this.getProps(channel, 'props');
 							if (!props.voiceStates || !Array.isArray(props.voiceStates)) return !channel.key || (channel.key && !has.call(this.settings.channels, channel.key));
@@ -775,6 +774,7 @@ var HideUtils = (() => {
 			userClear(id) {
 				if (!id) return;
 				if (!has.call(this.settings.users, id)) return Toasts.info('This user is not being hidden.', { icon: true, timeout: 3e3 });
+				try { this.mute(id, 100); } catch(e) { err(e); }
 				delete this.settings.users[id];
 				Toasts.info('User has been unhidden.', { icon: true, timeout: 3e3 });
 				this.saveSettings(this.settings);
