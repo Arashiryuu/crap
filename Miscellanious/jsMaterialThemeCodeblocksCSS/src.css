@@ -100,7 +100,7 @@
 
 #app-mount .hljs[class~="jsx" i] .hljs-number,
 #app-mount .hljs[class~="jsx" i] .hljs-literal {
-    color: #f78c6a;
+    color: #f78c6a !important;
 }
 
 #app-mount .hljs[class~="jsx" i] .hljs-params {
@@ -168,7 +168,7 @@
 
 #app-mount .hljs[class~="javascript" i] .hljs-number,
 #app-mount .hljs[class~="javascript" i] .hljs-literal {
-    color: #f78c6a;
+    color: #f78c6a !important;
 }
 
 #app-mount .hljs[class~="javascript" i] .hljs-params {
