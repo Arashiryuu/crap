@@ -40,7 +40,7 @@ var HideUtils = (() => {
 					twitter_username: ''
 				}
 			],
-			version: '2.1.1',
+			version: '2.1.2',
 			description: 'Allows you to hide users, servers, and channels individually.',
 			github: 'https://github.com/Arashiryuu',
 			github_raw: 'https://raw.githubusercontent.com/Arashiryuu/crap/master/ToastIntegrated/HideUtils/HideUtils.plugin.js'
@@ -248,7 +248,7 @@ var HideUtils = (() => {
 							borderBottom: '2px solid currentColor',
 							marginBottom: '4px'
 						},
-						children: [this.props.name, ' hidden \u2014 ', toRender.children.length]
+						children: [l, ' hidden \u2014 ', toRender.children.length]
 					}),
 					React.createElement('hr', {})
 				);
@@ -691,8 +691,8 @@ var HideUtils = (() => {
 				const Scroller = WebpackModules.getByDisplayName('VerticalScroller');
 
 				Patcher.after(Scroller.prototype, 'render', (that, args, value) => {
-					const key = this.getProps(that, 'props.children.2.0.key');
-					if (typeof key === 'string' && key.includes('section-container')) return value;
+					const key = this.getProps(value, 'props.children.0._owner.return.key');
+					if (!key || key === 'guild-channels') return value;
 
 					const children = this.getProps(value, 'props.children.0.props.children.1');
 					if (!children || !Array.isArray(children)) return value;
@@ -721,8 +721,8 @@ var HideUtils = (() => {
 				const Scroller = WebpackModules.getByDisplayName('VerticalScroller');
 				
 				Patcher.after(Scroller.prototype, 'render', (that, args, value) => {
-					const key = this.getProps(that, 'props.children.2.0.key');
-					if (!key || !key.includes('section-container')) return value;
+					const key = this.getProps(value, 'props.children.0._owner.return.key');
+					if (!key || key !== 'guild-channels') return value;
 
 					const children = this.getProps(value, 'props.children.0.props.children.1.2');
 					if (!children || !Array.isArray(children)) return value;
