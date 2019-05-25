@@ -40,7 +40,7 @@ var MessageTimestampsRedux = (() => {
 					twitter_username: ''
 				}
 			],
-			version: '1.0.3',
+			version: '1.0.4',
 			description: 'Displays the timestamp for a message, simply right-click and select "Show Timestamp."',
 			github: 'https://github.com/Arashiryuu',
 			github_raw: 'https://raw.githubusercontent.com/Arashiryuu/crap/master/ToastIntegrated/MessageTimestampsRedux/MessageTimestampsRedux.plugin.js'
@@ -54,7 +54,7 @@ var MessageTimestampsRedux = (() => {
 			{
 				title: 'Bugs Squashed!',
 				type: 'fixed',
-				items: ['Renders in the message context menu again.']
+				items: ['Renders in the message context menu again.', 'Tooltips now available again.']
 			}
 		]
 	};
@@ -71,7 +71,7 @@ var MessageTimestampsRedux = (() => {
 	/* Build */
 
 	const buildPlugin = ([Plugin, Api]) => {
-		const { Toasts, Logger, Tooltip, Patcher, Settings, Utilities, ReactTools, DOMTools, ReactComponents, DiscordModules, WebpackModules, DiscordClassModules, DiscordSelectors } = Api;
+		const { Toasts, Logger, Tooltip, Patcher, Settings, Utilities, ReactTools, DOMTools, EmulatedTooltip, ReactComponents, DiscordModules, WebpackModules, DiscordClassModules, DiscordSelectors } = Api;
 		const { SettingPanel, SettingGroup, RadioGroup, Slider, Switch } = Settings;
 
 		const Item = class Item extends DiscordModules.React.Component {
@@ -200,7 +200,7 @@ var MessageTimestampsRedux = (() => {
 				 * @type {String}
 				 */
 				const ts = this.getProps(message, 'timestamp._d');
-				const tip = new Tooltip(target, !this.settings.shortened ? String(ts) : String(ts).split(' ').slice(0, 5).join(' '), { side: 'top', disabled: true });
+				const tip = new EmulatedTooltip(target, !this.settings.shortened ? String(ts) : String(ts).split(' ').slice(0, 5).join(' '), { side: 'top', disabled: true });
 
 				tip.show();
 				setTimeout(() => tip.hide(), this.settings.displayTime);
