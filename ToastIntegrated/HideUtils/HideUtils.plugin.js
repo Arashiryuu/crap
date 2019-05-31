@@ -40,7 +40,7 @@ var HideUtils = (() => {
 					twitter_username: ''
 				}
 			],
-			version: '2.1.2',
+			version: '2.1.3',
 			description: 'Allows you to hide users, servers, and channels individually.',
 			github: 'https://github.com/Arashiryuu',
 			github_raw: 'https://raw.githubusercontent.com/Arashiryuu/crap/master/ToastIntegrated/HideUtils/HideUtils.plugin.js'
@@ -49,9 +49,12 @@ var HideUtils = (() => {
 			{
 				title: 'Evolving?',
 				type: 'improved',
-				items: [
-					'Reworked plugin settings menu \u2014 now uses React, and creates a modal for managing what has been hidden.'
-				]
+				items: ['Reworked plugin settings menu \u2014 now uses React, and creates a modal for managing what has been hidden.']
+			},
+			{
+				title: 'Bugs Squashed!',
+				type: 'fixed',
+				items: ['Fixed multiple active instances.']
 			}
 		]
 	};
@@ -82,14 +85,12 @@ var HideUtils = (() => {
 		const { Toasts, Patcher, Settings, Utilities, DOMTools, ReactTools, ReactComponents, DiscordModules, DiscordClasses, WebpackModules, DiscordSelectors, PluginUtilities } = Api;
 		const { SettingPanel, SettingField, SettingGroup, Switch } = Settings;
 		const { ComponentDispatch: Dispatcher } = WebpackModules.getByProps('ComponentDispatch');
+		const { React, ReactDOM, ModalStack, ContextMenuActions: MenuActions } = DiscordModules;
 
 		const TextElement = WebpackModules.getByProps('Sizes', 'Weights');
 		const TooltipWrapper = WebpackModules.getByPrototypes('renderTooltip');
 		
 		const has = Object.prototype.hasOwnProperty;
-		const React = DiscordModules.React;
-		const MenuActions = DiscordModules.ContextMenuActions;
-		const ModalStack = DiscordModules.ModalStack;
 		const MenuItem = WebpackModules.getByString('disabled', 'brand');
 		const guilds = WebpackModules.getByProps('wrapper', 'unreadMentionsIndicatorTop');
 		const buttons = WebpackModules.getByProps('button');
@@ -97,6 +98,7 @@ var HideUtils = (() => {
 		const messagesWrapper = WebpackModules.getByProps('messages', 'messagesWrapper');
 		const wrapper = WebpackModules.getByProps('messagesPopoutWrap');
 		const scroller = WebpackModules.getByProps('scrollerWrap');
+		const dividerContent = WebpackModules.getByProps('divider', 'dividerRed', 'dividerContent');
 
 		const Button = class Button extends React.Component {
 			constructor(props) {
@@ -358,6 +360,11 @@ var HideUtils = (() => {
 			constructor() {
 				super();
 				this._css;
+				this.promises = {
+					state: { cancelled: false },
+					cancel() { this.state.cancelled = true; },
+					restore() { this.state.cancelled = false; }
+				};
 				this.default = {
 					channels: {},
 					servers: {},
@@ -473,15 +480,17 @@ var HideUtils = (() => {
 			}
 
 			onStart() {
+				this.promises.restore();
 				this.loadSettings(this.settings);
 				PluginUtilities.addStyle(this.short, this.css);
 				this.setup();
 				this.subscribe();
-				this.patchAll();
+				this.patchAll(this.promises.state);
 				Toasts.info(`${this.name} ${this.version} has started!`, { icon: true, timeout: 2e3 });
 			}
 
 			onStop() {
+				this.promises.cancel();
 				PluginUtilities.removeStyle(this.short);
 				this.unsubscribe();
 				Patcher.unpatchAll();
@@ -489,15 +498,15 @@ var HideUtils = (() => {
 				Toasts.info(`${this.name} ${this.version} has stopped!`, { icon: true, timeout: 2e3 });
 			}
 
-			patchAll() {
-				this.patchGuilds();
-				this.patchChannels();
-				this.patchMessages();
-				this.patchMemberList();
-				this.patchTypingUsers();
-				this.patchContextMenu();
-				this.patchIsMentioned();
-				this.patchReceiveMessages();
+			patchAll(promiseState) {
+				this.patchGuilds(promiseState);
+				this.patchChannels(promiseState);
+				this.patchMessages(promiseState);
+				this.patchMemberList(promiseState);
+				this.patchTypingUsers(promiseState);
+				this.patchContextMenu(promiseState);
+				this.patchIsMentioned(promiseState);
+				this.patchReceiveMessages(promiseState);
 			}
 
 			updateAll() {
@@ -532,8 +541,9 @@ var HideUtils = (() => {
 				}, { displayName: 'TypingUsers' });
 			}
 
-			async patchChannelContextMenu() {
+			async patchChannelContextMenu(promiseState) {
 				const { component: ChannelContextMenu } = await ReactComponents.getComponentByName('ChannelContextMenu', DiscordSelectors.ContextMenu.contextMenu.toString());
+				if (promiseState.cancelled) return;
 				Patcher.after(ChannelContextMenu.prototype, 'render', (that, args, value) => {
 					if (!that.props.type.startsWith('CHANNEL_LIST_')) return value;
 
@@ -557,8 +567,9 @@ var HideUtils = (() => {
 				this.updateContextMenu();
 			}
 
-			async patchGuildContextMenu() {
+			async patchGuildContextMenu(promiseState) {
 				const { component: GuildContextMenu } = await ReactComponents.getComponentByName('GuildContextMenu', DiscordSelectors.ContextMenu.contextMenu.toString());
+				if (promiseState.cancelled) return;
 				Patcher.after(GuildContextMenu.prototype, 'render', (that, args, value) => {
 					const orig = this.getProps(value, 'props.children.0.props');
 					const item = new MenuItem({
@@ -580,8 +591,9 @@ var HideUtils = (() => {
 				this.updateContextMenu();
 			}
 
-			async patchUserContextMenu() {
+			async patchUserContextMenu(promiseState) {
 				const { component: UserContextMenu } = await ReactComponents.getComponentByName('UserContextMenu', DiscordSelectors.ContextMenu.contextMenu.toString());
+				if (promiseState.cancelled) return;
 				Patcher.after(UserContextMenu.prototype, 'render', (that, args, value) => {
 					if (!DiscordModules.GuildStore.getGuild(DiscordModules.SelectedGuildStore.getGuildId())) return value;
 					const orig = this.getProps(value, 'props.children.props.children.props.children.0.props');
@@ -604,10 +616,11 @@ var HideUtils = (() => {
 				this.updateContextMenu();
 			}
 
-			async patchContextMenu() {
-				this.patchUserContextMenu();
-				this.patchGuildContextMenu();
-				this.patchChannelContextMenu();
+			async patchContextMenu(promiseState) {
+				if (promiseState.cancelled) return;
+				this.patchUserContextMenu(promiseState);
+				this.patchGuildContextMenu(promiseState);
+				this.patchChannelContextMenu(promiseState);
 			}
 
 			updateContextMenu() {
@@ -628,9 +641,9 @@ var HideUtils = (() => {
 			 * @name patchMessageComponent
 			 * @author Zerebos
 			 */
-			async patchMessages() {
+			async patchMessages(promiseState) {
 				const { component: Message } = await ReactComponents.getComponentByName('Messages', `.${messagesWrapper.messagesWrapper.replace(/\s/, '.')}`);
-
+				if (promiseState.cancelled) return;
 				Patcher.after(Message.prototype, 'render', (that, args, value) => {
 					const props = this.getProps(value, 'props.children.1.props');
 					const messageGroups = this.getProps(props, 'children');
@@ -642,9 +655,24 @@ var HideUtils = (() => {
 						return !blocked && author && !has.call(this.settings.users, author.id) || !blocked && !author;
 					});
 
+					for (const group of props.children) {
+						const n = this.getProps(group, 'props.children');
+						if (!n || typeof n === 'string') continue;
+						n.ref = (e) => {
+							const node = ReactDOM.findDOMNode(e);
+							if (!node) return;
+							setImmediate(() => {
+								if (node.nextElementSibling && node.nextElementSibling.className.includes(dividerContent.divider)) return;
+								const divider = node.querySelector(DiscordSelectors.Messages.divider.toString());
+								if (!divider) return;
+								if (divider.className === DiscordClasses.Messages.divider.toString() && this.settings.hideBlocked) divider.setAttribute('class', DiscordClasses.Messages.dividerEnabled.toString());
+								else if (divider.className === DiscordClasses.Messages.dividerEnabled.toString() && !this.settings.hideBlocked && node.nextElementSibling && node.nextElementSibling.className.includes(dividerContent.messageGroupBlocked)) divider.setAttribute('class', DiscordClasses.Messages.divider.toString());
+							});
+						};
+					}
+
 					return value;
 				});
-
 				this.updateMessages();
 			}
 
@@ -657,12 +685,12 @@ var HideUtils = (() => {
 				if (messages) ReactTools.getOwnerInstance(messages).forceUpdate();
 			}
 
-			async patchGuilds() {
+			async patchGuilds(promiseState) {
 				const Guilds = await new Promise((resolve) => {
 					const guildsWrapper = document.querySelector(`.${guilds.wrapper.replace(/\s/, '.')}`);
 					if (guildsWrapper) return resolve(ReactTools.getOwnerInstance(guildsWrapper).constructor);
 				});
-
+				if (promiseState.cancelled) return;
 				Patcher.after(Guilds.prototype, 'render', (that, args, value) => {
 					const props = this.getProps(that, 'props');
 					if (!props.guilds || !Array.isArray(props.guilds)) return value;
