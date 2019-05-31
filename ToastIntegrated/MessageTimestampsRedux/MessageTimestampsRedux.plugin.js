@@ -40,7 +40,7 @@ var MessageTimestampsRedux = (() => {
 					twitter_username: ''
 				}
 			],
-			version: '1.0.4',
+			version: '1.0.5',
 			description: 'Displays the timestamp for a message, simply right-click and select "Show Timestamp."',
 			github: 'https://github.com/Arashiryuu',
 			github_raw: 'https://raw.githubusercontent.com/Arashiryuu/crap/master/ToastIntegrated/MessageTimestampsRedux/MessageTimestampsRedux.plugin.js'
@@ -54,7 +54,11 @@ var MessageTimestampsRedux = (() => {
 			{
 				title: 'Bugs Squashed!',
 				type: 'fixed',
-				items: ['Renders in the message context menu again.', 'Tooltips now available again.']
+				items: [
+					'Renders in the message context menu again.',
+					'Tooltips now available again.',
+					'Fix multiple active instances.'
+				]
 			}
 		]
 	};
@@ -95,7 +99,16 @@ var MessageTimestampsRedux = (() => {
 		return class MessageTimestampsRedux extends Plugin {
 			constructor() {
 				super();
-				this.default = { tooltips: false, shortened: false, displayTime: 2000 };
+				this.promises = {
+					state: { cancelled: false },
+					cancel() { this.state.cancelled = true; },
+					restore() { this.state.cancelled = false; }
+				};
+				this.default = {
+					tooltips: false,
+					shortened: false,
+					displayTime: 2000
+				};
 				this.settings = Utilities.deepclone(this.default);
 			}
 
@@ -106,8 +119,9 @@ var MessageTimestampsRedux = (() => {
 			 * @returns {Void}
 			 */
 			onStart() {
+				this.promises.restore();
 				this.loadSettings(this.settings);
-				this.getContextMenu().catch((err) => this.didError(err));
+				this.getContextMenu(this.promises.state).catch((err) => this.didError(err));
 				Toasts.info(`${this.name} ${this.version} has started!`, { icon: true, timeout: 2e3 });
 			}
 
@@ -116,6 +130,7 @@ var MessageTimestampsRedux = (() => {
 			 * @returns {Void}
 			 */
 			onStop() {
+				this.promises.cancel();
 				Patcher.unpatchAll();
 				Toasts.info(`${this.name} ${this.version} has stopped!`, { icon: true, timeout: 2e3 });
 			}
@@ -133,8 +148,9 @@ var MessageTimestampsRedux = (() => {
 			 * Asynchronously gets the MessageContextMenu component as it renders, then patches it.
 			 * @returns {Promise<Void>}
 			 */
-			async getContextMenu() {
-				const { component: ContextMenu } = await ReactComponents.getComponentByName('MessageContextMenu', DiscordSelectors.ContextMenu.contextMenu.toString());
+			async getContextMenu(promiseState) {
+				const ContextMenu = await ReactComponents.getComponentByName('MessageContextMenu', DiscordSelectors.ContextMenu.contextMenu.toString());
+				if (promiseState.cancelled) return;
 				this.patchContextMenu(ContextMenu);
 			}
 
@@ -144,9 +160,11 @@ var MessageTimestampsRedux = (() => {
 			 * @returns {Void}
 			 */
 			patchContextMenu(ContextMenu) {
-				if (!ContextMenu) return;
+				if (!ContextMenu || !ContextMenu.component) return;
 
-				Patcher.after(ContextMenu.prototype, 'render', (that, args, value) => {
+				const { component: Menu } = ContextMenu;
+
+				Patcher.after(Menu.prototype, 'render', (that, args, value) => {
 					if (!that.props.message) return value;
 					
 					const { message } = that.props, children = this.getProps(value, 'props.children');
@@ -166,7 +184,7 @@ var MessageTimestampsRedux = (() => {
 					return value;
 				});
 
-				return this.updateContextMenu();
+				return ContextMenu.forceUpdateAll();
 			}
 
 			/**
