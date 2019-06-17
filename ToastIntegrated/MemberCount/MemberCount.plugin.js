@@ -40,7 +40,7 @@ var MemberCount = (() => {
 					twitter_username: ''
 				}
 			],
-			version: '2.0.8',
+			version: '2.1.0',
 			description: 'Displays a server\'s member-count at the top of the member-list, can be styled with the #MemberCount selector.',
 			github: 'https://github.com/Arashiryuu',
 			github_raw: 'https://raw.githubusercontent.com/Arashiryuu/crap/master/ToastIntegrated/MemberCount/MemberCount.plugin.js'
@@ -49,7 +49,11 @@ var MemberCount = (() => {
 			{
 				title: 'What\'s New?',
 				type: 'added',
-				items: ['Moved to local library version.', 'Now renders in the memberlist using React.']
+				items: [
+					'Moved to local library version.',
+					'Now renders in the memberlist using React.',
+					'Blacklist now fully handled within the context-menu \u2014 settings panel removed.'
+				]
 			}
 		]
 	};
@@ -68,15 +72,15 @@ var MemberCount = (() => {
 	const buildPlugin = ([Plugin, Api]) => {
 		const { Toasts, Logger, Patcher, Settings, Utilities, DOMTools, ReactTools, ReactComponents, DiscordModules, DiscordClasses, WebpackModules, DiscordSelectors, PluginUtilities } = Api;
 		const { SettingPanel, SettingGroup, SettingField, Textbox } = Settings;
-		const { React, GuildActions, GuildMemberStore, SelectedGuildStore } = DiscordModules;
+		const { React, GuildActions, GuildMemberStore, SelectedGuildStore, ContextMenuActions: MenuActions } = DiscordModules;
 		const { ComponentDispatch: Dispatcher } = WebpackModules.getByProps('ComponentDispatch');
+
+		const MenuItem = WebpackModules.getByString('disabled', 'brand');
 
 		const Counter = class Counter extends React.Component {
 			constructor(props) {
 				super(props);
-				this.state = {
-					count: 0
-				};
+				this.state = { count: 0 };
 				this.updateCount = this.updateCount.bind(this);
 			}
 
@@ -106,8 +110,13 @@ var MemberCount = (() => {
 			constructor() {
 				super();
 				this._css;
-				this.default = { blacklist: [], placeholder: 'Server ID' };
+				this.default = { blacklist: [] };
 				this.settings = Utilities.deepclone(this.default);
+				this.promises = {
+					state: { cancelled: false },
+					cancel() { this.state.cancelled = true; },
+					restore() { this.state.cancelled = false; }
+				};
 				this.loadedGuilds = [];
 				this.css = `
 					#MemberCount {
@@ -139,15 +148,20 @@ var MemberCount = (() => {
 			/* Methods */
 
 			onStart() {
+				this.promises.restore();
 				this.loadSettings();
 				PluginUtilities.addStyle(this.short, this.css);
 				this.patchMemberList();
+				this.patchGuildContextMenu(this.promises.state);
 				Toasts.info(`${this.name} ${this.version} has started!`, { icon: true, timeout: 2e3 });
 			}
 
 			onStop() {
+				this.promises.cancel();
+				this.loadedGuilds.length = 0;
 				PluginUtilities.removeStyle(this.short);
 				Patcher.unpatchAll();
+				this.updateAll();
 				Toasts.info(`${this.name} ${this.version} has stopped!`, { icon: true, timeout: 2e3 });
 			}
 
@@ -186,6 +200,65 @@ var MemberCount = (() => {
 				if (memberList) ReactTools.getOwnerInstance(memberList).forceUpdate();
 			}
 
+			async patchGuildContextMenu(state) {
+				const { component: Menu } = await ReactComponents.getComponentByName('GuildContextMenu', DiscordSelectors.ContextMenu.contextMenu.toString());
+				
+				if (state.cancelled) return;
+
+				Patcher.after(Menu.prototype, 'render', (that, args, value) => {
+					const orig = this.getProps(value, 'props.children.0.props');
+					const id = this.getProps(that, 'props.guild.id');
+
+					const has = this.settings.blacklist.includes(id);
+					const item = new MenuItem({
+						label: has ? 'Include Server' : 'Exclude Server',
+						hint: 'MCount',
+						action: () => {
+							MenuActions.closeContextMenu();
+							has ? this.unlistGuild(id) : this.blacklistGuild(id);
+							this.updateAll();
+						}
+					});
+
+					if (Array.isArray(orig.children)) orig.children.splice(1, 0, item);
+					else orig.children = [orig.children], orig.children.splice(1, 0, item);
+
+					setImmediate(() => this.updateContextPosition(that));
+					return value;
+				});
+
+				this.updateContextMenu();
+			}
+
+			updateContextMenu() {
+				const menus = document.querySelectorAll(DiscordSelectors.ContextMenu.contextMenu.toString());
+				if (!menus.length) return;
+				for (let i = 0, len = menus.length; i < len; i++) ReactTools.getOwnerInstance(menus[i]).forceUpdate();
+			}
+
+			updateContextPosition(that) {
+				if (!that) return;
+				const height = this.getProps(that, 'props.onHeightUpdate') || this.getProps(that, '_reactInternalFiber.return.memoizedProps.onHeightUpdate');
+				height && height();
+			}
+
+			blacklistGuild(id) {
+				if (!id) return;
+				this.settings.blacklist.push(id);
+				this.saveSettings(this.settings.blacklist);
+			}
+
+			unlistGuild(id) {
+				if (!id) return;
+				this.settings.blacklist.splice(this.settings.blacklist.indexOf(id), 1);
+				this.saveSettings(this.settings.blacklist);
+			}
+
+			updateAll() {
+				this.updateMemberList();
+				this.updateContextMenu();
+			}
+
 			/* Utility */
 
 			/**
@@ -212,40 +285,6 @@ var MemberCount = (() => {
 			 */
 			getProps(obj, path) {
 				return path.split(/\s?\.\s?/).reduce((object, prop) => object && object[prop], obj);
-			}
-
-			/* Settings Panel */
-
-			async handleInput(e) {
-				const input = $(`#plugin-settings-${this.name} input`);
-				const isRemoval = (x) => (/^r$|^r\d{16,18}$/).test(x);
-				const isID = (x) => (/^\d{16,18}$/).test(x);
-		
-				await new Promise((resolve) => setTimeout(resolve, 2e3));
-		
-				if (isRemoval(e)) {
-					if (e.length > 1 && this.settings.blacklist.includes(e.slice(1))) this.settings.blacklist.splice(this.settings.blacklist.indexOf(e.slice(1)), 1);
-					else this.settings.blacklist.pop();
-					input.val('Removed from blacklist!');
-					this.saveSettings(JSON.stringify(this.settings.blacklist));
-					return setTimeout(() => input.val(''), 2e3);
-				}
-		
-				if (!isID(e)) return;
-				if (!this.settings.blacklist.includes(e)) this.settings.blacklist.push(e);
-				if (!input) return;
-		
-				input.val('Added to blacklist!');
-				this.saveSettings(JSON.stringify(this.settings.blacklist));
-				setTimeout(() => input.val(''), 2e3);
-			}
-
-			getSettingsPanel() {
-				return SettingPanel.build(() => this.saveSettings(JSON.stringify(this.settings.blacklist)),
-					new SettingGroup('Plugin Settings').append(
-						new Textbox('Blacklist', 'Do `r` or `r234780924003221506` for removals.', this.settings.placeholder, (i) => this.handleInput(i))
-					)
-				);
 			}
 
 			/* Setters */
