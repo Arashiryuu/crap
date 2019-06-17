@@ -195,9 +195,13 @@ var MemberCount = (() => {
 				this.updateMemberList();
 			}
 
-			updateMemberList() {
+			updateMemberList(scroll) {
 				const memberList = document.querySelector(DiscordSelectors.MemberList.members.value.trim());
-				if (memberList) ReactTools.getOwnerInstance(memberList).forceUpdate();
+				if (!memberList) return;
+				const inst = ReactTools.getOwnerInstance(memberList);
+				if (!inst) return;
+				inst.forceUpdate();
+				if (scroll) inst.handleOnScroll();
 			}
 
 			async patchGuildContextMenu(state) {
@@ -216,7 +220,7 @@ var MemberCount = (() => {
 						action: () => {
 							MenuActions.closeContextMenu();
 							has ? this.unlistGuild(id) : this.blacklistGuild(id);
-							this.updateAll();
+							this.updateAll(true);
 						}
 					});
 
@@ -254,8 +258,8 @@ var MemberCount = (() => {
 				this.saveSettings(this.settings.blacklist);
 			}
 
-			updateAll() {
-				this.updateMemberList();
+			updateAll(t) {
+				this.updateMemberList(t);
 				this.updateContextMenu();
 			}
 
