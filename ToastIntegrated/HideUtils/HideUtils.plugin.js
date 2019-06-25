@@ -149,20 +149,90 @@ var HideUtils = (() => {
 		const Modal = class Modal extends React.Component {
 			constructor(props) {
 				super(props);
+				this._labels = {
+					'Channels': 'ID: {{id}}\nGuild: {{guild}}\nChannel: {{channel}}',
+					'Servers': 'ID: {{id}}\nGuild: {{guild}}',
+					'Users': 'ID: {{id}}\nTag: {{tag}}'
+				};
 				this.close = this.close.bind(this);
+				this.replaceLabels = this.replaceLabels.bind(this);
 			}
 
 			close() {
 				ModalStack.popWithKey('HideUtils-SettingsModal');
 			}
 
+			replaceLabels(label, data) {
+				if (!has.call(this._labels, label)) return null;
+
+				const string = this._labels[label];
+
+				if (label === 'Channels') return string
+					.replace(/{{id}}/, data.id)
+					.replace(/{{guild}}/, data.guild)
+					.replace(/{{channel}}/, data.name);
+
+				if (label === 'Servers') return string
+					.replace(/{{id}}/, data.id)
+					.replace(/{{guild}}/, data.name);
+
+				return string
+					.replace(/{{id}}/, data.id)
+					.replace(/{{tag}}/, data.tag);
+			}
+
 			render() {
-				const l = this.props.name.toLowerCase();
-				const isInstructions = l === 'instructions';
-				const toRender = { children: [], instructions: false };
-				if (isInstructions) {
-					toRender.instructions = true;
-					toRender.children.push(
+				const label = this.props.name;
+				const data = [];
+
+				if (this.props.data) {
+					for (const entry of Object.values(this.props.data)) {
+						const item = React.createElement(TooltipWrapper, {
+							text: this.replaceLabels(label, entry),
+							color: TooltipWrapper.Colors.BLACK,
+							position: TooltipWrapper.Positions.TOP,
+							children: (props) => {
+								const type = label.slice(0, -1);
+								const hasImage = type === 'User' || type === 'Server';
+								const style = {};
+
+								if (hasImage) Object.assign(style, { backgroundImage: `url(${entry.icon})`, backgroundSize: 'cover', backgroundPosition: 'center' });
+
+								return React.createElement('div', Object.assign({
+									id: 'HideUtils-Tooltip',
+									className: 'buttonWrapper'
+								}, props),
+									React.createElement(Button, {
+										text: entry.name ? entry.name : entry.tag,
+										className: `${type.toLowerCase()}-button`,
+										style,
+										action: () => {
+											Dispatcher.dispatch(`HIDEUTILS_BUTTON_${type.toUpperCase()}CLEAR`, entry.id);
+											this.forceUpdate();
+										}
+									})
+								);
+							}
+						});
+
+						data.push(item);
+					}
+
+					const count = TextElement.default({
+						weight: TextElement.Weights.BOLD,
+						color: TextElement.Colors.BRAND,
+						size: TextElement.Sizes.MEDIUM,
+						style: {
+							textTransform: 'uppercase',
+							borderBottom: '2px solid currentColor',
+							marginBottom: '4px'
+						},
+						children: [label, ' hidden \u2014 ', data.length]
+					});
+
+					data.unshift(count, React.createElement('hr', {}));
+				} else {
+					data.push(
 						React.createElement('div', {
 							id: 'HideUtils-Instructions',
 							className: 'instructions'
@@ -203,57 +273,8 @@ var HideUtils = (() => {
 							})
 						)
 					);
-				} else {
-					toRender.instructions = false;
-					toRender.children.push(...Object.values(this.props[l]).map((value) => {
-						const isChannel = Boolean(value.guild);
-						const isGuild = value.name && !value.guild && !value.tag;
-						const isUser = Boolean(value.tag);
-						const Tip = (isGuild && `ID: ${value.id}\nGuild: ${value.name}`) || (isChannel && `ID: ${value.id}\nGuild: ${value.guild}\nChannel: ${value.name}`) || (`ID: ${value.id}\nTag: ${value.tag}`);
-						return React.createElement(TooltipWrapper, {
-							text: Tip,
-							color: TooltipWrapper.Colors.BLACK,
-							position: TooltipWrapper.Positions.TOP,
-							children: (props) => {
-								const style = (isUser && {
-									backgroundImage: `url(${value.icon})`,
-									backgroundSize: 'cover',
-									backgroundPosition: 'center'
-								}) || {};
-								return React.createElement('div', Object.assign({
-									id: 'HideUtils-Tooltip',
-									className: 'buttonWrapper'
-								}, props),
-									React.createElement(Button, {
-										text: (isChannel && value.name) || (isGuild && value.name) || (isUser && value.tag),
-										className: (isChannel && 'channel-button') || (isGuild && 'guild-button') || (isUser && 'user-button'),
-										style,
-										action: () => {
-											if (isChannel) Dispatcher.dispatch('HIDEUTILS_BUTTON_CHANNELCLEAR', value.id);
-											else if (isGuild) Dispatcher.dispatch('HIDEUTILS_BUTTON_SERVERCLEAR', value.id);
-											else if (isUser) Dispatcher.dispatch('HIDEUTILS_BUTTON_USERCLEAR', value.id);
-											this.forceUpdate();
-										}
-									})
-								);
-							}
-						});
-					}));
 				}
-				if (!toRender.instructions) toRender.children.unshift(
-					TextElement.default({
-						weight: TextElement.Weights.BOLD,
-						color: TextElement.Colors.BRAND,
-						size: TextElement.Sizes.MEDIUM,
-						style: {
-							textTransform: 'uppercase',
-							borderBottom: '2px solid currentColor',
-							marginBottom: '4px'
-						},
-						children: [l, ' hidden \u2014 ', toRender.children.length]
-					}),
-					React.createElement('hr', {})
-				);
+
 				return React.createElement('div', {
 					className: `${wrapper.messagesPopoutWrap} ${DiscordClasses.Popouts.themedPopout}`
 				},
@@ -266,7 +287,7 @@ var HideUtils = (() => {
 						TextElement.default({
 							className: wrapper.title,
 							color: TextElement.Colors.PRIMARY,
-							children: ['HideUtils \u2014 ', this.props.name]
+							children: ['HideUtils \u2014 ', label]
 						})
 					),
 					React.createElement('div', {
@@ -275,7 +296,7 @@ var HideUtils = (() => {
 						React.createElement('div', {
 							className: `${scroller.scroller} ${scroller.systemPad} ${wrapper.messagesPopout}`,
 							scrollable: true,
-							children: toRender.children
+							children: data
 						})
 					)
 				);
@@ -292,19 +313,19 @@ var HideUtils = (() => {
 			}
 
 			openChannels() {
-				ModalStack.push(Modal, { name: 'Channels', channels: this.props.channels }, 'HideUtils-SettingsModal');
+				ModalStack.push(Modal, { name: 'Channels', data: this.props.channels }, 'HideUtils-SettingsModal');
 			}
 
 			openServers() {
-				ModalStack.push(Modal, { name: 'Servers', servers: this.props.servers }, 'HideUtils-SettingsModal');
+				ModalStack.push(Modal, { name: 'Servers', data: this.props.servers }, 'HideUtils-SettingsModal');
 			}
 
 			openUsers() {
-				ModalStack.push(Modal, { name: 'Users', users: this.props.users }, 'HideUtils-SettingsModal');
+				ModalStack.push(Modal, { name: 'Users', data: this.props.users }, 'HideUtils-SettingsModal');
 			}
 
 			openInstructions() {
-				ModalStack.push(Modal, { name: 'Instructions' }, 'HideUtils-SettingsModal');
+				ModalStack.push(Modal, { name: 'Instructions', data: null }, 'HideUtils-SettingsModal');
 			}
 
 			render() {
@@ -534,8 +555,9 @@ var HideUtils = (() => {
 				});
 			}
 
-			async patchTypingUsers() {
+			async patchTypingUsers(promiseState) {
 				const { component: TypingUsers } = await ReactComponents.getComponentByName('TypingUsers', DiscordSelectors.Typing.typing.toString()); // WebpackModules.getByDisplayName('FluxContainer(TypingUsers)');
+				if (promiseState.cancelled) return;
 				Patcher.before(TypingUsers.prototype, 'render', ({ props: { typingUsers } }) => {
 					for (const id in typingUsers) has.call(this.settings.users, id) && delete typingUsers[id];
 				}, { displayName: 'TypingUsers' });
@@ -597,6 +619,8 @@ var HideUtils = (() => {
 				Patcher.after(UserContextMenu.prototype, 'render', (that, args, value) => {
 					if (!DiscordModules.GuildStore.getGuild(DiscordModules.SelectedGuildStore.getGuildId())) return value;
 					const orig = this.getProps(value, 'props.children.props.children.props.children.0.props');
+					if (!orig) return;
+					
 					const item = new MenuItem({
 						label: 'Hide User',
 						action: () => {
