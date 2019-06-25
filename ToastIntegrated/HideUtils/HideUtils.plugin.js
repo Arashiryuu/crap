@@ -40,7 +40,7 @@ var HideUtils = (() => {
 					twitter_username: ''
 				}
 			],
-			version: '2.1.3',
+			version: '2.1.4',
 			description: 'Allows you to hide users, servers, and channels individually.',
 			github: 'https://github.com/Arashiryuu',
 			github_raw: 'https://raw.githubusercontent.com/Arashiryuu/crap/master/ToastIntegrated/HideUtils/HideUtils.plugin.js'
@@ -49,12 +49,7 @@ var HideUtils = (() => {
 			{
 				title: 'Evolving?',
 				type: 'improved',
-				items: ['Reworked plugin settings menu \u2014 now uses React, and creates a modal for managing what has been hidden.']
-			},
-			{
-				title: 'Bugs Squashed!',
-				type: 'fixed',
-				items: ['Fixed multiple active instances.']
+				items: ['Small changes to aid light-theme compatibility.']
 			}
 		]
 	};
@@ -230,7 +225,7 @@ var HideUtils = (() => {
 						children: [label, ' hidden \u2014 ', data.length]
 					});
 
-					data.unshift(count, React.createElement('hr', {}));
+					data.unshift(count, React.createElement('hr', { style: { border: 'none' } }));
 				} else {
 					data.push(
 						React.createElement('div', {
@@ -254,7 +249,7 @@ var HideUtils = (() => {
 									'\u2022 Right-click on a channel, server, or user.',
 									React.createElement('br', {}),
 									'\u2022\u2022 Left-click the hide option in the context-menu.',
-									React.createElement('hr', {}),
+									React.createElement('hr', { style: { border: 'none' } }),
 									TextElement.default({
 										weight: TextElement.Weights.BOLD,
 										color: TextElement.Colors.BRAND,
@@ -394,6 +389,9 @@ var HideUtils = (() => {
 				};
 				this.settings = Utilities.deepclone(this.default);
 				this.css = `
+					.theme-light #HideUtils-CloseButton {
+						fill: #72767d;
+					}
 					#HideUtils-CloseButton {
 						fill: white;
 						cursor: pointer;
