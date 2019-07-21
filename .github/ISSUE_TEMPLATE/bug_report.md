@@ -7,7 +7,7 @@ assignees: ''
 
 ---
 
-**Which plugin/theme is this about?**
+**Which plugin is this about?**
 <!-- A clear and concise description of what the bug is. -->
 
 **Describe the Bug**
