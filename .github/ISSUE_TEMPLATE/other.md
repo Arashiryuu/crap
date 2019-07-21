@@ -1,8 +1,8 @@
 ---
 name: Other
 about: For anything else.
-title: "[Other] "
-labels: ''
+title: '[Other] '
+labels: other
 assignees: ''
 
 ---
