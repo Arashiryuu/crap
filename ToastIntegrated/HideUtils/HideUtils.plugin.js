@@ -40,7 +40,7 @@ var HideUtils = (() => {
 					twitter_username: ''
 				}
 			],
-			version: '2.1.4',
+			version: '2.1.5',
 			description: 'Allows you to hide users, servers, and channels individually.',
 			github: 'https://github.com/Arashiryuu',
 			github_raw: 'https://raw.githubusercontent.com/Arashiryuu/crap/master/ToastIntegrated/HideUtils/HideUtils.plugin.js'
@@ -50,6 +50,11 @@ var HideUtils = (() => {
 				title: 'Evolving?',
 				type: 'improved',
 				items: ['Small changes to aid light-theme compatibility.']
+			},
+			{
+				title: 'Bugs Squashed!',
+				type: 'fixed',
+				items: ['Hides Servers again.']
 			}
 		]
 	};
@@ -500,9 +505,9 @@ var HideUtils = (() => {
 
 			onStart() {
 				this.promises.restore();
-				this.loadSettings(this.settings);
 				PluginUtilities.addStyle(this.short, this.css);
 				this.setup();
+				this.loadSettings(this.settings);
 				this.subscribe();
 				this.patchAll(this.promises.state);
 				Toasts.info(`${this.name} ${this.version} has started!`, { icon: true, timeout: 2e3 });
@@ -715,12 +720,12 @@ var HideUtils = (() => {
 				if (promiseState.cancelled) return;
 				Patcher.after(Guilds.prototype, 'render', (that, args, value) => {
 					const props = this.getProps(that, 'props');
-					if (!props.guilds || !Array.isArray(props.guilds)) return value;
+					if (!props.guildFolders || !Array.isArray(props.guildFolders)) return value;
 
 					const children = this.getProps(value, 'props.children.1.props.children');
 					if (!children || !Array.isArray(children)) return value;
 
-					const guildIndex = window.pluginCookie.OnlineFriendCount ? 5 : 4;
+					const guildIndex = children.findIndex((item) => Array.isArray(item));
 					const guilds = this.getProps(children, guildIndex.toString());
 					if (!guilds || !Array.isArray(guilds)) return value;
 
