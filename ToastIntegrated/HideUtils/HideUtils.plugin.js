@@ -40,7 +40,7 @@ var HideUtils = (() => {
 					twitter_username: ''
 				}
 			],
-			version: '2.1.5',
+			version: '2.1.6',
 			description: 'Allows you to hide users, servers, and channels individually.',
 			github: 'https://github.com/Arashiryuu',
 			github_raw: 'https://raw.githubusercontent.com/Arashiryuu/crap/master/ToastIntegrated/HideUtils/HideUtils.plugin.js'
@@ -49,12 +49,7 @@ var HideUtils = (() => {
 			{
 				title: 'Evolving?',
 				type: 'improved',
-				items: ['Small changes to aid light-theme compatibility.']
-			},
-			{
-				title: 'Bugs Squashed!',
-				type: 'fixed',
-				items: ['Hides Servers again.']
+				items: ['ServerFolders compatibility.']
 			}
 		]
 	};
@@ -597,12 +592,15 @@ var HideUtils = (() => {
 				if (promiseState.cancelled) return;
 				Patcher.after(GuildContextMenu.prototype, 'render', (that, args, value) => {
 					const orig = this.getProps(value, 'props.children.0.props');
+					const id = this.getProps(that, 'props.guild.id');
+
+					if (!orig || !id) return;
+
 					const item = new MenuItem({
 						label: 'Hide Server',
 						action: () => {
 							MenuActions.closeContextMenu();
-							const guild = this.getProps(that, 'props.guild');
-							this.servPush(guild.id);
+							this.servPush(id);
 						}
 					});
 
@@ -729,7 +727,13 @@ var HideUtils = (() => {
 					const guilds = this.getProps(children, guildIndex.toString());
 					if (!guilds || !Array.isArray(guilds)) return value;
 
-					children[guildIndex] = guilds.filter((guild) => !guild || !guild.key || !has.call(this.settings.servers, guild.key));
+					children[guildIndex] = guilds.filter((guild) => {
+						if (Array.isArray(guild.props.guildIds)) {
+							guild.props.guildIds = guild.props.guildIds.filter((id) => !has.call(this.settings.servers, id));
+							return true;
+						}
+						return !guild || !guild.key || !has.call(this.settings.servers, guild.key);
+					});
 
 					return value;
 				});
