@@ -40,20 +40,16 @@ var MemberCount = (() => {
 					twitter_username: ''
 				}
 			],
-			version: '2.1.0',
+			version: '2.1.1',
 			description: 'Displays a server\'s member-count at the top of the member-list, can be styled with the #MemberCount selector.',
 			github: 'https://github.com/Arashiryuu',
 			github_raw: 'https://raw.githubusercontent.com/Arashiryuu/crap/master/ToastIntegrated/MemberCount/MemberCount.plugin.js'
 		},
 		changelog: [
 			{
-				title: 'What\'s New?',
-				type: 'added',
-				items: [
-					'Moved to local library version.',
-					'Now renders in the memberlist using React.',
-					'Blacklist now fully handled within the context-menu \u2014 settings panel removed.'
-				]
+				title: 'Evolving?',
+				type: 'improved',
+				items: ['ServerFolders compatibility.']
 			}
 		]
 	};
@@ -205,7 +201,8 @@ var MemberCount = (() => {
 			}
 
 			async patchGuildContextMenu(state) {
-				const { component: Menu } = await ReactComponents.getComponentByName('GuildContextMenu', DiscordSelectors.ContextMenu.contextMenu.toString());
+				const Component = await ReactComponents.getComponentByName('GuildContextMenu', DiscordSelectors.ContextMenu.contextMenu.toString());
+				const { component: Menu } = Component;
 				
 				if (state.cancelled) return;
 
@@ -213,16 +210,10 @@ var MemberCount = (() => {
 					const orig = this.getProps(value, 'props.children.0.props');
 					const id = this.getProps(that, 'props.guild.id');
 
-					const has = this.settings.blacklist.includes(id);
-					const item = new MenuItem({
-						label: has ? 'Include Server' : 'Exclude Server',
-						hint: 'MCount',
-						action: () => {
-							MenuActions.closeContextMenu();
-							has ? this.unlistGuild(id) : this.blacklistGuild(id);
-							this.updateAll(true);
-						}
-					});
+					if (!orig || !id) return;
+
+					const data = this.parseId(id);
+					const item = new MenuItem(data);
 
 					if (Array.isArray(orig.children)) orig.children.splice(1, 0, item);
 					else orig.children = [orig.children], orig.children.splice(1, 0, item);
@@ -231,13 +222,7 @@ var MemberCount = (() => {
 					return value;
 				});
 
-				this.updateContextMenu();
-			}
-
-			updateContextMenu() {
-				const menus = document.querySelectorAll(DiscordSelectors.ContextMenu.contextMenu.toString());
-				if (!menus.length) return;
-				for (let i = 0, len = menus.length; i < len; i++) ReactTools.getOwnerInstance(menus[i]).forceUpdate();
+				Component.forceUpdateAll();
 			}
 
 			updateContextPosition(that) {
@@ -246,21 +231,34 @@ var MemberCount = (() => {
 				height && height();
 			}
 
+			parseId(id) {
+				const data = { label: 'Exclude Server', hint: 'MCount', action: () => this.blacklistGuild(id) };
+				if (this.settings.blacklist.includes(id)) data.label = 'Include Server', data.action = () => this.unlistGuild(id);
+				return data;
+			}
+
+			getLabel(id) {
+				return this.settings.blacklist.includes(id) ? 'Include Server' : 'Exclude Server';
+			}
+
 			blacklistGuild(id) {
 				if (!id) return;
+				MenuActions.closeContextMenu();
 				this.settings.blacklist.push(id);
 				this.saveSettings(this.settings.blacklist);
+				this.updateAll(true);
 			}
 
 			unlistGuild(id) {
 				if (!id) return;
+				MenuActions.closeContextMenu();
 				this.settings.blacklist.splice(this.settings.blacklist.indexOf(id), 1);
 				this.saveSettings(this.settings.blacklist);
+				this.updateAll(true);
 			}
 
 			updateAll(t) {
 				this.updateMemberList(t);
-				this.updateContextMenu();
 			}
 
 			/* Utility */
