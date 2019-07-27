@@ -66,45 +66,73 @@ var AllInsert = (() => {
 		const { ComponentDispatch: Dispatcher } = WebpackModules.getByProps('ComponentDispatch');
 
 		const has = Object.prototype.hasOwnProperty;
+		const chat = WebpackModules.getByProps('chat');
 		
 		return class AllInserts extends Plugin {
 			constructor() {
 				super();
 				this._css;
+				this.promises = {
+					state: { cancelled: false },
+					cancel() { this.state.cancelled = true; },
+					restore() { this.state.cancelled = false; }
+				};
+				this.values = {
+					'\\u200b': '​',
+					'>=':'\u2265',
+					'<=':'\u2264',
+					'\'\'\'':'```',
+					'==>':'\u21D2',
+					'=/=':'\u2260',
+					'/.l':'\u2190',
+					'/.u':'\u2191',
+					'/.r':'\u2192',
+					'/.d':'\u2193',
+					'/.>':'\u27A2',
+					'/.-':'\u2014',
+					'/..':'\u2022'
+				};
 			}
 
 			/* Methods */
 
 			onStart() {
+				this.promises.restore();
+				this.patchTextareaComponent(this.promises.state);
 				Toasts.info(`${this.name} ${this.version} has started!`, { icon: true, timeout: 2e3 });
-				this.patchTextareaComponent();
 			}
 
 			onStop() {
+				this.promises.cancel();
 				Patcher.unpatchAll();
 				Toasts.info(`${this.name} ${this.version} has stopped!`, { icon: true, timeout: 2e3 });
 			}
 
-			async patchTextareaComponent() {
-				const Textarea = await ReactComponents.getComponentByName('ChannelTextAreaForm', `${WebpackModules.getByProps('chat').chat.replace(/\s/, '.')} form`);
-				
-				Patcher.after(Textarea.component.prototype, 'componentDidUpdate', (that, args, value) => {
-					const state = this.getProps(that, 'state');
-					if (!state.textValue) return value;
+			async patchTextareaComponent(state) {
+				const TextForm = await ReactComponents.getComponentByName('ChannelTextAreaForm', `.${chat.chat.replace(/\s+/g, '.')} form`);
 
-					for (const key in this.values) {
-						if (state.textValue.includes(key)) that.handleTextareaChange(that, this.replaceStrings(state.textValue, key));
-					}
+				if (state.cancelled) return;
+				const { component: Textarea } = TextForm;
+				
+				Patcher.after(Textarea.prototype, 'componentDidUpdate', (that, args, value) => {
+					if (!that.state.textValue) return value;
+
+					for (const key of Object.keys(this.values)) this.processKey(that, key);
 					
 					return value;
 				});
 
-				Textarea.forceUpdateAll();
+				TextForm.forceUpdateAll();
+			}
+
+			processKey(that, key) {
+				const included = that.state.textValue.includes(key);
+				return included && that.handleTextareaChange(that, this.replaceStrings(that.state.textValue, key));
 			}
 
 			replaceStrings(string, key) {
 				if (!has.call(this.values, key)) return string;
-				return string.replace(new RegExp(key), this.values[key]);
+				return string.replace(key, this.values[key]);
 			}
 
 			/* Utility */
@@ -131,22 +159,6 @@ var AllInsert = (() => {
 
 			get [Symbol.toStringTag]() {
 				return 'Plugin';
-			}
-
-			get values() {
-				return {
-					'>=':'\u2265',
-					'<=':'\u2264',
-					'\'\'\'':'```',
-					'==>':'\u21D2',
-					'=/=':'\u2260',
-					'/.l':'\u2190',
-					'/.u':'\u2191',
-					'/.r':'\u2192',
-					'/.d':'\u2193',
-					'/.>':'\u27A2',
-					'/.-':'\u2014'
-				};
 			}
 
 			get css() {
@@ -179,7 +191,7 @@ var AllInsert = (() => {
 			get description() {
 				return config.info.description;
 			}
-		}
+		};
 	};
 
 	/* Finalize */
