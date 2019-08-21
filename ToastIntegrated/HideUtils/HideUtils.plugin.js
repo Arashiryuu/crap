@@ -40,7 +40,7 @@ var HideUtils = (() => {
 					twitter_username: ''
 				}
 			],
-			version: '2.1.7',
+			version: '2.1.8',
 			description: 'Allows you to hide users, servers, and channels individually.',
 			github: 'https://github.com/Arashiryuu',
 			github_raw: 'https://raw.githubusercontent.com/Arashiryuu/crap/master/ToastIntegrated/HideUtils/HideUtils.plugin.js'
@@ -49,7 +49,12 @@ var HideUtils = (() => {
 			{
 				title: 'Evolving?',
 				type: 'improved',
-				items: ['Now unrenders Folders, Categories, and Role Sections when their children are all hidden.']
+				items: [
+					[
+						'Can now unhide all channels of a guild, temporarily or permanently, with a toggle item.',
+						'When unhidden, previously hidden channels can be unhidden once more to remain unhidden when the toggle is deactivated.'
+					].join('\n\n')
+				]
 			}
 		]
 	};
@@ -87,6 +92,7 @@ var HideUtils = (() => {
 		
 		const has = Object.prototype.hasOwnProperty;
 		const MenuItem = WebpackModules.getByString('disabled', 'brand');
+		const ToggleMenuItem = WebpackModules.getByString('disabled', 'itemToggle');
 		const guilds = WebpackModules.getByProps('wrapper', 'unreadMentionsIndicatorTop');
 		const buttons = WebpackModules.getByProps('button');
 		const positionedContainer = WebpackModules.getByProps('positionedContainer');
@@ -182,6 +188,8 @@ var HideUtils = (() => {
 
 				if (this.props.data) {
 					for (const entry of Object.values(this.props.data)) {
+						if (Array.isArray(entry)) continue;
+
 						const item = React.createElement(TooltipWrapper, {
 							text: this.replaceLabels(label, entry),
 							color: TooltipWrapper.Colors.BLACK,
@@ -383,7 +391,7 @@ var HideUtils = (() => {
 				};
 				this.default = {
 					channels: {},
-					servers: {},
+					servers: { unhidden: [] },
 					users: {},
 					hideBlocked: true
 				};
@@ -566,19 +574,33 @@ var HideUtils = (() => {
 				if (promiseState.cancelled) return;
 				Patcher.after(ChannelContextMenu.prototype, 'render', (that, args, value) => {
 					if (!that.props.type.startsWith('CHANNEL_LIST_')) return value;
+					const channel = this.getProps(that, 'props.channel');
 
 					const orig = this.getProps(value, 'props.children.0.props');
-					const item = new MenuItem({
-						label: 'Hide Channel',
-						action: () => {
-							MenuActions.closeContextMenu();
-							const channel = this.getProps(that, 'props.channel');
-							this.chanPush(channel.id);
-						}
-					});
 
-					if (Array.isArray(orig.children)) orig.children.unshift(item);
-					else orig.children = [item, orig.children];
+					if (this.settings.servers.unhidden.includes(channel.guild_id)) {
+						const unhideItem = new MenuItem({
+							label: 'Unhide Channel',
+							action: () => {
+								MenuActions.closeContextMenu();
+								this.chanClear(channel.id);
+							}
+						});
+
+						if (Array.isArray(orig.children)) orig.children.unshift(unhideItem);
+						else orig.children = [unhideItem, orig.children];
+					} else {
+						const item = new MenuItem({
+							label: 'Hide Channel',
+							action: () => {
+								MenuActions.closeContextMenu();
+								this.chanPush(channel.id);
+							}
+						});
+
+						if (Array.isArray(orig.children)) orig.children.unshift(item);
+						else orig.children = [item, orig.children];
+					}
 
 					setImmediate(() => this.updateContextPosition(that));
 
@@ -593,19 +615,29 @@ var HideUtils = (() => {
 				Patcher.after(GuildContextMenu.prototype, 'render', (that, args, value) => {
 					const orig = this.getProps(value, 'props.children.0.props');
 					const id = this.getProps(that, 'props.guild.id');
+					const active = this.settings.servers.unhidden.includes(id);
 
 					if (!orig || !id) return;
 
-					const item = new MenuItem({
+					const hideItem = new MenuItem({
 						label: 'Hide Server',
 						action: () => {
 							MenuActions.closeContextMenu();
 							this.servPush(id);
+							this.clearUnhiddenChannels(id);
 						}
 					});
 
-					if (Array.isArray(orig.children)) orig.children.unshift(item);
-					else orig.children = [item, orig.children];
+					const unhideItem = new ToggleMenuItem({
+						label: 'Unhide Channels',
+						active: active,
+						action: () => {
+							this.servUnhideChannels(id);
+						}
+					});
+
+					if (Array.isArray(orig.children)) orig.children.unshift(hideItem, unhideItem);
+					else orig.children = [hideItem, unhideItem, orig.children];
 
 					setImmediate(() => this.updateContextPosition(that));
 
@@ -794,6 +826,9 @@ var HideUtils = (() => {
 					const children = this.getProps(value, 'props.children.0.props.children.1.2');
 					if (!children || !Array.isArray(children)) return value;
 
+					const guildId = this.getProps(children, '0.0.props.channel.guild_id');
+					if (this.settings.servers.unhidden.includes(guildId)) return value;
+
 					for (let i = 0, len = children.length; i < len; i++) {
 						if (!children[i] || !Array.isArray(children[i])) continue;
 						// If the category naturally has no children, do not unrender
@@ -851,6 +886,26 @@ var HideUtils = (() => {
 				Toasts.info('User has been unhidden.', { icon: true, timeout: 3e3 });
 				this.saveSettings(this.settings);
 				return this.updateAll();
+			}
+
+			clearUnhiddenChannels(id) {
+				if (!id || !this.settings.servers.unhidden.includes(id)) return false;
+				this.settings.servers.unhidden.splice(this.settings.servers.unhidden.indexOf(id), 1);
+				return true;
+			}
+
+			pushToUnhiddenChannels(id) {
+				if (!id || this.settings.servers.unhidden.includes(id)) return false;
+				this.settings.servers.unhidden.push(id);
+				return true;
+			}
+
+			servUnhideChannels(id) {
+				if (!id) return;
+				if (!this.clearUnhiddenChannels(id) && !this.pushToUnhiddenChannels(id)) return;
+
+				this.saveSettings(this.settings);
+				this.updateAll();
 			}
 
 			servPush(id) {
