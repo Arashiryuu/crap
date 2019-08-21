@@ -40,7 +40,7 @@ var HideUtils = (() => {
 					twitter_username: ''
 				}
 			],
-			version: '2.1.8',
+			version: '2.1.9',
 			description: 'Allows you to hide users, servers, and channels individually.',
 			github: 'https://github.com/Arashiryuu',
 			github_raw: 'https://raw.githubusercontent.com/Arashiryuu/crap/master/ToastIntegrated/HideUtils/HideUtils.plugin.js'
@@ -51,9 +51,14 @@ var HideUtils = (() => {
 				type: 'improved',
 				items: [
 					[
-						'Can now unhide all channels of a guild, temporarily or permanently, with a toggle item.',
+						'Can now purge a guild of all its hidden channels.',
+						'Once purged, any channels that you wish to hide must be rehidden.',
+						'\n'
+					].join('\n'),
+					[
+						'Can now toggle whether or not to display the hidden channels of a guild.',
 						'When unhidden, previously hidden channels can be unhidden once more to remain unhidden when the toggle is deactivated.'
-					].join('\n\n')
+					].join('\n')
 				]
 			}
 		]
@@ -636,8 +641,16 @@ var HideUtils = (() => {
 						}
 					});
 
-					if (Array.isArray(orig.children)) orig.children.unshift(hideItem, unhideItem);
-					else orig.children = [hideItem, unhideItem, orig.children];
+					const clearItem = new MenuItem({
+						label: 'Purge Hidden Channels',
+						action: () => {
+							MenuActions.closeContextMenu();
+							this.chanPurge(id);
+						}
+					});
+
+					if (Array.isArray(orig.children)) orig.children.unshift(hideItem, clearItem, unhideItem);
+					else orig.children = [hideItem, clearItem, unhideItem, orig.children];
 
 					setImmediate(() => this.updateContextPosition(that));
 
@@ -944,6 +957,19 @@ var HideUtils = (() => {
 					guild: guild.name
 				};
 				Toasts.info('Channel has successfully been hidden.', { icon: true, timeout: 3e3 });
+				this.saveSettings(this.settings);
+				this.updateAll();
+			}
+
+			chanPurge(guildId) {
+				const guild = this.guild(guildId);
+				const channels = Object.values(this.settings.channels).filter((chan) => {
+					const c = this.channel(chan.id);
+					if (!c) return false;
+					return c.guild_id === guildId;
+				});
+				for (const channel of channels) delete this.settings.channels[channel.id];
+				Toasts.info(`Channel purge for ${guild.name.trim()} was successful.`, { icon: true, timeout: 3e3 });
 				this.saveSettings(this.settings);
 				this.updateAll();
 			}
