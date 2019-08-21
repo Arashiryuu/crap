@@ -40,16 +40,16 @@ var HideServersChannelsRedux = (() => {
 					twitter_username: ''
 				}
 			],
-			version: '1.0.11',
+			version: '1.1.0',
 			description: 'Adds buttons to the header for hiding the servers list and channels list.',
 			github: 'https://github.com/Arashiryuu',
 			github_raw: 'https://raw.githubusercontent.com/Arashiryuu/crap/master/ToastIntegrated/HideServersChannelsRedux/HideServersChannelsRedux.plugin.js'
 		},
 		changelog: [
 			{
-				title: 'Bugs Squashed!',
-				type: 'fixed',
-				items: ['No longer causes Discord to crash after their latest update.', 'Buttons render in the header again.']
+				title: 'Evolving?',
+				type: 'improved',
+				items: ['Added toggle for plugin\'s own CSS animations.']
 			}
 		]
 	};
@@ -66,7 +66,7 @@ var HideServersChannelsRedux = (() => {
 	/* Build */
 
 	const buildPlugin = ([Plugin, Api]) => {
-		const { Toasts, Logger, Patcher, DOMTools, Settings, ReactTools, DiscordModules, WebpackModules, DiscordSelectors } = Api;
+		const { Toasts, Logger, Patcher, DOMTools, Settings, ReactTools, DiscordModules, WebpackModules, DiscordSelectors, PluginUtilities } = Api;
 		const { SettingPanel, SettingGroup, Switch } = Settings;
 
 		const has = Object.prototype.hasOwnProperty;
@@ -167,28 +167,14 @@ var HideServersChannelsRedux = (() => {
 		return class HideServersChannelsRedux extends Plugin {
 			constructor() {
 				super();
-				this.default = { keybinds: false };
+				this.default = { keybinds: false, animations: true };
 				this.settings = Object.assign({}, this.default);
 				this._css;
 				this.keyFns = {
 					c: () => this.onChannelButtonClick(),
 					g: () => this.onServerButtonClick()
 				};
-				this.css = `
-					._closed {
-						display: none;
-					}
-
-					.closing {
-						animation: close 400ms linear;
-					}
-
-					.opening {
-						animation: open 400ms linear;
-					}
-
-					/* Animations */
-
+				this.animationCSS = `
 					@keyframes close {
 						to {
 							width: 0;
@@ -201,13 +187,26 @@ var HideServersChannelsRedux = (() => {
 						}
 					}
 				`;
+				this.css = `
+					._closed {
+						display: none;
+					}
+
+					.closing {
+						animation: close 400ms linear;
+					}
+
+					.opening {
+						animation: open 400ms linear;
+					}
+				`;
 			}
 
 			/* Methods */
 
 			onStart() {
 				this.loadSettings(this.settings);
-				BdApi.injectCSS(this.short, this.css);
+				this.handleCSS();
 				this.patchHeader();
 				this.handleKeybinds();
 				Toasts.info(`${this.name} ${this.version} has started!`, { icon: true, timeout: 2e3 });
@@ -217,8 +216,15 @@ var HideServersChannelsRedux = (() => {
 				Patcher.unpatchAll();
 				this.updateHeader();
 				this.removeKeybinds();
-				BdApi.clearCSS(this.short);
+				PluginUtilities.removeStyle(this.short);
 				Toasts.info(`${this.name} ${this.version} has stopped!`, { icon: true, timeout: 2e3 });
+			}
+
+			handleCSS() {
+				const css = this.settings.animations ? [this.css.trim(), this.animationCSS.trim()].join('\n') : this.css;
+				const sheet = document.getElementById(this.short);
+				if (sheet) sheet.remove();
+				PluginUtilities.addStyle(this.short, css);
 			}
 
 			removeKeybinds() {
@@ -243,6 +249,7 @@ var HideServersChannelsRedux = (() => {
 			}
 
 			closeElement(el) {
+				if (!this.settings.animations) return DOMTools.addClass(el, '_closed');
 				DOMTools.addClass(el, 'closing');
 				setTimeout(() => {
 					DOMTools.addClass(el, '_closed');
@@ -251,6 +258,7 @@ var HideServersChannelsRedux = (() => {
 			}
 
 			openElement(el) {
+				if (!this.settings.animations) return DOMTools.removeClass(el, '_closed');
 				el.style.width = '0';
 				DOMTools.removeClass(el, '_closed');
 				DOMTools.addClass(el, 'opening');
@@ -334,6 +342,10 @@ var HideServersChannelsRedux = (() => {
 						new Switch('Enable Keybinds', 'Guilds: Alt + G. Channels: Alt + C.', this.settings.keybinds, (i) => {
 							this.settings.keybinds = i;
 							this.handleKeybinds();
+						}),
+						new Switch('Use Animations', 'Whether or not to use the opening/closing animations.', this.settings.animations, (i) => {
+							this.settings.animations = i;
+							this.handleCSS();
 						})
 					)
 				);
