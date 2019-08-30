@@ -1075,7 +1075,31 @@ var HideUtils = (() => {
 		}
 
 		load() {
-			window.BdApi.getCore().alert('Missing Library', `The library plugin needed for ${config.info.name} is missing.<br /><br /> <a href="https://betterdiscord.net/ghdl?url=https://raw.githubusercontent.com/rauenzi/BDPluginLibrary/master/release/0PluginLibrary.plugin.js" target="_blank">Click here to download the library!</a>`);
+			const title = 'Library Missing';
+			const ModalStack = window.BdApi.findModuleByProps('push', 'update', 'pop', 'popWithKey');
+			const TextElement = window.BdApi.findModuleByProps('Sizes', 'Weights');
+			const ConfirmationModal = window.BdApi.findModule((m) => m.defaultProps && m.key && m.key() === 'confirm-modal');
+			if (!ModalStack || !ConfirmationModal || !TextElement) return window.BdApi.getCore().alert(title, `The library plugin needed for ${config.info.name} is missing.<br /><br /> <a href="https://betterdiscord.net/ghdl?url=https://raw.githubusercontent.com/rauenzi/BDPluginLibrary/master/release/0PluginLibrary.plugin.js" target="_blank">Click here to download the library!</a>`);
+			ModalStack.push(function(props) {
+				return window.BdApi.React.createElement(ConfirmationModal, Object.assign({
+					header: title,
+					children: [
+						TextElement({
+							color: TextElement.Colors.PRIMARY,
+							children: [`The library plugin needed for ${config.info.name} is missing. Please click Download Now to install it.`]
+						})
+					],
+					red: false,
+					confirmText: 'Download Now',
+					cancelText: 'Cancel',
+					onConfirm: () => {
+						require('request').get('https://rauenzi.github.io/BDPluginLibrary/release/0PluginLibrary.plugin.js', async (error, response, body) => {
+							if (error) return require('electron').shell.openExternal('https://betterdiscord.net/ghdl?url=https://raw.githubusercontent.com/rauenzi/BDPluginLibrary/master/release/0PluginLibrary.plugin.js');
+							await new Promise(r => require('fs').writeFile(require('path').join(window.ContentManager.pluginsFolder, '0PluginLibrary.plugin.js'), body, r));
+						});
+					}
+				}, props));
+			});
 		}
 
 		start() {
