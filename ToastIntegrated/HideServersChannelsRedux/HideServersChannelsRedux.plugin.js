@@ -40,7 +40,7 @@ var HideServersChannelsRedux = (() => {
 					twitter_username: ''
 				}
 			],
-			version: '1.1.0',
+			version: '1.1.1',
 			description: 'Adds buttons to the header for hiding the servers list and channels list.',
 			github: 'https://github.com/Arashiryuu',
 			github_raw: 'https://raw.githubusercontent.com/Arashiryuu/crap/master/ToastIntegrated/HideServersChannelsRedux/HideServersChannelsRedux.plugin.js'
@@ -209,7 +209,7 @@ var HideServersChannelsRedux = (() => {
 				this.handleCSS();
 				this.patchHeader();
 				this.handleKeybinds();
-				Toasts.info(`${this.name} ${this.version} has started!`, { icon: true, timeout: 2e3 });
+				Toasts.info(`${this.name} ${this.version} has started!`, { timeout: 2e3 });
 			}
 
 			onStop() {
@@ -217,7 +217,7 @@ var HideServersChannelsRedux = (() => {
 				this.updateHeader();
 				this.removeKeybinds();
 				PluginUtilities.removeStyle(this.short);
-				Toasts.info(`${this.name} ${this.version} has stopped!`, { icon: true, timeout: 2e3 });
+				Toasts.info(`${this.name} ${this.version} has stopped!`, { timeout: 2e3 });
 			}
 
 			handleCSS() {
@@ -260,8 +260,7 @@ var HideServersChannelsRedux = (() => {
 			openElement(el) {
 				if (!this.settings.animations) return DOMTools.removeClass(el, '_closed');
 				el.style.width = '0';
-				DOMTools.removeClass(el, '_closed');
-				DOMTools.addClass(el, 'opening');
+				DOMTools.replaceClass(el, '_closed', 'opening');
 				el.style.width = '';
 				setTimeout(() => DOMTools.removeClass(el, 'opening'), 400);
 			}
@@ -274,9 +273,7 @@ var HideServersChannelsRedux = (() => {
 				
 				if (!button) return;
 
-				const { selected } = icons;
-
-				DOMTools.toggleClass(button.parentElement, selected);
+				DOMTools.toggleClass(button.parentElement, icons.selected);
 
 				if (this.isNotClosed(element)) return this.closeElement(element);
 
@@ -290,9 +287,7 @@ var HideServersChannelsRedux = (() => {
 				
 				if (!button) return;
 
-				const { selected } = icons;
-
-				DOMTools.toggleClass(button.parentElement, selected);
+				DOMTools.toggleClass(button.parentElement, icons.selected);
 
 				if (this.isNotClosed(element)) return this.closeElement(element);
 
@@ -398,26 +393,22 @@ var HideServersChannelsRedux = (() => {
 
 	/* Finalize */
 
-	return !global.ZeresPluginLibrary
+	return !global.ZeresPluginLibrary 
 		? class {
-			constructor() {
-				this.initialized = false;
-			}
-
 			getName() {
-				return this.name.replace(/\s+/g, '');
+				return config.info.name.replace(/\s+/g, '');
 			}
 
 			getAuthor() {
-				return this.author;
+				return config.info.authors.map((author) => author.name).join(', ');
 			}
 
 			getVersion() {
-				return this.version;
+				return config.info.version;
 			}
 
 			getDescription() {
-				return this.description;
+				return config.info.description;
 			}
 
 			stop() {
@@ -425,7 +416,31 @@ var HideServersChannelsRedux = (() => {
 			}
 
 			load() {
-				window.BdApi.alert('Missing Library', `The library plugin needed for ${config.info.name} is missing.<br /><br /> <a href="https://betterdiscord.net/ghdl?url=https://raw.githubusercontent.com/rauenzi/BDPluginLibrary/master/release/0PluginLibrary.plugin.js">Click here to download the library!</a>`);
+				const title = 'Library Missing';
+				const ModalStack = window.BdApi.findModuleByProps('push', 'update', 'pop', 'popWithKey');
+				const TextElement = window.BdApi.findModuleByProps('Sizes', 'Weights');
+				const ConfirmationModal = window.BdApi.findModule((m) => m.defaultProps && m.key && m.key() === 'confirm-modal');
+				if (!ModalStack || !ConfirmationModal || !TextElement) return window.BdApi.getCore().alert(title, `The library plugin needed for ${config.info.name} is missing.<br /><br /> <a href="https://betterdiscord.net/ghdl?url=https://raw.githubusercontent.com/rauenzi/BDPluginLibrary/master/release/0PluginLibrary.plugin.js" target="_blank">Click here to download the library!</a>`);
+				ModalStack.push(function(props) {
+					return window.BdApi.React.createElement(ConfirmationModal, Object.assign({
+						header: title,
+						children: [
+							TextElement({
+								color: TextElement.Colors.PRIMARY,
+								children: [`The library plugin needed for ${config.info.name} is missing. Please click Download Now to install it.`]
+							})
+						],
+						red: false,
+						confirmText: 'Download Now',
+						cancelText: 'Cancel',
+						onConfirm: () => {
+							require('request').get('https://rauenzi.github.io/BDPluginLibrary/release/0PluginLibrary.plugin.js', async (error, response, body) => {
+								if (error) return require('electron').shell.openExternal('https://betterdiscord.net/ghdl?url=https://raw.githubusercontent.com/rauenzi/BDPluginLibrary/master/release/0PluginLibrary.plugin.js');
+								await new Promise(r => require('fs').writeFile(require('path').join(window.ContentManager.pluginsFolder, '0PluginLibrary.plugin.js'), body, r));
+							});
+						}
+					}, props));
+				});
 			}
 
 			start() {
@@ -438,10 +453,6 @@ var HideServersChannelsRedux = (() => {
 				return 'Plugin';
 			}
 
-			get name() {
-				return config.info.name;
-			}
-
 			get short() {
 				let string = '';
 
@@ -451,18 +462,6 @@ var HideServersChannelsRedux = (() => {
 				}
 
 				return string;
-			}
-
-			get author() {
-				return config.info.authors.map((author) => author.name).join(', ');
-			}
-
-			get version() {
-				return config.info.version;
-			}
-
-			get description() {
-				return config.info.description;
 			}
 		}
 		: buildPlugin(global.ZeresPluginLibrary.buildPlugin(config));
