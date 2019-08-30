@@ -40,7 +40,7 @@ var HideUtils = (() => {
 					twitter_username: ''
 				}
 			],
-			version: '2.1.9',
+			version: '2.1.10',
 			description: 'Allows you to hide users, servers, and channels individually.',
 			github: 'https://github.com/Arashiryuu',
 			github_raw: 'https://raw.githubusercontent.com/Arashiryuu/crap/master/ToastIntegrated/HideUtils/HideUtils.plugin.js'
@@ -518,7 +518,7 @@ var HideUtils = (() => {
 				this.loadSettings(this.settings);
 				this.subscribe();
 				this.patchAll(this.promises.state);
-				Toasts.info(`${this.name} ${this.version} has started!`, { icon: true, timeout: 2e3 });
+				Toasts.info(`${this.name} ${this.version} has started!`, { timeout: 2e3 });
 			}
 
 			onStop() {
@@ -527,7 +527,7 @@ var HideUtils = (() => {
 				this.unsubscribe();
 				Patcher.unpatchAll();
 				this.updateAll();
-				Toasts.info(`${this.name} ${this.version} has stopped!`, { icon: true, timeout: 2e3 });
+				Toasts.info(`${this.name} ${this.version} has stopped!`, { timeout: 2e3 });
 			}
 
 			patchAll(promiseState) {
@@ -878,25 +878,25 @@ var HideUtils = (() => {
 			userPush(id) {
 				if (!id) return;
 				const user = this.user(id);
-				if (!user) return Toasts.error('Unable to find user to hide.', { icon: true, timeout: 3e3 });
-				if (has.call(this.settings.users, user.id)) return Toasts.info('This user is already being hidden.', { icon: true, timeout: 3e3 });
-				if (id === DiscordModules.UserInfoStore.getId()) return Toasts.info('You cannot hide yourself.', { icon: true, timeout: 3e3 });
+				if (!user) return Toasts.error('Unable to find user to hide.', { timeout: 3e3 });
+				if (has.call(this.settings.users, user.id)) return Toasts.info('This user is already being hidden.', { timeout: 3e3 });
+				if (id === DiscordModules.UserInfoStore.getId()) return Toasts.info('You cannot hide yourself.', { timeout: 3e3 });
 				this.settings.users[user.id] = {
 					id: user.id,
 					tag: user.tag,
 					icon: user.getAvatarURL()
 				};
-				Toasts.info('User is now being hidden!', { icon: true, timeout: 3e3 });
+				Toasts.info('User is now being hidden!', { timeout: 3e3 });
 				this.saveSettings(this.settings);
 				this.updateAll();
 			}
 
 			userClear(id) {
 				if (!id) return;
-				if (!has.call(this.settings.users, id)) return Toasts.info('This user is not being hidden.', { icon: true, timeout: 3e3 });
+				if (!has.call(this.settings.users, id)) return Toasts.info('This user is not being hidden.', { timeout: 3e3 });
 				try { this.mute(id, 100); } catch(e) { err(e); }
 				delete this.settings.users[id];
-				Toasts.info('User has been unhidden.', { icon: true, timeout: 3e3 });
+				Toasts.info('User has been unhidden.', { timeout: 3e3 });
 				this.saveSettings(this.settings);
 				return this.updateAll();
 			}
@@ -923,7 +923,7 @@ var HideUtils = (() => {
 
 			servPush(id) {
 				if (!id) return;
-				if (has.call(this.settings.servers, id)) return Toasts.info('That server is already being hidden.', { icon: true, timeout: 3e3 });
+				if (has.call(this.settings.servers, id)) return Toasts.info('That server is already being hidden.', { timeout: 3e3 });
 				const guild = this.guild(id);
 				if (!guild) return Toasts.info('Unable to find server to hide.');
 				this.settings.servers[id] = {
@@ -931,32 +931,32 @@ var HideUtils = (() => {
 					name: guild.name,
 					icon: guild.getIconURL()
 				};
-				Toasts.info('Server has successfully been hidden.', { icon: true, timeout: 3e3 });
+				Toasts.info('Server has successfully been hidden.', { timeout: 3e3 });
 				this.saveSettings(this.settings);
 				this.updateAll();
 			}
 
 			servClear(id) {
 				if (!id) return;
-				if (!has.call(this.settings.servers, id)) return Toasts.info('That server is not currently being hidden.', { icon: true, timeout: 3e3 });
+				if (!has.call(this.settings.servers, id)) return Toasts.info('That server is not currently being hidden.', { timeout: 3e3 });
 				delete this.settings.servers[id];
-				Toasts.info('Server successfully removed!', { icon: true, timeout: 3e3 });
+				Toasts.info('Server successfully removed!', { timeout: 3e3 });
 				this.saveSettings(this.settings);
 				this.updateAll();
 			}
 
 			chanPush(id) {
 				if (!id) return;
-				if (has.call(this.settings.channels, id)) return Toasts.info('This channel is already being hidden.', { icon: true, timeout: 3e3 });
+				if (has.call(this.settings.channels, id)) return Toasts.info('This channel is already being hidden.', { timeout: 3e3 });
 				const channel = this.channel(id);
-				if (!channel) return Toasts.info('Unable to find channel to hide.', { icon: true, timeout: 3e3 });
+				if (!channel) return Toasts.info('Unable to find channel to hide.', { timeout: 3e3 });
 				const guild = this.guild(channel.guild_id);
 				this.settings.channels[id] = {
 					id: channel.id,
 					name: channel.name,
 					guild: guild.name
 				};
-				Toasts.info('Channel has successfully been hidden.', { icon: true, timeout: 3e3 });
+				Toasts.info('Channel has successfully been hidden.', { timeout: 3e3 });
 				this.saveSettings(this.settings);
 				this.updateAll();
 			}
@@ -969,16 +969,16 @@ var HideUtils = (() => {
 					return c.guild_id === guildId;
 				});
 				for (const channel of channels) delete this.settings.channels[channel.id];
-				Toasts.info(`Channel purge for ${guild.name.trim()} was successful.`, { icon: true, timeout: 3e3 });
+				Toasts.info(`Channel purge for ${guild.name.trim()} was successful.`, { timeout: 3e3 });
 				this.saveSettings(this.settings);
 				this.updateAll();
 			}
 
 			chanClear(id) {
 				if (!id) return;
-				if (!has.call(this.settings.channels, id)) return Toasts.info('This channel is not currently being hidden.', { icon: true, timeout: 3e3 });
+				if (!has.call(this.settings.channels, id)) return Toasts.info('This channel is not currently being hidden.', { timeout: 3e3 });
 				delete this.settings.channels[id];
-				Toasts.info('Channel successfully removed.', { icon: true, timeout: 3e3 });
+				Toasts.info('Channel successfully removed.', { timeout: 3e3 });
 				this.saveSettings(this.settings);
 				this.updateAll();
 			}
@@ -1075,7 +1075,7 @@ var HideUtils = (() => {
 		}
 
 		load() {
-			window.BdApi.alert('Missing Library', `The library plugin needed for ${config.info.name} is missing.<br /><br /> <a href="https://betterdiscord.net/ghdl?url=https://raw.githubusercontent.com/rauenzi/BDPluginLibrary/master/release/0PluginLibrary.plugin.js" target="_blank">Click here to download the library!</a>`);
+			window.BdApi.getCore().alert('Missing Library', `The library plugin needed for ${config.info.name} is missing.<br /><br /> <a href="https://betterdiscord.net/ghdl?url=https://raw.githubusercontent.com/rauenzi/BDPluginLibrary/master/release/0PluginLibrary.plugin.js" target="_blank">Click here to download the library!</a>`);
 		}
 
 		start() {
