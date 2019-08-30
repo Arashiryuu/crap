@@ -40,7 +40,7 @@ var MessageTimestampsRedux = (() => {
 					twitter_username: ''
 				}
 			],
-			version: '1.0.5',
+			version: '1.0.6',
 			description: 'Displays the timestamp for a message, simply right-click and select "Show Timestamp."',
 			github: 'https://github.com/Arashiryuu',
 			github_raw: 'https://raw.githubusercontent.com/Arashiryuu/crap/master/ToastIntegrated/MessageTimestampsRedux/MessageTimestampsRedux.plugin.js'
@@ -75,7 +75,7 @@ var MessageTimestampsRedux = (() => {
 	/* Build */
 
 	const buildPlugin = ([Plugin, Api]) => {
-		const { Toasts, Logger, Tooltip, Patcher, Settings, Utilities, ReactTools, DOMTools, EmulatedTooltip, ReactComponents, DiscordModules, WebpackModules, DiscordClassModules, DiscordSelectors } = Api;
+		const { Toasts, Logger, Tooltip, Patcher, Settings, Utilities, ReactTools, DOMTools, EmulatedTooltip, ReactComponents, DiscordModules, WebpackModules, DiscordClassModules, DiscordSelectors, PluginUtilities } = Api;
 		const { SettingPanel, SettingGroup, RadioGroup, Slider, Switch } = Settings;
 
 		const Item = class Item extends DiscordModules.React.Component {
@@ -99,6 +99,7 @@ var MessageTimestampsRedux = (() => {
 		return class MessageTimestampsRedux extends Plugin {
 			constructor() {
 				super();
+				this._css;
 				this.promises = {
 					state: { cancelled: false },
 					cancel() { this.state.cancelled = true; },
@@ -122,7 +123,7 @@ var MessageTimestampsRedux = (() => {
 				this.promises.restore();
 				this.loadSettings(this.settings);
 				this.getContextMenu(this.promises.state).catch((err) => this.didError(err));
-				Toasts.info(`${this.name} ${this.version} has started!`, { icon: true, timeout: 2e3 });
+				Toasts.info(`${this.name} ${this.version} has started!`, { timeout: 2e3 });
 			}
 
 			/**
@@ -132,7 +133,7 @@ var MessageTimestampsRedux = (() => {
 			onStop() {
 				this.promises.cancel();
 				Patcher.unpatchAll();
-				Toasts.info(`${this.name} ${this.version} has stopped!`, { icon: true, timeout: 2e3 });
+				Toasts.info(`${this.name} ${this.version} has stopped!`, { timeout: 2e3 });
 			}
 
 			/**
@@ -140,7 +141,7 @@ var MessageTimestampsRedux = (() => {
 			 * @returns {Void}
 			 */
 			didError(error) {
-				Toasts.error(error.message, { icon: true, timeout: 2e3 });
+				Toasts.error(error.message, { timeout: 2e3 });
 				Logger.err(error);
 			}
 			
@@ -211,8 +212,8 @@ var MessageTimestampsRedux = (() => {
 				const node = DiscordModules.ReactDOM.findDOMNode(that);
 				const { target } = that.props;
 
-				if (!node) return Toasts.error('Unable to find the context-menu.', { icon: true, timeout: 2e3 });
-				if (!target) return Toasts.error('Unable to find the message.', { icon: true, timeout: 2e3 });
+				if (!node) return Toasts.error('Unable to find the context-menu.', { timeout: 2e3 });
+				if (!target) return Toasts.error('Unable to find the message.', { timeout: 2e3 });
 
 				/**
 				 * @type {String}
@@ -243,7 +244,7 @@ var MessageTimestampsRedux = (() => {
 				 */
 				const node = DiscordModules.ReactDOM.findDOMNode(that);
 
-				if (!node) return Toasts.error('Unable to find the context-menu.', { icon: true, timeout: 2e3 });
+				if (!node) return Toasts.error('Unable to find the context-menu.', { timeout: 2e3 });
 
 				if (!this.settings.shortened) Toasts.show(ts, { timeout: this.settings.displayTime });
 				else Toasts.show(String(ts).split(' ').slice(0, 5).join(' '), { timeout: this.settings.displayTime });
@@ -294,7 +295,7 @@ var MessageTimestampsRedux = (() => {
 						], (i) => {
 							this.settings.tooltips = i;
 						}),
-						new Slider('Timestamp Display Length', 'How long to display the timestamps for. Default is 2000ms which is 2 seconds.', 1000, 10000, this.settings.displayTime, (i) => {
+						new Slider('Timestamp Display Length', 'How long to display the timestamps for. Default is 2000ms which is 2 seconds. Minimum is 1000ms, maximum is 10000ms.', 1000, 10000, this.settings.displayTime, (i) => {
 							this.settings.displayTime = i;
 						}, {
 							markers: [1000, 2000, 3000, 4000, 5000, 6000, 7000, 8000, 9000, 10000],
@@ -303,11 +304,21 @@ var MessageTimestampsRedux = (() => {
 					)
 				);
 			}
+			
+			/* Setters */
+
+			set css(style = '') {
+				return this._css = style.split(/\s+/g).join(' ').trim();
+			}
 
 			/* Getters */
 
 			get [Symbol.toStringTag]() {
 				return 'Plugin';
+			}
+
+			get css() {
+				return this._css;
 			}
 
 			get name() {
@@ -364,7 +375,31 @@ var MessageTimestampsRedux = (() => {
 			}
 
 			load() {
-				window.BdApi.alert('Missing Library', `The library plugin needed for ${config.info.name} is missing.<br /><br /> <a href="https://betterdiscord.net/ghdl?url=https://raw.githubusercontent.com/rauenzi/BDPluginLibrary/master/release/0PluginLibrary.plugin.js" target="_blank">Click here to download the library!</a>`);
+				const title = 'Library Missing';
+				const ModalStack = window.BdApi.findModuleByProps('push', 'update', 'pop', 'popWithKey');
+				const TextElement = window.BdApi.findModuleByProps('Sizes', 'Weights');
+				const ConfirmationModal = window.BdApi.findModule((m) => m.defaultProps && m.key && m.key() === 'confirm-modal');
+				if (!ModalStack || !ConfirmationModal || !TextElement) return window.BdApi.getCore().alert(title, `The library plugin needed for ${config.info.name} is missing.<br /><br /> <a href="https://betterdiscord.net/ghdl?url=https://raw.githubusercontent.com/rauenzi/BDPluginLibrary/master/release/0PluginLibrary.plugin.js" target="_blank">Click here to download the library!</a>`);
+				ModalStack.push(function(props) {
+					return window.BdApi.React.createElement(ConfirmationModal, Object.assign({
+						header: title,
+						children: [
+							TextElement({
+								color: TextElement.Colors.PRIMARY,
+								children: [`The library plugin needed for ${config.info.name} is missing. Please click Download Now to install it.`]
+							})
+						],
+						red: false,
+						confirmText: 'Download Now',
+						cancelText: 'Cancel',
+						onConfirm: () => {
+							require('request').get('https://rauenzi.github.io/BDPluginLibrary/release/0PluginLibrary.plugin.js', async (error, response, body) => {
+								if (error) return require('electron').shell.openExternal('https://betterdiscord.net/ghdl?url=https://raw.githubusercontent.com/rauenzi/BDPluginLibrary/master/release/0PluginLibrary.plugin.js');
+								await new Promise(r => require('fs').writeFile(require('path').join(window.ContentManager.pluginsFolder, '0PluginLibrary.plugin.js'), body, r));
+							});
+						}
+					}, props));
+				});
 			}
 
 			start() {
