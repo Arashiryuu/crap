@@ -40,7 +40,7 @@ var ChatUserIDsRedux = (() => {
 					twitter_username: ''
 				}
 			],
-			version: '1.0.9',
+			version: '1.0.10',
 			description: 'Adds a user\'s ID next to their name in chat, makes accessing a user ID simpler. Double-click to copy the ID.',
 			github: 'https://github.com/Arashiryuu',
 			github_raw: 'https://raw.githubusercontent.com/Arashiryuu/crap/master/ToastIntegrated/ChatUserIDsRedux/ChatUserIDsRedux.plugin.js'
@@ -50,6 +50,11 @@ var ChatUserIDsRedux = (() => {
 				title: 'Evolving?',
 				type: 'progress',
 				items: ['Now uses local version of the library.']
+			},
+			{
+				title: 'Bugs Squashed!',
+				type: 'fixed',
+				items: ['Fix multiple active instances.']
 			}
 		]
 	};
@@ -77,7 +82,7 @@ var ChatUserIDsRedux = (() => {
 	/* Build */
 
 	const buildPlugin = ([Plugin, Api]) => {
-		const { Toasts, Logger, Patcher, Settings, Utilities, ReactTools, DiscordModules, WebpackModules, DiscordSelectors } = Api;
+		const { Toasts, Logger, Patcher, Settings, Utilities, ReactTools, DiscordModules, WebpackModules, DiscordSelectors, PluginUtilities } = Api;
 		const { SettingPanel, SettingGroup, ColorPicker } = Settings;
 
 		const ID = class ID extends DiscordModules.React.Component {
@@ -93,11 +98,16 @@ var ChatUserIDsRedux = (() => {
 			render() {
 				return DiscordModules.React.createElement('span', { className: 'tagID', onDoubleClick: this.onDoubleClick }, this.props.id);
 			}
-		}
+		};
 		
 		return class ChatUserIDsRedux extends Plugin {
 			constructor() {
 				super();
+				this.promises = {
+					state: { cancelled: false },
+					cancel() { this.state.cancelled = true; },
+					restore() { this.state.cancelled = false; }
+				};
 				this.default = {
 					colors: [
 						0x798AED,
@@ -146,29 +156,31 @@ var ChatUserIDsRedux = (() => {
 			onStart() {
 				this.loadSettings(this.settings);
 				this.reinjectCSS();
-				this.patchMessages();
-				Toasts.info(`${this.name} ${this.version} has started!`, { icon: true, timeout: 2e3 });
+				this.promises.restore();
+				this.patchMessages(this.promises.state);
+				Toasts.info(`${this.name} ${this.version} has started!`, { timeout: 2e3 });
 			}
 
 			onStop() {
-				BdApi.clearCSS(this.short);
-				this.updateMessages();
-				Toasts.info(`${this.name} ${this.version} has stopped!`, { icon: true, timeout: 2e3 });
+				PluginUtilities.removeStyle(this.short);
+				this.promises.cancel();
 				Patcher.unpatchAll();
+				this.updateMessages();
+				Toasts.info(`${this.name} ${this.version} has stopped!`, { timeout: 2e3 });
 			}
 
 			reinjectCSS() {
-				BdApi.clearCSS(this.short);
-				BdApi.injectCSS(this.short, this.css.replace(/{color}/, this.settings.color));
+				PluginUtilities.removeStyle(this.short);
+				PluginUtilities.addStyle(this.short, this.css.replace(/{color}/, this.settings.color));
 			}
 
 			double(e) {
 				try {
 					document.execCommand('copy');
-					Toasts.info('Successfully copied!', { icon: true, timeout: 2e3 });
+					Toasts.info('Successfully copied!', { timeout: 2e3 });
 				} catch(e) {
 					err(e);
-					Toasts.error('Failed to copy! See console for error(s)!', { icon: true, timeout: 2e3 });
+					Toasts.error('Failed to copy! See console for error(s)!', { timeout: 2e3 });
 				}
 			}
 
@@ -176,7 +188,7 @@ var ChatUserIDsRedux = (() => {
 			 * @name patchMessageComponent
 			 * @author Zerebos
 			 */
-			async patchMessages() {
+			async patchMessages(promiseState) {
 				const Message = await new Promise((resolve) => {
 					const message = document.querySelector(DiscordSelectors.Messages.message);
 					if (message) return resolve(ReactTools.getOwnerInstance(message).constructor);
@@ -187,9 +199,13 @@ var ChatUserIDsRedux = (() => {
 						if (!elem) return;
 						unpatch();
 						const msg = elem.querySelector(DiscordSelectors.Messages.message);
-						resolve(ReactTools.getOwnerInstance(msg).constructor);
+						const inst = ReactTools.getOwnerInstance(msg);
+						if (!inst) return;
+						resolve(inst.constructor);
 					});
 				});
+
+				if (promiseState.cancelled) return;
 
 				Patcher.after(Message.prototype, 'render', (that, args, value) => {
 					if (!that.props.isHeader || that.props.message.type !== 0) return value;
@@ -203,7 +219,7 @@ var ChatUserIDsRedux = (() => {
 					if (!children || !Array.isArray(children)) return value;
 
 					const id = DiscordModules.React.createElement(ID, {
-						id: this.getProps(that.props, 'message.author.id'),
+						id: this.getProps(that, 'props.message.author.id'),
 						onDoubleClick: (e) => this.double(e)
 					});
 
@@ -287,7 +303,7 @@ var ChatUserIDsRedux = (() => {
 			get description() {
 				return config.info.description;
 			}
-		}
+		};
 	};
 
 	/* Finalize */
@@ -315,7 +331,31 @@ var ChatUserIDsRedux = (() => {
 			}
 
 			load() {
-				window.BdApi.alert('Missing Library', `The library plugin needed for ${config.info.name} is missing.<br /><br /> <a href="https://betterdiscord.net/ghdl?url=https://raw.githubusercontent.com/rauenzi/BDPluginLibrary/master/release/0PluginLibrary.plugin.js" target="_blank">Click here to download the library!</a>`);
+				const title = 'Library Missing';
+				const ModalStack = window.BdApi.findModuleByProps('push', 'update', 'pop', 'popWithKey');
+				const TextElement = window.BdApi.findModuleByProps('Sizes', 'Weights');
+				const ConfirmationModal = window.BdApi.findModule((m) => m.defaultProps && m.key && m.key() === 'confirm-modal');
+				if (!ModalStack || !ConfirmationModal || !TextElement) return window.BdApi.getCore().alert(title, `The library plugin needed for ${config.info.name} is missing.<br /><br /> <a href="https://betterdiscord.net/ghdl?url=https://raw.githubusercontent.com/rauenzi/BDPluginLibrary/master/release/0PluginLibrary.plugin.js" target="_blank">Click here to download the library!</a>`);
+				ModalStack.push(function(props) {
+					return window.BdApi.React.createElement(ConfirmationModal, Object.assign({
+						header: title,
+						children: [
+							TextElement({
+								color: TextElement.Colors.PRIMARY,
+								children: [`The library plugin needed for ${config.info.name} is missing. Please click Download Now to install it.`]
+							})
+						],
+						red: false,
+						confirmText: 'Download Now',
+						cancelText: 'Cancel',
+						onConfirm: () => {
+							require('request').get('https://rauenzi.github.io/BDPluginLibrary/release/0PluginLibrary.plugin.js', async (error, response, body) => {
+								if (error) return require('electron').shell.openExternal('https://betterdiscord.net/ghdl?url=https://raw.githubusercontent.com/rauenzi/BDPluginLibrary/master/release/0PluginLibrary.plugin.js');
+								await new Promise(r => require('fs').writeFile(require('path').join(window.ContentManager.pluginsFolder, '0PluginLibrary.plugin.js'), body, r));
+							});
+						}
+					}, props));
+				});
 			}
 
 			start() {
