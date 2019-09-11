@@ -40,7 +40,7 @@ var MemberCount = (() => {
 					twitter_username: ''
 				}
 			],
-			version: '2.1.2',
+			version: '2.1.3',
 			description: 'Displays a server\'s member-count at the top of the member-list, can be styled with the #MemberCount selector.',
 			github: 'https://github.com/Arashiryuu',
 			github_raw: 'https://raw.githubusercontent.com/Arashiryuu/crap/master/ToastIntegrated/MemberCount/MemberCount.plugin.js'
@@ -49,7 +49,7 @@ var MemberCount = (() => {
 			{
 				title: 'Evolving?',
 				type: 'improved',
-				items: ['ServerFolders compatibility.']
+				items: ['ContextMenu minor improvement.', 'Added newest member group class to the counter.']
 			}
 		]
 	};
@@ -73,6 +73,19 @@ var MemberCount = (() => {
 
 		const MenuItem = WebpackModules.getByString('disabled', 'brand');
 
+		const ItemGroup = class ItemGroup extends React.Component {
+			constructor(props) {
+				super(props);
+			}
+
+			render() {
+				return React.createElement('div', {
+					className: DiscordClasses.ContextMenu.itemGroup.toString(),
+					children: this.props.children || []
+				});
+			}
+		};
+
 		const Counter = class Counter extends React.Component {
 			constructor(props) {
 				super(props);
@@ -95,7 +108,7 @@ var MemberCount = (() => {
 
 			render() {
 				return React.createElement('div', {
-					className: DiscordClasses.MemberList.membersGroup.value,
+					className: `${DiscordClasses.MemberList.membersGroup} container-2ax-kl`,
 					id: 'MemberCount',
 					children: ['Members', '—', this.state.count]
 				});
@@ -207,16 +220,17 @@ var MemberCount = (() => {
 				if (state.cancelled) return;
 
 				Patcher.after(Menu.prototype, 'render', (that, args, value) => {
-					const orig = this.getProps(value, 'props.children.0.props');
+					const orig = this.getProps(value, 'props');
 					const id = this.getProps(that, 'props.guild.id');
 
 					if (!orig || !id) return;
 
 					const data = this.parseId(id);
 					const item = new MenuItem(data);
+					const group = React.createElement(ItemGroup, { children: [item] });
 
-					if (Array.isArray(orig.children)) orig.children.splice(1, 0, item);
-					else orig.children = [orig.children], orig.children.splice(1, 0, item);
+					if (Array.isArray(orig.children)) orig.children.splice(1, 0, group);
+					else orig.children = [orig.children], orig.children.splice(1, 0, group);
 
 					setImmediate(() => this.updateContextPosition(that));
 					return value;
