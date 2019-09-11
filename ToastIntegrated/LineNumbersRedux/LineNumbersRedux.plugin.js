@@ -40,16 +40,16 @@ var LineNumbersRedux = (() => {
 					twitter_username: ''
 				}
 			],
-			version: '1.1.0',
+			version: '1.1.1',
 			description: 'Adds line numbers to codeblocks.',
 			github: 'https://github.com/Arashiryuu',
 			github_raw: 'https://raw.githubusercontent.com/Arashiryuu/crap/master/ToastIntegrated/LineNumbersRedux/LineNumbersRedux.plugin.js'
 		},
 		changelog: [
 			{
-				title: 'Updated',
-				type: 'improved',
-				items: ['Now uses the local library version of ZeresPluginLibrary.']
+				title: 'Bugs Squashed!',
+				type: 'fixed',
+				items: ['Works again!']
 			}
 		]
 	};
@@ -70,7 +70,7 @@ var LineNumbersRedux = (() => {
 		const { SettingPanel, SettingGroup, SettingField, RadioGroup, Textbox, Switch } = Settings;
 
 		const has = Object.prototype.hasOwnProperty;
-		const { container: MessageContainer, message: Message } = DiscordSelectors.Messages;
+		const MessageClasses = WebpackModules.getByProps('container', 'dividerEnabled');
 		
 		return class LineNumbersRedux extends Plugin {
 			constructor() {
@@ -84,8 +84,8 @@ var LineNumbersRedux = (() => {
 					WebpackModules.getByProps('messages', 'messagesWrapper').messagesWrapper.split(' ')[0]
 				];
 				this.messageList = [
-					...MessageContainer.value.split('.').slice(1),
-					...Message.value.split('.').slice(1)
+					MessageClasses.container,
+					MessageClasses.content 
 				];
 				this.css = `
 					.hljs ol {
@@ -146,7 +146,7 @@ var LineNumbersRedux = (() => {
 			}
 		
 			mapLine(line) {
-				const commentMarkers = ['/*', '*'];
+				const commentMarkers = ['/*', '*', '*/'];
 				if (commentMarkers.includes(line.trim()[0])) {
 					return `<li class="hljs-comment">${line}</li>`;
 				} else {
@@ -163,7 +163,10 @@ var LineNumbersRedux = (() => {
 			}
 		
 			addLines(codeblock) {
-				codeblock.innerHTML = codeblock.innerHTML.split('\n').map((char) => this.mapLine(char)).join('');
+				codeblock.innerHTML = codeblock.innerHTML.split('\n')
+					.map((char) => this.mapLine(char))
+					.join('');
+
 				return codeblock;
 			}
 		
@@ -189,8 +192,8 @@ var LineNumbersRedux = (() => {
 			}
 		
 			handleCSS() {
-				BdApi.clearCSS('LineNumbersCSS');
-				if (!this.settings.noStyle) BdApi.injectCSS('LineNumbersCSS', this.css);
+				window.BdApi.clearCSS('LineNumbersCSS');
+				if (!this.settings.noStyle) window.BdApi.injectCSS('LineNumbersCSS', this.css);
 			}
 
 			/* Observer */
