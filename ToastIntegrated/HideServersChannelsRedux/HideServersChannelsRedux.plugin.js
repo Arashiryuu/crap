@@ -40,16 +40,16 @@ var HideServersChannelsRedux = (() => {
 					twitter_username: ''
 				}
 			],
-			version: '1.1.1',
+			version: '1.1.2',
 			description: 'Adds buttons to the header for hiding the servers list and channels list.',
 			github: 'https://github.com/Arashiryuu',
 			github_raw: 'https://raw.githubusercontent.com/Arashiryuu/crap/master/ToastIntegrated/HideServersChannelsRedux/HideServersChannelsRedux.plugin.js'
 		},
 		changelog: [
 			{
-				title: 'Evolving?',
-				type: 'improved',
-				items: ['Added toggle for plugin\'s own CSS animations.']
+				title: 'Bugs Squashed!',
+				type: 'fixed',
+				items: ['Works again!']
 			}
 		]
 	};
@@ -73,6 +73,7 @@ var HideServersChannelsRedux = (() => {
 		const TooltipWrapper = WebpackModules.getByPrototypes('renderTooltip');
 		const icons = WebpackModules.getByProps('iconWrapper', 'clickable');
 		const guilds = WebpackModules.getByProps('wrapper', 'unreadMentionsIndicatorTop');
+		const channelBase = WebpackModules.getByProps('base', 'container', 'sidebar');
 
 		const ServerButton = class ServerButton extends DiscordModules.React.Component {
 			constructor(props) {
@@ -181,9 +182,21 @@ var HideServersChannelsRedux = (() => {
 						}
 					}
 
+					@keyframes close-guild {
+						to {
+							left: 0;
+						}
+					}
+
 					@keyframes open {
 						from {
 							width: 0;
+						}
+					}
+
+					@keyframes open-guild {
+						from {
+							left: 0;
 						}
 					}
 				`;
@@ -192,8 +205,16 @@ var HideServersChannelsRedux = (() => {
 						display: none;
 					}
 
+					.closing-guild {
+						animation: close-guild 400ms linear;
+					}
+
 					.closing {
 						animation: close 400ms linear;
+					}
+
+					.opening-guild {
+						animation: open-guild 400ms linear;
 					}
 
 					.opening {
@@ -248,8 +269,18 @@ var HideServersChannelsRedux = (() => {
 				return !DOMTools.hasClass(el, '_closed');
 			}
 
-			closeElement(el) {
-				if (!this.settings.animations) return DOMTools.addClass(el, '_closed');
+			closeElement(el, guilds, base) {
+				if (!this.settings.animations && guilds && base) {
+					base.style.setProperty('left', '0');
+					return DOMTools.addClass(el, '_closed');
+				} else if (guilds && base) {
+					DOMTools.addClass(base, 'closing-guild');
+					return setTimeout(() => {
+						DOMTools.addClass(el, '_closed');
+						base.style.setProperty('left', '0');
+						DOMTools.removeClass(base, 'closing-guild');
+					}, 400);
+				}
 				DOMTools.addClass(el, 'closing');
 				setTimeout(() => {
 					DOMTools.addClass(el, '_closed');
@@ -257,8 +288,20 @@ var HideServersChannelsRedux = (() => {
 				}, 400);
 			}
 
-			openElement(el) {
-				if (!this.settings.animations) return DOMTools.removeClass(el, '_closed');
+			openElement(el, guilds, base) {
+				if (guilds && base) base.style.setProperty('left', '72px');
+				if (!this.settings.animations && guilds && base) {
+					base.style.setProperty('left', '72px');
+					return DOMTools.removeClass(el, '_closed');
+				} else if (guilds && base) {
+					DOMTools.addClass(base, 'opening-guild');
+					el.style.setProperty('width', '0');
+					return setTimeout(() => {
+						el.style.setProperty('width', '');
+						DOMTools.removeClass(base, 'opening-guild');
+						DOMTools.removeClass(el, '_closed');
+					}, 400);
+				}
 				el.style.width = '0';
 				DOMTools.replaceClass(el, '_closed', 'opening');
 				el.style.width = '';
@@ -270,20 +313,21 @@ var HideServersChannelsRedux = (() => {
 				const guildsWrapper = guilds.wrapper.split(' ').join('.');
 				const button = document.querySelector(`.${iconClass}[name="ServerButton"]`);
 				const element = document.querySelector(`.${guildsWrapper}`);
+				const channelsBase = document.querySelector(`.${channelBase.base}`);
 				
 				if (!button) return;
 
 				DOMTools.toggleClass(button.parentElement, icons.selected);
 
-				if (this.isNotClosed(element)) return this.closeElement(element);
+				if (this.isNotClosed(element)) return this.closeElement(element, true, channelsBase);
 
-				this.openElement(element);
+				this.openElement(element, true, channelsBase);
 			}
 			
 			onChannelButtonClick() {
 				const iconClass = icons.icon.split(' ').join('.');
 				const button = document.querySelector(`.${iconClass}[name="ChannelButton"]`);
-				const element = document.querySelector(DiscordSelectors.ChannelList.channels.value.trim());
+				const element = document.querySelector(`.${channelBase.sidebar}`);
 				
 				if (!button) return;
 
