@@ -40,16 +40,16 @@ var GreenText = (() => {
 					twitter_username: ''
 				}
 			],
-			version: '1.1.0',
+			version: '1.1.1',
 			description: 'Turns sentences beginning with "\>" green.',
 			github: 'https://github.com/Arashiryuu',
 			github_raw: 'https://raw.githubusercontent.com/Arashiryuu/crap/master/greenText.plugin.js'
 		},
 		changelog: [
 			{
-				title: 'Updated',
-				type: 'improved',
-				items: ['Compact mode improvements.', 'Compatibility with Normalized Classes.']
+				title: 'Bugs Squashed!',
+				type: 'fixed',
+				items: ['Works again!']
 			}
 		]
 	};
@@ -80,6 +80,7 @@ var GreenText = (() => {
 		const { Toasts, Logger, DOMTools, WebpackModules, DiscordSelectors } = Api;
 
 		const markup = WebpackModules.getByProps('markup').markup.split(' ')[0];
+		const MessageClasses = WebpackModules.getByProps('containerCozy', 'dividerEnabled');
 		
 		return class GreenText extends Plugin {
 			constructor() {
@@ -87,12 +88,12 @@ var GreenText = (() => {
 				this._css;
 				this.regex = /^&gt;\S?.+|^>\S?.+/igm;
 				this.css = `
-					${DiscordSelectors.Messages.message.value.trim()} #GreenText {
+					.${MessageClasses.container} #GreenText {
 						color: #709900 !important;
 						transition: all 200ms ease;
 					}
 
-					${DiscordSelectors.Messages.message.value.trim()} #GreenText:hover {
+					.${MessageClasses.container} #GreenText:hover {
 						font-weight: bold;
 					}
 				`;
@@ -102,10 +103,8 @@ var GreenText = (() => {
 					WebpackModules.getByProps('messages', 'messagesWrapper').messagesWrapper.split(' ')[0]
 				];
 				this.messageList = [
-					DiscordSelectors.Messages.container.value.split('.')[1],
-					DiscordSelectors.Messages.message.value.split('.')[1],
-					'da-message',
-					'da-container'
+					MessageClasses.container,
+					MessageClasses.content
 				];
 			}
 
@@ -126,20 +125,18 @@ var GreenText = (() => {
 				const messages = document.querySelectorAll(`.${markup}`);
 
 				if (this.isCompact()) {
-					for (const message of messages) {
+					outer: for (const message of messages) {
 						const textNodes = Array.from(message.childNodes).filter((node) => node.nodeType === 3);
-						for (const node of textNodes) {
+						inner: for (const node of textNodes) {
 							const matches = node.data.match(this.regex);
-							if (!matches || !matches.length) continue;
+							if (!matches || !matches.length) continue inner;
 							const data = node.data.split('\n');
 							const replaceNodes = data.reduce((arr, text) => {
 								if (text.match(this.regex)) {
 									const el = DOMTools.parseHTML(`<span id="GreenText">${text}\n</span>`);
-									arr.push(el);
-									return arr;
+									return arr.push(el), arr;
 								}
-								arr.push(document.createTextNode(`${text}\n`));
-								return arr;
+								return arr.push(document.createTextNode(`${text}\n`)), arr;
 							}, []);
 							if (!replaceNodes[0].id) replaceNodes[0].data = `${replaceNodes[0].data.trim()}\n`;
 							if (!replaceNodes[replaceNodes.length - 1].id) replaceNodes[replaceNodes.length - 1].data = `${replaceNodes[replaceNodes.length - 1].data.trim()}`;
