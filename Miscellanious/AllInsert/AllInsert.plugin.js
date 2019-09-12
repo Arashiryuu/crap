@@ -78,12 +78,11 @@ var AllInsert = (() => {
 					restore() { this.state.cancelled = false; }
 				};
 				this.values = {
-					'\\u200b': String.fromCharCode(8203),
-					'>=': '\u2265',
-					'<=': '\u2264',
+					'/>=': '\u2265',
+					'/<=': '\u2264',
 					'\'\'\'': '```',
 					'==>': '\u21D2',
-					'=/=': '\u2260',
+					'/!=': '\u2260',
 					'/.l': '\u2190',
 					'/.u': '\u2191',
 					'/.r': '\u2192',
@@ -91,7 +90,19 @@ var AllInsert = (() => {
 					'/.>': '\u27A2',
 					'/.-': '\u2014',
 					'/..': '\u2022',
-					'/->': String.fromCharCode(55358) + String.fromCharCode(56402)
+					'/+-': '\u00B1',
+					'/.|>': '\u2BC8',
+					'/-tl': '\u21E6',
+					'/-tr': '\u21E8',
+					'/-tu': '\u21E7',
+					'/-td': '\u21E9',
+					'/-tn': '\u2605',
+					'/-t-db': this.getChar(55358, 56407),
+					'/-t-ub': this.getChar(55358, 56404),
+					'/-t-df': this.getChar(55358, 56406),
+					'/-t-uf': this.getChar(55358, 56405),
+					'/->': this.getChar(55358, 56402),
+					'\\u200b': this.getChar(8203)
 				};
 			}
 
@@ -134,6 +145,14 @@ var AllInsert = (() => {
 			replaceStrings(string, key) {
 				if (!has.call(this.values, key)) return string;
 				return string.replace(key, this.values[key]);
+			}
+
+			/* Plugin Methods */
+
+			getChar(...codes) {
+				const results = [];
+				for (const code of codes) results.push(String.fromCharCode(code));
+				return results.join('');
 			}
 
 			/* Utility */
