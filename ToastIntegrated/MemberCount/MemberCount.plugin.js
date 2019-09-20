@@ -40,7 +40,7 @@ var MemberCount = (() => {
 					twitter_username: ''
 				}
 			],
-			version: '2.1.3',
+			version: '2.1.4',
 			description: 'Displays a server\'s member-count at the top of the member-list, can be styled with the #MemberCount selector.',
 			github: 'https://github.com/Arashiryuu',
 			github_raw: 'https://raw.githubusercontent.com/Arashiryuu/crap/master/ToastIntegrated/MemberCount/MemberCount.plugin.js'
@@ -49,7 +49,11 @@ var MemberCount = (() => {
 			{
 				title: 'Evolving?',
 				type: 'improved',
-				items: ['ContextMenu minor improvement.', 'Added newest member group class to the counter.']
+				items: [
+					'ContextMenu minor improvement.',
+					'Added newest member group class to the counter.',
+					'Style fix.'
+				]
 			}
 		]
 	};
@@ -148,7 +152,7 @@ var MemberCount = (() => {
 						background: #f3f3f3;
 					}
 		
-					${DiscordSelectors.MemberList.membersWrap} ${DiscordSelectors.MemberList.membersGroup}:nth-of-type(3) {
+					${DiscordSelectors.MemberList.membersWrap} ${DiscordSelectors.MemberList.membersGroup}:nth-child(3) {
 						margin-top: 2vh;
 					}
 				`;
