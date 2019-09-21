@@ -40,7 +40,7 @@ var LineNumbersRedux = (() => {
 					twitter_username: ''
 				}
 			],
-			version: '1.1.1',
+			version: '1.1.2',
 			description: 'Adds line numbers to codeblocks.',
 			github: 'https://github.com/Arashiryuu',
 			github_raw: 'https://raw.githubusercontent.com/Arashiryuu/crap/master/ToastIntegrated/LineNumbersRedux/LineNumbersRedux.plugin.js'
@@ -50,6 +50,11 @@ var LineNumbersRedux = (() => {
 				title: 'Bugs Squashed!',
 				type: 'fixed',
 				items: ['Works again!']
+			},
+			{
+				title: 'Evolving?',
+				type: 'improved',
+				items: ['Better comment parsing.', 'Message edit detection.']
 			}
 		]
 	};
@@ -76,6 +81,11 @@ var LineNumbersRedux = (() => {
 			constructor() {
 				super();
 				this._css;
+				this.promises = {
+					state: { cancelled: false },
+					cancel() { this.state.cancelled = true; },
+					restore() { this.state.cancelled = false; }
+				};
 				this.default = { ignoreNoLanguage: true, noStyle: false };
 				this.settings = Object.assign({}, this.default);
 				this.switchList = [
@@ -91,6 +101,10 @@ var LineNumbersRedux = (() => {
 					.hljs ol {
 						list-style: none;
 						counter-reset: linenumbers;
+					}
+					.hljs ol ul {
+						list-style: none;
+						margin: 0;
 					}
 					.hljs ol li {
 						text-indent: -4ch;
@@ -121,14 +135,17 @@ var LineNumbersRedux = (() => {
 			/* Methods */
 
 			onStart() {
+				this.promises.restore();
 				this.loadSettings(this.settings);
 				this.handleCSS();
-				this.processCodeblocks();
+				this.patchMessages(this.promises.state);
 				Toasts.info(`${this.name} ${this.version} has started!`, { icon: true, timeout: 2e3 });
 			}
 
 			onStop() {
-				this.handleCSS();
+				this.promises.cancel();
+				window.BdApi.clearCSS('LineNumbersCSS');
+				Patcher.unpatchAll();
 				this.unprocessCodeblocks();
 				Toasts.info(`${this.name} ${this.version} has stopped!`, { icon: true, timeout: 2e3 });
 			}
@@ -147,10 +164,42 @@ var LineNumbersRedux = (() => {
 		
 			mapLine(line) {
 				const commentMarkers = ['/*', '*', '*/'];
-				if (commentMarkers.includes(line.trim()[0])) {
+				const isCommentMarker = (marker) => line.trim().startsWith(marker) || line.trim().endsWith(marker);
+				if (commentMarkers.some(isCommentMarker)) {
 					return `<li class="hljs-comment">${line}</li>`;
 				} else {
 					return `<li>${line}</li>`;
+				}
+			}
+
+			wrapComments(codeblock) {
+				const groups = [];
+				let children = Array.prototype.slice.call(codeblock.children);
+
+				for (let i = 0, len = codeblock.children.length; i < len; i++) {
+					const child = codeblock.children[i];
+					let start = 0, end = 0;
+					if ((child.className === 'hljs-comment' || child.firstElementChild && child.firstElementChild.className === 'hljs-comment') && child.textContent.trim().startsWith('/*')) {
+						start = i;
+						end = children.findIndex((c, ind) => ind > i && c.textContent.trim().endsWith('*/') && c.className === 'hljs-comment');
+						groups.push({ start, end, children: children.slice(start, end + 1).map((c) => c.cloneNode(true)) });
+					}
+				}
+
+				if (!groups.length) return;
+
+				for (let i = groups.length - 1, len = 0; i >= len; i--) {
+					const group = groups[i];
+					const ul = document.createElement('ul');
+					DOMTools.addClass(ul, 'hljs-comment');
+					for (const child of group.children) DOMTools.appendTo(child, ul);
+					if (codeblock.children.length - 1 === group.end) codeblock.appendChild(ul);
+					else if (codeblock.children[group.end]) codeblock.children[group.end].insertAdjacentElement('afterend', ul);
+					children = Array.prototype.slice.call(codeblock.children);
+					const filtered = children.slice(group.start, group.end + 1).filter((child, index) => {
+						return (index >= group.start || index <= group.end) && child.tagName !== 'UL';
+					});
+					for (const f of filtered) f.remove();
 				}
 			}
 		
@@ -180,6 +229,7 @@ var LineNumbersRedux = (() => {
 					const ol = document.createElement('ol');
 					ol.setAttribute('class', 'LineNumbers');
 					this.wrap(this.addLines(filtered[i]), ol);
+					this.wrapComments(ol);
 				}
 			}
 		
@@ -196,14 +246,40 @@ var LineNumbersRedux = (() => {
 				if (!this.settings.noStyle) window.BdApi.injectCSS('LineNumbersCSS', this.css);
 			}
 
-			/* Observer */
+			async patchMessages(state) {
+				const Message = await new Promise((resolve) => {
+					const message = document.querySelector(`.${MessageClasses.container}`);
+					if (message) return resolve(ReactTools.getOwnerInstance(message).constructor);
 
-			observer({ addedNodes }) {
-				if (addedNodes.length && addedNodes[0].classList && this.switchList.includes(addedNodes[0].classList[0])) {
-					this.processCodeblocks();
-				} else if (addedNodes.length && addedNodes[0].classList && this.messageList.includes(addedNodes[0].classList[addedNodes[0].classList.length - 1])) {
-					this.processCodeblocks();
-				}
+					const MessageGroup = WebpackModules.getModule((m) => m.defaultProps && m.defaultProps.disableManageMessages);
+					const unpatch = Patcher.after(MessageGroup.prototype, 'componentDidMount', (that) => {
+						const elem = DiscordModules.ReactDOM.findDOMNode(that);
+						if (!elem) return;
+						unpatch();
+						const msg = elem.querySelector(`.${MessageClasses.container}`);
+						const inst = ReactTools.getOwnerInstance(msg);
+						if (!inst) return;
+						resolve(inst.constructor);
+					});
+				});
+
+				if (state.cancelled) return;
+
+				Patcher.after(Message.prototype, 'render', (that, args, value) => {
+					const message = this.getProps(that, 'props.messages.0');
+					if (!message || message.type !== 0) return value;
+					
+					setImmediate(() => this.processCodeblocks());
+
+					return value;
+				});
+
+				this.updateMessages();
+			}
+
+			updateMessages() {
+				const messages = document.querySelectorAll(`.${MessageClasses.container}`);
+				for (let i = 0, len = messages.length; i < len; i++) ReactTools.getOwnerInstance(messages[i]).forceUpdate();
 			}
 
 			/* Utility */
