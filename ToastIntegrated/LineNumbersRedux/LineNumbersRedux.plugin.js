@@ -40,7 +40,7 @@ var LineNumbersRedux = (() => {
 					twitter_username: ''
 				}
 			],
-			version: '1.1.2',
+			version: '1.1.3',
 			description: 'Adds line numbers to codeblocks.',
 			github: 'https://github.com/Arashiryuu',
 			github_raw: 'https://raw.githubusercontent.com/Arashiryuu/crap/master/ToastIntegrated/LineNumbersRedux/LineNumbersRedux.plugin.js'
@@ -49,12 +49,7 @@ var LineNumbersRedux = (() => {
 			{
 				title: 'Bugs Squashed!',
 				type: 'fixed',
-				items: ['Works again!']
-			},
-			{
-				title: 'Evolving?',
-				type: 'improved',
-				items: ['Better comment parsing.', 'Message edit detection.']
+				items: ['Fix issue with single-line comments.']
 			}
 		]
 	};
@@ -179,6 +174,7 @@ var LineNumbersRedux = (() => {
 				for (let i = 0, len = codeblock.children.length; i < len; i++) {
 					const child = codeblock.children[i];
 					let start = 0, end = 0;
+					if (child.textContent.trim().startsWith('/*') && child.textContent.trim().endsWith('*/')) continue;
 					if ((child.className === 'hljs-comment' || child.firstElementChild && child.firstElementChild.className === 'hljs-comment') && child.textContent.trim().startsWith('/*')) {
 						start = i;
 						end = children.findIndex((c, ind) => ind > i && c.textContent.trim().endsWith('*/') && c.className === 'hljs-comment');
@@ -246,24 +242,25 @@ var LineNumbersRedux = (() => {
 				if (!this.settings.noStyle) window.BdApi.injectCSS('LineNumbersCSS', this.css);
 			}
 
-			async patchMessages(state) {
-				const Message = await new Promise((resolve) => {
-					const message = document.querySelector(`.${MessageClasses.container}`);
-					if (message) return resolve(ReactTools.getOwnerInstance(message).constructor);
+			patchMessages(state) {
+				const Message = WebpackModules.getByDisplayName('MessageGroup');
+				// await new Promise((resolve) => {
+				// 	const message = document.querySelector(`.${MessageClasses.container}`);
+				// 	if (message) return resolve(ReactTools.getOwnerInstance(message).constructor);
 
-					const MessageGroup = WebpackModules.getModule((m) => m.defaultProps && m.defaultProps.disableManageMessages);
-					const unpatch = Patcher.after(MessageGroup.prototype, 'componentDidMount', (that) => {
-						const elem = DiscordModules.ReactDOM.findDOMNode(that);
-						if (!elem) return;
-						unpatch();
-						const msg = elem.querySelector(`.${MessageClasses.container}`);
-						const inst = ReactTools.getOwnerInstance(msg);
-						if (!inst) return;
-						resolve(inst.constructor);
-					});
-				});
+				// 	const MessageGroup = WebpackModules.getModule((m) => m.defaultProps && m.defaultProps.disableManageMessages);
+				// 	const unpatch = Patcher.after(MessageGroup.prototype, 'componentDidMount', (that) => {
+				// 		const elem = DiscordModules.ReactDOM.findDOMNode(that);
+				// 		if (!elem) return;
+				// 		unpatch();
+				// 		const msg = elem.querySelector(`.${MessageClasses.container}`);
+				// 		const inst = ReactTools.getOwnerInstance(msg);
+				// 		if (!inst) return;
+				// 		resolve(inst.constructor);
+				// 	});
+				// });
 
-				if (state.cancelled) return;
+				// if (state.cancelled) return;
 
 				Patcher.after(Message.prototype, 'render', (that, args, value) => {
 					const message = this.getProps(that, 'props.messages.0');
