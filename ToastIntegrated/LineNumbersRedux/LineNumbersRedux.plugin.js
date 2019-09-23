@@ -40,7 +40,7 @@ var LineNumbersRedux = (() => {
 					twitter_username: ''
 				}
 			],
-			version: '1.1.3',
+			version: '1.1.4',
 			description: 'Adds line numbers to codeblocks.',
 			github: 'https://github.com/Arashiryuu',
 			github_raw: 'https://raw.githubusercontent.com/Arashiryuu/crap/master/ToastIntegrated/LineNumbersRedux/LineNumbersRedux.plugin.js'
@@ -49,7 +49,7 @@ var LineNumbersRedux = (() => {
 			{
 				title: 'Bugs Squashed!',
 				type: 'fixed',
-				items: ['Fix issue with single-line comments.']
+				items: ['Fix issue with css universal selector line incompatibility.']
 			}
 		]
 	};
@@ -70,6 +70,7 @@ var LineNumbersRedux = (() => {
 		const { SettingPanel, SettingGroup, SettingField, RadioGroup, Textbox, Switch } = Settings;
 
 		const has = Object.prototype.hasOwnProperty;
+		const slice = Array.prototype.slice;
 		const MessageClasses = WebpackModules.getByProps('container', 'dividerEnabled');
 		
 		return class LineNumbersRedux extends Plugin {
@@ -158,26 +159,36 @@ var LineNumbersRedux = (() => {
 			}
 		
 			mapLine(line) {
-				const commentMarkers = ['/*', '*', '*/'];
-				const isCommentMarker = (marker) => line.trim().startsWith(marker) || line.trim().endsWith(marker);
-				if (commentMarkers.some(isCommentMarker)) {
-					return `<li class="hljs-comment">${line}</li>`;
-				} else {
-					return `<li>${line}</li>`;
-				}
+				// const commentMarkers = ['/*', '*/'];
+				// const isCommentMarker = (marker) => line.trim().startsWith(marker);
+				// if (commentMarkers.some(isCommentMarker)) {
+				// 	return `<li class="hljs-comment">${line}</li>`;
+				// } else {
+				// 	return `<li>${line}</li>`;
+				// }
+				return `<li>${line}</li>`;
+			}
+
+			isCommentStart(child) {
+				return child.textContent.trim().startsWith('/*');
+			}
+
+			isInlineComment(child) {
+				const ct = child.textContent.trim();
+				return ct.startsWith('/*') && ct.endsWith('*/');
 			}
 
 			wrapComments(codeblock) {
 				const groups = [];
-				let children = Array.prototype.slice.call(codeblock.children);
+				let children = slice.call(codeblock.children);
 
 				for (let i = 0, len = codeblock.children.length; i < len; i++) {
 					const child = codeblock.children[i];
 					let start = 0, end = 0;
-					if (child.textContent.trim().startsWith('/*') && child.textContent.trim().endsWith('*/')) continue;
-					if ((child.className === 'hljs-comment' || child.firstElementChild && child.firstElementChild.className === 'hljs-comment') && child.textContent.trim().startsWith('/*')) {
+					if (this.isInlineComment(child)) continue;
+					if (this.isCommentStart(child)) {
 						start = i;
-						end = children.findIndex((c, ind) => ind > i && c.textContent.trim().endsWith('*/') && c.className === 'hljs-comment');
+						end = children.findIndex((c, ind) => ind > i && c.textContent.trim().startsWith('*/'));
 						groups.push({ start, end, children: children.slice(start, end + 1).map((c) => c.cloneNode(true)) });
 					}
 				}
@@ -191,7 +202,7 @@ var LineNumbersRedux = (() => {
 					for (const child of group.children) DOMTools.appendTo(child, ul);
 					if (codeblock.children.length - 1 === group.end) codeblock.appendChild(ul);
 					else if (codeblock.children[group.end]) codeblock.children[group.end].insertAdjacentElement('afterend', ul);
-					children = Array.prototype.slice.call(codeblock.children);
+					children = slice.call(codeblock.children);
 					const filtered = children.slice(group.start, group.end + 1).filter((child, index) => {
 						return (index >= group.start || index <= group.end) && child.tagName !== 'UL';
 					});
@@ -225,7 +236,7 @@ var LineNumbersRedux = (() => {
 					const ol = document.createElement('ol');
 					ol.setAttribute('class', 'LineNumbers');
 					this.wrap(this.addLines(filtered[i]), ol);
-					this.wrapComments(ol);
+					if (!filtered[i].className.endsWith('.hljs')) this.wrapComments(ol);
 				}
 			}
 		
