@@ -40,11 +40,18 @@ var HashTagsReborn = (() => {
 					twitter_username: ''
 				}
 			],
-			version: '1.0.3',
+			version: '1.0.4',
 			description: 'Lets you use hashtags on Discord!',
 			github: 'https://github.com/Arashiryuu',
 			github_raw: 'https://raw.githubusercontent.com/Arashiryuu/crap/master/ToastIntegrated/HashTagsReborn/HashTagsReborn.plugin.js'
-		}
+		},
+		changelog: [
+			{
+				title: 'Bugs Squashed!',
+				type: 'fixed',
+				items: ['Works again!', 'No longer breaks channel mentions!']
+			}
+		]
 	};
 	
 	const log = function() {
@@ -59,10 +66,12 @@ var HashTagsReborn = (() => {
 	/* Build */
 
 	const buildPlugin = ([Plugin, Api]) => {
-		const { Toasts, Logger, DOMTools, WebpackModules, DiscordSelectors } = Api;
-		const { container: MessageContainer, message: Message } = DiscordSelectors.Messages;
+		const { Toasts, Logger, DOMTools, WebpackModules, DiscordSelectors, PluginUtilities } = Api;
 		
-		const markup = WebpackModules.getByProps('markup').markup.split(' ')[0];
+		const slice = Array.prototype.slice;
+		const MessageClasses = WebpackModules.getByProps('containerCozy', 'dividerEnabled');
+		const MentionClasses = WebpackModules.getByProps('wrapper', 'wrapperHover', 'wrapperNoHover');
+		const [markup] = WebpackModules.getByProps('markup').markup.split(' ');
 		
 		return class HashTagsReborn extends Plugin {
 			constructor() {
@@ -70,8 +79,13 @@ var HashTagsReborn = (() => {
 				this._css;
 				this.regex = /\B#[A-Z0-9a-z_-]+/igm;
 				this.css = `
-					${Message.value.trim()} #HashTag {
+					.${MessageClasses.container} .HashTag {
 						color: #3898FF;
+						font-weight: bold;
+					}
+
+					#app-mount .${MessageClasses.container} .${MentionClasses.wrapper}.HashTag {
+						color: #3898FF !important;
 						font-weight: bold;
 					}
 				`;
@@ -81,8 +95,8 @@ var HashTagsReborn = (() => {
 					WebpackModules.getByProps('messages', 'messagesWrapper').messagesWrapper.split(' ')[0]
 				];
 				this.messageList = [
-					...MessageContainer.value.split('.').slice(1),
-					...Message.value.split('.').slice(1)
+					MessageClasses.container,
+					MessageClasses.content
 				];
 			}
 
@@ -91,27 +105,28 @@ var HashTagsReborn = (() => {
 			onStart() {
 				this.handleCSS();
 				this.addTags();
-				Toasts.info(`${this.name} ${this.version} has started!`, { icon: true, timeout: 2e3 });
+				Toasts.info(`${this.name} ${this.version} has started!`, { timeout: 2e3 });
 			}
 
 			onStop() {
-				BdApi.clearCSS(this.short);
-				Toasts.info(`${this.name} ${this.version} has stopped!`, { icon: true, timeout: 2e3 });
+				PluginUtilities.removeStyle(this.short);
+				Toasts.info(`${this.name} ${this.version} has stopped!`, { timeout: 2e3 });
 			}
 
 			handleCSS() {
 				const sheet = document.getElementById(this.short);
 
-				if (!sheet || !document.contains(sheet)) {
-					BdApi.injectCSS(this.short, this.css);
+				if (!sheet) {
+					PluginUtilities.addStyle(this.short, this.css);
 				} else {
-					BdApi.clearCSS(this.short);
-					BdApi.injectCSS(this.short, this.css);
+					sheet.remove();
+					PluginUtilities.addStyle(this.short, this.css);
 				}
 			}
 
 			addTags() {
 				const messages = DOMTools.queryAll(`.${markup}`);
+				const mentionCs = Object.values(MentionClasses);
 				for (let i = 0, len = messages.length; i < len; i++) {
 					const message = messages[i];
 					const matches = message.innerHTML.match(this.regex);
@@ -119,10 +134,28 @@ var HashTagsReborn = (() => {
 						const html = message.innerHTML;
 						const index = html.indexOf('#');
 						if (index > 0) {
-							const pre = html[index - 1] === '/' ? true : false;
-							if (!pre) message.innerHTML = html.replace(this.regex, '<span id="HashTag">$&</span>');
+							const pre = html[index - 1] === '/';
+							if (!pre) {
+								const children = slice.call(message.childNodes);
+								const hashTag = DOMTools.parseHTML('<span class="HashTag"></span>');
+								const idx = children.findIndex((child) => child.textContent.indexOf('#') > -1);
+								if (children[idx].classList && mentionCs.includes(children[idx].classList[children[idx].classList.length - 1])) {
+									children[idx].classList.add('HashTag');
+									continue;
+								}
+								if (children[idx].className && children[idx].className.includes('HashTag')) continue;
+								message.innerHTML = html.replace(this.regex, '<span class="HashTag">$&</span>');
+							}
 						} else {
-							message.innerHTML = html.replace(this.regex, '<span id="HashTag">$&</span>');
+							const children = slice.call(message.childNodes);
+							const hashTag = DOMTools.parseHTML('<span class="HashTag"></span>');
+							const idx = children.findIndex((child) => child.textContent.indexOf('#') > -1);
+							if (children[idx].classList && mentionCs.includes(children[idx].classList[children[idx].classList.length - 1])) {
+								children[idx].classList.add('HashTag');
+								continue;
+							}
+							if (children[idx].className && children[idx].className.includes('HashTag')) continue;
+							message.innerHTML = html.replace(this.regex, '<span class="HashTag">$&</span>');
 						}
 					}
 				}
