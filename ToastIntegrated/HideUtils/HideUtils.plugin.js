@@ -28,6 +28,25 @@ var HideUtils = (() => {
 
 	/* Setup */
 
+	const spanWrap = (children = []) => {
+		if (!children.every((item) => typeof item === 'object' && !Array.isArray(item))) return '';
+		const wrapper = document.createElement('span');
+		for (const child of children) {
+			if (child.type === 'text') {
+				wrapper.appendChild(document.createTextNode(child.children.join('\n')));
+				continue;
+			}
+			const d = document.createElement(child.type);
+			if (child.children && child.children.length) {
+				for (const c of child.children) {
+					d.appendChild(typeof c === 'string' ? document.createTextNode(c) : c);
+				}
+			}
+			wrapper.appendChild(d);
+		}
+		return wrapper;
+	};
+
 	const config = {
 		main: 'index.js',
 		info: {
@@ -40,7 +59,7 @@ var HideUtils = (() => {
 					twitter_username: ''
 				}
 			],
-			version: '2.1.12',
+			version: '2.1.13',
 			description: 'Allows you to hide users, servers, and channels individually.',
 			github: 'https://github.com/Arashiryuu',
 			github_raw: 'https://raw.githubusercontent.com/Arashiryuu/crap/master/ToastIntegrated/HideUtils/HideUtils.plugin.js'
@@ -49,18 +68,72 @@ var HideUtils = (() => {
 			{
 				title: 'Evolving?',
 				type: 'improved',
-				items: ['Can now hide folders.']
+				items: [
+					spanWrap([
+						{
+							type: 'b',
+							children: [
+								'Folders',
+								' '
+							]
+						},
+						{
+							type: 'text',
+							children: [
+								'can be hidden.'
+							]
+						}
+					])
+				]
+			},
+			{
+				title: 'Bugs Squashed!',
+				type: 'fixed',
+				items: [
+					spanWrap([
+						{
+							type: 'b',
+							children: [
+								'Unhide Channels Toggle',
+								' '
+							]
+						},
+						{
+							type: 'text',
+							children: [
+								'context-menu item now only switches to "unhide" for already hidden channels while Unhide Channels is active.'
+							]
+						}
+					]),
+					spanWrap([
+						{
+							type: 'b',
+							children: [
+								'Hidden Folders',
+								' '
+							]
+						},
+						{
+							type: 'text',
+							children: [
+								'no longer receive mentions from servers inside a hidden folder.'
+							]
+						}
+					])
+				]
 			}
 		]
 	};
 
 	/* Utility */
 
+	const slice = Array.prototype.slice;
+
 	const log = function() {
 		/**
 		 * @type {Array}
 		 */
-		const args = Array.prototype.slice.call(arguments);
+		const args = slice.call(arguments);
 		args.unshift(`%c[${config.info.name}]`, 'color: #3A71C1; font-weight: 700;');
 		return console.log.apply(this, args);
 	};
@@ -69,7 +142,7 @@ var HideUtils = (() => {
 		/**
 		 * @type {Array}
 		 */
-		const args = Array.prototype.slice.call(arguments);
+		const args = slice.call(arguments);
 		args.unshift(`%c[${config.info.name}]`, 'color: #3A71C1; font-weight: 700;');
 		return console.error.apply(this, args);
 	};
@@ -534,10 +607,28 @@ var HideUtils = (() => {
 						background: rgba(255, 255, 255, 0.6) !important;
 					}
 					#HideUtils-Instructions .list-element {
-						list-style: disc inside;
+						margin: 8px 0 8px 6px;
 					}
 					#HideUtils-Instructions .list-element-item {
-						padding-top: 5px;
+						position: relative;
+						margin-left: 15px;
+						margin-bottom: 8px;
+					}
+					#HideUtils-Instructions .list-element-item:last-child {
+						margin-bottom: 0;
+					}
+					#HideUtils-Instructions .list-element-item::before {
+						content: '';
+						position: absolute;
+						background: #dcddde;
+						top: 10px;
+						left: -15px;
+						width: 6px;
+						height: 6px;
+						margin-top: -4px;
+						margin-left: -3px;
+						border-radius: 50%;
+						opacity: 0.3;
 					}
 				`;
 				
@@ -545,7 +636,6 @@ var HideUtils = (() => {
 				this.servClear = this.servClear.bind(this);
 				this.chanClear = this.chanClear.bind(this);
 				this.foldClear = this.foldClear.bind(this);
-				this.idRegex = /^\d{16,18}$/;
 				this.channel;
 				this.guild;
 				this.user;
@@ -616,6 +706,11 @@ var HideUtils = (() => {
 			patchReceiveMessages() {
 				Patcher.instead(DiscordModules.MessageActions, 'receiveMessage', (that, args, value) => {
 					const [channelId, { author }] = args;
+					const channel = this.channel(channelId);
+					const guild = this.guild(channel.guild_id);
+					const isHiddenFolderMention = slice.call(Object.values(this.settings.folders)).some((folder) => Array.isArray(folder.servers) && folder.servers.includes(guild.id));
+					if (has.call(this.settings.channels, channelId)) return false;
+					if (guild && has.call(this.settings.servers, guild.id)) return false;
 					if (has.call(this.settings.users, author.id) || DiscordModules.RelationshipStore.isBlocked(author.id)) return false;
 					return value.apply(that, args);
 				});
@@ -624,8 +719,9 @@ var HideUtils = (() => {
 			patchIsMentioned() {
 				const Module = WebpackModules.getByProps('isMentioned');
 				Patcher.instead(Module, 'isMentioned', (that, args, value) => {
-					const [{ author }] = args;
-					if (has.call(this.settings.users, author.id)) return false;
+					const [{ author, channel_id, guild_id }] = args;
+					const isHiddenFolderMention = slice.call(Object.values(this.settings.folders)).some((folder) => Array.isArray(folder.servers) && folder.servers.includes(guild_id));
+					if (has.call(this.settings.users, author.id) || has.call(this.settings.channels, channel_id) || has.call(this.settings.servers, guild_id) || isHiddenFolderMention) return false;
 					return value.apply(that, args);
 				});
 			}
@@ -654,7 +750,7 @@ var HideUtils = (() => {
 						}
 					};
 
-					if (this.settings.servers.unhidden.includes(channel.guild_id)) {
+					if (this.settings.servers.unhidden.includes(channel.guild_id) && has.call(this.settings.channels, channel.id)) {
 						itemProps.label = 'Unhide Channel';
 						itemProps.action = () => {
 							MenuActions.closeContextMenu();
@@ -1070,7 +1166,8 @@ var HideUtils = (() => {
 				if (has.call(this.settings.folders, id)) return Toasts.info('This folder is already being hidden.', { timeout: 3e3 });
 				this.settings.folders[id] = {
 					id: id,
-					name: instance.props.folderName ? instance.props.folderName : instance.props.defaultFolderName
+					name: instance.props.folderName || instance.props.defaultFolderName,
+					servers: instance.props.guildIds || []
 				};
 				Toasts.info('Folder has successfully been hidden.', { timeout: 3e3 });
 				this.saveSettings(this.settings);
