@@ -40,21 +40,16 @@ var ChatUserIDsRedux = (() => {
 					twitter_username: ''
 				}
 			],
-			version: '1.0.10',
+			version: '1.0.11',
 			description: 'Adds a user\'s ID next to their name in chat, makes accessing a user ID simpler. Double-click to copy the ID.',
 			github: 'https://github.com/Arashiryuu',
 			github_raw: 'https://raw.githubusercontent.com/Arashiryuu/crap/master/ToastIntegrated/ChatUserIDsRedux/ChatUserIDsRedux.plugin.js'
 		},
 		changelog: [
 			{
-				title: 'Evolving?',
-				type: 'progress',
-				items: ['Now uses local version of the library.']
-			},
-			{
 				title: 'Bugs Squashed!',
 				type: 'fixed',
-				items: ['Fix multiple active instances.']
+				items: ['Works again!']
 			}
 		]
 	};
@@ -85,7 +80,13 @@ var ChatUserIDsRedux = (() => {
 		const { Toasts, Logger, Patcher, Settings, Utilities, ReactTools, DiscordModules, WebpackModules, DiscordSelectors, PluginUtilities } = Api;
 		const { SettingPanel, SettingGroup, ColorPicker } = Settings;
 
-		const ID = class ID extends DiscordModules.React.Component {
+		const { React } = DiscordModules;
+		const { Message } = WebpackModules.getByProps('Message', 'MessageAvatar');
+
+		const has = Object.prototype.hasOwnProperty;
+		const MessageClasses = WebpackModules.getByProps('containerCozy', 'dividerEnabled');
+
+		const ID = class ID extends React.Component {
 			constructor(props) {
 				super(props);
 				this.onDoubleClick = this.onDoubleClick.bind(this);
@@ -96,7 +97,7 @@ var ChatUserIDsRedux = (() => {
 			}
 
 			render() {
-				return DiscordModules.React.createElement('span', { className: 'tagID', onDoubleClick: this.onDoubleClick }, this.props.id);
+				return React.createElement('span', { className: 'tagID', onDoubleClick: this.onDoubleClick }, this.props.id);
 			}
 		};
 		
@@ -128,6 +129,7 @@ var ChatUserIDsRedux = (() => {
 						position: relative;
 						top: 0;
 						height: 9px;
+						width: 110px;
 						margin-left: -4px;
 						margin-right: 6px;
 						text-shadow: 0 1px 3px black;
@@ -139,14 +141,14 @@ var ChatUserIDsRedux = (() => {
 						font-family: 'Roboto', 'Inconsolata', 'Whitney', sans-serif;
 					}
 		
-					${DiscordSelectors.Messages.containerCozy.value.trim()} h2 {
+					.${MessageClasses.containerCozy.trim().replace(/\s+/g, '.')} h2 {
 						display: flex;
 						position: relative;
 					}
 
-					${DiscordSelectors.Messages.messageCompact.value.trim()} .tagID {
-						margin-right: -34px;
-						margin-left: 14px;
+					.${MessageClasses.containerCompact.trim().replace(/\s+/g, '.')} .tagID {
+						margin-left: 5ch;
+						padding: 2px 3px;
 					}
 				`;
 			}
@@ -178,6 +180,7 @@ var ChatUserIDsRedux = (() => {
 				try {
 					document.execCommand('copy');
 					Toasts.info('Successfully copied!', { timeout: 2e3 });
+					window.getSelection().removeAllRanges();
 				} catch(e) {
 					err(e);
 					Toasts.error('Failed to copy! See console for error(s)!', { timeout: 2e3 });
@@ -188,29 +191,11 @@ var ChatUserIDsRedux = (() => {
 			 * @name patchMessageComponent
 			 * @author Zerebos
 			 */
-			async patchMessages(promiseState) {
-				const Message = await new Promise((resolve) => {
-					const message = document.querySelector(DiscordSelectors.Messages.message);
-					if (message) return resolve(ReactTools.getOwnerInstance(message).constructor);
-
-					const MessageGroup = WebpackModules.getModule((m) => m.defaultProps && m.defaultProps.disableManageMessages);
-					const unpatch = Patcher.after(MessageGroup.prototype, 'componentDidMount', (that) => {
-						const elem = DiscordModules.ReactDOM.findDOMNode(that);
-						if (!elem) return;
-						unpatch();
-						const msg = elem.querySelector(DiscordSelectors.Messages.message);
-						const inst = ReactTools.getOwnerInstance(msg);
-						if (!inst) return;
-						resolve(inst.constructor);
-					});
-				});
-
-				if (promiseState.cancelled) return;
-
+			patchMessages(promiseState) {
 				Patcher.after(Message.prototype, 'render', (that, args, value) => {
 					if (!that.props.isHeader || that.props.message.type !== 0) return value;
 
-					const children = this.getProps(value, 
+					const children = this.getProps(value,
 						!that.props.isCompact
 							? 'props.children.0.props.children.1.props.children'
 							: 'props.children'
@@ -218,12 +203,12 @@ var ChatUserIDsRedux = (() => {
 
 					if (!children || !Array.isArray(children)) return value;
 
-					const id = DiscordModules.React.createElement(ID, {
+					const id = React.createElement(ID, {
 						id: this.getProps(that, 'props.message.author.id'),
 						onDoubleClick: (e) => this.double(e)
 					});
 
-					children.unshift(id);
+					if (!children.find((child) => child && child.type === ID)) children.unshift(id);
 
 					return value;
 				});
@@ -236,7 +221,7 @@ var ChatUserIDsRedux = (() => {
 			 * @author Zerebos
 			 */
 			updateMessages() {
-				const messages = document.querySelectorAll(DiscordSelectors.Messages.message);
+				const messages = document.querySelectorAll(`.${MessageClasses.container}`);
 				for (let i = 0, len = messages.length; i < len; i++) ReactTools.getOwnerInstance(messages[i]).forceUpdate();
 			}
 
