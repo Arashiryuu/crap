@@ -28,8 +28,11 @@ var HideUtils = (() => {
 
 	/* Setup */
 
+	const toString = Object.prototype.toString;
+	const isObject = (o) => toString.call(o) === '[object Object]';
+
 	const spanWrap = (children = []) => {
-		if (!children.every((item) => typeof item === 'object' && !Array.isArray(item))) return '';
+		if (!children.every(isObject)) children = children.filter(isObject);
 		const wrapper = document.createElement('span');
 		for (const child of children) {
 			if (child.type === 'text') {
@@ -59,7 +62,7 @@ var HideUtils = (() => {
 					twitter_username: ''
 				}
 			],
-			version: '2.1.13',
+			version: '2.1.14',
 			description: 'Allows you to hide users, servers, and channels individually.',
 			github: 'https://github.com/Arashiryuu',
 			github_raw: 'https://raw.githubusercontent.com/Arashiryuu/crap/master/ToastIntegrated/HideUtils/HideUtils.plugin.js'
@@ -73,50 +76,14 @@ var HideUtils = (() => {
 						{
 							type: 'b',
 							children: [
-								'Folders',
+								'Light Theme',
 								' '
 							]
 						},
 						{
 							type: 'text',
 							children: [
-								'can be hidden.'
-							]
-						}
-					])
-				]
-			},
-			{
-				title: 'Bugs Squashed!',
-				type: 'fixed',
-				items: [
-					spanWrap([
-						{
-							type: 'b',
-							children: [
-								'Unhide Channels Toggle',
-								' '
-							]
-						},
-						{
-							type: 'text',
-							children: [
-								'context-menu item now only switches to "unhide" for already hidden channels while Unhide Channels is active.'
-							]
-						}
-					]),
-					spanWrap([
-						{
-							type: 'b',
-							children: [
-								'Hidden Folders',
-								' '
-							]
-						},
-						{
-							type: 'text',
-							children: [
-								'no longer receive mentions from servers inside a hidden folder.'
+								'instructions modal bullet points now match Discord\'s changelog\'s ones.'
 							]
 						}
 					])
@@ -620,7 +587,7 @@ var HideUtils = (() => {
 					#HideUtils-Instructions .list-element-item::before {
 						content: '';
 						position: absolute;
-						background: #dcddde;
+						background: #DCDDDE;
 						top: 10px;
 						left: -15px;
 						width: 6px;
@@ -629,6 +596,9 @@ var HideUtils = (() => {
 						margin-left: -3px;
 						border-radius: 50%;
 						opacity: 0.3;
+					}
+					.theme-light #HideUtils-Instructions .list-element-item::before {
+						background: #72767D;
 					}
 				`;
 				
@@ -707,11 +677,16 @@ var HideUtils = (() => {
 				Patcher.instead(DiscordModules.MessageActions, 'receiveMessage', (that, args, value) => {
 					const [channelId, { author }] = args;
 					const channel = this.channel(channelId);
-					const guild = this.guild(channel.guild_id);
-					const isHiddenFolderMention = slice.call(Object.values(this.settings.folders)).some((folder) => Array.isArray(folder.servers) && folder.servers.includes(guild.id));
-					if (has.call(this.settings.channels, channelId)) return false;
-					if (guild && has.call(this.settings.servers, guild.id)) return false;
 					if (has.call(this.settings.users, author.id) || DiscordModules.RelationshipStore.isBlocked(author.id)) return false;
+					if (has.call(this.settings.channels, channelId)) return false;
+					const guild = this.guild(channel.guild_id);
+					const isHiddenFolderMention = slice.call(Object.values(this.settings.folders)).some((folder) => {
+						const servers = [...Object.values(folder.servers)];
+						return servers.includes(channel.guild_id);
+					});
+					if (!guild) return value.apply(that, args);
+					if (has.call(this.settings.servers, guild.id)) return false;
+					if (isHiddenFolderMention) return false;
 					return value.apply(that, args);
 				});
 			}
@@ -720,8 +695,13 @@ var HideUtils = (() => {
 				const Module = WebpackModules.getByProps('isMentioned');
 				Patcher.instead(Module, 'isMentioned', (that, args, value) => {
 					const [{ author, channel_id, guild_id }] = args;
-					const isHiddenFolderMention = slice.call(Object.values(this.settings.folders)).some((folder) => Array.isArray(folder.servers) && folder.servers.includes(guild_id));
-					if (has.call(this.settings.users, author.id) || has.call(this.settings.channels, channel_id) || has.call(this.settings.servers, guild_id) || isHiddenFolderMention) return false;
+					const isHiddenFolderMention = slice.call(Object.values(this.settings.folders)).some((folder) => {
+						const servers = [...Object.values(folder.servers)];
+						return servers.includes(guild_id);
+					});
+					if (has.call(this.settings.users, author.id) || has.call(this.settings.channels, channel_id)) return false;
+					if (!guild_id) return value.apply(that, args);
+					if (has.call(this.settings.servers, guild_id) || isHiddenFolderMention) return false;
 					return value.apply(that, args);
 				});
 			}
@@ -989,7 +969,7 @@ var HideUtils = (() => {
 							if (children[i][j] && Array.isArray(children[i][j])) {
 								children[i][j] = children[i][j].filter((child) => !child || !child.key || (child.key && !has.call(this.settings.users, child.key)));
 								if (children[i][j].length === 2 && children[i][j][1] === null && children[i][j][0].props && children[i][j][0].props.type && children[i][j][0].props.type === 'GROUP') {
-									children[i][j][0] = null;
+									children[i].splice(j, 1);
 								}
 							}
 						}
@@ -1008,6 +988,28 @@ var HideUtils = (() => {
 
 			patchChannels() {
 				const Scroller = WebpackModules.getByDisplayName('VerticalScroller');
+				const Channels = WebpackModules.getByDisplayName('Channels');
+
+				Patcher.after(Channels.prototype, 'renderList', (that, args, value) => {
+					if (this.settings.servers.unhidden.includes(that.props.guildId)) return value;
+					const { rowHeight, sectionHeight } = value.props;
+					value.props.rowHeight = (category, index) => {
+						if (this.settings.servers.unhidden.includes(that.props.guildId)) return rowHeight(category, index);
+						const cat = this.getProps(that, `props.channels.4.${category}`);
+						if (!cat || !cat.channel) return rowHeight(category, index);
+						const c = this.getProps(that, `props.categories.${cat.channel.id}.${index}`);
+						if (!c || !c.channel || !has.call(this.settings.channels, c.channel.id)) return rowHeight(category, index);
+						return 0;
+					};
+					value.props.sectionHeight = (category) => {
+						if (!category || this.settings.servers.unhidden.includes(that.props.guildId)) return sectionHeight(category);
+						const cat = this.getProps(that, `props.channels.4.${category}`);
+						if (!cat) return sectionHeight(category);
+						const f = this.getProps(that, `props.categories.${cat.channel.id}`).filter((c) => !has.call(this.settings.channels, c.id));
+						return f.length && sectionHeight(category) || 0;
+					};
+					return value;
+				});
 				
 				Patcher.after(Scroller.prototype, 'render', (that, args, value) => {
 					const key = this.getProps(value, 'props.children.0._owner.return.key');
@@ -1037,7 +1039,7 @@ var HideUtils = (() => {
 						});
 						// If we hide all children of a category, unrender it
 						if (children[i].length === 1 && children[i][0].type.displayName && children[i][0].type.displayName.includes('Category')) {
-							children[i][0] = null;
+							children[i].splice(0, 1);
 						}
 					}
 
