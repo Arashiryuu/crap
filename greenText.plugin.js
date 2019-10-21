@@ -40,7 +40,7 @@ var GreenText = (() => {
 					twitter_username: ''
 				}
 			],
-			version: '1.1.1',
+			version: '1.1.2',
 			description: 'Turns sentences beginning with "\>" green.',
 			github: 'https://github.com/Arashiryuu',
 			github_raw: 'https://raw.githubusercontent.com/Arashiryuu/crap/master/greenText.plugin.js'
@@ -77,7 +77,9 @@ var GreenText = (() => {
 	/* Build */
 
 	const buildPlugin = ([Plugin, Api]) => {
-		const { Toasts, Logger, DOMTools, WebpackModules, DiscordSelectors } = Api;
+		const { Toasts, Logger, Patcher, ReactTools, DOMTools, WebpackModules, DiscordModules, DiscordSelectors, DiscordClasses, PluginUtilities } = Api;
+
+		const Messages = WebpackModules.getByDisplayName('MessageGroup');
 
 		const markup = WebpackModules.getByProps('markup').markup.split(' ')[0];
 		const MessageClasses = WebpackModules.getByProps('containerCozy', 'dividerEnabled');
@@ -88,52 +90,57 @@ var GreenText = (() => {
 				this._css;
 				this.regex = /^&gt;\S?.+|^>\S?.+/igm;
 				this.css = `
-					.${MessageClasses.container} #GreenText {
+					.${MessageClasses.container} .green-text {
 						color: #709900 !important;
 						transition: all 200ms ease;
 					}
 
-					.${MessageClasses.container} #GreenText:hover {
+					.${MessageClasses.container} .green-text:hover {
 						font-weight: bold;
 					}
 				`;
-				this.switchList = [
-					WebpackModules.getByProps('app').app.split(' ')[0],
-					DiscordSelectors.TitleWrap.chat.value.split('.')[1],
-					WebpackModules.getByProps('messages', 'messagesWrapper').messagesWrapper.split(' ')[0]
-				];
-				this.messageList = [
-					MessageClasses.container,
-					MessageClasses.content
-				];
 			}
 
 			/* Methods */
 
 			onStart() {
 				this.injectCSS();
-				this.run();
+				this.patchMessages();
 				Toasts.info(`${this.name} ${this.version} has started!`, { icon: true, timeout: 2e3 });
 			}
 
 			onStop() {
 				this.removeCSS();
+				Patcher.unpatchAll();
 				Toasts.info(`${this.name} ${this.version} has stopped!`, { icon: true, timeout: 2e3 });
+			}
+
+			patchMessages() {
+				Patcher.after(Messages.prototype, 'render', (that, args, value) => {
+					setImmediate(() => this.run());
+					return value;
+				});
+				this.updateMessages();
+			}
+
+			updateMessages() {
+				const messages = document.querySelectorAll(`.${MessageClasses.container}`);
+				for (const m of messages) ReactTools.getOwnerInstance(m).forceUpdate();
 			}
 
 			run() {
 				const messages = document.querySelectorAll(`.${markup}`);
 
 				if (this.isCompact()) {
-					outer: for (const message of messages) {
+					for (const message of messages) {
 						const textNodes = Array.from(message.childNodes).filter((node) => node.nodeType === 3);
-						inner: for (const node of textNodes) {
+						for (const node of textNodes) {
 							const matches = node.data.match(this.regex);
-							if (!matches || !matches.length) continue inner;
+							if (!matches || !matches.length) continue;
 							const data = node.data.split('\n');
 							const replaceNodes = data.reduce((arr, text) => {
 								if (text.match(this.regex)) {
-									const el = DOMTools.parseHTML(`<span id="GreenText">${text}\n</span>`);
+									const el = DOMTools.parseHTML(`<span class="green-text">${text}\n</span>`);
 									return arr.push(el), arr;
 								}
 								return arr.push(document.createTextNode(`${text}\n`)), arr;
@@ -143,13 +150,13 @@ var GreenText = (() => {
 							node.replaceWith(...replaceNodes);
 						}
 					}
-				}
-
-				for (const message of messages) {
-					const matches = message.innerHTML.match(this.regex);
-					if (!matches || !matches.length) continue;
-					const html = message.innerHTML;
-					message.innerHTML = html.replace(this.regex, '<span id="GreenText">$&</span>');
+				} else {
+					for (const message of messages) {
+						const matches = message.innerHTML.match(this.regex);
+						if (!matches || !matches.length) continue;
+						const html = message.innerHTML;
+						message.innerHTML = html.replace(this.regex, '<span class="green-text">$&</span>');
+					}
 				}
 			}
 
@@ -168,16 +175,6 @@ var GreenText = (() => {
 				const message = document.querySelector(`.${markup}`);
 				if (!message) return false;
 				return message.classList.contains(WebpackModules.getByProps('isCompact').isCompact);
-			}
-
-			/* Observer */
-
-			observer({ addedNodes }) {
-				if (addedNodes.length && addedNodes[0].classList && this.switchList.includes(addedNodes[0].classList[0])) {
-					this.run();
-				} else if (addedNodes.length && addedNodes[0].classList && this.messageList.includes(addedNodes[0].classList[addedNodes[0].classList.length - 1])) {
-					this.run();
-				}
 			}
 
 			/* Setters */
@@ -250,7 +247,7 @@ var GreenText = (() => {
 		}
 
 		load() {
-			window.BdApi.alert('Missing Library', `The library plugin needed for ${config.info.name} is missing.<br /><br /> <a href="https://betterdiscord.net/ghdl?url=https://raw.githubusercontent.com/rauenzi/BDPluginLibrary/master/release/0PluginLibrary.plugin.js" target="_blank">Click here to download the library!</a>`);
+			window.BdApi.getCore().alert('Missing Library', `The library plugin needed for ${config.info.name} is missing.<br /><br /> <a href="https://betterdiscord.net/ghdl?url=https://raw.githubusercontent.com/rauenzi/BDPluginLibrary/master/release/0PluginLibrary.plugin.js" target="_blank">Click here to download the library!</a>`);
 		}
 
 		start() {
