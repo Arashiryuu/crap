@@ -40,16 +40,16 @@ var TitleForTitlebar = (() => {
 					twitter_username: ''
 				}
 			],
-			version: '1.0.8',
+			version: '1.0.9',
 			description: 'Adds a title to the titlebar, dynamically changes as needed.',
 			github: 'https://github.com/Arashiryuu',
 			github_raw: 'https://raw.githubusercontent.com/Arashiryuu/crap/master/ToastIntegrated/TitleForTitlebar/TitleForTitlebar.plugin.js'
 		},
 		changelog: [
 			{
-				title: 'What\'s New?',
-				type: 'added',
-				items: ['Now supports News and Store channel types.']
+				title: 'Bugs Squashed!',
+				type: 'fixed',
+				items: ['Hide channel name opt-in works again.']
 			}
 		]
 	};
@@ -79,7 +79,7 @@ var TitleForTitlebar = (() => {
 	const buildPlugin = ([Plugin, Api]) => {
 		const { Toasts, Logger, Settings, DOMTools, DiscordModules, WebpackModules, DiscordSelectors, PluginUtilities } = Api;
 		const { titleBar } = WebpackModules.getByProps('titleBar');
-		const { children } = WebpackModules.getByProps('children', 'container', 'clickable');
+		const { children } = WebpackModules.getByProps('children', 'container', 'clickable', 'title');
 		const { topic, expandable } = WebpackModules.getByProps('topic', 'expandable');
 		
 		return class TitleForTitlebar extends Plugin {
@@ -95,12 +95,43 @@ var TitleForTitlebar = (() => {
 				this.title;
 				this._css;
 				this._optCSS;
-				this.css = `
+				this.css = process.platform === 'win32'
+					? `
+					.typeWindows-1za-n7 {
+						justify-content: center;
+					}
+
+					#TitleForTitlebar {
+						color: #EEE;
+						font-size: 13pt;
+						font-family: 'Inconsolata', sans-serif;
+						text-transform: capitalize;
+						align-self: center;
+					}
+
+					.winButton-iRh8-Z {
+						position: absolute;
+						top: 0;
+					}
+
+					.typeWindows-1za-n7 .winButton-iRh8-Z:nth-child(2) {
+						right: 0;
+					}
+
+					.typeWindows-1za-n7 .winButton-iRh8-Z + .winButton-iRh8-Z {
+						right: 45px;
+					}
+
+					.typeWindows-1za-n7 .winButton-iRh8-Z + .winButton-iRh8-Z + .winButton-iRh8-Z {
+						right: 90px;
+					}
+				`
+					: `
 					#TitleForTitlebar {
 						position: absolute;
-						color: #EEE;
 						top: 0;
 						left: 26vw;
+						color: #EEE;
 						font-size: 13pt;
 						font-family: 'Inconsolata', sans-serif;
 						text-transform: capitalize;
@@ -114,7 +145,8 @@ var TitleForTitlebar = (() => {
 				this.switchList = [
 					WebpackModules.getByProps('app').app.split(' ')[0],
 					DiscordSelectors.TitleWrap.chat.value.split('.')[1],
-					WebpackModules.getByProps('messages', 'messagesWrapper').messagesWrapper.split(' ')[0]
+					WebpackModules.getByProps('messages', 'messagesWrapper').messagesWrapper.split(' ')[0],
+					WebpackModules.getByProps('chatContent').chatContent.split(' ')[0]
 				];
 			}
 
