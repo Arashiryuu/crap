@@ -40,7 +40,7 @@ var GreenText = (() => {
 					twitter_username: ''
 				}
 			],
-			version: '1.1.2',
+			version: '1.1.3',
 			description: 'Turns sentences beginning with "\>" green.',
 			github: 'https://github.com/Arashiryuu',
 			github_raw: 'https://raw.githubusercontent.com/Arashiryuu/crap/master/greenText.plugin.js'
@@ -49,7 +49,7 @@ var GreenText = (() => {
 			{
 				title: 'Bugs Squashed!',
 				type: 'fixed',
-				items: ['Works again!']
+				items: ['Compact mode compatibility.']
 			}
 		]
 	};
@@ -145,8 +145,8 @@ var GreenText = (() => {
 								}
 								return arr.push(document.createTextNode(`${text}\n`)), arr;
 							}, []);
-							if (!replaceNodes[0].id) replaceNodes[0].data = `${replaceNodes[0].data.trim()}\n`;
-							if (!replaceNodes[replaceNodes.length - 1].id) replaceNodes[replaceNodes.length - 1].data = `${replaceNodes[replaceNodes.length - 1].data.trim()}`;
+							if (!replaceNodes[0].className) replaceNodes[0].data = `${replaceNodes[0].data.trim()}\n`;
+							if (!replaceNodes[replaceNodes.length - 1].className) replaceNodes[replaceNodes.length - 1].data = `${replaceNodes[replaceNodes.length - 1].data.trim()}`;
 							node.replaceWith(...replaceNodes);
 						}
 					}
@@ -161,7 +161,9 @@ var GreenText = (() => {
 			}
 
 			injectCSS() {
-				const s = DOMTools.parseHTML(`<style id="GreenTextCSS" type="text/css">${this.css}</style>`);
+				let s = document.getElementById('GreenTextCSS');
+				if (s) return;
+				s = DOMTools.parseHTML(`<style id="GreenTextCSS" type="text/css">${this.css}</style>`);
 				DOMTools.appendTo(s, document.head);
 			}
 
