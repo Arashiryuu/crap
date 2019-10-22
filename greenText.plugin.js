@@ -40,7 +40,7 @@ var GreenText = (() => {
 					twitter_username: ''
 				}
 			],
-			version: '1.1.3',
+			version: '1.1.4',
 			description: 'Turns sentences beginning with "\>" green.',
 			github: 'https://github.com/Arashiryuu',
 			github_raw: 'https://raw.githubusercontent.com/Arashiryuu/crap/master/greenText.plugin.js'
@@ -49,7 +49,7 @@ var GreenText = (() => {
 			{
 				title: 'Bugs Squashed!',
 				type: 'fixed',
-				items: ['Compact mode compatibility.']
+				items: ['Compact mode compatibility.', 'Normalize Classes compatibility.']
 			}
 		]
 	};
@@ -80,9 +80,9 @@ var GreenText = (() => {
 		const { Toasts, Logger, Patcher, ReactTools, DOMTools, WebpackModules, DiscordModules, DiscordSelectors, DiscordClasses, PluginUtilities } = Api;
 
 		const Messages = WebpackModules.getByDisplayName('MessageGroup');
-
-		const markup = WebpackModules.getByProps('markup').markup.split(' ')[0];
 		const MessageClasses = WebpackModules.getByProps('containerCozy', 'dividerEnabled');
+		const [markup] = WebpackModules.getByProps('markup').markup.split(' ');
+		const [container] = MessageClasses.container.split(' ');
 		
 		return class GreenText extends Plugin {
 			constructor() {
@@ -90,12 +90,12 @@ var GreenText = (() => {
 				this._css;
 				this.regex = /^&gt;\S?.+|^>\S?.+/igm;
 				this.css = `
-					.${MessageClasses.container} .green-text {
+					.${container} .green-text {
 						color: #709900 !important;
 						transition: all 200ms ease;
 					}
 
-					.${MessageClasses.container} .green-text:hover {
+					.${container} .green-text:hover {
 						font-weight: bold;
 					}
 				`;
@@ -117,21 +117,24 @@ var GreenText = (() => {
 
 			patchMessages() {
 				Patcher.after(Messages.prototype, 'render', (that, args, value) => {
-					setImmediate(() => this.run());
+					const message = this.getProps(that, 'props.messages.0');
+					if (!message || message.type !== 0) return value;
+					const compact = this.getProps(that, 'props.isCompact');
+					setImmediate(() => this.run(compact));
 					return value;
 				});
 				this.updateMessages();
 			}
 
 			updateMessages() {
-				const messages = document.querySelectorAll(`.${MessageClasses.container}`);
+				const messages = document.querySelectorAll(`.${container}`);
 				for (const m of messages) ReactTools.getOwnerInstance(m).forceUpdate();
 			}
 
-			run() {
+			run(compact) {
 				const messages = document.querySelectorAll(`.${markup}`);
 
-				if (this.isCompact()) {
+				if (compact) {
 					for (const message of messages) {
 						const textNodes = Array.from(message.childNodes).filter((node) => node.nodeType === 3);
 						for (const node of textNodes) {
@@ -173,10 +176,8 @@ var GreenText = (() => {
 				e.remove();
 			}
 
-			isCompact() {
-				const message = document.querySelector(`.${markup}`);
-				if (!message) return false;
-				return message.classList.contains(WebpackModules.getByProps('isCompact').isCompact);
+			getProps(obj, path) {
+				return path.split(/\s?\.\s?/).reduce((object, prop) => object && object[prop], obj);
 			}
 
 			/* Setters */
