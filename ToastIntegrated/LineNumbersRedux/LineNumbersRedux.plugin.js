@@ -40,18 +40,18 @@ var LineNumbersRedux = (() => {
 					twitter_username: ''
 				}
 			],
-			version: '1.1.4',
+			version: '1.1.5',
 			description: 'Adds line numbers to codeblocks.',
 			github: 'https://github.com/Arashiryuu',
 			github_raw: 'https://raw.githubusercontent.com/Arashiryuu/crap/master/ToastIntegrated/LineNumbersRedux/LineNumbersRedux.plugin.js'
 		},
-		changelog: [
-			{
-				title: 'Bugs Squashed!',
-				type: 'fixed',
-				items: ['Fix issue with css universal selector line incompatibility.']
-			}
-		]
+		// changelog: [
+		// 	{
+		// 		title: 'Bugs Squashed!',
+		// 		type: 'fixed',
+		// 		items: ['Fix issue with css universal selector line incompatibility.']
+		// 	}
+		// ]
 	};
 	
 	const log = function() {
@@ -84,15 +84,6 @@ var LineNumbersRedux = (() => {
 				};
 				this.default = { ignoreNoLanguage: true, noStyle: false };
 				this.settings = Object.assign({}, this.default);
-				this.switchList = [
-					WebpackModules.getByProps('app').app.split(' ')[0],
-					DiscordSelectors.TitleWrap.chat.value.split('.')[1],
-					WebpackModules.getByProps('messages', 'messagesWrapper').messagesWrapper.split(' ')[0]
-				];
-				this.messageList = [
-					MessageClasses.container,
-					MessageClasses.content 
-				];
 				this.css = `
 					.hljs ol {
 						list-style: none;
@@ -135,7 +126,7 @@ var LineNumbersRedux = (() => {
 				this.loadSettings(this.settings);
 				this.handleCSS();
 				this.patchMessages(this.promises.state);
-				Toasts.info(`${this.name} ${this.version} has started!`, { icon: true, timeout: 2e3 });
+				Toasts.info(`${this.name} ${this.version} has started!`, { timeout: 2e3 });
 			}
 
 			onStop() {
@@ -143,7 +134,7 @@ var LineNumbersRedux = (() => {
 				window.BdApi.clearCSS('LineNumbersCSS');
 				Patcher.unpatchAll();
 				this.unprocessCodeblocks();
-				Toasts.info(`${this.name} ${this.version} has stopped!`, { icon: true, timeout: 2e3 });
+				Toasts.info(`${this.name} ${this.version} has stopped!`, { timeout: 2e3 });
 			}
 
 			wrap(parent, wrapper) {
@@ -159,13 +150,6 @@ var LineNumbersRedux = (() => {
 			}
 		
 			mapLine(line) {
-				// const commentMarkers = ['/*', '*/'];
-				// const isCommentMarker = (marker) => line.trim().startsWith(marker);
-				// if (commentMarkers.some(isCommentMarker)) {
-				// 	return `<li class="hljs-comment">${line}</li>`;
-				// } else {
-				// 	return `<li>${line}</li>`;
-				// }
 				return `<li>${line}</li>`;
 			}
 
@@ -255,23 +239,8 @@ var LineNumbersRedux = (() => {
 
 			patchMessages(state) {
 				const Message = WebpackModules.getByDisplayName('MessageGroup');
-				// await new Promise((resolve) => {
-				// 	const message = document.querySelector(`.${MessageClasses.container}`);
-				// 	if (message) return resolve(ReactTools.getOwnerInstance(message).constructor);
 
-				// 	const MessageGroup = WebpackModules.getModule((m) => m.defaultProps && m.defaultProps.disableManageMessages);
-				// 	const unpatch = Patcher.after(MessageGroup.prototype, 'componentDidMount', (that) => {
-				// 		const elem = DiscordModules.ReactDOM.findDOMNode(that);
-				// 		if (!elem) return;
-				// 		unpatch();
-				// 		const msg = elem.querySelector(`.${MessageClasses.container}`);
-				// 		const inst = ReactTools.getOwnerInstance(msg);
-				// 		if (!inst) return;
-				// 		resolve(inst.constructor);
-				// 	});
-				// });
-
-				// if (state.cancelled) return;
+				if (state.cancelled) return;
 
 				Patcher.after(Message.prototype, 'render', (that, args, value) => {
 					const message = this.getProps(that, 'props.messages.0');
@@ -286,7 +255,7 @@ var LineNumbersRedux = (() => {
 			}
 
 			updateMessages() {
-				const messages = document.querySelectorAll(`.${MessageClasses.container}`);
+				const messages = document.querySelectorAll(`.${MessageClasses.container.split(' ')[0]}`);
 				for (let i = 0, len = messages.length; i < len; i++) ReactTools.getOwnerInstance(messages[i]).forceUpdate();
 			}
 
@@ -391,7 +360,7 @@ var LineNumbersRedux = (() => {
 			}
 
 			load() {
-				window.BdApi.alert('Missing Library', `The library plugin needed for ${config.info.name} is missing.<br /><br /> <a href="https://betterdiscord.net/ghdl?url=https://raw.githubusercontent.com/rauenzi/BDPluginLibrary/master/release/0PluginLibrary.plugin.js" target="_blank">Click here to download the library!</a>`);
+				window.BdApi.getCore().alert('Missing Library', `The library plugin needed for ${config.info.name} is missing.<br /><br /> <a href="https://betterdiscord.net/ghdl?url=https://raw.githubusercontent.com/rauenzi/BDPluginLibrary/master/release/0PluginLibrary.plugin.js" target="_blank">Click here to download the library!</a>`);
 			}
 
 			start() {
