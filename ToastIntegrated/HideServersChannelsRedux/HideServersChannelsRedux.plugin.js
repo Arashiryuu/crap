@@ -40,16 +40,16 @@ var HideServersChannelsRedux = (() => {
 					twitter_username: ''
 				}
 			],
-			version: '1.1.2',
+			version: '1.1.3',
 			description: 'Adds buttons to the header for hiding the servers list and channels list.',
 			github: 'https://github.com/Arashiryuu',
 			github_raw: 'https://raw.githubusercontent.com/Arashiryuu/crap/master/ToastIntegrated/HideServersChannelsRedux/HideServersChannelsRedux.plugin.js'
 		},
 		changelog: [
 			{
-				title: 'Bugs Squashed!',
-				type: 'fixed',
-				items: ['Works again!']
+				title: 'Evolving?',
+				type: 'improved',
+				items: ['Normalized Classes compatibility.']
 			}
 		]
 	};
@@ -309,11 +309,11 @@ var HideServersChannelsRedux = (() => {
 			}
 
 			onServerButtonClick() {
-				const iconClass = icons.icon.split(' ').join('.');
-				const guildsWrapper = guilds.wrapper.split(' ').join('.');
+				const [iconClass] = icons.icon.split(' ');
+				const [guildsWrapper] = guilds.wrapper.split(' ');
 				const button = document.querySelector(`.${iconClass}[name="ServerButton"]`);
 				const element = document.querySelector(`.${guildsWrapper}`);
-				const channelsBase = document.querySelector(`.${channelBase.base}`);
+				const channelsBase = document.querySelector(`.${channelBase.base.split(' ')[0]}`);
 				
 				if (!button) return;
 
@@ -325,9 +325,9 @@ var HideServersChannelsRedux = (() => {
 			}
 			
 			onChannelButtonClick() {
-				const iconClass = icons.icon.split(' ').join('.');
+				const [iconClass] = icons.icon.split(' ');
 				const button = document.querySelector(`.${iconClass}[name="ChannelButton"]`);
-				const element = document.querySelector(`.${channelBase.sidebar}`);
+				const element = document.querySelector(`.${channelBase.sidebar.split(' ')[0]}`);
 				
 				if (!button) return;
 
