@@ -62,7 +62,7 @@ var HideUtils = (() => {
 					twitter_username: ''
 				}
 			],
-			version: '2.1.14',
+			version: '2.1.15',
 			description: 'Allows you to hide users, servers, and channels individually.',
 			github: 'https://github.com/Arashiryuu',
 			github_raw: 'https://raw.githubusercontent.com/Arashiryuu/crap/master/ToastIntegrated/HideUtils/HideUtils.plugin.js'
@@ -76,14 +76,14 @@ var HideUtils = (() => {
 						{
 							type: 'b',
 							children: [
-								'Light Theme',
+								'Voice Channels',
 								' '
 							]
 						},
 						{
 							type: 'text',
 							children: [
-								'instructions modal bullet points now match Discord\'s changelog\'s ones.'
+								'now remain hidden when users are in them and the channel was previously hidden.'
 							]
 						}
 					])
@@ -741,8 +741,7 @@ var HideUtils = (() => {
 					const item = new MenuItem(itemProps);
 					const group = React.createElement(ItemGroup, { children: [item] });
 
-					if (Array.isArray(orig.children)) orig.children.unshift(group);
-					else orig.children = [group, orig.children];
+					orig.children.splice(1, 0, group);
 
 					setImmediate(() => this.updateContextPosition(that));
 
@@ -803,8 +802,7 @@ var HideUtils = (() => {
 
 					const group = React.createElement(ItemGroup, { children: children });
 
-					if (Array.isArray(orig.children)) orig.children.unshift(group);
-					else orig.children = [group, orig.children];
+					orig.children.splice(1, 0, group);
 
 					setImmediate(() => this.updateContextPosition(that));
 
@@ -1035,7 +1033,7 @@ var HideUtils = (() => {
 								this.mute(userId, 0);
 								return false;
 							});
-							return true;
+							return !channel.key || (channel.key && !has.call(this.settings.channels, channel.key));
 						});
 						// If we hide all children of a category, unrender it
 						if (children[i].length === 1 && children[i][0].type.displayName && children[i][0].type.displayName.includes('Category')) {
