@@ -62,7 +62,7 @@ var HideUtils = (() => {
 					twitter_username: ''
 				}
 			],
-			version: '2.1.15',
+			version: '2.1.16',
 			description: 'Allows you to hide users, servers, and channels individually.',
 			github: 'https://github.com/Arashiryuu',
 			github_raw: 'https://raw.githubusercontent.com/Arashiryuu/crap/master/ToastIntegrated/HideUtils/HideUtils.plugin.js'
@@ -76,14 +76,14 @@ var HideUtils = (() => {
 						{
 							type: 'b',
 							children: [
-								'Voice Channels',
+								'Blocked Messages',
 								' '
 							]
 						},
 						{
 							type: 'text',
 							children: [
-								'now remain hidden when users are in them and the channel was previously hidden.'
+								'once again hide when the setting is enabled following the recent update.'
 							]
 						}
 					])
@@ -870,16 +870,17 @@ var HideUtils = (() => {
 				if (promiseState.cancelled) return;
 				Patcher.after(Message.prototype, 'render', (that, args, value) => {
 					const props = this.getProps(value, 'props.children.1.props');
-					const messageGroups = this.getProps(props, 'children');
+					const messageGroups = this.getProps(props, 'children.1');
 					if (!messageGroups || !Array.isArray(messageGroups)) return value;
 
-					props.children = messageGroups.filter((group) => {
+					props.children[1] = messageGroups.filter((group) => {
+						if (!group) return group;
 						const author = this.getProps(group, 'props.children.props.messages.0.author');
-						const blocked = (group.type.displayName === 'BlockedMessageGroups') && this.settings.hideBlocked;
+						const blocked = (group.type && group.type.displayName === 'BlockedMessageGroups') && this.settings.hideBlocked;
 						return !blocked && author && !has.call(this.settings.users, author.id) || !blocked && !author;
 					});
 
-					for (const group of props.children) {
+					for (const group of props.children[1]) {
 						const n = this.getProps(group, 'props.children');
 						if (!n || typeof n === 'string') continue;
 						n.ref = (e) => {
