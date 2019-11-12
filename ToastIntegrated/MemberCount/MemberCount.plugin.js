@@ -62,7 +62,7 @@ var MemberCount = (() => {
 					twitter_username: ''
 				}
 			],
-			version: '2.1.5',
+			version: '2.1.6',
 			description: 'Displays a server\'s member-count at the top of the member-list, can be styled with the #MemberCount selector.',
 			github: 'https://github.com/Arashiryuu',
 			github_raw: 'https://raw.githubusercontent.com/Arashiryuu/crap/master/ToastIntegrated/MemberCount/MemberCount.plugin.js'
@@ -84,6 +84,27 @@ var MemberCount = (() => {
 							type: 'text',
 							children: [
 								'now connects via Flux to the MemberCountStore and reads/updates with that.'
+							]
+						}
+					])
+				]
+			},
+			{
+				title: 'What\'s New?',
+				type: 'added',
+				items: [
+					spanWrap([
+						{
+							type: 'b',
+							children: [
+								'Settings',
+								' '
+							]
+						},
+						{
+							type: 'text',
+							children: [
+								'now available, old plugin config file may be incompatible and need deleting.'
 							]
 						}
 					])
