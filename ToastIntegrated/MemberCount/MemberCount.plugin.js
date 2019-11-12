@@ -154,12 +154,10 @@ var MemberCount = (() => {
 				};
 				this.css = `
 					.theme-dark #MemberCount {
-						color: hsla(0, 0%, 100%, 0.4);
 						background: #2f3136;
 					} 
 					
 					.theme-light #MemberCount {
-						color: #99aab5;
 						background: #f3f3f3;
 					}
 				`;
