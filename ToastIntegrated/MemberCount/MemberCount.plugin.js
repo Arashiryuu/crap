@@ -332,13 +332,13 @@ var MemberCount = (() => {
 
 			loadSettings() {
 				const data = super.loadSettings();
-				if (!data) return void (this.settings = Utilities.deepclone(this.default));
+				if (!data) return (this.settings = Utilities.deepclone(this.default));
 
-				if (Array.isArray(data)) return void (this.settings = { blacklist: [...data], sticky: true });
+				if (Array.isArray(data)) return (this.settings = { blacklist: [...data], sticky: true });
 
 				if (data.blacklist && !Array.isArray(data.blacklist)) {
 					data.blacklist = [...Object.values(data.blacklist)];
-					return void (this.settings = Utilities.deepclone(data));
+					return (this.settings = Utilities.deepclone(data));
 				}
 			}
 
