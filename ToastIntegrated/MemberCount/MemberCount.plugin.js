@@ -62,7 +62,7 @@ var MemberCount = (() => {
 					twitter_username: ''
 				}
 			],
-			version: '2.1.8',
+			version: '2.1.9',
 			description: 'Displays a server\'s member-count at the top of the member-list, can be styled with the #MemberCount selector.',
 			github: 'https://github.com/Arashiryuu',
 			github_raw: 'https://raw.githubusercontent.com/Arashiryuu/crap/master/ToastIntegrated/MemberCount/MemberCount.plugin.js'
@@ -332,16 +332,14 @@ var MemberCount = (() => {
 
 			loadSettings() {
 				const data = super.loadSettings();
-				if (!data) return;
-				if (Array.isArray(data)) {
-					this.settings = {
-						blacklist: data,
-						sticky: true
-					};
-					return;
+				if (!data) return void (this.settings = Utilities.deepclone(this.default));
+
+				if (Array.isArray(data)) return void (this.settings = { blacklist: [...data], sticky: true });
+
+				if (data.blacklist && !Array.isArray(data.blacklist)) {
+					data.blacklist = [...Object.values(data.blacklist)];
+					return void (this.settings = Utilities.deepclone(data));
 				}
-				if (data.blacklist && !Array.isArray(data.blacklist)) data.blacklist = Object.values(data.blacklist);
-				this.settings = Utilities.deepclone(data);
 			}
 
 			/* Utility */
