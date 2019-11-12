@@ -28,6 +28,28 @@ var MemberCount = (() => {
 
 	/* Setup */
 
+	const toString = Object.prototype.toString;
+	const isObject = (o) => toString.call(o) === '[object Object]';
+
+	const spanWrap = (children = []) => {
+		if (!children.every(isObject)) children = children.filter(isObject);
+		const wrapper = document.createElement('span');
+		for (const child of children) {
+			if (child.type === 'text') {
+				wrapper.appendChild(document.createTextNode(child.children.join('\n')));
+				continue;
+			}
+			const d = document.createElement(child.type);
+			if (child.children && child.children.length) {
+				for (const c of child.children) {
+					d.appendChild(typeof c === 'string' ? document.createTextNode(c) : c);
+				}
+			}
+			wrapper.appendChild(d);
+		}
+		return wrapper;
+	};
+
 	const config = {
 		main: 'index.js',
 		info: {
@@ -40,7 +62,7 @@ var MemberCount = (() => {
 					twitter_username: ''
 				}
 			],
-			version: '2.1.4',
+			version: '2.1.5',
 			description: 'Displays a server\'s member-count at the top of the member-list, can be styled with the #MemberCount selector.',
 			github: 'https://github.com/Arashiryuu',
 			github_raw: 'https://raw.githubusercontent.com/Arashiryuu/crap/master/ToastIntegrated/MemberCount/MemberCount.plugin.js'
@@ -50,9 +72,21 @@ var MemberCount = (() => {
 				title: 'Evolving?',
 				type: 'improved',
 				items: [
-					'ContextMenu minor improvement.',
-					'Added newest member group class to the counter.',
-					'Style fix.'
+					spanWrap([
+						{
+							type: 'b',
+							children: [
+								'Counter',
+								' '
+							]
+						},
+						{
+							type: 'text',
+							children: [
+								'now connects via Flux to the MemberCountStore and reads/updates with that.'
+							]
+						}
+					])
 				]
 			}
 		]
@@ -71,10 +105,10 @@ var MemberCount = (() => {
 
 	const buildPlugin = ([Plugin, Api]) => {
 		const { Toasts, Logger, Patcher, Settings, Utilities, DOMTools, ReactTools, ReactComponents, DiscordModules, DiscordClasses, WebpackModules, DiscordSelectors, PluginUtilities } = Api;
-		const { SettingPanel, SettingGroup, SettingField, Textbox } = Settings;
-		const { React, GuildActions, GuildMemberStore, SelectedGuildStore, ContextMenuActions: MenuActions } = DiscordModules;
-		const { ComponentDispatch: Dispatcher } = WebpackModules.getByProps('ComponentDispatch');
+		const { SettingPanel, SettingGroup, SettingField, Textbox, Switch } = Settings;
+		const { React, MemberCountStore, SelectedGuildStore, ContextMenuActions: MenuActions } = DiscordModules;
 
+		const Flux = WebpackModules.getByProps('connectStores');
 		const MenuItem = WebpackModules.getByString('disabled', 'brand');
 
 		const ItemGroup = class ItemGroup extends React.Component {
@@ -93,55 +127,32 @@ var MemberCount = (() => {
 		const Counter = class Counter extends React.Component {
 			constructor(props) {
 				super(props);
-				this.state = { count: 0 };
-				this.updateCount = this.updateCount.bind(this);
-			}
-
-			componentDidMount() {
-				Dispatcher.subscribe('COUNT_MEMBERS', this.updateCount);
-				this.updateCount();
-			}
-
-			componentWillUnmount() {
-				Dispatcher.unsubscribe('COUNT_MEMBERS', this.updateCount);
-			}
-
-			updateCount() {
-				this.setState({ count: GuildMemberStore.getMemberIds(SelectedGuildStore.getGuildId()).length });
 			}
 
 			render() {
-				return React.createElement('div', {
+				return React.createElement('header', {
 					className: `${DiscordClasses.MemberList.membersGroup} container-2ax-kl`,
 					id: 'MemberCount',
-					children: ['Members', '—', this.state.count]
+					children: ['Members', '—', this.props.count]
 				});
 			}
 		};
+
+		const MemberCounter = Flux.connectStores([MemberCountStore], () => ({ count: MemberCountStore.getMemberCount(SelectedGuildStore.getGuildId()) }))(Counter);
 		
 		return class MemberCount extends Plugin {
 			constructor() {
 				super();
 				this._css;
-				this.default = { blacklist: [] };
+				this._optIn;
+				this.default = { blacklist: [], sticky: true };
 				this.settings = Utilities.deepclone(this.default);
 				this.promises = {
 					state: { cancelled: false },
 					cancel() { this.state.cancelled = true; },
 					restore() { this.state.cancelled = false; }
 				};
-				this.loadedGuilds = [];
 				this.css = `
-					#MemberCount {
-						position: absolute;
-						width: 97%;
-						text-align: center;
-						padding: 1.8vh 0 0 3%;
-						z-index: 5;
-						top: 0;
-						margin-top: -10px;
-					}
-		
 					.theme-dark #MemberCount {
 						color: hsla(0, 0%, 100%, 0.4);
 						background: #2f3136;
@@ -151,7 +162,18 @@ var MemberCount = (() => {
 						color: #99aab5;
 						background: #f3f3f3;
 					}
-		
+				`;
+				this.optIn = `
+					#MemberCount {
+						position: absolute;
+						width: 97%;
+						text-align: center;
+						padding: 1.8vh 0 0 3%;
+						z-index: 5;
+						top: 0;
+						margin-top: -10px;
+					}
+
 					${DiscordSelectors.MemberList.membersWrap} ${DiscordSelectors.MemberList.membersGroup}:nth-child(3) {
 						margin-top: 2vh;
 					}
@@ -163,7 +185,7 @@ var MemberCount = (() => {
 			onStart() {
 				this.promises.restore();
 				this.loadSettings();
-				PluginUtilities.addStyle(this.short, this.css);
+				this.addCSS();
 				this.patchMemberList();
 				this.patchGuildContextMenu(this.promises.state);
 				Toasts.info(`${this.name} ${this.version} has started!`, { timeout: 2e3 });
@@ -171,11 +193,18 @@ var MemberCount = (() => {
 
 			onStop() {
 				this.promises.cancel();
-				this.loadedGuilds.length = 0;
-				PluginUtilities.removeStyle(this.short);
+				this.clearCSS();
 				Patcher.unpatchAll();
 				this.updateAll();
 				Toasts.info(`${this.name} ${this.version} has stopped!`, { timeout: 2e3 });
+			}
+
+			addCSS() {
+				PluginUtilities.addStyle(this.short, this.settings.sticky ? [this.css, this.optIn].join('\n') : this.css);
+			}
+
+			clearCSS() {
+				PluginUtilities.removeStyle(this.short);
 			}
 
 			patchMemberList() {
@@ -191,16 +220,9 @@ var MemberCount = (() => {
 					const guildId = SelectedGuildStore.getGuildId();
 					if (this.settings.blacklist.includes(guildId) || !guildId) return value;
 
-					const counter = React.createElement(Counter, {});
+					const counter = React.createElement(MemberCounter, {});
 
-					children.unshift([counter, null]);
-
-					if (!this.loadedGuilds.includes(guildId)) {
-						GuildActions.requestMembers([guildId], '', 0);
-						this.loadedGuilds.push(guildId);
-					}
-
-					Dispatcher.dispatch('COUNT_MEMBERS');
+					if (!children.find((child) => child.type === MemberCounter)) children.unshift([counter, null]);
 
 					return value;
 				});
@@ -250,22 +272,23 @@ var MemberCount = (() => {
 			}
 
 			parseId(id) {
-				return { label: this.getLabel(id), hint: 'MCount', action: this.getAction(id) };
+				const blacklisted = this.settings.blacklist.includes(id);
+				return { label: this.getLabel(blacklisted), hint: 'MCount', action: this.getAction(id, blacklisted) };
 			}
 
-			getAction(id) {
-				return this.settings.blacklist.includes(id) ? () => this.unlistGuild(id) : () => this.blacklistGuild(id);
+			getAction(id, blacklisted) {
+				return blacklisted ? () => this.unlistGuild(id) : () => this.blacklistGuild(id);
 			}
 
-			getLabel(id) {
-				return this.settings.blacklist.includes(id) ? 'Include Server' : 'Exclude Server';
+			getLabel(blacklisted) {
+				return blacklisted ? 'Include Server' : 'Exclude Server';
 			}
 
 			blacklistGuild(id) {
 				if (!id) return;
 				MenuActions.closeContextMenu();
 				this.settings.blacklist.push(id);
-				this.saveSettings(this.settings.blacklist);
+				this.saveSettings(this.settings);
 				this.updateAll(true);
 			}
 
@@ -273,7 +296,7 @@ var MemberCount = (() => {
 				if (!id) return;
 				MenuActions.closeContextMenu();
 				this.settings.blacklist.splice(this.settings.blacklist.indexOf(id), 1);
-				this.saveSettings(this.settings.blacklist);
+				this.saveSettings(this.settings);
 				this.updateAll(true);
 			}
 
@@ -281,21 +304,20 @@ var MemberCount = (() => {
 				this.updateMemberList(t);
 			}
 
-			/* Utility */
+			updateCSS() {
+				this.clearCSS();
+				this.addCSS();
+			}
 
-			/**
-			 * Function to load settings.
-			 */
+			/* Load Settings */
+
 			loadSettings() {
-				PluginUtilities.loadSettings(this.name, this.settings.blacklist);
+				const data = super.loadSettings();
+				if (!Array.isArray(data.blacklist)) data.blacklist = Object.values(data.blacklist);
+				this.settings = Utilities.deepclone(data);
 			}
 
-			/**
-			 * Function to save settings.
-			 */
-			saveSettings(settings) {
-				PluginUtilities.saveSettings(this.name, settings);
-			}
+			/* Utility */
 
 			/**
 			 * Function to access properties of an object safely, returns false instead of erroring if the property / properties do not exist.
@@ -309,10 +331,27 @@ var MemberCount = (() => {
 				return path.split(/\s?\.\s?/).reduce((object, prop) => object && object[prop], obj);
 			}
 
+			/* Settings Panel */
+
+			getSettingsPanel() {
+				return SettingPanel.build(() => this.saveSettings(this.settings),
+					new SettingGroup('Plugin Settings').append(
+						new Switch('Sticky Counter', 'Adds CSS to always position the counter atop the member list, regardless of scroll.', this.settings.sticky, (i) => {
+							this.settings.sticky = i;
+							this.updateCSS();
+						})
+					)
+				);
+			}
+
 			/* Setters */
 
 			set css(style = '') {
 				return this._css = style.split(/\s+/g).join(' ').trim();
+			}
+
+			set optIn(style = '') {
+				return this._optIn = style.split(/\s+/g).join(' ').trim();
 			}
 
 			/* Getters */
@@ -323,6 +362,10 @@ var MemberCount = (() => {
 
 			get css() {
 				return this._css;
+			}
+
+			get optIn() {
+				return this._optIn;
 			}
 
 			get name() {
