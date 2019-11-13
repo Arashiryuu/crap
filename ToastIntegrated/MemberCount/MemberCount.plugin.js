@@ -240,8 +240,9 @@ var MemberCount = (() => {
 					if (this.settings.blacklist.includes(guildId) || !guildId) return value;
 
 					const counter = React.createElement(MemberCounter, {});
+					const fn = ([item, n]) => item.type && item.type.displayName && item.type.displayName === 'FluxContainer(Counter)';
 
-					if (!children.find((child) => child.type === MemberCounter)) children.unshift([counter, null]);
+					if (!children.find(fn)) children.unshift([counter, null]);
 
 					return value;
 				});
