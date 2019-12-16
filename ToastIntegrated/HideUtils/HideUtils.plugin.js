@@ -62,28 +62,28 @@ var HideUtils = (() => {
 					twitter_username: ''
 				}
 			],
-			version: '2.1.16',
+			version: '2.1.17',
 			description: 'Allows you to hide users, servers, and channels individually.',
 			github: 'https://github.com/Arashiryuu',
 			github_raw: 'https://raw.githubusercontent.com/Arashiryuu/crap/master/ToastIntegrated/HideUtils/HideUtils.plugin.js'
 		},
 		changelog: [
 			{
-				title: 'Evolving?',
-				type: 'improved',
+				title: 'Bugs Squashed!',
+				type: 'fixed',
 				items: [
 					spanWrap([
 						{
 							type: 'b',
 							children: [
-								'Blocked Messages',
+								'Context Menus',
 								' '
 							]
 						},
 						{
 							type: 'text',
 							children: [
-								'once again hide when the setting is enabled following the recent update.'
+								'once again populate with HideUtils options.'
 							]
 						}
 					])
@@ -117,7 +117,7 @@ var HideUtils = (() => {
 	/* Build */
 
 	const buildPlugin = ([Plugin, Api]) => {
-		const { Toasts, Patcher, Settings, Utilities, DOMTools, ReactTools, ReactComponents, DiscordModules, DiscordClasses, WebpackModules, DiscordSelectors, PluginUtilities } = Api;
+		const { Toasts, Patcher, Settings, Utilities, ContextMenu, DOMTools, ReactTools, ReactComponents, DiscordModules, DiscordClasses, WebpackModules, DiscordSelectors, PluginUtilities } = Api;
 		const { SettingPanel, SettingField, SettingGroup, Switch } = Settings;
 		const { ComponentDispatch: Dispatcher } = WebpackModules.getByProps('ComponentDispatch');
 		const { React, ReactDOM, ModalStack, ContextMenuActions: MenuActions } = DiscordModules;
@@ -660,7 +660,7 @@ var HideUtils = (() => {
 				this.patchMessages(promiseState);
 				this.patchMemberList(promiseState);
 				this.patchTypingUsers(promiseState);
-				this.patchContextMenu(promiseState);
+				// this.patchContextMenu(promiseState);
 				this.patchIsMentioned(promiseState);
 				this.patchReceiveMessages(promiseState);
 			}
@@ -670,7 +670,7 @@ var HideUtils = (() => {
 				this.updateChannels();
 				this.updateMessages();
 				this.updateMemberList();
-				this.updateContextMenu();
+				// this.updateContextMenu();
 			}
 
 			patchReceiveMessages() {
@@ -767,6 +767,7 @@ var HideUtils = (() => {
 						action: () => {
 							MenuActions.closeContextMenu();
 							const [p] = DOMTools.parents(props.target, '.wrapper-21YSNc');
+							if (!p) return;
 							const i = ReactTools.getOwnerInstance(p);
 							this.foldPush(i);
 						}
@@ -1053,6 +1054,113 @@ var HideUtils = (() => {
 				if (channels) ReactTools.getOwnerInstance(channels).forceUpdate();
 			}
 
+			processContextMenu(cm) {
+				if (!cm) return;
+				const inst = ReactTools.getReactInstance(cm);
+				const own = ReactTools.getOwnerInstance(cm);
+				const props = this.getProps(inst, 'memoizedProps');
+				if (!own) return;
+				if (typeof own.getContext !== 'undefined') return this.addUserContextItems(inst, own, cm);
+				else if (has.call(inst.memoizedProps, 'style')) return this.addChannelContextItems(inst, own, cm);
+				else if (props && Array.isArray(props.children)) {
+					const readItem = this.getProps(props, 'children.0.props.children');
+					if (!readItem || Array.isArray(readItem)) return;
+					if (has.call(readItem.props, 'folderId')) return this.addFolderContextItems(inst, own, cm);
+					else if (has.call(readItem.props, 'guildId')) return this.addGuildContextItems(inst, own, cm);
+				}
+			}
+
+			addUserContextItems(instance, owner, context) {
+				if (!DiscordModules.GuildStore.getGuild(DiscordModules.SelectedGuildStore.getGuildId())) return;
+				const group = new ContextMenu.ItemGroup();
+				const props = this.getProps(instance, 'memoizedProps.children.props.children.0.props.children.0.props');
+				const item = new ContextMenu.TextItem('Hide User', {
+					callback: (e) => {
+						MenuActions.closeContextMenu();
+						if (!props) return;
+						const { userId: id } = props;
+						this.userPush(id);
+					}
+				});
+				group.addItems(item);
+				context.prepend(group.getElement());
+				setImmediate(() => this.updateContextPosition(owner));
+			}
+
+			addChannelContextItems(instance, owner, context) {
+				if (instance.memoizedProps.children[3].type.displayName && instance.memoizedProps.children[3].type.displayName.includes('Category')) return;
+				const group = new ContextMenu.ItemGroup();
+				const channel = this.getProps(instance, 'memoizedProps.children.0.props.children.1.props.channel');
+				if (!channel) return;
+				const itemProps = {
+					label: 'Hide Channel',
+					action: (e) => {
+						MenuActions.closeContextMenu();
+						this.chanPush(channel.id);
+					}
+				};
+				if (this.settings.servers.unhidden.includes(channel.guild_id) && has.call(this.settings.channels, channel.id)) {
+					itemProps.label = 'Unhide Channel';
+					itemProps.action = (e) => {
+						MenuActions.closeContextMenu();
+						this.chanClear(channel.id);
+					};
+				}
+				const item = new ContextMenu.TextItem(itemProps.label, { callback: itemProps.action });
+				group.addItems(item);
+				context.firstChild.insertAdjacentElement('afterend', group.getElement());
+				setImmediate(() => this.updateContextPosition(owner));
+			}
+
+			addGuildContextItems(instance, owner, context) {
+				const group = new ContextMenu.ItemGroup();
+				const ref = owner.props.children({ position: owner.props.reference() }, owner.updatePosition);
+				const guild = this.getProps(ref, 'props.guild');
+				const checked = this.settings.servers.unhidden.includes(guild.id);
+				const item = new ContextMenu.TextItem('Hide Server', {
+					callback: (e) => {
+						MenuActions.closeContextMenu();
+						this.servPush(guild.id);
+						this.clearUnhiddenChannels(guild.id);
+					}
+				});
+				const toggle = new ContextMenu.ToggleItem('Unhide Channels', checked, {
+					callback: (e) => {
+						this.servUnhideChannels(guild.id);
+					}
+				});
+				const clear = new ContextMenu.TextItem('Purge Hidden Channels', {
+					danger: true,
+					callback: (e) => {
+						MenuActions.closeContextMenu();
+						this.chanPurge(guild.id);
+					}
+				});
+				group.addItems(item, toggle, clear);
+				context.firstChild.insertAdjacentElement('afterend', group.getElement());
+				setImmediate(() => this.updateContextPosition(owner));
+			}
+
+			addFolderContextItems(instance, owner, context) {
+				const group = new ContextMenu.ItemGroup();
+				const ref = owner.props.children({ position: owner.props.reference() }, owner.updatePosition);
+				const target = this.getProps(ref, 'props.target');
+				if (!ref || !target) return;
+				const item = new ContextMenu.TextItem('Hide Folder', {
+					callback: (e) => {
+						MenuActions.closeContextMenu();
+						const [p] = DOMTools.parents(target, '.wrapper-21YSNc');
+						if (!p) return;
+						const i = ReactTools.getOwnerInstance(p);
+						if (!i) return;
+						this.foldPush(i);
+					}
+				});
+				group.addItems(item);
+				context.firstChild.insertAdjacentElement('afterend', group.getElement());
+				setImmediate(() => this.updateContextPosition(owner));
+			}
+
 			userPush(id) {
 				if (!id) return;
 				const user = this.user(id);
@@ -1182,6 +1290,16 @@ var HideUtils = (() => {
 				Toasts.info('Folder successfully removed.', { timeout: 3e3 });
 				this.saveSettings(this.settings);
 				this.updateAll();
+			}
+
+			/* Observer */
+			observer({ addedNodes }) {
+				for (const node of addedNodes) {
+					if (!node) continue;
+					if (node.firstChild && node.firstChild.className && node.firstChild.className === DiscordClasses.ContextMenu.contextMenu.value) {
+						this.processContextMenu(node.firstChild);
+					}
+				}
 			}
 
 			/**
