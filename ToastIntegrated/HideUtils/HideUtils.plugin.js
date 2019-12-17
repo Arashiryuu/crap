@@ -62,7 +62,7 @@ var HideUtils = (() => {
 					twitter_username: ''
 				}
 			],
-			version: '2.1.17',
+			version: '2.1.18',
 			description: 'Allows you to hide users, servers, and channels individually.',
 			github: 'https://github.com/Arashiryuu',
 			github_raw: 'https://raw.githubusercontent.com/Arashiryuu/crap/master/ToastIntegrated/HideUtils/HideUtils.plugin.js'
@@ -83,7 +83,7 @@ var HideUtils = (() => {
 						{
 							type: 'text',
 							children: [
-								'once again populate with HideUtils options.'
+								'once again populate with HideUtils options, and uses the proper classes for its elements.'
 							]
 						}
 					])
@@ -1082,6 +1082,9 @@ var HideUtils = (() => {
 						this.userPush(id);
 					}
 				});
+				const elements = item.getElement();
+				elements.classList.add(DiscordClasses.ContextMenu.clickable.toString());
+				elements.firstChild.classList.add(DiscordClasses.ContextMenu.label.toString());
 				group.addItems(item);
 				context.prepend(group.getElement());
 				setImmediate(() => this.updateContextPosition(owner));
@@ -1107,6 +1110,9 @@ var HideUtils = (() => {
 					};
 				}
 				const item = new ContextMenu.TextItem(itemProps.label, { callback: itemProps.action });
+				const elements = item.getElement();
+				elements.classList.add(DiscordClasses.ContextMenu.clickable.toString());
+				elements.firstChild.classList.add(DiscordClasses.ContextMenu.label.toString());
 				group.addItems(item);
 				context.firstChild.insertAdjacentElement('afterend', group.getElement());
 				setImmediate(() => this.updateContextPosition(owner));
@@ -1136,6 +1142,13 @@ var HideUtils = (() => {
 						this.chanPurge(guild.id);
 					}
 				});
+				const firstItem = item.getElement();
+				const secondItem = toggle.getElement();
+				const thirdItem = clear.getElement();
+				for (const i of [firstItem, secondItem, thirdItem]) {
+					i.classList.add(DiscordClasses.ContextMenu.clickable.toString());
+					i.firstChild.classList.add(DiscordClasses.ContextMenu.label.toString());
+				}
 				group.addItems(item, toggle, clear);
 				context.firstChild.insertAdjacentElement('afterend', group.getElement());
 				setImmediate(() => this.updateContextPosition(owner));
@@ -1156,6 +1169,9 @@ var HideUtils = (() => {
 						this.foldPush(i);
 					}
 				});
+				const elements = item.getElement();
+				elements.classList.add(DiscordClasses.ContextMenu.clickable.toString());
+				elements.firstChild.classList.add(DiscordClasses.ContextMenu.label.toString());
 				group.addItems(item);
 				context.firstChild.insertAdjacentElement('afterend', group.getElement());
 				setImmediate(() => this.updateContextPosition(owner));
