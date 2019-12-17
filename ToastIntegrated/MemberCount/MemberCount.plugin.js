@@ -62,49 +62,28 @@ var MemberCount = (() => {
 					twitter_username: ''
 				}
 			],
-			version: '2.1.9',
+			version: '2.1.10',
 			description: 'Displays a server\'s member-count at the top of the member-list, can be styled with the #MemberCount selector.',
 			github: 'https://github.com/Arashiryuu',
 			github_raw: 'https://raw.githubusercontent.com/Arashiryuu/crap/master/ToastIntegrated/MemberCount/MemberCount.plugin.js'
 		},
 		changelog: [
 			{
-				title: 'Evolving?',
-				type: 'improved',
+				title: 'Bugs Squashed!',
+				type: 'fixed',
 				items: [
 					spanWrap([
 						{
 							type: 'b',
 							children: [
-								'Counter',
+								'Context Menu',
 								' '
 							]
 						},
 						{
 							type: 'text',
 							children: [
-								'now connects via Flux to the MemberCountStore and reads/updates with that.'
-							]
-						}
-					])
-				]
-			},
-			{
-				title: 'What\'s New?',
-				type: 'added',
-				items: [
-					spanWrap([
-						{
-							type: 'b',
-							children: [
-								'Settings',
-								' '
-							]
-						},
-						{
-							type: 'text',
-							children: [
-								'now available, old plugin config file may be incompatible and need deleting.'
+								'now populates with the MemberCount context options again.'
 							]
 						}
 					])
@@ -125,10 +104,11 @@ var MemberCount = (() => {
 	/* Build */
 
 	const buildPlugin = ([Plugin, Api]) => {
-		const { Toasts, Logger, Patcher, Settings, Utilities, DOMTools, ReactTools, ReactComponents, DiscordModules, DiscordClasses, WebpackModules, DiscordSelectors, PluginUtilities } = Api;
+		const { Toasts, Logger, Patcher, Settings, Utilities, DOMTools, ReactTools, ContextMenu, ReactComponents, DiscordModules, DiscordClasses, WebpackModules, DiscordSelectors, PluginUtilities } = Api;
 		const { SettingPanel, SettingGroup, SettingField, Textbox, Switch } = Settings;
 		const { React, MemberCountStore, SelectedGuildStore, ContextMenuActions: MenuActions } = DiscordModules;
 
+		const has = Object.prototype.hasOwnProperty;
 		const Flux = WebpackModules.getByProps('connectStores');
 		const MenuItem = WebpackModules.getByString('disabled', 'brand');
 
@@ -206,7 +186,7 @@ var MemberCount = (() => {
 				this.loadSettings();
 				this.addCSS();
 				this.patchMemberList();
-				this.patchGuildContextMenu(this.promises.state);
+				//this.patchGuildContextMenu(this.promises.state);
 				Toasts.info(`${this.name} ${this.version} has started!`, { timeout: 2e3 });
 			}
 
@@ -240,7 +220,7 @@ var MemberCount = (() => {
 					if (this.settings.blacklist.includes(guildId) || !guildId) return value;
 
 					const counter = React.createElement(MemberCounter, {});
-					const fn = ([item, n]) => item.type && item.type.displayName && item.type.displayName === 'FluxContainer(Counter)';
+					const fn = ([item, n]) => item && item.type && item.type.displayName && item.type.displayName === 'FluxContainer(Counter)';
 
 					if (!children.find(fn)) children.unshift([counter, null]);
 
@@ -262,7 +242,7 @@ var MemberCount = (() => {
 			async patchGuildContextMenu(state) {
 				const Component = await ReactComponents.getComponentByName('GuildContextMenu', DiscordSelectors.ContextMenu.contextMenu.toString());
 				const { component: Menu } = Component;
-				
+
 				if (state.cancelled) return;
 
 				Patcher.after(Menu.prototype, 'render', (that, args, value) => {
@@ -289,6 +269,34 @@ var MemberCount = (() => {
 				if (!that) return;
 				const height = this.getProps(that, 'props.onHeightUpdate') || this.getProps(that, '_reactInternalFiber.return.memoizedProps.onHeightUpdate');
 				height && height();
+			}
+
+			processContextMenu(cm) {
+				if (!cm) return;
+				const inst = ReactTools.getReactInstance(cm);
+				const own = ReactTools.getOwnerInstance(cm);
+				const props = this.getProps(inst, 'memoizedProps');
+				if (!own || !props || !Array.isArray(props.children)) return;
+				const readItem = this.getProps(props, 'children.0.props.children');
+				if (!readItem || Array.isArray(readItem) || has.call(readItem.props, 'folderId')) return;
+				if (has.call(readItem.props, 'guildId')) return this.addGuildContextItems(inst, own, cm);
+			}
+
+			addGuildContextItems(instance, owner, context) {
+				const group = new ContextMenu.ItemGroup();
+				const ref = owner.props.children({ position: owner.props.reference() }, owner.updatePosition);
+				const guild = this.getProps(ref, 'props.guild');
+				const data = this.parseId(guild.id);
+				const item = new ContextMenu.TextItem(data.label, {
+					hint: data.hint,
+					callback: data.action
+				});
+				const elements = item.getElement();
+				elements.classList.add(DiscordClasses.ContextMenu.clickable.toString());
+				elements.firstChild.classList.add(DiscordClasses.ContextMenu.label.toString());
+				group.addItems(item);
+				context.firstChild.insertAdjacentElement('afterend', group.getElement());
+				setImmediate(() => this.updateContextPosition(owner));
 			}
 
 			parseId(id) {
@@ -329,6 +337,16 @@ var MemberCount = (() => {
 				this.addCSS();
 			}
 
+			/* Observer */
+			observer({ addedNodes }) {
+				for (const node of addedNodes) {
+					if (!node) continue;
+					if (node.firstChild && node.firstChild.className && node.firstChild.className === DiscordClasses.ContextMenu.contextMenu.value) {
+						this.processContextMenu(node.firstChild);
+					}
+				}
+			}
+
 			/* Load Settings */
 
 			loadSettings() {
@@ -349,8 +367,8 @@ var MemberCount = (() => {
 			 * Function to access properties of an object safely, returns false instead of erroring if the property / properties do not exist.
 			 * @name safelyGetNestedProps
 			 * @author Zerebos
-			 * @param {Object} obj The object we are accessing.
-			 * @param {String} path The properties we want to traverse or access.
+			 * @param {object} obj The object we are accessing.
+			 * @param {string} path The properties we want to traverse or access.
 			 * @returns {*}
 			 */
 			getProps(obj, path) {
