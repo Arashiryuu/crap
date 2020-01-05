@@ -62,7 +62,7 @@ var HideUtils = (() => {
 					twitter_username: ''
 				}
 			],
-			version: '2.1.19',
+			version: '2.1.20',
 			description: 'Allows you to hide users, servers, and channels individually.',
 			github: 'https://github.com/Arashiryuu',
 			github_raw: 'https://raw.githubusercontent.com/Arashiryuu/crap/master/ToastIntegrated/HideUtils/HideUtils.plugin.js'
@@ -83,7 +83,7 @@ var HideUtils = (() => {
 						{
 							type: 'text',
 							children: [
-								'once again populate with HideUtils options, and uses the proper classes for its elements. Normalized Classes compatibility edition.'
+								'once again update position properly.'
 							]
 						}
 					])
@@ -858,6 +858,7 @@ var HideUtils = (() => {
 
 				let height = this.getProps(m, 'props.onHeightUpdate');
 				if (!height) height = this.getProps(m, '_reactInternalFiber.return.memoizedProps.onHeightUpdate');
+				if (!height) height = this.getProps(m, '_reactInternalFiber.child.child.memoizedProps.onHeightUpdate');
 
 				height && height();
 			}
