@@ -62,7 +62,7 @@ var MemberCount = (() => {
 					twitter_username: ''
 				}
 			],
-			version: '2.1.11',
+			version: '2.1.12',
 			description: 'Displays a server\'s member-count at the top of the member-list, can be styled with the #MemberCount selector.',
 			github: 'https://github.com/Arashiryuu',
 			github_raw: 'https://raw.githubusercontent.com/Arashiryuu/crap/master/ToastIntegrated/MemberCount/MemberCount.plugin.js'
@@ -83,7 +83,7 @@ var MemberCount = (() => {
 						{
 							type: 'text',
 							children: [
-								'now populates with the MemberCount context options again. Normalized Classes compatibility edition.'
+								'now properly updates position again.'
 							]
 						}
 					])
@@ -267,7 +267,7 @@ var MemberCount = (() => {
 
 			updateContextPosition(that) {
 				if (!that) return;
-				const height = this.getProps(that, 'props.onHeightUpdate') || this.getProps(that, '_reactInternalFiber.return.memoizedProps.onHeightUpdate');
+				const height = this.getProps(that, 'props.onHeightUpdate') || this.getProps(that, '_reactInternalFiber.return.memoizedProps.onHeightUpdate') || this.getProps(that, '_reactInternalFiber.child.child.memoizedProps.onHeightUpdate');
 				height && height();
 			}
 
