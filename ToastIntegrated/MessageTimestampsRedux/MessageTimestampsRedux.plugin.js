@@ -90,7 +90,7 @@ var MessageTimestampsRedux = (() => {
 
 			render() {
 				return DiscordModules.React.createElement('div', {
-					className: DiscordClassModules.ContextMenu.item,
+					className: DiscordClassModules.ContextMenu.item + " " + DiscordClassModules.ContextMenu.clickable,
 					onClick: this.onClick
 				}, 'Show Timestamp');
 			}
