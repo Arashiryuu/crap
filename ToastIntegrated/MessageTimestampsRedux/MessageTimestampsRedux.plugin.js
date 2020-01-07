@@ -40,24 +40,17 @@ var MessageTimestampsRedux = (() => {
 					twitter_username: ''
 				}
 			],
-			version: '1.0.6',
+			version: '1.0.7',
 			description: 'Displays the timestamp for a message, simply right-click and select "Show Timestamp."',
 			github: 'https://github.com/Arashiryuu',
 			github_raw: 'https://raw.githubusercontent.com/Arashiryuu/crap/master/ToastIntegrated/MessageTimestampsRedux/MessageTimestampsRedux.plugin.js'
 		},
 		changelog: [
 			{
-				title: 'What\'s New?',
+				title: 'Evolving?',
 				type: 'improved',
-				items: ['Now uses the local version of ZeresPluginLibrary.']
-			},
-			{
-				title: 'Bugs Squashed!',
-				type: 'fixed',
 				items: [
-					'Renders in the message context menu again.',
-					'Tooltips now available again.',
-					'Fix multiple active instances.'
+					'Context menu item updated.'
 				]
 			}
 		]
@@ -77,24 +70,8 @@ var MessageTimestampsRedux = (() => {
 	const buildPlugin = ([Plugin, Api]) => {
 		const { Toasts, Logger, Tooltip, Patcher, Settings, Utilities, ReactTools, DOMTools, EmulatedTooltip, ReactComponents, DiscordModules, WebpackModules, DiscordClassModules, DiscordSelectors, PluginUtilities } = Api;
 		const { SettingPanel, SettingGroup, RadioGroup, Slider, Switch } = Settings;
-
-		const Item = class Item extends DiscordModules.React.Component {
-			constructor(props) {
-				super(props);
-				this.onClick = this.onClick.bind(this);
-			}
-
-			onClick() {
-				if (this.props.onClick) this.props.onClick();
-			}
-
-			render() {
-				return DiscordModules.React.createElement('div', {
-					className: DiscordClassModules.ContextMenu.item,
-					onClick: this.onClick
-				}, 'Show Timestamp');
-			}
-		};
+		
+		const MenuItem = WebpackModules.getByString('disabled', 'brand');
 		
 		return class MessageTimestampsRedux extends Plugin {
 			constructor() {
@@ -172,8 +149,9 @@ var MessageTimestampsRedux = (() => {
 
 					if (!Array.isArray(children)) return value;
 
-					const item = DiscordModules.React.createElement(Item, {
-						onClick: () => {
+					const item = new MenuItem({
+						label: 'Show Timestamp',
+						action: () => {
 							!this.settings.tooltips ? this.showTimestamp(message, that) : this.showTooltip(message, that);
 						}
 					});
