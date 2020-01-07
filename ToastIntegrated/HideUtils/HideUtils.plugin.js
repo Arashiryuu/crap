@@ -62,7 +62,7 @@ var HideUtils = (() => {
 					twitter_username: ''
 				}
 			],
-			version: '2.1.20',
+			version: '2.1.21',
 			description: 'Allows you to hide users, servers, and channels individually.',
 			github: 'https://github.com/Arashiryuu',
 			github_raw: 'https://raw.githubusercontent.com/Arashiryuu/crap/master/ToastIntegrated/HideUtils/HideUtils.plugin.js'
@@ -83,7 +83,7 @@ var HideUtils = (() => {
 						{
 							type: 'text',
 							children: [
-								'once again update position properly.'
+								'populate for channels again.'
 							]
 						}
 					])
@@ -1092,9 +1092,9 @@ var HideUtils = (() => {
 			}
 
 			addChannelContextItems(instance, owner, context) {
-				if (instance.memoizedProps.children[3].type.displayName && instance.memoizedProps.children[3].type.displayName.includes('Category')) return;
+				if (instance.memoizedProps.children[0].props && instance.memoizedProps.children[0].props.type === 4) return;
 				const group = new ContextMenu.ItemGroup();
-				const channel = this.getProps(instance, 'memoizedProps.children.0.props.children.1.props.channel');
+				const channel = this.getProps(instance, 'memoizedProps.children.2.props.children.1.props.channel') || this.getProps(instance, 'memoizedProps.children.1.props.channel');
 				if (!channel) return;
 				const itemProps = {
 					label: 'Hide Channel',
