@@ -40,7 +40,7 @@ var HideServersChannelsRedux = (() => {
 					twitter_username: ''
 				}
 			],
-			version: '1.1.3',
+			version: '1.1.4',
 			description: 'Adds buttons to the header for hiding the servers list and channels list.',
 			github: 'https://github.com/Arashiryuu',
 			github_raw: 'https://raw.githubusercontent.com/Arashiryuu/crap/master/ToastIntegrated/HideServersChannelsRedux/HideServersChannelsRedux.plugin.js'
@@ -49,7 +49,7 @@ var HideServersChannelsRedux = (() => {
 			{
 				title: 'Evolving?',
 				type: 'improved',
-				items: ['Normalized Classes compatibility.']
+				items: ['Fixed channel list hide delay when plugin animations are disabled.']
 			}
 		]
 	};
@@ -280,12 +280,14 @@ var HideServersChannelsRedux = (() => {
 						base.style.setProperty('left', '0');
 						DOMTools.removeClass(base, 'closing-guild');
 					}, 400);
+				} else if (this.settings.animations && !guilds && !base) {
+					DOMTools.addClass(el, 'closing');
+					return setTimeout(() => {
+						DOMTools.addClass(el, '_closed');
+						DOMTools.removeClass(el, 'closing');
+					}, 400);
 				}
-				DOMTools.addClass(el, 'closing');
-				setTimeout(() => {
-					DOMTools.addClass(el, '_closed');
-					DOMTools.removeClass(el, 'closing');
-				}, 400);
+				DOMTools.addClass(el, '_closed');
 			}
 
 			openElement(el, guilds, base) {
