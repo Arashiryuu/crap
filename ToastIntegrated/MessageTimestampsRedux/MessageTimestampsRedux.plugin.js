@@ -40,7 +40,7 @@ var MessageTimestampsRedux = (() => {
 					twitter_username: ''
 				}
 			],
-			version: '1.0.7',
+			version: '1.0.8',
 			description: 'Displays the timestamp for a message, simply right-click and select "Show Timestamp."',
 			github: 'https://github.com/Arashiryuu',
 			github_raw: 'https://raw.githubusercontent.com/Arashiryuu/crap/master/ToastIntegrated/MessageTimestampsRedux/MessageTimestampsRedux.plugin.js'
@@ -71,7 +71,7 @@ var MessageTimestampsRedux = (() => {
 		const { Toasts, Logger, Tooltip, Patcher, Settings, Utilities, ReactTools, DOMTools, EmulatedTooltip, ReactComponents, DiscordModules, WebpackModules, DiscordClassModules, DiscordSelectors, PluginUtilities } = Api;
 		const { SettingPanel, SettingGroup, RadioGroup, Slider, Switch } = Settings;
 		
-		const MenuItem = WebpackModules.getByString('disabled', 'brand');
+		const MenuItem = WebpackModules.getByString('disabled', 'danger', 'brand');
 		
 		return class MessageTimestampsRedux extends Plugin {
 			constructor() {
