@@ -24,32 +24,11 @@
 
 @else@*/
 
+
 var HideUtils = (() => {
 
-	/* Setup */
-
-	const toString = Object.prototype.toString;
-	const isObject = (o) => toString.call(o) === '[object Object]';
-
-	const spanWrap = (children = []) => {
-		if (!children.every(isObject)) children = children.filter(isObject);
-		const wrapper = document.createElement('span');
-		for (const child of children) {
-			if (child.type === 'text') {
-				wrapper.appendChild(document.createTextNode(child.children.join('\n')));
-				continue;
-			}
-			const d = document.createElement(child.type);
-			if (child.children && child.children.length) {
-				for (const c of child.children) {
-					d.appendChild(typeof c === 'string' ? document.createTextNode(c) : c);
-				}
-			}
-			wrapper.appendChild(d);
-		}
-		return wrapper;
-	};
-
+	/* Config */
+	
 	const config = {
 		main: 'index.js',
 		info: {
@@ -62,31 +41,18 @@ var HideUtils = (() => {
 					twitter_username: ''
 				}
 			],
-			version: '2.1.21',
+			version: '2.1.23',
 			description: 'Allows you to hide users, servers, and channels individually.',
 			github: 'https://github.com/Arashiryuu',
-			github_raw: 'https://raw.githubusercontent.com/Arashiryuu/crap/master/ToastIntegrated/HideUtils/HideUtils.plugin.js'
+			github_raw: 'https://raw.githubusercontent.com/Arashiryuu/crap/master/ToastIntegrated/HideUtils/HideUtils.plugin.js',
+			github_source: 'https://github.com/Arashiryuu/crap/blob/master/ToastIntegrated/HideUtils/HideUtils.plugin.js'
 		},
 		changelog: [
 			{
 				title: 'Bugs Squashed!',
 				type: 'fixed',
 				items: [
-					spanWrap([
-						{
-							type: 'b',
-							children: [
-								'Context Menus',
-								' '
-							]
-						},
-						{
-							type: 'text',
-							children: [
-								'populate for channels again.'
-							]
-						}
-					])
+					'Adapted to a module alteration.'
 				]
 			}
 		]
@@ -94,13 +60,11 @@ var HideUtils = (() => {
 
 	/* Utility */
 
-	const slice = Array.prototype.slice;
-
 	const log = function() {
 		/**
 		 * @type {Array}
 		 */
-		const args = slice.call(arguments);
+		const args = Array.prototype.slice.call(arguments);
 		args.unshift(`%c[${config.info.name}]`, 'color: #3A71C1; font-weight: 700;');
 		return console.log.apply(this, args);
 	};
@@ -109,23 +73,24 @@ var HideUtils = (() => {
 		/**
 		 * @type {Array}
 		 */
-		const args = slice.call(arguments);
+		const args = Array.prototype.slice.call(arguments);
 		args.unshift(`%c[${config.info.name}]`, 'color: #3A71C1; font-weight: 700;');
 		return console.error.apply(this, args);
 	};
-
+	
 	/* Build */
 
 	const buildPlugin = ([Plugin, Api]) => {
-		const { Toasts, Patcher, Settings, Utilities, ContextMenu, DOMTools, ReactTools, ReactComponents, DiscordModules, DiscordClasses, WebpackModules, DiscordSelectors, PluginUtilities } = Api;
+        const { Toasts, Logger, Patcher, Settings, Utilities, ContextMenu, DOMTools, ReactTools, ReactComponents, DiscordModules, DiscordClasses, WebpackModules, DiscordSelectors, PluginUtilities } = Api;
 		const { SettingPanel, SettingField, SettingGroup, Switch } = Settings;
 		const { ComponentDispatch: Dispatcher } = WebpackModules.getByProps('ComponentDispatch');
 		const { React, ReactDOM, ModalStack, ContextMenuActions: MenuActions } = DiscordModules;
-
+	
 		const TextElement = WebpackModules.getByProps('Sizes', 'Weights');
 		const TooltipWrapper = WebpackModules.getByPrototypes('renderTooltip');
-		
+	
 		const has = Object.prototype.hasOwnProperty;
+		const slice = Array.prototype.slice;
 		const MessageClasses = WebpackModules.getByProps('containerCozy', 'dividerEnabled');
 		const MenuItem = WebpackModules.getByString('disabled', 'brand');
 		const ToggleMenuItem = WebpackModules.getByString('disabled', 'itemToggle');
@@ -136,17 +101,17 @@ var HideUtils = (() => {
 		const wrapper = WebpackModules.getByProps('messagesPopoutWrap');
 		const scroller = WebpackModules.getByProps('scrollerWrap');
 		const dividerContent = WebpackModules.getByProps('divider', 'dividerRed', 'dividerContent');
-
+	
 		const Button = class Button extends React.Component {
 			constructor(props) {
 				super(props);
 				this.onClick = this.onClick.bind(this);
 			}
-
+	
 			onClick(e) {
 				if (this.props.action) this.props.action(e);
 			}
-
+	
 			render() {
 				const style = this.props.style || {};
 				return React.createElement('button', {
@@ -156,12 +121,12 @@ var HideUtils = (() => {
 				}, this.props.text);
 			}
 		};
-
+	
 		const ItemGroup = class ItemGroup extends React.Component {
 			constructor(props) {
 				super(props);
 			}
-
+	
 			render() {
 				return React.createElement('div', {
 					className: DiscordClasses.ContextMenu.itemGroup.toString(),
@@ -169,17 +134,17 @@ var HideUtils = (() => {
 				});
 			}
 		};
-
+	
 		const CloseButton = class CloseButton extends React.Component {
 			constructor(props) {
 				super(props);
 				this.onClick = this.onClick.bind(this);
 			}
-
+	
 			onClick() {
 				if (this.props.onClick) this.props.onClick();
 			}
-
+	
 			render() {
 				return React.createElement('svg', {
 					className: 'close-button',
@@ -193,29 +158,29 @@ var HideUtils = (() => {
 				);
 			}
 		};
-
+	
 		const ListText = class ListText extends React.Component {
 			constructor(props) {
 				super(props);
 			}
-
+	
 			render() {
 				return React.createElement('li', {
 					className: 'list-element-item'
 				}, this.props.text);
 			}
 		};
-
+	
 		const ReactUL = class ReactUL extends React.Component {
 			constructor(props) {
 				super(props);
 			}
-
+	
 			prepareChildren(children) {
 				if (!children.length) return children;
 				return children.map((child) => React.createElement(ListText, { text: child }));
 			}
-
+	
 			render() {
 				return React.createElement('ul', {
 					className: 'list-element',
@@ -223,7 +188,7 @@ var HideUtils = (() => {
 				});
 			}
 		};
-
+	
 		const Modal = class Modal extends React.Component {
 			constructor(props) {
 				super(props);
@@ -236,42 +201,42 @@ var HideUtils = (() => {
 				this.close = this.close.bind(this);
 				this.replaceLabels = this.replaceLabels.bind(this);
 			}
-
+	
 			close() {
 				ModalStack.popWithKey('HideUtils-SettingsModal');
 			}
-
+	
 			replaceLabels(label, data) {
 				if (!has.call(this._labels, label)) return null;
-
+	
 				const string = this._labels[label];
-
+	
 				if (label === 'Channels') return string
 					.replace(/{{id}}/, data.id)
 					.replace(/{{guild}}/, data.guild)
 					.replace(/{{channel}}/, data.name);
-
+	
 				if (label === 'Servers') return string
 					.replace(/{{id}}/, data.id)
 					.replace(/{{guild}}/, data.name);
-
+	
 				if (label === 'Folders') return string
 					.replace(/{{id}}/, data.id)
 					.replace(/{{name}}/, data.name);
-
+	
 				return string
 					.replace(/{{id}}/, data.id)
 					.replace(/{{tag}}/, data.tag);
 			}
-
+	
 			render() {
 				const label = this.props.name;
 				const data = [];
-
+	
 				if (this.props.data) {
 					for (const entry of Object.values(this.props.data)) {
 						if (Array.isArray(entry)) continue;
-
+	
 						const item = React.createElement(TooltipWrapper, {
 							text: this.replaceLabels(label, entry),
 							color: TooltipWrapper.Colors.BLACK,
@@ -280,9 +245,9 @@ var HideUtils = (() => {
 								const type = label.slice(0, -1);
 								const hasImage = type === 'User' || type === 'Server';
 								const style = {};
-
+	
 								if (hasImage) Object.assign(style, { backgroundImage: `url(${entry.icon})`, backgroundSize: 'cover', backgroundPosition: 'center' });
-
+	
 								return React.createElement('div', Object.assign({
 									className: 'buttonWrapper'
 								}, props),
@@ -298,11 +263,11 @@ var HideUtils = (() => {
 								);
 							}
 						});
-
+	
 						data.push(item);
 					}
-
-					const count = TextElement.default({
+	
+					const count = React.createElement(TextElement.default, {
 						weight: TextElement.Weights.BOLD,
 						color: TextElement.Colors.BRAND,
 						size: TextElement.Sizes.MEDIUM,
@@ -313,7 +278,7 @@ var HideUtils = (() => {
 						},
 						children: [label, ' hidden \u2014 ', data.length]
 					});
-
+	
 					data.unshift(count, React.createElement('hr', { style: { border: 'none' } }));
 				} else {
 					data.push(
@@ -321,10 +286,10 @@ var HideUtils = (() => {
 							id: 'HideUtils-Instructions',
 							className: 'instructions'
 						},	
-							TextElement.default({
+							React.createElement(TextElement.default, {
 								color: TextElement.Colors.PRIMARY,
 								children: [
-									TextElement.default({
+									React.createElement(TextElement.default, {
 										weight: TextElement.Weights.BOLD,
 										color: TextElement.Colors.BRAND,
 										size: TextElement.Sizes.MEDIUM,
@@ -342,7 +307,7 @@ var HideUtils = (() => {
 										]
 									}),
 									React.createElement('br', {}),
-									TextElement.default({
+									React.createElement(TextElement.default, {
 										weight: TextElement.Weights.BOLD,
 										color: TextElement.Colors.BRAND,
 										size: TextElement.Sizes.MEDIUM,
@@ -364,7 +329,7 @@ var HideUtils = (() => {
 						)
 					);
 				}
-
+	
 				return React.createElement('div', {
 					id: 'HideUtils-Modal',
 					className: `${wrapper.messagesPopoutWrap} ${DiscordClasses.Popouts.themedPopout}`
@@ -376,7 +341,7 @@ var HideUtils = (() => {
 						React.createElement(CloseButton, {
 							onClick: this.close
 						}),
-						TextElement.default({
+						React.createElement(TextElement.default, {
 							className: wrapper.title,
 							color: TextElement.Colors.PRIMARY,
 							children: ['HideUtils \u2014 ', label]
@@ -394,7 +359,7 @@ var HideUtils = (() => {
 				);
 			}
 		};
-
+	
 		const Select = class Select extends React.Component {
 			constructor(props) {
 				super(props);
@@ -404,27 +369,27 @@ var HideUtils = (() => {
 				this.openServers = this.openServers.bind(this);
 				this.openUsers = this.openUsers.bind(this);
 			}
-
+	
 			openFolders() {
 				ModalStack.push(Modal, { name: 'Folders', data: this.props.folders }, 'HideUtils-SettingsModal');
 			}
-
+	
 			openChannels() {
 				ModalStack.push(Modal, { name: 'Channels', data: this.props.channels }, 'HideUtils-SettingsModal');
 			}
-
+	
 			openServers() {
 				ModalStack.push(Modal, { name: 'Servers', data: this.props.servers }, 'HideUtils-SettingsModal');
 			}
-
+	
 			openUsers() {
 				ModalStack.push(Modal, { name: 'Users', data: this.props.users }, 'HideUtils-SettingsModal');
 			}
-
+	
 			openInstructions() {
 				ModalStack.push(Modal, { name: 'Instructions', data: null }, 'HideUtils-SettingsModal');
 			}
-
+	
 			render() {
 				return React.createElement('div', {
 					id: 'HideUtils-Settings',
@@ -467,7 +432,7 @@ var HideUtils = (() => {
 				);
 			}
 		};
-
+	
 		const SelectionField = class SelectionField extends SettingField {
 			constructor(name, note, data, onChange) {
 				super(name, note, onChange, Select, {
@@ -611,30 +576,30 @@ var HideUtils = (() => {
 				this.user;
 				this.mute;
 			}
-
+	
 			/* Methods */
-
+	
 			setup() {
 				this.channel = DiscordModules.ChannelStore.getChannel;
 				this.guild = DiscordModules.GuildStore.getGuild;
 				this.user = DiscordModules.UserStore.getUser;
 				this.mute = WebpackModules.getByProps('setLocalVolume').setLocalVolume;
 			}
-
+	
 			subscribe() {
 				Dispatcher.subscribe('HIDEUTILS_BUTTON_USERCLEAR', this.userClear);
 				Dispatcher.subscribe('HIDEUTILS_BUTTON_SERVERCLEAR', this.servClear);
 				Dispatcher.subscribe('HIDEUTILS_BUTTON_FOLDERCLEAR', this.foldClear);
 				Dispatcher.subscribe('HIDEUTILS_BUTTON_CHANNELCLEAR', this.chanClear);
 			}
-
+	
 			unsubscribe() {
 				Dispatcher.unsubscribe('HIDEUTILS_BUTTON_USERCLEAR', this.userClear);
 				Dispatcher.unsubscribe('HIDEUTILS_BUTTON_SERVERCLEAR', this.servClear);
 				Dispatcher.unsubscribe('HIDEUTILS_BUTTON_FOLDERCLEAR', this.foldClear);
 				Dispatcher.unsubscribe('HIDEUTILS_BUTTON_CHANNELCLEAR', this.chanClear);
 			}
-
+	
 			onStart() {
 				this.promises.restore();
 				PluginUtilities.addStyle(this.short, this.css);
@@ -644,7 +609,7 @@ var HideUtils = (() => {
 				this.patchAll(this.promises.state);
 				Toasts.info(`${this.name} ${this.version} has started!`, { timeout: 2e3 });
 			}
-
+	
 			onStop() {
 				this.promises.cancel();
 				PluginUtilities.removeStyle(this.short);
@@ -653,7 +618,7 @@ var HideUtils = (() => {
 				this.updateAll();
 				Toasts.info(`${this.name} ${this.version} has stopped!`, { timeout: 2e3 });
 			}
-
+	
 			patchAll(promiseState) {
 				this.patchGuilds(promiseState);
 				this.patchChannels(promiseState);
@@ -664,7 +629,7 @@ var HideUtils = (() => {
 				this.patchIsMentioned(promiseState);
 				this.patchReceiveMessages(promiseState);
 			}
-
+	
 			updateAll() {
 				this.updateGuilds();
 				this.updateChannels();
@@ -672,7 +637,7 @@ var HideUtils = (() => {
 				this.updateMemberList();
 				// this.updateContextMenu();
 			}
-
+	
 			patchReceiveMessages() {
 				Patcher.instead(DiscordModules.MessageActions, 'receiveMessage', (that, args, value) => {
 					const [channelId, { author }] = args;
@@ -690,22 +655,34 @@ var HideUtils = (() => {
 					return value.apply(that, args);
 				});
 			}
-
+	
 			patchIsMentioned() {
-				const Module = WebpackModules.getByProps('isMentioned');
+				const Module = WebpackModules.getByProps('isMentioned', 'isRawMessageMentioned');
+				// const { getMentions } = WebpackModules.getByProps('getMentions');
+				// let o = getMentions();
 				Patcher.instead(Module, 'isMentioned', (that, args, value) => {
-					const [{ author, channel_id, guild_id }] = args;
-					const isHiddenFolderMention = slice.call(Object.values(this.settings.folders)).some((folder) => {
+					const { 0: currentUserId, 1: channelId, 3: mentionList } = args;
+					const channel = this.channel(channelId);
+					if (!channel) return value.apply(that, args);
+					const guild = this.guild(channel.guild_id);
+					const isHiddenFolderMention = () => slice.call(Object.values(this.settings.folders)).some((folder) => {
 						const servers = [...Object.values(folder.servers)];
-						return servers.includes(guild_id);
+						return servers.includes(guild.id);
 					});
-					if (has.call(this.settings.users, author.id) || has.call(this.settings.channels, channel_id)) return false;
-					if (!guild_id) return value.apply(that, args);
-					if (has.call(this.settings.servers, guild_id) || isHiddenFolderMention) return false;
+					// const n = getMentions() && o ? getMentions().filter((m) => !o.includes(m.id)) : [];
+					// if (!n.length) return value.apply(that, args);
+					// const thisMention = n.find((mention) => mention.channel_id === channelId && mention.mentions.includes(currentUserId));
+					// if (!thisMention) return value.apply(that, args);
+					// o = o.concat(n);
+					// const { author } = thisMention;
+					// log(author);
+					if (/*author && has.call(this.settings.users, author.id) ||*/ has.call(this.settings.channels, channelId)) return false;
+					if (!guild || !guild.id) return value.apply(that, args);
+					if (has.call(this.settings.servers, guild.id) || isHiddenFolderMention()) return false;
 					return value.apply(that, args);
 				});
 			}
-
+	
 			async patchTypingUsers(promiseState) {
 				const { component: TypingUsers } = await ReactComponents.getComponentByName('TypingUsers', DiscordSelectors.Typing.typing.toString()); // WebpackModules.getByDisplayName('FluxContainer(TypingUsers)');
 				if (promiseState.cancelled) return;
@@ -713,14 +690,14 @@ var HideUtils = (() => {
 					for (const id in typingUsers) has.call(this.settings.users, id) && delete typingUsers[id];
 				}, { displayName: 'TypingUsers' });
 			}
-
+	
 			async patchChannelContextMenu(promiseState) {
 				const { component: ChannelContextMenu } = await ReactComponents.getComponentByName('ChannelContextMenu', DiscordSelectors.ContextMenu.contextMenu.toString());
 				if (promiseState.cancelled) return;
 				Patcher.after(ChannelContextMenu.prototype, 'render', (that, args, value) => {
 					if (!that.props.type.startsWith('CHANNEL_LIST_')) return value;
 					const channel = this.getProps(that, 'props.channel');
-
+	
 					const orig = this.getProps(value, 'props');
 					const itemProps = {
 						label: 'Hide Channel',
@@ -729,7 +706,7 @@ var HideUtils = (() => {
 							this.chanPush(channel.id);
 						}
 					};
-
+	
 					if (this.settings.servers.unhidden.includes(channel.guild_id) && has.call(this.settings.channels, channel.id)) {
 						itemProps.label = 'Unhide Channel';
 						itemProps.action = () => {
@@ -737,19 +714,19 @@ var HideUtils = (() => {
 							this.chanClear(channel.id);
 						};
 					}
-
+	
 					const item = new MenuItem(itemProps);
 					const group = React.createElement(ItemGroup, { children: [item] });
-
+	
 					orig.children.splice(1, 0, group);
-
+	
 					setImmediate(() => this.updateContextPosition(that));
-
+	
 					return value;
 				});
 				this.updateContextMenu();
 			}
-
+	
 			async patchGuildContextMenu(promiseState) {
 				const { component: GuildContextMenu } = await ReactComponents.getComponentByName('GuildContextMenu', DiscordSelectors.ContextMenu.contextMenu.value.trim());
 				if (promiseState.cancelled) return;
@@ -759,9 +736,9 @@ var HideUtils = (() => {
 					const id = this.getProps(props, 'guild.id');
 					const folderId = this.getProps(props, 'folderId');
 					const active = this.settings.servers.unhidden.includes(id);
-
+	
 					if (!orig || !folderId && !id) return;
-
+	
 					const folderItem = new MenuItem({
 						label: 'Hide Folder',
 						action: () => {
@@ -772,7 +749,7 @@ var HideUtils = (() => {
 							this.foldPush(i);
 						}
 					});
-
+	
 					const hideItem = new MenuItem({
 						label: 'Hide Server',
 						action: () => {
@@ -781,7 +758,7 @@ var HideUtils = (() => {
 							this.clearUnhiddenChannels(id);
 						}
 					});
-
+	
 					const unhideItem = new ToggleMenuItem({
 						label: 'Unhide Channels',
 						active: active,
@@ -789,7 +766,7 @@ var HideUtils = (() => {
 							this.servUnhideChannels(id);
 						}
 					});
-
+	
 					const clearItem = new MenuItem({
 						label: 'Purge Hidden Channels',
 						danger: true,
@@ -798,20 +775,20 @@ var HideUtils = (() => {
 							this.chanPurge(id);
 						}
 					});
-
+	
 					const children = folderId ? [folderItem] : id ? [hideItem, unhideItem, clearItem] : [];
-
+	
 					const group = React.createElement(ItemGroup, { children: children });
-
+	
 					orig.children.splice(1, 0, group);
-
+	
 					setImmediate(() => this.updateContextPosition(that));
-
+	
 					return value;
 				});
 				this.updateContextMenu();
 			}
-
+	
 			async patchUserContextMenu(promiseState) {
 				const { component: UserContextMenu } = await ReactComponents.getComponentByName('UserContextMenu', DiscordSelectors.ContextMenu.contextMenu.toString());
 				if (promiseState.cancelled) return;
@@ -828,41 +805,41 @@ var HideUtils = (() => {
 							this.userPush(user.id);
 						}
 					});
-
+	
 					const group = React.createElement(ItemGroup, { children: [item] });
-
+	
 					if (Array.isArray(orig.children)) orig.children.unshift(group);
 					else orig.children = [group, orig.children];
-
+	
 					setImmediate(() => this.updateContextPosition(that));
-
+	
 					return value;
 				});
 				this.updateContextMenu();
 			}
-
+	
 			async patchContextMenu(promiseState) {
 				if (promiseState.cancelled) return;
 				this.patchUserContextMenu(promiseState);
 				this.patchGuildContextMenu(promiseState);
 				this.patchChannelContextMenu(promiseState);
 			}
-
+	
 			updateContextMenu() {
 				const menus = document.querySelectorAll(DiscordSelectors.ContextMenu.contextMenu.toString());
 				for (let i = 0, len = menus.length; i < len; i++) ReactTools.getOwnerInstance(menus[i]).forceUpdate();
 			}
-
+	
 			updateContextPosition(m) {
 				if (!m) return;
-
+	
 				let height = this.getProps(m, 'props.onHeightUpdate');
 				if (!height) height = this.getProps(m, '_reactInternalFiber.return.memoizedProps.onHeightUpdate');
 				if (!height) height = this.getProps(m, '_reactInternalFiber.child.child.memoizedProps.onHeightUpdate');
-
+	
 				height && height();
 			}
-
+	
 			/**
 			 * @name patchMessageComponent
 			 * @author Zerebos
@@ -874,14 +851,14 @@ var HideUtils = (() => {
 					const props = this.getProps(value, 'props.children.1.props');
 					const messageGroups = this.getProps(props, 'children.1');
 					if (!messageGroups || !Array.isArray(messageGroups)) return value;
-
+	
 					props.children[1] = messageGroups.filter((group) => {
 						if (!group) return group;
 						const author = this.getProps(group, 'props.children.props.messages.0.author');
 						const blocked = (group.type && group.type.displayName === 'BlockedMessageGroups') && this.settings.hideBlocked;
 						return !blocked && author && !has.call(this.settings.users, author.id) || !blocked && !author;
 					});
-
+	
 					for (const group of props.children[1]) {
 						const n = this.getProps(group, 'props.children');
 						if (!n || typeof n === 'string') continue;
@@ -897,12 +874,12 @@ var HideUtils = (() => {
 							});
 						};
 					}
-
+	
 					return value;
 				});
 				this.updateMessages();
 			}
-
+	
 			/**
 			 * @name forceUpdateMessages
 			 * @author Zerebos
@@ -911,7 +888,7 @@ var HideUtils = (() => {
 				const messages = document.querySelector(`.${messagesWrapper.messagesWrapper.replace(/\s/, '.')}`);
 				if (messages) ReactTools.getOwnerInstance(messages).forceUpdate();
 			}
-
+	
 			async patchGuilds(promiseState) {
 				const Guilds = await new Promise((resolve) => {
 					const guildsWrapper = document.querySelector(`.${guilds.wrapper.replace(/\s/, '.')}`);
@@ -921,14 +898,14 @@ var HideUtils = (() => {
 				Patcher.after(Guilds.prototype, 'render', (that, args, value) => {
 					const props = this.getProps(that, 'props');
 					if (!props.guildFolders || !Array.isArray(props.guildFolders)) return value;
-
+	
 					const children = this.getProps(value, 'props.children.1.props.children');
 					if (!children || !Array.isArray(children)) return value;
-
+	
 					const guildIndex = children.findIndex((item) => Array.isArray(item));
 					const guilds = this.getProps(children, guildIndex.toString());
 					if (!guilds || !Array.isArray(guilds)) return value;
-
+	
 					children[guildIndex] = guilds.filter((guild) => {
 						if (Array.isArray(guild.props.guildIds)) {
 							if (has.call(this.settings.folders, guild.props.folderId)) return false;
@@ -938,31 +915,31 @@ var HideUtils = (() => {
 						}
 						return !guild || !guild.key || !has.call(this.settings.servers, guild.key);
 					});
-
+	
 					return value;
 				});
-
+	
 				this.updateGuilds();
 			}
-
+	
 			updateGuilds() {
 				const guildWrapper = document.querySelector(`.${guilds.wrapper.replace(/\s/, '.')}`);
 				if (guildWrapper) ReactTools.getOwnerInstance(guildWrapper).forceUpdate();
 			}
-
+	
 			patchMemberList() {
 				const Scroller = WebpackModules.getByDisplayName('VerticalScroller');
-
+	
 				Patcher.after(Scroller.prototype, 'render', (that, args, value) => {
 					const key = this.getProps(value, 'props.children.0._owner.return.key');
 					if (!key || key === 'guild-channels') return value;
-
+	
 					const children = this.getProps(value, 'props.children.0.props.children.1');
 					if (!children || !Array.isArray(children)) return value;
-
+	
 					const memberlist = this.getProps(children, '2') || this.getProps(children, '1');
 					if (!memberlist || !Array.isArray(memberlist)) return value;
-
+	
 					for (let i = 0, len = children.length; i < len; i++) {
 						if (!Array.isArray(children[i])) continue;
 						if (children[i].some((child) => child && child.type === 'header')) break;
@@ -975,22 +952,22 @@ var HideUtils = (() => {
 							}
 						}
 					}
-
+	
 					return value;
 				});
-
+	
 				this.updateMemberList();
 			}
-
+	
 			updateMemberList() {
 				const memberList = document.querySelector(DiscordSelectors.MemberList.members.value.trim());
 				if (memberList) ReactTools.getOwnerInstance(memberList).handleOnScroll();
 			}
-
+	
 			patchChannels() {
 				const Scroller = WebpackModules.getByDisplayName('VerticalScroller');
 				const Channels = WebpackModules.getByDisplayName('Channels');
-
+	
 				Patcher.after(Channels.prototype, 'renderList', (that, args, value) => {
 					if (this.settings.servers.unhidden.includes(that.props.guildId)) return value;
 					const { rowHeight, sectionHeight } = value.props;
@@ -1015,13 +992,13 @@ var HideUtils = (() => {
 				Patcher.after(Scroller.prototype, 'render', (that, args, value) => {
 					const key = this.getProps(value, 'props.children.0._owner.return.key');
 					if (!key || key !== 'guild-channels') return value;
-
+	
 					const children = this.getProps(value, 'props.children.0.props.children.1.2');
 					if (!children || !Array.isArray(children)) return value;
-
+	
 					const guildId = this.getProps(children, '0.0.props.channel.guild_id');
 					if (this.settings.servers.unhidden.includes(guildId)) return value;
-
+	
 					for (let i = 0, len = children.length; i < len; i++) {
 						if (!children[i] || !Array.isArray(children[i])) continue;
 						// If the category naturally has no children, do not unrender
@@ -1043,18 +1020,18 @@ var HideUtils = (() => {
 							children[i].splice(0, 1);
 						}
 					}
-
+	
 					return value;
 				});
-
+	
 				this.updateChannels();
 			}
-
+	
 			updateChannels() {
 				const channels = document.querySelector(`.${positionedContainer.positionedContainer.replace(/\s/, '.')}`);
 				if (channels) ReactTools.getOwnerInstance(channels).forceUpdate();
 			}
-
+	
 			processContextMenu(cm) {
 				if (!cm) return;
 				const inst = ReactTools.getReactInstance(cm);
@@ -1070,7 +1047,7 @@ var HideUtils = (() => {
 					else if (has.call(readItem.props, 'guildId')) return this.addGuildContextItems(inst, own, cm);
 				}
 			}
-
+	
 			addUserContextItems(instance, owner, context) {
 				if (!DiscordModules.GuildStore.getGuild(DiscordModules.SelectedGuildStore.getGuildId())) return;
 				const group = new ContextMenu.ItemGroup();
@@ -1090,7 +1067,7 @@ var HideUtils = (() => {
 				context.prepend(group.getElement());
 				setImmediate(() => this.updateContextPosition(owner));
 			}
-
+	
 			addChannelContextItems(instance, owner, context) {
 				if (instance.memoizedProps.children[0].props && instance.memoizedProps.children[0].props.type === 4) return;
 				const group = new ContextMenu.ItemGroup();
@@ -1118,7 +1095,7 @@ var HideUtils = (() => {
 				context.firstChild.insertAdjacentElement('afterend', group.getElement());
 				setImmediate(() => this.updateContextPosition(owner));
 			}
-
+	
 			addGuildContextItems(instance, owner, context) {
 				const group = new ContextMenu.ItemGroup();
 				const ref = owner.props.children({ position: owner.props.reference() }, owner.updatePosition);
@@ -1154,7 +1131,7 @@ var HideUtils = (() => {
 				context.firstChild.insertAdjacentElement('afterend', group.getElement());
 				setImmediate(() => this.updateContextPosition(owner));
 			}
-
+	
 			addFolderContextItems(instance, owner, context) {
 				const group = new ContextMenu.ItemGroup();
 				const ref = owner.props.children({ position: owner.props.reference() }, owner.updatePosition);
@@ -1177,7 +1154,7 @@ var HideUtils = (() => {
 				context.firstChild.insertAdjacentElement('afterend', group.getElement());
 				setImmediate(() => this.updateContextPosition(owner));
 			}
-
+	
 			userPush(id) {
 				if (!id) return;
 				const user = this.user(id);
@@ -1193,37 +1170,37 @@ var HideUtils = (() => {
 				this.saveSettings(this.settings);
 				this.updateAll();
 			}
-
+	
 			userClear(id) {
 				if (!id) return;
 				if (!has.call(this.settings.users, id)) return Toasts.info('This user is not being hidden.', { timeout: 3e3 });
-				try { this.mute(id, 100); } catch(e) { err(e); }
+				try { this.mute(id, 100); } catch(e) { Logger.err(e); }
 				delete this.settings.users[id];
 				Toasts.info('User has been unhidden.', { timeout: 3e3 });
 				this.saveSettings(this.settings);
 				return this.updateAll();
 			}
-
+	
 			clearUnhiddenChannels(id) {
 				if (!id || !this.settings.servers.unhidden.includes(id)) return false;
 				this.settings.servers.unhidden.splice(this.settings.servers.unhidden.indexOf(id), 1);
 				return true;
 			}
-
+	
 			pushToUnhiddenChannels(id) {
 				if (!id || this.settings.servers.unhidden.includes(id)) return false;
 				this.settings.servers.unhidden.push(id);
 				return true;
 			}
-
+	
 			servUnhideChannels(id) {
 				if (!id) return;
 				if (!this.clearUnhiddenChannels(id) && !this.pushToUnhiddenChannels(id)) return;
-
+	
 				this.saveSettings(this.settings);
 				this.updateAll();
 			}
-
+	
 			servPush(id) {
 				if (!id) return;
 				if (has.call(this.settings.servers, id)) return Toasts.info('That server is already being hidden.', { timeout: 3e3 });
@@ -1238,7 +1215,7 @@ var HideUtils = (() => {
 				this.saveSettings(this.settings);
 				this.updateAll();
 			}
-
+	
 			servClear(id) {
 				if (!id) return;
 				if (!has.call(this.settings.servers, id)) return Toasts.info('That server is not currently being hidden.', { timeout: 3e3 });
@@ -1247,7 +1224,7 @@ var HideUtils = (() => {
 				this.saveSettings(this.settings);
 				this.updateAll();
 			}
-
+	
 			chanPush(id) {
 				if (!id) return;
 				if (has.call(this.settings.channels, id)) return Toasts.info('This channel is already being hidden.', { timeout: 3e3 });
@@ -1263,7 +1240,7 @@ var HideUtils = (() => {
 				this.saveSettings(this.settings);
 				this.updateAll();
 			}
-
+	
 			chanPurge(guildId) {
 				const guild = this.guild(guildId);
 				const channels = Object.values(this.settings.channels).filter((chan) => {
@@ -1276,7 +1253,7 @@ var HideUtils = (() => {
 				this.saveSettings(this.settings);
 				this.updateAll();
 			}
-
+	
 			chanClear(id) {
 				if (!id) return;
 				if (!has.call(this.settings.channels, id)) return Toasts.info('This channel is not currently being hidden.', { timeout: 3e3 });
@@ -1285,7 +1262,7 @@ var HideUtils = (() => {
 				this.saveSettings(this.settings);
 				this.updateAll();
 			}
-
+	
 			foldPush(instance) {
 				if (!instance) return;
 				const id = instance.props.folderId;
@@ -1299,7 +1276,7 @@ var HideUtils = (() => {
 				this.saveSettings(this.settings);
 				this.updateAll();
 			}
-
+	
 			foldClear(id) {
 				if (!id) return;
 				if (!has.call(this.settings.folders, id)) return Toasts.info('This folder is not currently being hidden.', { timeout: 3e3 });
@@ -1308,7 +1285,7 @@ var HideUtils = (() => {
 				this.saveSettings(this.settings);
 				this.updateAll();
 			}
-
+	
 			/* Observer */
 			observer({ addedNodes }) {
 				for (const node of addedNodes) {
@@ -1318,7 +1295,7 @@ var HideUtils = (() => {
 					}
 				}
 			}
-
+	
 			/**
 			 * @name safelyGetNestedProps
 			 * @author Zerebos
@@ -1326,9 +1303,9 @@ var HideUtils = (() => {
 			getProps(obj, path) {
 				return path.split(/\s?\.\s?/).reduce((object, prop) => object && object[prop], obj);
 			}
-
+	
 			/* Settings Panel */
-
+	
 			getSettingsPanel() {
 				return SettingPanel.build(() => this.saveSettings(this.settings),
 					new SettingGroup('Plugin Settings').append(
@@ -1340,142 +1317,106 @@ var HideUtils = (() => {
 					)
 				);
 			}
-
+	
 			/* Setters */
-
+	
 			set css(style = '') {
 				return this._css = style.split(/\s+/g).join(' ').trim();
 			}
-
+	
 			/* Getters */
-
+	
 			get [Symbol.toStringTag]() {
 				return 'Plugin';
 			}
-
+	
 			get css() {
 				return this._css;
 			}
-
+	
 			get name() {
 				return config.info.name;
 			}
-
+	
 			get short() {
 				let string = '';
-
+	
 				for (let i = 0, len = config.info.name.length; i < len; i++) {
 					const char = config.info.name[i];
 					if (char === char.toUpperCase()) string += char;
 				}
-
+	
 				return string;
 			}
-
+	
 			get author() {
 				return config.info.authors.map((author) => author.name).join(', ');
 			}
-
+	
 			get version() {
 				return config.info.version;
 			}
-
+	
 			get description() {
 				return config.info.description;
 			}
 		};
 	};
-
+	
 	/* Finalize */
 
 	return !global.ZeresPluginLibrary 
-	? class {
-		getName() {
-			return this.name.replace(/\s+/g, '');
-		}
-
-		getAuthor() {
-			return this.author;
-		}
-
-		getVersion() {
-			return this.version;
-		}
-
-		getDescription() {
-			return this.description;
-		}
-
-		stop() {
-			log('Stopped!');
-		}
-
-		load() {
-			const title = 'Library Missing';
-			const ModalStack = window.BdApi.findModuleByProps('push', 'update', 'pop', 'popWithKey');
-			const TextElement = window.BdApi.findModuleByProps('Sizes', 'Weights');
-			const ConfirmationModal = window.BdApi.findModule((m) => m.defaultProps && m.key && m.key() === 'confirm-modal');
-			if (!ModalStack || !ConfirmationModal || !TextElement) return window.BdApi.getCore().alert(title, `The library plugin needed for ${config.info.name} is missing.<br /><br /> <a href="https://betterdiscord.net/ghdl?url=https://raw.githubusercontent.com/rauenzi/BDPluginLibrary/master/release/0PluginLibrary.plugin.js" target="_blank">Click here to download the library!</a>`);
-			ModalStack.push(function(props) {
-				return window.BdApi.React.createElement(ConfirmationModal, Object.assign({
-					header: title,
-					children: [
-						TextElement({
-							color: TextElement.Colors.PRIMARY,
-							children: [`The library plugin needed for ${config.info.name} is missing. Please click Download Now to install it.`]
-						})
-					],
-					red: false,
-					confirmText: 'Download Now',
-					cancelText: 'Cancel',
-					onConfirm: () => {
-						require('request').get('https://rauenzi.github.io/BDPluginLibrary/release/0PluginLibrary.plugin.js', async (error, response, body) => {
-							if (error) return require('electron').shell.openExternal('https://betterdiscord.net/ghdl?url=https://raw.githubusercontent.com/rauenzi/BDPluginLibrary/master/release/0PluginLibrary.plugin.js');
-							await new Promise(r => require('fs').writeFile(require('path').join(window.ContentManager.pluginsFolder, '0PluginLibrary.plugin.js'), body, r));
-						});
-					}
-				}, props));
-			});
-		}
-
-		start() {
-			log('Started!');
-		}
-
-		/* Getters */
-
-		get [Symbol.toStringTag]() {
-			return 'Plugin';
-		}
-
-		get name() {
-			return config.info.name;
-		}
-
-		get short() {
-			let string = '';
-
-			for (let i = 0, len = config.info.name.length; i < len; i++) {
-				const char = config.info.name[i];
-				if (char === char.toUpperCase()) string += char;
+		? class {
+			constructor() {
+				this._config = config;
 			}
-
-			return string;
+			getName() {
+				return config.info.name;
+			}
+			getAuthor() {
+				return config.info.authors.map((a) => a.name).join(', ');
+			}
+			getDescription() {
+				return config.info.description;
+			}
+			getVersion() {
+				return config.info.version;
+			}
+			load() {
+				const title = 'Library Missing';
+				const ModalStack = window.BdApi.findModuleByProps('push', 'update', 'pop', 'popWithKey');
+				const TextElement = window.BdApi.findModuleByProps('Sizes', 'Weights');
+				const ConfirmationModal = window.BdApi.findModule((m) => m.defaultProps && m.key && m.key() === 'confirm-modal');
+				if (!ModalStack || !ConfirmationModal || !TextElement) return window.BdApi.getCore().alert(title, `The library plugin needed for ${config.info.name} is missing.<br /><br /> <a href="https://betterdiscord.net/ghdl?url=https://raw.githubusercontent.com/rauenzi/BDPluginLibrary/master/release/0PluginLibrary.plugin.js" target="_blank">Click here to download the library!</a>`);
+				ModalStack.push(function(props) {
+					return window.BdApi.React.createElement(ConfirmationModal, Object.assign({
+						header: title,
+						children: [
+							window.BdApi.React.createElement(TextElement, {
+								color: TextElement.Colors.PRIMARY,
+								children: [`The library plugin needed for ${config.info.name} is missing. Please click Download Now to install it.`]
+							})
+						],
+						red: false,
+						confirmText: 'Download Now',
+						cancelText: 'Cancel',
+						onConfirm: () => {
+							require('request').get('https://rauenzi.github.io/BDPluginLibrary/release/0PluginLibrary.plugin.js', async (error, response, body) => {
+								if (error) return require('electron').shell.openExternal('https://betterdiscord.net/ghdl?url=https://raw.githubusercontent.com/rauenzi/BDPluginLibrary/master/release/0PluginLibrary.plugin.js');
+								await new Promise((r) => require('fs').writeFile(require('path').join(window.ContentManager.pluginsFolder, '0PluginLibrary.plugin.js'), body, r));
+							});
+						}
+					}, props));
+				});
+			}
+			start() {
+				log('started!');
+			}
+			stop() {
+				log('stopped!');
+			}
 		}
-
-		get author() {
-			return config.info.authors.map((author) => author.name).join(', ');
-		}
-
-		get version() {
-			return config.info.version;
-		}
-
-		get description() {
-			return config.info.description;
-		}
-	}
-	: buildPlugin(global.ZeresPluginLibrary.buildPlugin(config));
+		: buildPlugin(global.ZeresPluginLibrary.buildPlugin(config));
 })();
 
 /*@end@*/
