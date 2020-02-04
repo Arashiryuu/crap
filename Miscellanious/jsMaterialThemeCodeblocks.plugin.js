@@ -40,21 +40,38 @@ var JSMaterialThemeCodeblocksRedux = (() => {
 					twitter_username: ''
 				}
 			],
-			version: '1.0.1',
+			version: '1.0.2',
 			description: 'Applies the "Material Theme" to JavaScript codeblocks.',
 			github: 'https://github.com/Arashiryuu',
 			github_raw: 'https://raw.githubusercontent.com/Arashiryuu/crap/master/Miscellanious/jsMaterialThemeCodeblocks.plugin.js'
 		}
 	};
 
+	const log = function() {
+		/**
+		 * @type {Array}
+		 */
+		const args = Array.prototype.slice.call(arguments);
+		args.unshift(`%c[${config.info.name}]`, 'color: #3A71C1; font-weight: 700;');
+		return console.log.apply(this, args);
+	};
+
 	/* Build */
 
 	const buildPlugin = ([Plugin, Api]) => {
-		const { Toasts, Logger, Patcher, DOMTools, ReactTools, DiscordModules, WebpackModules, DiscordSelectors } = Api;
+		const { Toasts, Logger, Patcher, DOMTools, ReactTools, DiscordModules, WebpackModules, DiscordSelectors, PluginUtilities, ReactComponents } = Api;
+
+		const has = Object.prototype.hasOwnProperty;
+		const messagesWrapper = WebpackModules.getByProps('messages', 'messagesWrapper');
 		
 		return class JSMaterialThemeCodeblocksRedux extends Plugin {
 			constructor() {
 				super();
+				this.promises = {
+					state: { cancelled: false },
+					cancel() { this.state.cancelled = true; },
+					restore() { this.state.cancelled = false; }
+				};
 				this.selectors = [
 					'.hljs[class~="js" i] .hljs-keyword', 
 					'.hljs[class~="jsx" i] .hljs-keyword', 
@@ -84,41 +101,31 @@ var JSMaterialThemeCodeblocksRedux = (() => {
 			onStart() {
 				Toasts.info(`${this.name} ${this.version} has started!`, { icon: true, timeout: 2e3 });
 				this.injectCSS();
-				this.patchMessages();
+				this.patchMessages(this.promises.state);
 				this.addClasses();
 			}
 
-			async patchMessages() {
-				const Message = await new Promise((resolve) => {
-					const message = document.querySelector(DiscordSelectors.Messages.message);
-					if (message) return resolve(ReactTools.getOwnerInstance(message).constructor);
+			async patchMessages(state) {
+				const Component = await ReactComponents.getComponentByName('Messages', `.${messagesWrapper.messagesWrapper.replace(/\s/, '.')}`);
+				const { component: Message } = Component;
 
-					const MessageGroup = WebpackModules.getModule((m) => m.defaultProps && m.defaultProps.disableManageMessages);
-					const unpatch = Patcher.after(MessageGroup.prototype, 'componentDidMount', (that) => {
-						const elem = DiscordModules.ReactDOM.findDOMNode(that);
-						if (!elem) return;
-						unpatch();
-						const msg = elem.querySelector(DiscordSelectors.Messages.message);
-						resolve(ReactTools.getOwnerInstance(msg).constructor);
-					});
-				});
+				if (state.cancelled) return;
 
 				Patcher.after(Message.prototype, 'render', (that, args, value) => {
-					if (that.props.message.type !== 0) return value;
-					
-					setTimeout(() => {
+					setImmediate(() => {
 						this.addClasses();
 						this.paramParse();
-					}, 50);
+					});
 
 					return value;
 				});
 
-				this.updateMessages();
+				Component.forceUpdateAll();
 			}
 
 			updateMessages() {
-				const messages = document.querySelectorAll(DiscordSelectors.Messages.message.value.trim());
+				const messages = document.querySelectorAll(`.${messagesWrapper.messagesWrapper.replace(/\s/, '.')}`);
+				if (!messages.length) return;
 				for (let i = 0, len = messages.length; i < len; i++) ReactTools.getOwnerInstance(messages[i]).forceUpdate();
 			}
 
@@ -134,7 +141,7 @@ var JSMaterialThemeCodeblocksRedux = (() => {
 			}
 
 			getClass(name) {
-				if (this.keywords.hasOwnProperty(name)) return this.keywords[name];
+				if (has.call(this.keywords, name)) return this.keywords[name];
 				return null;
 			}
 
@@ -158,13 +165,16 @@ var JSMaterialThemeCodeblocksRedux = (() => {
 			}
 
 			injectCSS() {
-				if (this.stylesheet || document.contains(this.stylesheet)) return;
-				this.stylesheet = DOMTools.parseHTML(`<link id="${this.short}" rel="preload stylesheet" as="style" href="${this.cdn}"/>`);
-				DOMTools.appendTo(this.stylesheet, document.head);
+				let sheet = document.getElementById(this.short);
+				if (sheet) return;
+				sheet = DOMTools.parseHTML(`<link id="${this.short}" rel="preload stylesheet" as="style" href="${this.cdn}"/>`);
+				return (DOMTools.appendTo(sheet, document.head), true);
 			}
 
 			removeCSS() {
-				if (this.stylesheet && document.contains(this.stylesheet)) this.stylesheet.remove();
+				const sheet = document.getElementById(this.short);
+				if (sheet) return (sheet.remove(), true);
+				return false;
 			}
 
 			onStop() {
@@ -174,6 +184,10 @@ var JSMaterialThemeCodeblocksRedux = (() => {
 				Toasts.info(`${this.name} ${this.version} has stopped!`, { icon: true, timeout: 2e3 });
 			}
 
+			getProps(obj, path) {
+				return path.split(/\s?\.\s?/).reduce((object, prop) => object && object[prop], obj);
+			}
+
 			/* Getters */
 
 			get [Symbol.toStringTag]() {
@@ -181,7 +195,7 @@ var JSMaterialThemeCodeblocksRedux = (() => {
 			}
 
 			get cdn() {
-				return 'https://gitcdn.xyz/repo/Arashiryuu/crap/master/Miscellanious/jsMaterialThemeCodeblocksCSS/src.css';
+				return 'https://raw.githack.com/Arashiryuu/crap/master/Miscellanious/jsMaterialThemeCodeblocksCSS/src.css';
 			}
 
 			get name() {
@@ -210,7 +224,7 @@ var JSMaterialThemeCodeblocksRedux = (() => {
 			get description() {
 				return config.info.description;
 			}
-		}
+		};
 	};
 
 	/* Finalize */
@@ -234,7 +248,7 @@ var JSMaterialThemeCodeblocksRedux = (() => {
 			}
 
 			stop() {
-				Logger.log('Stopped!');
+				log('Stopped!');
 			}
 
 			load() {
@@ -242,7 +256,7 @@ var JSMaterialThemeCodeblocksRedux = (() => {
 			}
 
 			start() {
-				Logger.log('Started!');
+				log('Started!');
 			}
 
 			/* Getters */
