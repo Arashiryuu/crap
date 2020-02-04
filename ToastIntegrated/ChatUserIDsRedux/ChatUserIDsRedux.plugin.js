@@ -114,7 +114,6 @@ var ChatUserIDsRedux = (() => {
 						position: relative;
 						top: 3px;
 						height: 9px;
-						width: 108.281px;
 						margin-left: -4px;
 						margin-right: 6px;
 						line-height: 10px;
