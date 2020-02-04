@@ -40,18 +40,18 @@ var LineNumbersRedux = (() => {
 					twitter_username: ''
 				}
 			],
-			version: '1.1.5',
+			version: '1.1.6',
 			description: 'Adds line numbers to codeblocks.',
 			github: 'https://github.com/Arashiryuu',
 			github_raw: 'https://raw.githubusercontent.com/Arashiryuu/crap/master/ToastIntegrated/LineNumbersRedux/LineNumbersRedux.plugin.js'
 		},
-		// changelog: [
-		// 	{
-		// 		title: 'Bugs Squashed!',
-		// 		type: 'fixed',
-		// 		items: ['Fix issue with css universal selector line incompatibility.']
-		// 	}
-		// ]
+		changelog: [
+			{
+				title: 'Bugs Squashed!',
+				type: 'fixed',
+				items: ['Works again.']
+			}
+		]
 	};
 	
 	const log = function() {
@@ -71,7 +71,12 @@ var LineNumbersRedux = (() => {
 
 		const has = Object.prototype.hasOwnProperty;
 		const slice = Array.prototype.slice;
-		const MessageClasses = WebpackModules.getByProps('container', 'dividerEnabled');
+		const base = '.chat-3bRxxu';
+		const messagesWrapper = WebpackModules.getByProps('messages', 'messagesWrapper');
+		const MessageClasses = {
+			...WebpackModules.getByProps('messageCompact', 'headerCozy', 'username'),
+			...WebpackModules.getByProps('message', 'groupStart')
+		};
 		
 		return class LineNumbersRedux extends Plugin {
 			constructor() {
@@ -117,6 +122,7 @@ var LineNumbersRedux = (() => {
 						user-select: none;
 					}
 				`;
+				this.codeblockFilter = this.codeblockFilter.bind(this);
 			}
 
 			/* Methods */
@@ -211,11 +217,16 @@ var LineNumbersRedux = (() => {
 			}
 		
 			codeblockFilter(codeblock) {
+				if (codeblock.dataset.slateObject) return false;
 				return !(this.settings.ignoreNoLanguage && codeblock.className.endsWith('hljs'));
+			}
+
+			combineFilters(...filters) {
+				return (cb) => filters.every((filter) => filter(cb));
 			}
 		
 			processCodeblocks() {
-				const codeblocks = Array.from(document.querySelectorAll('.hljs')), filtered = codeblocks.filter((cb) => this.noOl(cb)).filter((cb) => this.codeblockFilter(cb));
+				const codeblocks = Array.from(document.querySelectorAll(`${base} .hljs`)), filtered = codeblocks.filter(this.combineFilters(this.noOl, this.codeblockFilter));
 				for (let i = 0, len = filtered.length; i < len; i++) {
 					const ol = document.createElement('ol');
 					ol.setAttribute('class', 'LineNumbers');
@@ -225,7 +236,7 @@ var LineNumbersRedux = (() => {
 			}
 		
 			unprocessCodeblocks() {
-				const codeblocks = Array.from(document.querySelectorAll('.hljs')), filtered = codeblocks.filter((cb) => this.hasOl(cb));
+				const codeblocks = Array.from(document.querySelectorAll(`${base} .hljs`)), filtered = codeblocks.filter((cb) => this.hasOl(cb));
 				for (let i = 0, len = filtered.length; i < len; i++) {
 					const ol = filtered[i].querySelector('ol');
 					if (ol) this.unwrap(ol);
@@ -237,21 +248,18 @@ var LineNumbersRedux = (() => {
 				if (!this.settings.noStyle) window.BdApi.injectCSS('LineNumbersCSS', this.css);
 			}
 
-			patchMessages(state) {
-				const Message = WebpackModules.getByDisplayName('MessageGroup');
+			async patchMessages(state) {
+				const Component = await ReactComponents.getComponentByName('Messages', `.${messagesWrapper.messagesWrapper.replace(/\s/, '.')}`);
+				const { component: Message } = Component;
 
 				if (state.cancelled) return;
 
 				Patcher.after(Message.prototype, 'render', (that, args, value) => {
-					const message = this.getProps(that, 'props.messages.0');
-					if (!message || message.type !== 0) return value;
-					
 					setImmediate(() => this.processCodeblocks());
-
 					return value;
 				});
 
-				this.updateMessages();
+				Component.forceUpdateAll();
 			}
 
 			updateMessages() {
