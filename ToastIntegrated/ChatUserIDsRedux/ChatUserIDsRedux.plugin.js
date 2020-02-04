@@ -40,7 +40,7 @@ var ChatUserIDsRedux = (() => {
 					twitter_username: ''
 				}
 			],
-			version: '1.0.11',
+			version: '1.0.12',
 			description: 'Adds a user\'s ID next to their name in chat, makes accessing a user ID simpler. Double-click to copy the ID.',
 			github: 'https://github.com/Arashiryuu',
 			github_raw: 'https://raw.githubusercontent.com/Arashiryuu/crap/master/ToastIntegrated/ChatUserIDsRedux/ChatUserIDsRedux.plugin.js'
@@ -77,28 +77,13 @@ var ChatUserIDsRedux = (() => {
 	/* Build */
 
 	const buildPlugin = ([Plugin, Api]) => {
-		const { Toasts, Logger, Patcher, Settings, Utilities, ReactTools, DiscordModules, WebpackModules, DiscordSelectors, PluginUtilities } = Api;
+		const { Toasts, Logger, Patcher, Settings, Utilities, ReactTools, DOMTools, DiscordModules, WebpackModules, DiscordSelectors, PluginUtilities } = Api;
 		const { SettingPanel, SettingGroup, ColorPicker } = Settings;
 
-		const { React } = DiscordModules;
-		const { Message } = WebpackModules.getByProps('Message', 'MessageAvatar');
-
 		const has = Object.prototype.hasOwnProperty;
-		const MessageClasses = WebpackModules.getByProps('containerCozy', 'dividerEnabled');
-
-		const ID = class ID extends React.Component {
-			constructor(props) {
-				super(props);
-				this.onDoubleClick = this.onDoubleClick.bind(this);
-			}
-
-			onDoubleClick(e) {
-				if (this.props.onDoubleClick) this.props.onDoubleClick(e);
-			}
-
-			render() {
-				return React.createElement('span', { className: 'tagID', onDoubleClick: this.onDoubleClick }, this.props.id);
-			}
+		const MessageClasses = {
+			...WebpackModules.getByProps('message', 'groupStart'),
+			...WebpackModules.getByProps('messageCompact', 'headerCozy', 'username')
 		};
 		
 		return class ChatUserIDsRedux extends Plugin {
@@ -127,11 +112,12 @@ var ChatUserIDsRedux = (() => {
 						font-size: 10px;
 						letter-spacing: 0.025rem;
 						position: relative;
-						top: 0;
+						top: 3px;
 						height: 9px;
-						width: 110px;
+						width: 108.281px;
 						margin-left: -4px;
 						margin-right: 6px;
+						line-height: 10px;
 						text-shadow: 0 1px 3px black;
 						background: {color};
 						border-radius: 3px;
@@ -141,12 +127,12 @@ var ChatUserIDsRedux = (() => {
 						font-family: 'Roboto', 'Inconsolata', 'Whitney', sans-serif;
 					}
 		
-					.${MessageClasses.containerCozy.trim().replace(/\s+/g, '.')} h2 {
+					.${MessageClasses.groupStart.split(' ')[0]} h2 {
 						display: flex;
 						position: relative;
 					}
 
-					.${MessageClasses.containerCompact.trim().replace(/\s+/g, '.')} .tagID {
+					.${MessageClasses.messageCompact.split(' ')[0]} .tagID {
 						margin-left: 5ch;
 						padding: 2px 3px;
 					}
@@ -159,15 +145,12 @@ var ChatUserIDsRedux = (() => {
 				this.loadSettings(this.settings);
 				this.reinjectCSS();
 				this.promises.restore();
-				this.patchMessages(this.promises.state);
 				Toasts.info(`${this.name} ${this.version} has started!`, { timeout: 2e3 });
 			}
 
 			onStop() {
 				PluginUtilities.removeStyle(this.short);
 				this.promises.cancel();
-				Patcher.unpatchAll();
-				this.updateMessages();
 				Toasts.info(`${this.name} ${this.version} has stopped!`, { timeout: 2e3 });
 			}
 
@@ -181,48 +164,28 @@ var ChatUserIDsRedux = (() => {
 					document.execCommand('copy');
 					Toasts.info('Successfully copied!', { timeout: 2e3 });
 					window.getSelection().removeAllRanges();
-				} catch(e) {
-					err(e);
+				} catch(err) {
+					err(err);
 					Toasts.error('Failed to copy! See console for error(s)!', { timeout: 2e3 });
 				}
 			}
 
-			/**
-			 * @name patchMessageComponent
-			 * @author Zerebos
-			 */
-			patchMessages(promiseState) {
-				Patcher.after(Message.prototype, 'render', (that, args, value) => {
-					if (!that.props.isHeader || that.props.message.type !== 0) return value;
-
-					const children = this.getProps(value,
-						!that.props.isCompact
-							? 'props.children.0.props.children.1.props.children'
-							: 'props.children'
-					);
-
-					if (!children || !Array.isArray(children)) return value;
-
-					const id = React.createElement(ID, {
-						id: this.getProps(that, 'props.message.author.id'),
-						onDoubleClick: (e) => this.double(e)
-					});
-
-					if (!children.find((child) => child && child.type === ID)) children.unshift(id);
-
-					return value;
-				});
-
-				this.updateMessages();
+			createTag(id) {
+				const div = DOMTools.parseHTML(`<div class="tagID">${id}</div>`);
+				return div;
 			}
 
-			/**
-			 * @name forceUpdateMessages
-			 * @author Zerebos
-			 */
-			updateMessages() {
-				const messages = document.querySelectorAll(`.${MessageClasses.container}`);
-				for (let i = 0, len = messages.length; i < len; i++) ReactTools.getOwnerInstance(messages[i]).forceUpdate();
+			processNode(node) {
+				if (node.querySelector('.tagID')) return;
+				const instance = ReactTools.getReactInstance(node);
+				if (!instance) return;
+				const props = this.getProps(instance, 'memoizedProps.children.1.props');
+				if (!props) return;
+				const { message: { author } } = props;
+				const tag = this.createTag(author.id);
+				const username = node.querySelector(`.${MessageClasses.username.split(' ')[0]}`);
+				DOMTools.on(tag, `dblclick.${this.short}`, (e) => this.double(e));
+				username.insertAdjacentElement('beforebegin', tag);
 			}
 
 			/**
@@ -231,6 +194,19 @@ var ChatUserIDsRedux = (() => {
 			 */
 			getProps(obj, path) {
 				return path.split(/\s?\.\s?/).reduce((obj, prop) => obj && obj[prop], obj);
+			}
+
+			/* Observer */
+			observer({ addedNodes }) {
+				for (const node of addedNodes.values()) {
+					if (!node) continue;
+					if (node.classList && node.classList.contains(MessageClasses.groupStart.split(' ')[0])) this.processNode(node);
+				}
+			}
+
+			/* onSwitch */
+			onSwitch() {
+				for (const node of document.querySelectorAll(`.${MessageClasses.groupStart.split(' ')[0]}`)) this.processNode(node);
 			}
 
 			/* Settings Panel */
