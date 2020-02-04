@@ -41,7 +41,7 @@ var HideUtils = (() => {
 					twitter_username: ''
 				}
 			],
-			version: '2.1.23',
+			version: '2.1.24',
 			description: 'Allows you to hide users, servers, and channels individually.',
 			github: 'https://github.com/Arashiryuu',
 			github_raw: 'https://raw.githubusercontent.com/Arashiryuu/crap/master/ToastIntegrated/HideUtils/HideUtils.plugin.js',
@@ -52,7 +52,7 @@ var HideUtils = (() => {
 				title: 'Bugs Squashed!',
 				type: 'fixed',
 				items: [
-					'Adapted to a module alteration.'
+					'Handles messages again.'
 				]
 			}
 		]
@@ -91,7 +91,6 @@ var HideUtils = (() => {
 	
 		const has = Object.prototype.hasOwnProperty;
 		const slice = Array.prototype.slice;
-		const MessageClasses = WebpackModules.getByProps('containerCozy', 'dividerEnabled');
 		const MenuItem = WebpackModules.getByString('disabled', 'brand');
 		const ToggleMenuItem = WebpackModules.getByString('disabled', 'itemToggle');
 		const guilds = WebpackModules.getByProps('wrapper', 'unreadMentionsIndicatorTop');
@@ -100,7 +99,11 @@ var HideUtils = (() => {
 		const messagesWrapper = WebpackModules.getByProps('messages', 'messagesWrapper');
 		const wrapper = WebpackModules.getByProps('messagesPopoutWrap');
 		const scroller = WebpackModules.getByProps('scrollerWrap');
-		const dividerContent = WebpackModules.getByProps('divider', 'dividerRed', 'dividerContent');
+		// const dividerContent = WebpackModules.getByProps('divider', 'dividerRed', 'dividerContent');
+		const MessageClasses = {
+			...WebpackModules.getByProps('messageCompact', 'headerCozy', 'username'),
+			...WebpackModules.getByProps('message', 'groupStart')
+		};
 	
 		const Button = class Button extends React.Component {
 			constructor(props) {
@@ -845,39 +848,25 @@ var HideUtils = (() => {
 			 * @author Zerebos
 			 */
 			async patchMessages(promiseState) {
-				const { component: Message } = await ReactComponents.getComponentByName('Messages', `.${messagesWrapper.messagesWrapper.replace(/\s/, '.')}`);
+				const Component = await ReactComponents.getComponentByName('Messages', `.${messagesWrapper.messagesWrapper.replace(/\s/, '.')}`);
+				const { component: Message } = Component;
 				if (promiseState.cancelled) return;
 				Patcher.after(Message.prototype, 'render', (that, args, value) => {
 					const props = this.getProps(value, 'props.children.1.props');
 					const messageGroups = this.getProps(props, 'children.1');
 					if (!messageGroups || !Array.isArray(messageGroups)) return value;
 	
-					props.children[1] = messageGroups.filter((group) => {
-						if (!group) return group;
-						const author = this.getProps(group, 'props.children.props.messages.0.author');
-						const blocked = (group.type && group.type.displayName === 'BlockedMessageGroups') && this.settings.hideBlocked;
+					props.children[1] = messageGroups.filter((message) => {
+						if (!message) return message;
+						const author = this.getProps(message, 'props.message.author');
+						const type = this.getProps(message, 'type.type');
+						const blocked = (type && type.displayName && type.displayName === 'BlockedMessages') && this.settings.hideBlocked;
 						return !blocked && author && !has.call(this.settings.users, author.id) || !blocked && !author;
 					});
 	
-					for (const group of props.children[1]) {
-						const n = this.getProps(group, 'props.children');
-						if (!n || typeof n === 'string') continue;
-						n.ref = (e) => {
-							const node = ReactDOM.findDOMNode(e);
-							if (!node) return;
-							setImmediate(() => {
-								if (node.nextElementSibling && node.nextElementSibling.className && node.nextElementSibling.className.includes(dividerContent.divider)) return;
-								const divider = node.querySelector(`.${MessageClasses.divider}`);
-								if (!divider) return;
-								if (divider.className === MessageClasses.divider && this.settings.hideBlocked) divider.setAttribute('class', MessageClasses.dividerEnabled);
-								else if (divider.className === MessageClasses.dividerEnabled && !this.settings.hideBlocked && node.nextElementSibling && node.nextElementSibling.className.includes(dividerContent.messageGroupBlocked)) divider.setAttribute('class', MessageClasses.divider);
-							});
-						};
-					}
-	
 					return value;
 				});
-				this.updateMessages();
+				Component.forceUpdateAll();
 			}
 	
 			/**
@@ -1069,7 +1058,7 @@ var HideUtils = (() => {
 			}
 	
 			addChannelContextItems(instance, owner, context) {
-				if (instance.memoizedProps.children[0].props && instance.memoizedProps.children[0].props.type === 4) return;
+				if (instance.memoizedProps.children[0] && instance.memoizedProps.children[0].props && instance.memoizedProps.children[0].props.type === 4) return;
 				const group = new ContextMenu.ItemGroup();
 				const channel = this.getProps(instance, 'memoizedProps.children.2.props.children.1.props.channel') || this.getProps(instance, 'memoizedProps.children.1.props.channel');
 				if (!channel) return;
@@ -1333,6 +1322,8 @@ var HideUtils = (() => {
 			get css() {
 				return this._css;
 			}
+	
+			/* eslint-disable no-undef */
 	
 			get name() {
 				return config.info.name;
