@@ -127,13 +127,12 @@ var ChatUserIDsRedux = (() => {
 						font-family: 'Roboto', 'Inconsolata', 'Whitney', sans-serif;
 					}
 		
-					.${MessageClasses.groupStart.split(' ')[0]} h2 {
+					.${MessageClasses.groupStart.split(' ')[0]} h2.${MessageClasses.headerCozy.split(' ')[0]} {
 						display: flex;
 						position: relative;
 					}
 
-					.${MessageClasses.messageCompact.split(' ')[0]} .tagID {
-						margin-left: 5ch;
+					.${MessageClasses.compact.split(' ')[0]} .tagID {
 						padding: 2px 3px;
 					}
 				`;
@@ -171,7 +170,7 @@ var ChatUserIDsRedux = (() => {
 			}
 
 			createTag(id) {
-				const div = DOMTools.parseHTML(`<div class="tagID">${id}</div>`);
+				const div = DOMTools.parseHTML(`<span class="tagID">${id}</span>`);
 				return div;
 			}
 
