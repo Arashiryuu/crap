@@ -40,7 +40,7 @@ var ChatUserIDsRedux = (() => {
 					twitter_username: ''
 				}
 			],
-			version: '1.0.12',
+			version: '1.0.13',
 			description: 'Adds a user\'s ID next to their name in chat, makes accessing a user ID simpler. Double-click to copy the ID.',
 			github: 'https://github.com/Arashiryuu',
 			github_raw: 'https://raw.githubusercontent.com/Arashiryuu/crap/master/ToastIntegrated/ChatUserIDsRedux/ChatUserIDsRedux.plugin.js'
@@ -178,7 +178,7 @@ var ChatUserIDsRedux = (() => {
 				const instance = ReactTools.getReactInstance(node);
 				if (!instance) return;
 				const props = this.getProps(instance, 'memoizedProps.children.1.props');
-				if (!props) return;
+				if (!props || !props.message) return;
 				const { message: { author } } = props;
 				const tag = this.createTag(author.id);
 				const username = node.querySelector(`.${MessageClasses.username.split(' ')[0]}`);
