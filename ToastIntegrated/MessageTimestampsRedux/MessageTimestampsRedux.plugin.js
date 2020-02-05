@@ -40,7 +40,7 @@ var MessageTimestampsRedux = (() => {
 					twitter_username: ''
 				}
 			],
-			version: '1.0.8',
+			version: '1.0.9',
 			description: 'Displays the timestamp for a message, simply right-click and select "Show Timestamp."',
 			github: 'https://github.com/Arashiryuu',
 			github_raw: 'https://raw.githubusercontent.com/Arashiryuu/crap/master/ToastIntegrated/MessageTimestampsRedux/MessageTimestampsRedux.plugin.js'
@@ -68,10 +68,24 @@ var MessageTimestampsRedux = (() => {
 	/* Build */
 
 	const buildPlugin = ([Plugin, Api]) => {
-		const { Toasts, Logger, Tooltip, Patcher, Settings, Utilities, ReactTools, DOMTools, EmulatedTooltip, ReactComponents, DiscordModules, WebpackModules, DiscordClassModules, DiscordSelectors, PluginUtilities } = Api;
+		const { Toasts, Logger, Tooltip, Patcher, Settings, Utilities, ReactTools, DOMTools, EmulatedTooltip, ReactComponents, DiscordModules, WebpackModules, DiscordClassModules, DiscordClasses, DiscordSelectors, PluginUtilities } = Api;
 		const { SettingPanel, SettingGroup, RadioGroup, Slider, Switch } = Settings;
 		
+		const React = DiscordModules.React;
 		const MenuItem = WebpackModules.getByString('disabled', 'danger', 'brand');
+
+		const ItemGroup = class ItemGroup extends React.Component {
+			constructor(props) {
+				super(props);
+			}
+
+			render() {
+				return React.createElement('div', {
+					className: DiscordClasses.ContextMenu.itemGroup.toString(),
+					children: this.props.children || []
+				});
+			}
+		};
 		
 		return class MessageTimestampsRedux extends Plugin {
 			constructor() {
@@ -127,9 +141,9 @@ var MessageTimestampsRedux = (() => {
 			 * @returns {Promise<Void>}
 			 */
 			async getContextMenu(promiseState) {
-				const ContextMenu = await ReactComponents.getComponentByName('MessageContextMenu', DiscordSelectors.ContextMenu.contextMenu.toString());
+				const ContextMenu = await PluginUtilities.getContextMenu('MESSAGE_MAIN');
 				if (promiseState.cancelled) return;
-				this.patchContextMenu(ContextMenu);
+				this.patchContextMenu(ContextMenu.default);
 			}
 
 			/**
@@ -138,11 +152,9 @@ var MessageTimestampsRedux = (() => {
 			 * @returns {Void}
 			 */
 			patchContextMenu(ContextMenu) {
-				if (!ContextMenu || !ContextMenu.component) return;
+				if (!ContextMenu) return;
 
-				const { component: Menu } = ContextMenu;
-
-				Patcher.after(Menu.prototype, 'render', (that, args, value) => {
+				Patcher.after(ContextMenu.prototype, 'render', (that, args, value) => {
 					if (!that.props.message) return value;
 					
 					const { message } = that.props, children = this.getProps(value, 'props.children');
@@ -156,14 +168,14 @@ var MessageTimestampsRedux = (() => {
 						}
 					});
 
-					children.unshift(item);
+					children.unshift(React.createElement(ItemGroup, { children: [item] }));
 					
 					setImmediate(() => this.updateContextPosition(that));
 
 					return value;
 				});
 
-				return ContextMenu.forceUpdateAll();
+				return PluginUtilities.forceUpdateContextMenus();
 			}
 
 			/**
