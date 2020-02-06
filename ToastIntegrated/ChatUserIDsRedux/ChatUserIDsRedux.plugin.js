@@ -40,7 +40,7 @@ var ChatUserIDsRedux = (() => {
 					twitter_username: ''
 				}
 			],
-			version: '1.0.13',
+			version: '1.0.14',
 			description: 'Adds a user\'s ID next to their name in chat, makes accessing a user ID simpler. Double-click to copy the ID.',
 			github: 'https://github.com/Arashiryuu',
 			github_raw: 'https://raw.githubusercontent.com/Arashiryuu/crap/master/ToastIntegrated/ChatUserIDsRedux/ChatUserIDsRedux.plugin.js'
@@ -83,7 +83,7 @@ var ChatUserIDsRedux = (() => {
 		const has = Object.prototype.hasOwnProperty;
 		const MessageClasses = {
 			...WebpackModules.getByProps('message', 'groupStart'),
-			...WebpackModules.getByProps('messageCompact', 'headerCozy', 'username')
+			...WebpackModules.getByProps('compact', 'cozy', 'username')
 		};
 		
 		return class ChatUserIDsRedux extends Plugin {
@@ -126,7 +126,7 @@ var ChatUserIDsRedux = (() => {
 						font-family: 'Roboto', 'Inconsolata', 'Whitney', sans-serif;
 					}
 		
-					.${MessageClasses.groupStart.split(' ')[0]} h2.${MessageClasses.headerCozy.split(' ')[0]} {
+					.${MessageClasses.groupStart.split(' ')[0]}.${MessageClasses.cozy.split(' ')[0]} h2.${MessageClasses.header.split(' ')[0]} {
 						display: flex;
 						position: relative;
 					}
@@ -177,8 +177,8 @@ var ChatUserIDsRedux = (() => {
 				if (node.querySelector('.tagID')) return;
 				const instance = ReactTools.getReactInstance(node);
 				if (!instance) return;
-				const props = this.getProps(instance, 'memoizedProps.children.1.props');
-				if (!props || !props.message) return;
+				const props = this.getProps(instance, 'memoizedProps.children.0.props.children.1.props');
+				if (!props || !this.getProps(props, 'message')) return;
 				const { message: { author } } = props;
 				const tag = this.createTag(author.id);
 				const username = node.querySelector(`.${MessageClasses.username.split(' ')[0]}`);
