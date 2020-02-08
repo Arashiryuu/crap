@@ -40,17 +40,17 @@ var MessageTimestampsRedux = (() => {
 					twitter_username: ''
 				}
 			],
-			version: '1.0.9',
+			version: '1.0.10',
 			description: 'Displays the timestamp for a message, simply right-click and select "Show Timestamp."',
 			github: 'https://github.com/Arashiryuu',
 			github_raw: 'https://raw.githubusercontent.com/Arashiryuu/crap/master/ToastIntegrated/MessageTimestampsRedux/MessageTimestampsRedux.plugin.js'
 		},
 		changelog: [
 			{
-				title: 'Evolving?',
-				type: 'improved',
+				title: 'Bugs Squashed!',
+				type: 'fixed',
 				items: [
-					'Context menu item updated.'
+					'Works again.'
 				]
 			}
 		]
@@ -68,10 +68,10 @@ var MessageTimestampsRedux = (() => {
 	/* Build */
 
 	const buildPlugin = ([Plugin, Api]) => {
-		const { Toasts, Logger, Tooltip, Patcher, Settings, Utilities, ReactTools, DOMTools, EmulatedTooltip, ReactComponents, DiscordModules, WebpackModules, DiscordClassModules, DiscordClasses, DiscordSelectors, PluginUtilities } = Api;
+		const { Toasts, Logger, Tooltip, Patcher, Settings, Utilities, ReactTools, DOMTools, ContextMenu, EmulatedTooltip, ReactComponents, DiscordModules, WebpackModules, DiscordClassModules, DiscordClasses, DiscordSelectors, PluginUtilities } = Api;
 		const { SettingPanel, SettingGroup, RadioGroup, Slider, Switch } = Settings;
+		const { React, ReactDOM, ContextMenuActions: MenuActions } = DiscordModules;
 		
-		const React = DiscordModules.React;
 		const MenuItem = WebpackModules.getByString('disabled', 'danger', 'brand');
 
 		const ItemGroup = class ItemGroup extends React.Component {
@@ -113,7 +113,7 @@ var MessageTimestampsRedux = (() => {
 			onStart() {
 				this.promises.restore();
 				this.loadSettings(this.settings);
-				this.getContextMenu(this.promises.state).catch((err) => this.didError(err));
+				// this.getContextMenu(this.promises.state).catch((err) => this.didError(err));
 				Toasts.info(`${this.name} ${this.version} has started!`, { timeout: 2e3 });
 			}
 
@@ -164,6 +164,7 @@ var MessageTimestampsRedux = (() => {
 					const item = new MenuItem({
 						label: 'Show Timestamp',
 						action: () => {
+							MenuActions.closeContextMenu();
 							!this.settings.tooltips ? this.showTimestamp(message, that) : this.showTooltip(message, that);
 						}
 					});
@@ -191,18 +192,11 @@ var MessageTimestampsRedux = (() => {
 
 			/**
 			 * Displays a tooltip over the message that was right-clicked with its timestamp.
-			 * @param {Object} message 
+			 * @param {object} message 
 			 * @param {ReactComponent} that
-			 * @returns {Boolean}
+			 * @returns {void}
 			 */
-			showTooltip(message, that) {
-				/**
-				 * @type {HTMLElement}
-				 */
-				const node = DiscordModules.ReactDOM.findDOMNode(that);
-				const { target } = that.props;
-
-				if (!node) return Toasts.error('Unable to find the context-menu.', { timeout: 2e3 });
+			showTooltip(message, target) {
 				if (!target) return Toasts.error('Unable to find the message.', { timeout: 2e3 });
 
 				/**
@@ -213,33 +207,23 @@ var MessageTimestampsRedux = (() => {
 
 				tip.show();
 				setTimeout(() => tip.hide(), this.settings.displayTime);
-
-				return this.hideMenu(node);
 			}
 
 			/**
 			 * Displays a toast notification of the clicked message's timestamp.
-			 * @param {Object} message 
+			 * @param {object} message 
 			 * @param {ReactComponent} that
-			 * @returns {Boolean}
+			 * @returns {void}
 			 */
-			showTimestamp(message, that) {
+			showTimestamp(message, target) {
 				if (!message) return;
 				/**
 				 * @type {String}
 				 */
 				const ts = this.getProps(message, 'timestamp._d');
-				/**
-				 * @type {HTMLElement}
-				 */
-				const node = DiscordModules.ReactDOM.findDOMNode(that);
-
-				if (!node) return Toasts.error('Unable to find the context-menu.', { timeout: 2e3 });
 
 				if (!this.settings.shortened) Toasts.show(ts, { timeout: this.settings.displayTime });
 				else Toasts.show(String(ts).split(' ').slice(0, 5).join(' '), { timeout: this.settings.displayTime });
-
-				return this.hideMenu(node);
 			}
 
 			/**
@@ -256,8 +240,50 @@ var MessageTimestampsRedux = (() => {
 			 * Uses the component's own onHeightUpdate function to manage screen position after being newly rendered post-patch.
 			 * @param {ReactComponent} that The Context Menu's react component.
 			 */
-			updateContextPosition(that) {
-				that.props.onHeightUpdate();
+			updateContextPosition(m) {
+				if (!m) return;
+	
+				let height = this.getProps(m, 'props.onHeightUpdate');
+				if (!height) height = this.getProps(m, '_reactInternalFiber.return.memoizedProps.onHeightUpdate');
+				if (!height) height = this.getProps(m, '_reactInternalFiber.child.child.memoizedProps.onHeightUpdate');
+	
+				height && height();
+			}
+
+			addContextMenuItem(menu, instance, owner, props) {
+				const { message, target } = props;
+				const group = new ContextMenu.ItemGroup();
+				const item = new ContextMenu.TextItem('Show Timestamp', { callback: () => this.action(message, target) });
+				const elements = item.getElement();
+				elements.classList.add(...DiscordClasses.ContextMenu.clickable.value.split(' '));
+				elements.firstChild.classList.add(...DiscordClasses.ContextMenu.label.value.split(' '));
+				group.addItems(item);
+				menu.prepend(group.getElement());
+				setImmediate(() => this.updateContextPosition(owner));
+			}
+
+			action(message, target) {
+				MenuActions.closeContextMenu();
+				!this.settings.tooltips ? this.showTimestamp(message, target) : this.showTooltip(message, target);
+			}
+
+			processContextMenu(cm) {
+				if (!cm) return;
+				const inst = ReactTools.getReactInstance(cm);
+				const own = ReactTools.getOwnerInstance(cm);
+				const props = this.getProps(inst, 'return.memoizedProps');
+				if (!own || !props.type || props.type !== 'MESSAGE_MAIN') return;
+				this.addContextMenuItem(cm, inst, own, props);
+			}
+
+			/* Observer */
+			observer({ addedNodes }) {
+				for (const node of addedNodes.values()) {
+					if (!node) continue;
+					if (node.firstChild && node.firstChild.className && typeof node.firstChild.className === 'string' && node.firstChild.className.split(' ')[0] === DiscordClasses.ContextMenu.contextMenu.value.split(' ')[0]) {
+						this.processContextMenu(node.firstChild);
+					}
+				}
 			}
 
 			/**
