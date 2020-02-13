@@ -28,28 +28,6 @@ var MemberCount = (() => {
 
 	/* Setup */
 
-	const toString = Object.prototype.toString;
-	const isObject = (o) => toString.call(o) === '[object Object]';
-
-	const spanWrap = (children = []) => {
-		if (!children.every(isObject)) children = children.filter(isObject);
-		const wrapper = document.createElement('span');
-		for (const child of children) {
-			if (child.type === 'text') {
-				wrapper.appendChild(document.createTextNode(child.children.join('\n')));
-				continue;
-			}
-			const d = document.createElement(child.type);
-			if (child.children && child.children.length) {
-				for (const c of child.children) {
-					d.appendChild(typeof c === 'string' ? document.createTextNode(c) : c);
-				}
-			}
-			wrapper.appendChild(d);
-		}
-		return wrapper;
-	};
-
 	const config = {
 		main: 'index.js',
 		info: {
@@ -62,7 +40,7 @@ var MemberCount = (() => {
 					twitter_username: ''
 				}
 			],
-			version: '2.1.12',
+			version: '2.1.13',
 			description: 'Displays a server\'s member-count at the top of the member-list, can be styled with the #MemberCount selector.',
 			github: 'https://github.com/Arashiryuu',
 			github_raw: 'https://raw.githubusercontent.com/Arashiryuu/crap/master/ToastIntegrated/MemberCount/MemberCount.plugin.js'
@@ -72,21 +50,7 @@ var MemberCount = (() => {
 				title: 'Bugs Squashed!',
 				type: 'fixed',
 				items: [
-					spanWrap([
-						{
-							type: 'b',
-							children: [
-								'Context Menu',
-								' '
-							]
-						},
-						{
-							type: 'text',
-							children: [
-								'now properly updates position again.'
-							]
-						}
-					])
+					'Sticky mode works again!'
 				]
 			}
 		]
@@ -110,7 +74,7 @@ var MemberCount = (() => {
 
 		const has = Object.prototype.hasOwnProperty;
 		const Flux = WebpackModules.getByProps('connectStores');
-		const MenuItem = WebpackModules.getByString('disabled', 'brand');
+		const MenuItem = WebpackModules.getByString('disabled', 'danger', 'brand');
 
 		const ItemGroup = class ItemGroup extends React.Component {
 			constructor(props) {
@@ -164,17 +128,17 @@ var MemberCount = (() => {
 				`;
 				this.optIn = `
 					#MemberCount {
-						position: absolute;
+						position: sticky;
 						width: 97%;
 						text-align: center;
 						padding: 1.8vh 0 0 3%;
 						z-index: 5;
-						top: 0;
+						top: -10px;
 						margin-top: -10px;
 					}
 
 					${DiscordSelectors.MemberList.membersWrap} ${DiscordSelectors.MemberList.membersGroup}:nth-child(3) {
-						margin-top: 2vh;
+						margin-top: -10px;
 					}
 				`;
 			}
@@ -186,7 +150,7 @@ var MemberCount = (() => {
 				this.loadSettings();
 				this.addCSS();
 				this.patchMemberList();
-				//this.patchGuildContextMenu(this.promises.state);
+				this.patchGuildContextMenu(this.promises.state);
 				Toasts.info(`${this.name} ${this.version} has started!`, { timeout: 2e3 });
 			}
 
@@ -240,14 +204,13 @@ var MemberCount = (() => {
 			}
 
 			async patchGuildContextMenu(state) {
-				const Component = await ReactComponents.getComponentByName('GuildContextMenu', DiscordSelectors.ContextMenu.contextMenu.toString());
-				const { component: Menu } = Component;
-
+				const Component = await PluginUtilities.getContextMenu('GUILD_ICON_');
 				if (state.cancelled) return;
 
-				Patcher.after(Menu.prototype, 'render', (that, args, value) => {
-					const orig = this.getProps(value, 'props');
-					const id = this.getProps(that, 'props.guild.id');
+				Patcher.after(Component, 'default', (that, args, value) => {
+					const [props] = args;
+					const orig = this.getProps(value, 'props.children.0.props');
+					const id = this.getProps(props, 'guild.id');
 
 					if (!orig || !id) return;
 
@@ -262,7 +225,7 @@ var MemberCount = (() => {
 					return value;
 				});
 
-				Component.forceUpdateAll();
+				PluginUtilities.forceUpdateContextMenus();
 			}
 
 			updateContextPosition(that) {
@@ -338,14 +301,14 @@ var MemberCount = (() => {
 			}
 
 			/* Observer */
-			observer({ addedNodes }) {
-				for (const node of addedNodes) {
-					if (!node) continue;
-					if (node.firstChild && node.firstChild.className && typeof node.firstChild.className === 'string' && node.firstChild.className.split(' ')[0] === DiscordClasses.ContextMenu.contextMenu.value.split(' ')[0]) {
-						this.processContextMenu(node.firstChild);
-					}
-				}
-			}
+			// observer({ addedNodes }) {
+			// 	for (const node of addedNodes) {
+			// 		if (!node) continue;
+			// 		if (node.firstChild && node.firstChild.className && typeof node.firstChild.className === 'string' && node.firstChild.className.split(' ')[0] === DiscordClasses.ContextMenu.contextMenu.value.split(' ')[0]) {
+			// 			this.processContextMenu(node.firstChild);
+			// 		}
+			// 	}
+			// }
 
 			/* Load Settings */
 
