@@ -40,16 +40,16 @@ var ChatUserIDsRedux = (() => {
 					twitter_username: ''
 				}
 			],
-			version: '1.0.14',
+			version: '1.0.15',
 			description: 'Adds a user\'s ID next to their name in chat, makes accessing a user ID simpler. Double-click to copy the ID.',
 			github: 'https://github.com/Arashiryuu',
 			github_raw: 'https://raw.githubusercontent.com/Arashiryuu/crap/master/ToastIntegrated/ChatUserIDsRedux/ChatUserIDsRedux.plugin.js'
 		},
 		changelog: [
 			{
-				title: 'Bugs Squashed!',
-				type: 'fixed',
-				items: ['Works again!']
+				title: 'Evolving?',
+				type: 'improved',
+				items: ['New setting!']
 			}
 		]
 	};
@@ -78,12 +78,50 @@ var ChatUserIDsRedux = (() => {
 
 	const buildPlugin = ([Plugin, Api]) => {
 		const { Toasts, Logger, Patcher, Settings, Utilities, ReactTools, DOMTools, DiscordModules, WebpackModules, DiscordSelectors, PluginUtilities } = Api;
-		const { SettingPanel, SettingGroup, ColorPicker } = Settings;
+		const { SettingPanel, SettingGroup, ColorPicker, RadioGroup } = Settings;
+		const { React, ReactDOM } = DiscordModules;
 
 		const has = Object.prototype.hasOwnProperty;
 		const MessageClasses = {
 			...WebpackModules.getByProps('message', 'groupStart'),
 			...WebpackModules.getByProps('compact', 'cozy', 'username')
+		};
+
+		const MessageHeader = WebpackModules.getModule((m) => m && m.default && m.default.displayName && m.default.displayName === 'MessageHeader');
+
+		const options = [
+			{
+				name: 'Before',
+				desc: 'Place the tag before the username.',
+				value: 0
+			},
+			{
+				name: 'After',
+				desc: 'Place the tag after the username.',
+				value: 1
+			}
+		];
+
+		const Tag = class Tag extends React.Component {
+			constructor(props) {
+				super(props);
+				this.onDoubleClick = this.onDoubleClick.bind(this);
+			}
+
+			onDoubleClick(e) {
+				if (this.props.onDoubleClick) this.props.onDoubleClick(e);
+			}
+
+			render() {
+				const classes = Array.isArray(this.props.classes)
+					? this.props.classes
+					: [];
+				classes.unshift('tagID');
+				return React.createElement('span', {
+					className: classes.join(' '),
+					onDoubleClick: this.onDoubleClick
+				}, this.props.text);
+			}
 		};
 		
 		return class ChatUserIDsRedux extends Plugin {
@@ -101,7 +139,8 @@ var ChatUserIDsRedux = (() => {
 						0xC792EA, 0xF95479, 0xFFCB6B, 0x82AAFF,
 						0x99DDF3, 0x718184, 0xF78C6A, 0xC3E88D
 					],
-					color: '#798AED'
+					color: '#798AED',
+					tagPosition: 0
 				};
 				this.settings = Utilities.deepclone(this.default);
 				this._css;
@@ -114,8 +153,6 @@ var ChatUserIDsRedux = (() => {
 						position: relative;
 						top: 3px;
 						height: 9px;
-						margin-left: -4px;
-						margin-right: 6px;
 						line-height: 10px;
 						text-shadow: 0 1px 3px black;
 						background: {color};
@@ -124,6 +161,16 @@ var ChatUserIDsRedux = (() => {
 						padding: 3px 5px;
 						color: #FFF;
 						font-family: 'Roboto', 'Inconsolata', 'Whitney', sans-serif;
+					}
+
+					.tagID.before {
+						margin-left: -4px;
+						margin-right: 6px;
+					}
+
+					.tagID.after {
+						margin-left: 4px;
+						margin-right: 4px;
 					}
 		
 					.${MessageClasses.groupStart.split(' ')[0]}.${MessageClasses.cozy.split(' ')[0]} h2.${MessageClasses.header.split(' ')[0]} {
@@ -143,13 +190,33 @@ var ChatUserIDsRedux = (() => {
 				this.loadSettings(this.settings);
 				this.reinjectCSS();
 				this.promises.restore();
+				// this.patchMessages();
 				Toasts.info(`${this.name} ${this.version} has started!`, { timeout: 2e3 });
 			}
 
 			onStop() {
 				PluginUtilities.removeStyle(this.short);
 				this.promises.cancel();
+				this.clearTags();
+				// Patcher.unpatchAll();
 				Toasts.info(`${this.name} ${this.version} has stopped!`, { timeout: 2e3 });
+			}
+
+			patchMessages() {
+				if (this.promises.state.cancelled) return;
+				Patcher.after(MessageHeader, 'default', (that, args, value) => {
+					const [{ message: { author } }] = args;
+					const { props } = value;
+					if (!props.children || !Array.isArray(props.children)) return value;
+					const { extraClass, pos } = this.getPos(this.settings);
+					const tag = React.createElement(Tag, {
+						text: author.id,
+						classes: [extraClass],
+						onDoubleClick: (e) => this.double(e)
+					});
+					props.children.splice(pos + 2, 0, tag);
+					return value;
+				});
 			}
 
 			reinjectCSS() {
@@ -183,7 +250,31 @@ var ChatUserIDsRedux = (() => {
 				const tag = this.createTag(author.id);
 				const username = node.querySelector(`.${MessageClasses.username.split(' ')[0]}`);
 				DOMTools.on(tag, `dblclick.${this.short}`, (e) => this.double(e));
-				username.insertAdjacentElement('beforebegin', tag);
+				const { extraClass, pos } = this.getPos(this.settings);
+				tag.classList.add(extraClass);
+				username.insertAdjacentElement(pos, tag);
+			}
+
+			getPos(settings) {
+				const value = !settings.tagPosition;
+				return {
+					extraClass: value
+						? 'before'
+						: 'after',
+					pos: value 
+						? 'beforebegin'
+						: 'afterend'
+				};
+			}
+
+			removeTag(node) {
+				if (!node || !node.querySelector('.tagID')) return;
+				const target = node.querySelector('.tagID');
+				target.remove();
+			}
+
+			clearTags() {
+				for (const node of document.querySelectorAll(`.${MessageClasses.groupStart.split(' ')[0]}`)) this.removeTag(node);
 			}
 
 			/**
@@ -215,7 +306,12 @@ var ChatUserIDsRedux = (() => {
 						new ColorPicker('ID Background Color', 'Determines what color the background for the IDs will be.', this.default.color, (i) => {
 							this.settings.color = i;
 							this.reinjectCSS();
-						}, { colors: this.settings.colors })
+						}, { colors: this.settings.colors }),
+						new RadioGroup('Tag Placement', 'Decides whether the tag is placed before the username, or after it.', this.settings.tagPosition || 0, options, (i) => {
+							this.settings.tagPosition = i;
+							this.clearTags();
+							this.onSwitch();
+						})
 					)
 				);
 			}
@@ -299,7 +395,7 @@ var ChatUserIDsRedux = (() => {
 					return window.BdApi.React.createElement(ConfirmationModal, Object.assign({
 						header: title,
 						children: [
-							TextElement({
+							window.BdApi.React.createElement(TextElement, {
 								color: TextElement.Colors.PRIMARY,
 								children: [`The library plugin needed for ${config.info.name} is missing. Please click Download Now to install it.`]
 							})
