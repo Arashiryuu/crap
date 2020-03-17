@@ -41,7 +41,7 @@ var HideUtils = (() => {
 					twitter_username: ''
 				}
 			],
-			version: '2.1.24',
+			version: '2.1.25',
 			description: 'Allows you to hide users, servers, and channels individually.',
 			github: 'https://github.com/Arashiryuu',
 			github_raw: 'https://raw.githubusercontent.com/Arashiryuu/crap/master/ToastIntegrated/HideUtils/HideUtils.plugin.js',
@@ -52,7 +52,7 @@ var HideUtils = (() => {
 				title: 'Bugs Squashed!',
 				type: 'fixed',
 				items: [
-					'Handles messages again.'
+					'Resume functionality.'
 				]
 			}
 		]
@@ -957,6 +957,7 @@ var HideUtils = (() => {
 				const Scroller = WebpackModules.getByDisplayName('VerticalScroller');
 				const Channels = WebpackModules.getByDisplayName('Channels');
 	
+				/*
 				Patcher.after(Channels.prototype, 'renderList', (that, args, value) => {
 					if (this.settings.servers.unhidden.includes(that.props.guildId)) return value;
 					const { rowHeight, sectionHeight } = value.props;
@@ -977,6 +978,7 @@ var HideUtils = (() => {
 					};
 					return value;
 				});
+				*/
 				
 				Patcher.after(Scroller.prototype, 'render', (that, args, value) => {
 					const key = this.getProps(value, 'props.children.0._owner.return.key');
