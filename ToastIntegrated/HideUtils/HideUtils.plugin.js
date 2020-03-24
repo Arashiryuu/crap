@@ -41,7 +41,7 @@ var HideUtils = (() => {
 					twitter_username: ''
 				}
 			],
-			version: '2.1.25',
+			version: '2.1.26',
 			description: 'Allows you to hide users, servers, and channels individually.',
 			github: 'https://github.com/Arashiryuu',
 			github_raw: 'https://raw.githubusercontent.com/Arashiryuu/crap/master/ToastIntegrated/HideUtils/HideUtils.plugin.js',
@@ -52,7 +52,7 @@ var HideUtils = (() => {
 				title: 'Bugs Squashed!',
 				type: 'fixed',
 				items: [
-					'Resume functionality.'
+					'Loads settings again.'
 				]
 			}
 		]
@@ -91,7 +91,7 @@ var HideUtils = (() => {
 	
 		const has = Object.prototype.hasOwnProperty;
 		const slice = Array.prototype.slice;
-		const MenuItem = WebpackModules.getByString('disabled', 'brand');
+		const MenuItem = WebpackModules.getByString('disabled', 'danger', 'brand');
 		const ToggleMenuItem = WebpackModules.getByString('disabled', 'itemToggle');
 		const guilds = WebpackModules.getByProps('wrapper', 'unreadMentionsIndicatorTop');
 		const buttons = WebpackModules.getByProps('button');
@@ -463,7 +463,7 @@ var HideUtils = (() => {
 					folders: {},
 					hideBlocked: true
 				};
-				this.settings = Utilities.deepclone(this.default);
+				this.settings = null;
 				this.css = `
 					.theme-light #HideUtils-Header .close-button {
 						fill: #72767d;
@@ -607,7 +607,7 @@ var HideUtils = (() => {
 				this.promises.restore();
 				PluginUtilities.addStyle(this.short, this.css);
 				this.setup();
-				this.loadSettings(this.settings);
+				this.settings = this.loadSettings(this.default);
 				this.subscribe();
 				this.patchAll(this.promises.state);
 				Toasts.info(`${this.name} ${this.version} has started!`, { timeout: 2e3 });
@@ -628,7 +628,7 @@ var HideUtils = (() => {
 				this.patchMessages(promiseState);
 				this.patchMemberList(promiseState);
 				this.patchTypingUsers(promiseState);
-				// this.patchContextMenu(promiseState);
+				this.patchContextMenu(promiseState);
 				this.patchIsMentioned(promiseState);
 				this.patchReceiveMessages(promiseState);
 			}
@@ -638,7 +638,7 @@ var HideUtils = (() => {
 				this.updateChannels();
 				this.updateMessages();
 				this.updateMemberList();
-				// this.updateContextMenu();
+				this.updateContextMenu();
 			}
 	
 			patchReceiveMessages() {
@@ -695,12 +695,11 @@ var HideUtils = (() => {
 			}
 	
 			async patchChannelContextMenu(promiseState) {
-				const { component: ChannelContextMenu } = await ReactComponents.getComponentByName('ChannelContextMenu', DiscordSelectors.ContextMenu.contextMenu.toString());
+				const Component = await PluginUtilities.getContextMenu('CHANNEL_LIST_');
 				if (promiseState.cancelled) return;
-				Patcher.after(ChannelContextMenu.prototype, 'render', (that, args, value) => {
-					if (!that.props.type.startsWith('CHANNEL_LIST_')) return value;
-					const channel = this.getProps(that, 'props.channel');
-	
+				Patcher.after(Component, 'default', (that, args, value) => {
+					const [props] = args;
+					const channel = this.getProps(props, 'channel');
 					const orig = this.getProps(value, 'props');
 					const itemProps = {
 						label: 'Hide Channel',
@@ -721,7 +720,8 @@ var HideUtils = (() => {
 					const item = new MenuItem(itemProps);
 					const group = React.createElement(ItemGroup, { children: [item] });
 	
-					orig.children.splice(1, 0, group);
+					if (Array.isArray(orig.children)) orig.children.splice(1, 0, group);
+					else orig.children = [orig.children], orig.children.splice(1, 0, group);
 	
 					setImmediate(() => this.updateContextPosition(that));
 	
@@ -731,11 +731,11 @@ var HideUtils = (() => {
 			}
 	
 			async patchGuildContextMenu(promiseState) {
-				const { component: GuildContextMenu } = await ReactComponents.getComponentByName('GuildContextMenu', DiscordSelectors.ContextMenu.contextMenu.value.trim());
+				const Component = await PluginUtilities.getContextMenu('GUILD_ICON_');
 				if (promiseState.cancelled) return;
-				Patcher.after(GuildContextMenu.prototype, 'render', (that, args, value) => {
-					const orig = this.getProps(value, 'props');
-					const props = this.getProps(that, 'props');
+				Patcher.after(Component, 'default', (that, args, value) => {
+					const [props] = args;
+					const orig = this.getProps(value, 'props.children.0.props');
 					const id = this.getProps(props, 'guild.id');
 					const folderId = this.getProps(props, 'folderId');
 					const active = this.settings.servers.unhidden.includes(id);
@@ -783,7 +783,8 @@ var HideUtils = (() => {
 	
 					const group = React.createElement(ItemGroup, { children: children });
 	
-					orig.children.splice(1, 0, group);
+					if (Array.isArray(orig.children)) orig.children.splice(1, 0, group);
+					else orig.children = [orig.children], orig.children.splice(1, 0, group);
 	
 					setImmediate(() => this.updateContextPosition(that));
 	
@@ -793,18 +794,19 @@ var HideUtils = (() => {
 			}
 	
 			async patchUserContextMenu(promiseState) {
-				const { component: UserContextMenu } = await ReactComponents.getComponentByName('UserContextMenu', DiscordSelectors.ContextMenu.contextMenu.toString());
+				const Component = await PluginUtilities.getContextMenu('USER_');
 				if (promiseState.cancelled) return;
-				Patcher.after(UserContextMenu.prototype, 'render', (that, args, value) => {
+				Patcher.after(Component, 'default', (that, args, value) => {
 					if (!DiscordModules.GuildStore.getGuild(DiscordModules.SelectedGuildStore.getGuildId())) return value;
+					const [props] = args;
 					const orig = this.getProps(value, 'props.children.props.children.props');
-					if (!orig) return;
+					const user = this.getProps(props, 'user');
+					if (!orig || !user) return;
 					
 					const item = new MenuItem({
 						label: 'Hide User',
 						action: () => {
 							MenuActions.closeContextMenu();
-							const user = this.getProps(that, 'props.user');
 							this.userPush(user.id);
 						}
 					});
@@ -1278,14 +1280,14 @@ var HideUtils = (() => {
 			}
 	
 			/* Observer */
-			observer({ addedNodes }) {
-				for (const node of addedNodes) {
-					if (!node) continue;
-					if (node.firstChild && node.firstChild.className && typeof node.firstChild.className === 'string' && node.firstChild.className.split(' ')[0] === DiscordClasses.ContextMenu.contextMenu.value.split(' ')[0]) {
-						this.processContextMenu(node.firstChild);
-					}
-				}
-			}
+			// observer({ addedNodes }) {
+			// 	for (const node of addedNodes) {
+			// 		if (!node) continue;
+			// 		if (node.firstChild && node.firstChild.className && typeof node.firstChild.className === 'string' && node.firstChild.className.split(' ')[0] === DiscordClasses.ContextMenu.contextMenu.value.split(' ')[0]) {
+			// 			this.processContextMenu(node.firstChild);
+			// 		}
+			// 	}
+			// }
 	
 			/**
 			 * @name safelyGetNestedProps
