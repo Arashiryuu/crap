@@ -40,7 +40,7 @@ var MessageTimestampsRedux = (() => {
 					twitter_username: ''
 				}
 			],
-			version: '1.0.10',
+			version: '1.0.11',
 			description: 'Displays the timestamp for a message, simply right-click and select "Show Timestamp."',
 			github: 'https://github.com/Arashiryuu',
 			github_raw: 'https://raw.githubusercontent.com/Arashiryuu/crap/master/ToastIntegrated/MessageTimestampsRedux/MessageTimestampsRedux.plugin.js'
@@ -50,7 +50,7 @@ var MessageTimestampsRedux = (() => {
 				title: 'Bugs Squashed!',
 				type: 'fixed',
 				items: [
-					'Works again.'
+					'Loads settings again!'
 				]
 			}
 		]
@@ -101,7 +101,7 @@ var MessageTimestampsRedux = (() => {
 					shortened: false,
 					displayTime: 2000
 				};
-				this.settings = Utilities.deepclone(this.default);
+				this.settings = null;
 			}
 
 			/* Methods */
@@ -112,7 +112,7 @@ var MessageTimestampsRedux = (() => {
 			 */
 			onStart() {
 				this.promises.restore();
-				this.loadSettings(this.settings);
+				this.settings = this.loadSettings(this.default);
 				// this.getContextMenu(this.promises.state).catch((err) => this.didError(err));
 				Toasts.info(`${this.name} ${this.version} has started!`, { timeout: 2e3 });
 			}
@@ -400,7 +400,7 @@ var MessageTimestampsRedux = (() => {
 					return window.BdApi.React.createElement(ConfirmationModal, Object.assign({
 						header: title,
 						children: [
-							TextElement({
+							window.BdApi.React.createElement(TextElement, {
 								color: TextElement.Colors.PRIMARY,
 								children: [`The library plugin needed for ${config.info.name} is missing. Please click Download Now to install it.`]
 							})
