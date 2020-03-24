@@ -40,16 +40,16 @@ var HideServersChannelsRedux = (() => {
 					twitter_username: ''
 				}
 			],
-			version: '1.1.4',
+			version: '1.1.5',
 			description: 'Adds buttons to the header for hiding the servers list and channels list.',
 			github: 'https://github.com/Arashiryuu',
 			github_raw: 'https://raw.githubusercontent.com/Arashiryuu/crap/master/ToastIntegrated/HideServersChannelsRedux/HideServersChannelsRedux.plugin.js'
 		},
 		changelog: [
 			{
-				title: 'Evolving?',
-				type: 'improved',
-				items: ['Fixed channel list hide delay when plugin animations are disabled.']
+				title: 'Bugs Squashed!',
+				type: 'fixed',
+				items: ['Loads settings again!']
 			}
 		]
 	};
@@ -169,7 +169,7 @@ var HideServersChannelsRedux = (() => {
 			constructor() {
 				super();
 				this.default = { keybinds: false, animations: true };
-				this.settings = Object.assign({}, this.default);
+				this.settings = null;
 				this._css;
 				this.keyFns = {
 					c: () => this.onChannelButtonClick(),
@@ -226,7 +226,7 @@ var HideServersChannelsRedux = (() => {
 			/* Methods */
 
 			onStart() {
-				this.loadSettings(this.settings);
+				this.settings = this.loadSettings(this.default);
 				this.handleCSS();
 				this.patchHeader();
 				this.handleKeybinds();
