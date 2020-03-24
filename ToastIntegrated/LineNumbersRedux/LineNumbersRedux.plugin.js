@@ -40,7 +40,7 @@ var LineNumbersRedux = (() => {
 					twitter_username: ''
 				}
 			],
-			version: '1.1.6',
+			version: '1.1.7',
 			description: 'Adds line numbers to codeblocks.',
 			github: 'https://github.com/Arashiryuu',
 			github_raw: 'https://raw.githubusercontent.com/Arashiryuu/crap/master/ToastIntegrated/LineNumbersRedux/LineNumbersRedux.plugin.js'
@@ -49,7 +49,7 @@ var LineNumbersRedux = (() => {
 			{
 				title: 'Bugs Squashed!',
 				type: 'fixed',
-				items: ['Works again.']
+				items: ['Loads settings again!']
 			}
 		]
 	};
@@ -88,7 +88,7 @@ var LineNumbersRedux = (() => {
 					restore() { this.state.cancelled = false; }
 				};
 				this.default = { ignoreNoLanguage: true, noStyle: false };
-				this.settings = Object.assign({}, this.default);
+				this.settings = null;
 				this.css = `
 					.hljs ol {
 						list-style: none;
@@ -129,7 +129,7 @@ var LineNumbersRedux = (() => {
 
 			onStart() {
 				this.promises.restore();
-				this.loadSettings(this.settings);
+				this.settings = this.loadSettings(this.default);
 				this.handleCSS();
 				this.patchMessages(this.promises.state);
 				Toasts.info(`${this.name} ${this.version} has started!`, { timeout: 2e3 });
@@ -264,6 +264,7 @@ var LineNumbersRedux = (() => {
 
 			updateMessages() {
 				const messages = document.querySelectorAll(`.${MessageClasses.container.split(' ')[0]}`);
+				if (!messages.length) return;
 				for (let i = 0, len = messages.length; i < len; i++) ReactTools.getOwnerInstance(messages[i]).forceUpdate();
 			}
 
