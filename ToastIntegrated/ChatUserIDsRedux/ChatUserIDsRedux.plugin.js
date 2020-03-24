@@ -40,16 +40,16 @@ var ChatUserIDsRedux = (() => {
 					twitter_username: ''
 				}
 			],
-			version: '1.0.15',
+			version: '1.0.16',
 			description: 'Adds a user\'s ID next to their name in chat, makes accessing a user ID simpler. Double-click to copy the ID.',
 			github: 'https://github.com/Arashiryuu',
 			github_raw: 'https://raw.githubusercontent.com/Arashiryuu/crap/master/ToastIntegrated/ChatUserIDsRedux/ChatUserIDsRedux.plugin.js'
 		},
 		changelog: [
 			{
-				title: 'Evolving?',
-				type: 'improved',
-				items: ['New setting!']
+				title: 'Bugs Squashed!',
+				type: 'fixed',
+				items: ['Loads settings again!']
 			}
 		]
 	};
@@ -142,7 +142,7 @@ var ChatUserIDsRedux = (() => {
 					color: '#798AED',
 					tagPosition: 0
 				};
-				this.settings = Utilities.deepclone(this.default);
+				this.settings = null;
 				this._css;
 				this.css = `
 					@import 'https://fonts.googleapis.com/css?family=Roboto|Inconsolata';
@@ -187,7 +187,7 @@ var ChatUserIDsRedux = (() => {
 			/* Methods */
 
 			onStart() {
-				this.loadSettings(this.settings);
+				this.settings = this.loadSettings(this.default);
 				this.reinjectCSS();
 				this.promises.restore();
 				// this.patchMessages();
