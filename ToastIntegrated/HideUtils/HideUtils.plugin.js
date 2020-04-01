@@ -41,7 +41,7 @@ var HideUtils = (() => {
 					twitter_username: ''
 				}
 			],
-			version: '2.1.27',
+			version: '2.1.28',
 			description: 'Allows you to hide users, servers, and channels individually.',
 			github: 'https://github.com/Arashiryuu',
 			github_raw: 'https://raw.githubusercontent.com/Arashiryuu/crap/master/ToastIntegrated/HideUtils/HideUtils.plugin.js',
@@ -936,7 +936,9 @@ var HideUtils = (() => {
 					for (let i = 0, len = children.length; i < len; i++) {
 						if (!Array.isArray(children[i])) continue;
 						for (let j = 0, ren = children[i].length; j < ren; j++) {
+							if (Array.isArray(children[i][j])) continue;
 							const childProps = this.getProps(children[i][j], 'props.children.1.props');
+							if (!childProps) continue;
 							childProps.children = childProps.children.filter((child) => !child || !child.key || !has.call(this.settings.users, child.key));
 							if (childProps.children.length === 1 && childProps.children[0] === null) children[i][j].props.children.splice(0, 2);
 						}
