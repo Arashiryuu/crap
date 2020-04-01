@@ -40,7 +40,7 @@ var MemberCount = (() => {
 					twitter_username: ''
 				}
 			],
-			version: '2.1.13',
+			version: '2.1.14',
 			description: 'Displays a server\'s member-count at the top of the member-list, can be styled with the #MemberCount selector.',
 			github: 'https://github.com/Arashiryuu',
 			github_raw: 'https://raw.githubusercontent.com/Arashiryuu/crap/master/ToastIntegrated/MemberCount/MemberCount.plugin.js'
@@ -50,7 +50,7 @@ var MemberCount = (() => {
 				title: 'Bugs Squashed!',
 				type: 'fixed',
 				items: [
-					'Sticky mode works again!'
+					'Renders in the memberlist again!'
 				]
 			}
 		]
@@ -174,17 +174,17 @@ var MemberCount = (() => {
 				const Scroller = WebpackModules.getByDisplayName('VerticalScroller');
 				
 				Patcher.after(Scroller.prototype, 'render', (that, args, value) => {
-					const key = this.getProps(value, 'props.children.0._owner.return.key');
-					if (!key || key === 'guild-channels') return value;
+					const props = this.getProps(that, 'props.children.1.props');
+					if (!props || !props['aria-label'] || props['aria-label'] !== 'Members') return value;
 
-					const children = this.getProps(value, 'props.children.0.props.children.1.2');
+					const children = this.getProps(props, 'children.1');
 					if (!children || !Array.isArray(children)) return value;
 					
 					const guildId = SelectedGuildStore.getGuildId();
 					if (this.settings.blacklist.includes(guildId) || !guildId) return value;
 
 					const counter = React.createElement(MemberCounter, {});
-					const fn = ([item, n]) => item && item.type && item.type.displayName && item.type.displayName === 'FluxContainer(Counter)';
+					const fn = (item) => Array.isArray(item) && item[0].type && item[0].type.displayName && item[0].type.displayName === 'FluxContainer(Counter)';
 
 					if (!children.find(fn)) children.unshift([counter, null]);
 
@@ -199,8 +199,8 @@ var MemberCount = (() => {
 				if (!memberList) return;
 				const inst = ReactTools.getOwnerInstance(memberList);
 				if (!inst) return;
-				inst.forceUpdate();
-				if (scroll) inst.handleOnScroll();
+				inst.forceUpdate && inst.forceUpdate();
+				if (scroll) inst.handleOnScroll && inst.handleOnScroll();
 			}
 
 			async patchGuildContextMenu(state) {
