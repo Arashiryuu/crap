@@ -41,7 +41,7 @@ var HideUtils = (() => {
 					twitter_username: ''
 				}
 			],
-			version: '2.1.26',
+			version: '2.1.27',
 			description: 'Allows you to hide users, servers, and channels individually.',
 			github: 'https://github.com/Arashiryuu',
 			github_raw: 'https://raw.githubusercontent.com/Arashiryuu/crap/master/ToastIntegrated/HideUtils/HideUtils.plugin.js',
@@ -52,7 +52,7 @@ var HideUtils = (() => {
 				title: 'Bugs Squashed!',
 				type: 'fixed',
 				items: [
-					'Loads settings again.'
+					'Hides things again.'
 				]
 			}
 		]
@@ -854,7 +854,7 @@ var HideUtils = (() => {
 				const { component: Message } = Component;
 				if (promiseState.cancelled) return;
 				Patcher.after(Message.prototype, 'render', (that, args, value) => {
-					const props = this.getProps(value, 'props.children.1.props');
+					const props = this.getProps(value, 'props.children.1.props.children.1.props');
 					const messageGroups = this.getProps(props, 'children.1');
 					if (!messageGroups || !Array.isArray(messageGroups)) return value;
 	
@@ -890,14 +890,16 @@ var HideUtils = (() => {
 					const props = this.getProps(that, 'props');
 					if (!props.guildFolders || !Array.isArray(props.guildFolders)) return value;
 	
-					const children = this.getProps(value, 'props.children.1.props.children');
-					if (!children || !Array.isArray(children)) return value;
+					const list = this.getProps(value, 'props.children.1.props.children');
+					const guildList = list.find((child) => child.props['aria-label'] && child.props['aria-label'] === 'Servers');
+					const children = this.getProps(guildList, 'props.children');
+					if (!guildList || !children || !Array.isArray(children)) return value;
 	
-					const guildIndex = children.findIndex((item) => Array.isArray(item));
-					const guilds = this.getProps(children, guildIndex.toString());
-					if (!guilds || !Array.isArray(guilds)) return value;
+					// const guildIndex = children.findIndex((item) => Array.isArray(item));
+					// const guilds = this.getProps(children, guildIndex.toString());
+					// if (!guilds || !Array.isArray(guilds)) return value;
 	
-					children[guildIndex] = guilds.filter((guild) => {
+					guildList.props.children = children.filter((guild) => {
 						if (Array.isArray(guild.props.guildIds)) {
 							if (has.call(this.settings.folders, guild.props.folderId)) return false;
 							guild.props.guildIds = guild.props.guildIds.filter((id) => !has.call(this.settings.servers, id));
@@ -922,25 +924,21 @@ var HideUtils = (() => {
 				const Scroller = WebpackModules.getByDisplayName('VerticalScroller');
 	
 				Patcher.after(Scroller.prototype, 'render', (that, args, value) => {
-					const key = this.getProps(value, 'props.children.0._owner.return.key');
-					if (!key || key === 'guild-channels') return value;
+					const props = this.getProps(that, 'props.children.1.props');
+					if (!props || !props['aria-label'] || props['aria-label'] !== 'Members') return value;
 	
-					const children = this.getProps(value, 'props.children.0.props.children.1');
+					const children = this.getProps(props, 'children');
 					if (!children || !Array.isArray(children)) return value;
 	
-					const memberlist = this.getProps(children, '2') || this.getProps(children, '1');
+					const memberlist = this.getProps(children, '1');
 					if (!memberlist || !Array.isArray(memberlist)) return value;
 	
 					for (let i = 0, len = children.length; i < len; i++) {
 						if (!Array.isArray(children[i])) continue;
-						if (children[i].some((child) => child && child.type === 'header')) break;
 						for (let j = 0, ren = children[i].length; j < ren; j++) {
-							if (children[i][j] && Array.isArray(children[i][j])) {
-								children[i][j] = children[i][j].filter((child) => !child || !child.key || (child.key && !has.call(this.settings.users, child.key)));
-								if (children[i][j].length === 2 && children[i][j][1] === null && children[i][j][0].props && children[i][j][0].props.type && children[i][j][0].props.type === 'GROUP') {
-									children[i].splice(j, 1);
-								}
-							}
+							const childProps = this.getProps(children[i][j], 'props.children.1.props');
+							childProps.children = childProps.children.filter((child) => !child || !child.key || !has.call(this.settings.users, child.key));
+							if (childProps.children.length === 1 && childProps.children[0] === null) children[i][j].props.children.splice(0, 2);
 						}
 					}
 	
@@ -983,10 +981,9 @@ var HideUtils = (() => {
 				*/
 				
 				Patcher.after(Scroller.prototype, 'render', (that, args, value) => {
-					const key = this.getProps(value, 'props.children.0._owner.return.key');
-					if (!key || key !== 'guild-channels') return value;
+					if (!that.props['data-ref-id'] || that.props['data-ref-id'] !== 'channels') return value;
 	
-					const children = this.getProps(value, 'props.children.0.props.children.1.2');
+					const children = this.getProps(that, 'props.children.1.props.children.1');
 					if (!children || !Array.isArray(children)) return value;
 	
 					const guildId = this.getProps(children, '0.0.props.channel.guild_id');
@@ -994,8 +991,6 @@ var HideUtils = (() => {
 	
 					for (let i = 0, len = children.length; i < len; i++) {
 						if (!children[i] || !Array.isArray(children[i])) continue;
-						// If the category naturally has no children, do not unrender
-						if (children[i].length === 3 && children[i][0].type.displayName && children[i][0].type.displayName.includes('Category') && children[i][0].props.isEmpty) continue;
 						children[i] = children[i].filter((channel) => {
 							if (!channel) return channel;
 							const props = this.getProps(channel, 'props');
@@ -1008,10 +1003,6 @@ var HideUtils = (() => {
 							});
 							return !channel.key || (channel.key && !has.call(this.settings.channels, channel.key));
 						});
-						// If we hide all children of a category, unrender it
-						if (children[i].length === 1 && children[i][0].type.displayName && children[i][0].type.displayName.includes('Category')) {
-							children[i].splice(0, 1);
-						}
 					}
 	
 					return value;
