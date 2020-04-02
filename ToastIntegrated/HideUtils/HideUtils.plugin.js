@@ -41,7 +41,7 @@ var HideUtils = (() => {
 					twitter_username: ''
 				}
 			],
-			version: '2.1.28',
+			version: '2.1.29',
 			description: 'Allows you to hide users, servers, and channels individually.',
 			github: 'https://github.com/Arashiryuu',
 			github_raw: 'https://raw.githubusercontent.com/Arashiryuu/crap/master/ToastIntegrated/HideUtils/HideUtils.plugin.js',
@@ -891,7 +891,7 @@ var HideUtils = (() => {
 					if (!props.guildFolders || !Array.isArray(props.guildFolders)) return value;
 	
 					const list = this.getProps(value, 'props.children.1.props.children');
-					const guildList = list.find((child) => child.props['aria-label'] && child.props['aria-label'] === 'Servers');
+					const guildList = list.find((child) => child.props['data-ref-id'] && child.props['data-ref-id'] === 'guildsnav');
 					const children = this.getProps(guildList, 'props.children');
 					if (!guildList || !children || !Array.isArray(children)) return value;
 	
@@ -925,7 +925,7 @@ var HideUtils = (() => {
 	
 				Patcher.after(Scroller.prototype, 'render', (that, args, value) => {
 					const props = this.getProps(that, 'props.children.1.props');
-					if (!props || !props['aria-label'] || props['aria-label'] !== 'Members') return value;
+					if (!props || !props['data-ref-id'] || !props['data-ref-id'].startsWith('members')) return value;
 	
 					const children = this.getProps(props, 'children');
 					if (!children || !Array.isArray(children)) return value;
