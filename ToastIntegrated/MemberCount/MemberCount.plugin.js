@@ -40,7 +40,7 @@ var MemberCount = (() => {
 					twitter_username: ''
 				}
 			],
-			version: '2.1.14',
+			version: '2.1.15',
 			description: 'Displays a server\'s member-count at the top of the member-list, can be styled with the #MemberCount selector.',
 			github: 'https://github.com/Arashiryuu',
 			github_raw: 'https://raw.githubusercontent.com/Arashiryuu/crap/master/ToastIntegrated/MemberCount/MemberCount.plugin.js'
@@ -50,7 +50,7 @@ var MemberCount = (() => {
 				title: 'Bugs Squashed!',
 				type: 'fixed',
 				items: [
-					'Renders in the memberlist again!'
+					'Renders in the memberlist again, again!'
 				]
 			}
 		]
@@ -95,10 +95,19 @@ var MemberCount = (() => {
 			}
 
 			render() {
-				return React.createElement('header', {
-					className: `${DiscordClasses.MemberList.membersGroup} container-2ax-kl`,
-					id: 'MemberCount',
-					children: ['Members', '—', this.props.count]
+				return React.createElement('div', {
+					role: 'listitem',
+					children: [
+						React.createElement('h2', {
+							className: `${DiscordClasses.MemberList.membersGroup} container-2ax-kl`,
+							id: 'MemberCount',
+							children: [
+								React.createElement('span', {
+									children: ['Members', '—', this.props.count]
+								})
+							]
+						})
+					]
 				});
 			}
 		};
@@ -174,10 +183,10 @@ var MemberCount = (() => {
 				const Scroller = WebpackModules.getByDisplayName('VerticalScroller');
 				
 				Patcher.after(Scroller.prototype, 'render', (that, args, value) => {
-					const props = this.getProps(that, 'props.children.1.props');
-					if (!props || !props['aria-label'] || props['aria-label'] !== 'Members') return value;
+					const props = this.getProps(that, 'props');
+					if (!props || !props['data-ref-id'] || !props['data-ref-id'].startsWith('members')) return value;
 
-					const children = this.getProps(props, 'children.1');
+					const children = this.getProps(props, 'children.0.props.children.1');
 					if (!children || !Array.isArray(children)) return value;
 					
 					const guildId = SelectedGuildStore.getGuildId();
