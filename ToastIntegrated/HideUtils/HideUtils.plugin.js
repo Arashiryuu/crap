@@ -41,7 +41,7 @@ var HideUtils = (() => {
 					twitter_username: ''
 				}
 			],
-			version: '2.1.30',
+			version: '2.1.31',
 			description: 'Allows you to hide users, servers, and channels individually.',
 			github: 'https://github.com/Arashiryuu',
 			github_raw: 'https://raw.githubusercontent.com/Arashiryuu/crap/master/ToastIntegrated/HideUtils/HideUtils.plugin.js',
@@ -52,7 +52,7 @@ var HideUtils = (() => {
 				title: 'Bugs Squashed!',
 				type: 'fixed',
 				items: [
-					'Hides things again, again.'
+					'Hides channels again.'
 				]
 			}
 		]
@@ -985,7 +985,7 @@ var HideUtils = (() => {
 				Patcher.after(Scroller.prototype, 'render', (that, args, value) => {
 					if (!that.props['data-ref-id'] || that.props['data-ref-id'] !== 'channels') return value;
 	
-					const children = this.getProps(that, 'props.children.1.props.children.1');
+					const children = this.getProps(that, 'props.children.0.props.children.1');
 					if (!children || !Array.isArray(children)) return value;
 	
 					const guildId = this.getProps(children, '0.0.props.channel.guild_id');
