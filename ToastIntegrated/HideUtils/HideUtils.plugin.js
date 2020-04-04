@@ -41,7 +41,7 @@ var HideUtils = (() => {
 					twitter_username: ''
 				}
 			],
-			version: '2.1.29',
+			version: '2.1.30',
 			description: 'Allows you to hide users, servers, and channels individually.',
 			github: 'https://github.com/Arashiryuu',
 			github_raw: 'https://raw.githubusercontent.com/Arashiryuu/crap/master/ToastIntegrated/HideUtils/HideUtils.plugin.js',
@@ -52,7 +52,7 @@ var HideUtils = (() => {
 				title: 'Bugs Squashed!',
 				type: 'fixed',
 				items: [
-					'Hides things again.'
+					'Hides things again, again.'
 				]
 			}
 		]
@@ -924,10 +924,10 @@ var HideUtils = (() => {
 				const Scroller = WebpackModules.getByDisplayName('VerticalScroller');
 	
 				Patcher.after(Scroller.prototype, 'render', (that, args, value) => {
-					const props = this.getProps(that, 'props.children.1.props');
+					const props = this.getProps(that, 'props');
 					if (!props || !props['data-ref-id'] || !props['data-ref-id'].startsWith('members')) return value;
-	
-					const children = this.getProps(props, 'children');
+
+					const children = this.getProps(props, 'children.0.props.children');
 					if (!children || !Array.isArray(children)) return value;
 	
 					const memberlist = this.getProps(children, '1');
@@ -940,7 +940,7 @@ var HideUtils = (() => {
 							const childProps = this.getProps(children[i][j], 'props.children.1.props');
 							if (!childProps) continue;
 							childProps.children = childProps.children.filter((child) => !child || !child.key || !has.call(this.settings.users, child.key));
-							if (childProps.children.length === 1 && childProps.children[0] === null) children[i][j].props.children.splice(0, 2);
+							if (childProps.children.length === 1 && childProps.children[0] === null) children[i][j].props.children.splice(0, 1);
 						}
 					}
 	
@@ -1146,7 +1146,7 @@ var HideUtils = (() => {
 				const user = this.user(id);
 				if (!user) return Toasts.error('Unable to find user to hide.', { timeout: 3e3 });
 				if (has.call(this.settings.users, user.id)) return Toasts.info('This user is already being hidden.', { timeout: 3e3 });
-				if (id === DiscordModules.UserInfoStore.getId()) return Toasts.info('You cannot hide yourself.', { timeout: 3e3 });
+				if (id === DiscordModules.UserStore.getCurrentUser().id) return Toasts.info('You cannot hide yourself.', { timeout: 3e3 });
 				this.settings.users[user.id] = {
 					id: user.id,
 					tag: user.tag,
