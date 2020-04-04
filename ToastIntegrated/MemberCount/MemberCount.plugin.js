@@ -40,7 +40,7 @@ var MemberCount = (() => {
 					twitter_username: ''
 				}
 			],
-			version: '2.1.15',
+			version: '2.1.16',
 			description: 'Displays a server\'s member-count at the top of the member-list, can be styled with the #MemberCount selector.',
 			github: 'https://github.com/Arashiryuu',
 			github_raw: 'https://raw.githubusercontent.com/Arashiryuu/crap/master/ToastIntegrated/MemberCount/MemberCount.plugin.js'
@@ -50,7 +50,7 @@ var MemberCount = (() => {
 				title: 'Bugs Squashed!',
 				type: 'fixed',
 				items: [
-					'Renders in the memberlist again, again!'
+					'Sticky works again!'
 				]
 			}
 		]
@@ -96,11 +96,11 @@ var MemberCount = (() => {
 
 			render() {
 				return React.createElement('div', {
+					id: 'MemberCount',
 					role: 'listitem',
 					children: [
 						React.createElement('h2', {
 							className: `${DiscordClasses.MemberList.membersGroup} container-2ax-kl`,
-							id: 'MemberCount',
 							children: [
 								React.createElement('span', {
 									children: ['Members', '—', this.props.count]
@@ -140,7 +140,7 @@ var MemberCount = (() => {
 						position: sticky;
 						width: 97%;
 						text-align: center;
-						padding: 1.8vh 0 0 3%;
+						padding: 0.3vh 0 0 3%;
 						z-index: 5;
 						top: -10px;
 						margin-top: -10px;
