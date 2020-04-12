@@ -41,7 +41,7 @@ var HideUtils = (() => {
 					twitter_username: ''
 				}
 			],
-			version: '2.1.31',
+			version: '2.1.32',
 			description: 'Allows you to hide users, servers, and channels individually.',
 			github: 'https://github.com/Arashiryuu',
 			github_raw: 'https://raw.githubusercontent.com/Arashiryuu/crap/master/ToastIntegrated/HideUtils/HideUtils.plugin.js',
@@ -52,7 +52,7 @@ var HideUtils = (() => {
 				title: 'Bugs Squashed!',
 				type: 'fixed',
 				items: [
-					'Hides channels again.'
+					'Displays text in the settings again.'
 				]
 			}
 		]
@@ -86,7 +86,7 @@ var HideUtils = (() => {
 		const { ComponentDispatch: Dispatcher } = WebpackModules.getByProps('ComponentDispatch');
 		const { React, ReactDOM, ModalStack, ContextMenuActions: MenuActions } = DiscordModules;
 	
-		const TextElement = WebpackModules.getByProps('Sizes', 'Weights');
+		const TextElement = WebpackModules.getByDisplayName('Text');
 		const TooltipWrapper = WebpackModules.getByPrototypes('renderTooltip');
 	
 		const has = Object.prototype.hasOwnProperty;
@@ -270,14 +270,14 @@ var HideUtils = (() => {
 						data.push(item);
 					}
 	
-					const count = React.createElement(TextElement.default, {
-						weight: TextElement.Weights.BOLD,
+					const count = React.createElement(TextElement, {
 						color: TextElement.Colors.BRAND,
-						size: TextElement.Sizes.MEDIUM,
+						size: TextElement.Sizes.SIZE_16,
 						style: {
 							textTransform: 'uppercase',
 							borderBottom: '2px solid currentColor',
-							marginBottom: '4px'
+							marginBottom: '4px',
+							fontWeight: 'bold'
 						},
 						children: [label, ' hidden \u2014 ', data.length]
 					});
@@ -289,17 +289,17 @@ var HideUtils = (() => {
 							id: 'HideUtils-Instructions',
 							className: 'instructions'
 						},	
-							React.createElement(TextElement.default, {
-								color: TextElement.Colors.PRIMARY,
+							React.createElement(TextElement, {
+								color: TextElement.Colors.STANDARD,
 								children: [
-									React.createElement(TextElement.default, {
-										weight: TextElement.Weights.BOLD,
+									React.createElement(TextElement, {
 										color: TextElement.Colors.BRAND,
-										size: TextElement.Sizes.MEDIUM,
+										size: TextElement.Sizes.SIZE_16,
 										style: {
 											textTransform: 'uppercase',
 											borderBottom: '2px solid currentColor',
-											marginBottom: '4px'
+											marginBottom: '4px',
+											fontWeight: 'bold'
 										},
 										children: ['How to']
 									}),
@@ -310,14 +310,14 @@ var HideUtils = (() => {
 										]
 									}),
 									React.createElement('br', {}),
-									React.createElement(TextElement.default, {
-										weight: TextElement.Weights.BOLD,
+									React.createElement(TextElement, {
 										color: TextElement.Colors.BRAND,
-										size: TextElement.Sizes.MEDIUM,
+										size: TextElement.Sizes.SIZE_16,
 										style: {
 											textTransform: 'uppercase',
 											borderBottom: '2px solid currentColor',
-											marginBottom: '4px'
+											marginBottom: '4px',
+											fontWeight: 'bold'
 										},
 										children: ['Note']
 									}),
@@ -344,9 +344,10 @@ var HideUtils = (() => {
 						React.createElement(CloseButton, {
 							onClick: this.close
 						}),
-						React.createElement(TextElement.default, {
+						React.createElement(TextElement, {
 							className: wrapper.title,
-							color: TextElement.Colors.PRIMARY,
+							color: TextElement.Colors.STANDARD,
+							size: TextElement.Sizes.SIZE_16,
 							children: ['HideUtils \u2014 ', label]
 						})
 					),
@@ -1373,7 +1374,7 @@ var HideUtils = (() => {
 			load() {
 				const title = 'Library Missing';
 				const ModalStack = window.BdApi.findModuleByProps('push', 'update', 'pop', 'popWithKey');
-				const TextElement = window.BdApi.findModuleByProps('Sizes', 'Weights');
+				const TextElement = window.BdApi.findModuleByDisplayName('Text');
 				const ConfirmationModal = window.BdApi.findModule((m) => m.defaultProps && m.key && m.key() === 'confirm-modal');
 				if (!ModalStack || !ConfirmationModal || !TextElement) return window.BdApi.getCore().alert(title, `The library plugin needed for ${config.info.name} is missing.<br /><br /> <a href="https://betterdiscord.net/ghdl?url=https://raw.githubusercontent.com/rauenzi/BDPluginLibrary/master/release/0PluginLibrary.plugin.js" target="_blank">Click here to download the library!</a>`);
 				ModalStack.push(function(props) {
@@ -1381,7 +1382,7 @@ var HideUtils = (() => {
 						header: title,
 						children: [
 							window.BdApi.React.createElement(TextElement, {
-								color: TextElement.Colors.PRIMARY,
+								color: TextElement.Colors.STANDARD,
 								children: [`The library plugin needed for ${config.info.name} is missing. Please click Download Now to install it.`]
 							})
 						],
