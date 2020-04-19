@@ -41,7 +41,7 @@ var HideUtils = (() => {
 					twitter_username: ''
 				}
 			],
-			version: '2.1.32',
+			version: '2.1.33',
 			description: 'Allows you to hide users, servers, and channels individually.',
 			github: 'https://github.com/Arashiryuu',
 			github_raw: 'https://raw.githubusercontent.com/Arashiryuu/crap/master/ToastIntegrated/HideUtils/HideUtils.plugin.js',
@@ -52,7 +52,7 @@ var HideUtils = (() => {
 				title: 'Bugs Squashed!',
 				type: 'fixed',
 				items: [
-					'Displays text in the settings again.'
+					'Hides blocked messages again.'
 				]
 			}
 		]
@@ -855,12 +855,12 @@ var HideUtils = (() => {
 				const { component: Message } = Component;
 				if (promiseState.cancelled) return;
 				Patcher.after(Message.prototype, 'render', (that, args, value) => {
-					const props = this.getProps(value, 'props.children.1.props.children.1.props');
+					const props = this.getProps(value, 'props.children.1.props.children.props');
 					const messageGroups = this.getProps(props, 'children.1');
 					if (!messageGroups || !Array.isArray(messageGroups)) return value;
 	
 					props.children[1] = messageGroups.filter((message) => {
-						if (!message) return message;
+						if (!message || message.key && (message.key.includes('divider') || message.key === 'has-more')) return message;
 						const author = this.getProps(message, 'props.message.author');
 						const type = this.getProps(message, 'type.type');
 						const blocked = (type && type.displayName && type.displayName === 'BlockedMessages') && this.settings.hideBlocked;
