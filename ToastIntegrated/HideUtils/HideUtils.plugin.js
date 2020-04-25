@@ -41,7 +41,7 @@ var HideUtils = (() => {
 					twitter_username: ''
 				}
 			],
-			version: '2.1.33',
+			version: '2.1.34',
 			description: 'Allows you to hide users, servers, and channels individually.',
 			github: 'https://github.com/Arashiryuu',
 			github_raw: 'https://raw.githubusercontent.com/Arashiryuu/crap/master/ToastIntegrated/HideUtils/HideUtils.plugin.js',
@@ -52,7 +52,7 @@ var HideUtils = (() => {
 				title: 'Bugs Squashed!',
 				type: 'fixed',
 				items: [
-					'Hides blocked messages again.'
+					'Hides folders again.'
 				]
 			}
 		]
@@ -1252,12 +1252,12 @@ var HideUtils = (() => {
 	
 			foldPush(instance) {
 				if (!instance) return;
-				const id = instance.props.folderId;
+				const id = instance.props.childProps.folderId;
 				if (has.call(this.settings.folders, id)) return Toasts.info('This folder is already being hidden.', { timeout: 3e3 });
 				this.settings.folders[id] = {
 					id: id,
-					name: instance.props.folderName || instance.props.defaultFolderName,
-					servers: instance.props.guildIds || []
+					name: instance.props.childProps.folderName || instance.props.childProps.defaultFolderName,
+					servers: instance.props.childProps.guildIds || []
 				};
 				Toasts.info('Folder has successfully been hidden.', { timeout: 3e3 });
 				this.saveSettings(this.settings);
