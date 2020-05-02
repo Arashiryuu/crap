@@ -128,10 +128,12 @@ var MemberCount = (() => {
 				};
 				this.css = `
 					.theme-dark #MemberCount {
+						all: unset
 						background: #2f3136;
 					} 
 					
 					.theme-light #MemberCount {
+						all: unset
 						background: #f3f3f3;
 					}
 				`;
