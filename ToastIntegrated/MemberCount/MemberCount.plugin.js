@@ -1,4 +1,9 @@
-//META{"name":"MemberCount","displayName":"MemberCount","website":"https://github.com/Arashiryuu","source":"https://github.com/Arashiryuu/crap/blob/master/ToastIntegrated/MemberCount/MemberCount.plugin.js"}*//
+/**
+ * @name MemberCount
+ * @displayName MemberCount
+ * @website https://github.com/Arashiryuu
+ * @source https://github.com/Arashiryuu/crap/blob/master/ToastIntegrated/MemberCount/MemberCount.plugin.js
+ */
 
 /*@cc_on
 @if (@_jscript)
@@ -40,7 +45,7 @@ var MemberCount = (() => {
 					twitter_username: ''
 				}
 			],
-			version: '2.1.16',
+			version: '2.1.17',
 			description: 'Displays a server\'s member-count at the top of the member-list, can be styled with the #MemberCount selector.',
 			github: 'https://github.com/Arashiryuu',
 			github_raw: 'https://raw.githubusercontent.com/Arashiryuu/crap/master/ToastIntegrated/MemberCount/MemberCount.plugin.js'
@@ -50,7 +55,8 @@ var MemberCount = (() => {
 				title: 'Bugs Squashed!',
 				type: 'fixed',
 				items: [
-					'Sticky works again!'
+					'Renders in the memberlist again.',
+					'Context menu item works again.'
 				]
 			}
 		]
@@ -75,6 +81,8 @@ var MemberCount = (() => {
 		const has = Object.prototype.hasOwnProperty;
 		const Flux = WebpackModules.getByProps('connectStores');
 		const MenuItem = WebpackModules.getByString('disabled', 'danger', 'brand');
+
+		const ctxMenuClasses = WebpackModules.getByProps('menu', 'submenu', 'accommodateScrollbar');
 
 		const ItemGroup = class ItemGroup extends React.Component {
 			constructor(props) {
@@ -159,7 +167,7 @@ var MemberCount = (() => {
 				this.loadSettings();
 				this.addCSS();
 				this.patchMemberList();
-				this.patchGuildContextMenu(this.promises.state);
+				// this.patchGuildContextMenu(this.promises.state);
 				Toasts.info(`${this.name} ${this.version} has started!`, { timeout: 2e3 });
 			}
 
@@ -184,7 +192,7 @@ var MemberCount = (() => {
 				
 				Patcher.after(Scroller.prototype, 'render', (that, args, value) => {
 					const props = this.getProps(that, 'props');
-					if (!props || !props['data-ref-id'] || !props['data-ref-id'].startsWith('members')) return value;
+					if (!props || !props.children[0] || !props.children[0].props || !props.children[0].props.id || !props.children[0].props.id.startsWith('members')) return value;
 
 					const children = this.getProps(props, 'children.0.props.children.1');
 					if (!children || !Array.isArray(children)) return value;
@@ -212,30 +220,32 @@ var MemberCount = (() => {
 				if (scroll) inst.handleOnScroll && inst.handleOnScroll();
 			}
 
-			async patchGuildContextMenu(state) {
-				const Component = await PluginUtilities.getContextMenu('GUILD_ICON_');
-				if (state.cancelled) return;
+			// async patchGuildContextMenu(state) {
+			// 	const Component = await ReactComponents.getComponent('GuildContextMenu', `.${ctxMenuClasses.menu}`, (m) => 
+			// 		m.prototype && m.prototype.constructor && m.prototype.constructor.displayName && m.prototype.constructor.displayName === 'GuildContextMenu'
+			// 	);
+			// 	if (state.cancelled) return;
 
-				Patcher.after(Component, 'default', (that, args, value) => {
-					const [props] = args;
-					const orig = this.getProps(value, 'props.children.0.props');
-					const id = this.getProps(props, 'guild.id');
+			// 	Patcher.after(Component, 'default', (that, args, value) => {
+			// 		const [props] = args;
+			// 		const orig = this.getProps(value, 'props.children.0.props');
+			// 		const id = this.getProps(props, 'guild.id');
 
-					if (!orig || !id) return;
+			// 		if (!orig || !id) return;
 
-					const data = this.parseId(id);
-					const item = new MenuItem(data);
-					const group = React.createElement(ItemGroup, { children: [item] });
+			// 		const data = this.parseId(id);
+			// 		const item = new MenuItem(data);
+			// 		const group = React.createElement(ItemGroup, { children: [item] });
 
-					if (Array.isArray(orig.children)) orig.children.splice(1, 0, group);
-					else orig.children = [orig.children], orig.children.splice(1, 0, group);
+			// 		if (Array.isArray(orig.children)) orig.children.splice(1, 0, group);
+			// 		else orig.children = [orig.children], orig.children.splice(1, 0, group);
 
-					setImmediate(() => this.updateContextPosition(that));
-					return value;
-				});
+			// 		setImmediate(() => this.updateContextPosition(that));
+			// 		return value;
+			// 	});
 
-				PluginUtilities.forceUpdateContextMenus();
-			}
+			// 	this.updateContextMenus();
+			// }
 
 			updateContextPosition(that) {
 				if (!that) return;
@@ -243,15 +253,22 @@ var MemberCount = (() => {
 				height && height();
 			}
 
+			updateContextMenus() {
+				const menus = document.querySelectorAll(`.${ctxMenuClasses.menu}`);
+				if (!menus.length) return;
+				for (const menu of menus) ReactTools.getOwnerInstance(menu).forceUpdate();
+			}
+
 			processContextMenu(cm) {
 				if (!cm) return;
 				const inst = ReactTools.getReactInstance(cm);
 				const own = ReactTools.getOwnerInstance(cm);
 				const props = this.getProps(inst, 'memoizedProps');
-				if (!own || !props || !Array.isArray(props.children)) return;
-				const readItem = this.getProps(props, 'children.0.props.children');
-				if (!readItem || Array.isArray(readItem) || has.call(readItem.props, 'folderId')) return;
-				if (has.call(readItem.props, 'guildId')) return this.addGuildContextItems(inst, own, cm);
+				const childProps = this.getProps(props, 'children.props');
+				if (!own || !props || !Array.isArray(childProps.children)) return;
+				const readItem = this.getProps(childProps, 'children.0.props.children');
+				if (!readItem || Array.isArray(readItem) || readItem.props.id === 'mark-folder-read') return;
+				if (readItem.props.id === 'mark-guild-read') return this.addGuildContextItems(inst, own, cm);
 			}
 
 			addGuildContextItems(instance, owner, context) {
@@ -264,10 +281,17 @@ var MemberCount = (() => {
 					callback: data.action
 				});
 				const elements = item.getElement();
-				elements.classList.add(...DiscordClasses.ContextMenu.clickable.value.split(' '));
-				elements.firstChild.classList.add(...DiscordClasses.ContextMenu.label.value.split(' '));
+				const groupEl = group.getElement();
+				elements.className = `${ctxMenuClasses.item} ${ctxMenuClasses.labelContainer} ${ctxMenuClasses.colorDefault}`;
+				elements.setAttribute('role', 'menuitem');
+				elements.setAttribute('tabindex', '-1');
+				elements.firstChild.classList.add(ctxMenuClasses.label);
+				groupEl.removeAttribute('class');
+				groupEl.setAttribute('role', 'group');
+				// elements.classList.add(...DiscordClasses.ContextMenu.clickable.value.split(' '));
+				// elements.firstChild.classList.add(...DiscordClasses.ContextMenu.label.value.split(' '));
 				group.addItems(item);
-				context.firstChild.insertAdjacentElement('afterend', group.getElement());
+				context.firstChild.firstChild.firstChild.insertAdjacentElement('afterend', groupEl);
 				setImmediate(() => this.updateContextPosition(owner));
 			}
 
@@ -310,14 +334,14 @@ var MemberCount = (() => {
 			}
 
 			/* Observer */
-			// observer({ addedNodes }) {
-			// 	for (const node of addedNodes) {
-			// 		if (!node) continue;
-			// 		if (node.firstChild && node.firstChild.className && typeof node.firstChild.className === 'string' && node.firstChild.className.split(' ')[0] === DiscordClasses.ContextMenu.contextMenu.value.split(' ')[0]) {
-			// 			this.processContextMenu(node.firstChild);
-			// 		}
-			// 	}
-			// }
+			observer({ addedNodes }) {
+				for (const node of addedNodes) {
+					if (!node) continue;
+					if (node.firstChild && node.firstChild.className && typeof node.firstChild.className === 'string' && node.firstChild.className.split(' ')[0] === ctxMenuClasses.menu.split(' ')[0]) {
+						this.processContextMenu(node.firstChild);
+					}
+				}
+			}
 
 			/* Load Settings */
 
@@ -504,5 +528,7 @@ var MemberCount = (() => {
 		}
 		: buildPlugin(global.ZeresPluginLibrary.buildPlugin(config));
 })();
+
+module.exports = MemberCount;
 
 /*@end@*/
