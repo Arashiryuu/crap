@@ -1,6 +1,5 @@
 /**
  * @name MemberCount
- * @displayName MemberCount
  * @website https://github.com/Arashiryuu
  * @source https://github.com/Arashiryuu/crap/blob/master/ToastIntegrated/MemberCount/MemberCount.plugin.js
  */
@@ -466,12 +465,26 @@ var MemberCount = (() => {
 				const ModalStack = window.BdApi.findModuleByProps('push', 'update', 'pop', 'popWithKey');
 				const TextElement = window.BdApi.findModuleByProps('Sizes', 'Weights');
 				const ConfirmationModal = window.BdApi.findModule((m) => m.defaultProps && m.key && m.key() === 'confirm-modal');
-				if (!ModalStack || !ConfirmationModal || !TextElement) return window.BdApi.getCore().alert(title, `The library plugin needed for ${config.info.name} is missing.<br /><br /> <a href="https://betterdiscord.net/ghdl?url=https://raw.githubusercontent.com/rauenzi/BDPluginLibrary/master/release/0PluginLibrary.plugin.js" target="_blank">Click here to download the library!</a>`);
+				const children = window.BdApi.React.createElement('span', {
+					children: [
+						window.BdApi.React.createElement(TextElement, {
+							color: TextElement.Colors.PRIMARY,
+							children: [`The library plugin needed for ${config.info.name} is missing.`]
+						}),
+						window.BdApi.React.createElement('br', {}),
+						window.BdApi.React.createElement('a', {
+							target: '_blank',
+							href: 'https://betterdiscord.net/ghdl?url=https://raw.githubusercontent.com/rauenzi/BDPluginLibrary/master/release/0PluginLibrary.plugin.js',
+							children: ['Click here to download the library!']
+						})
+					]
+				});
+				if (!ModalStack || !ConfirmationModal || !TextElement) return window.BdApi.alert(title, children);
 				ModalStack.push(function(props) {
 					return window.BdApi.React.createElement(ConfirmationModal, Object.assign({
 						header: title,
 						children: [
-							TextElement({
+							window.BdApi.React.createElement(TextElement, {
 								color: TextElement.Colors.PRIMARY,
 								children: [`The library plugin needed for ${config.info.name} is missing. Please click Download Now to install it.`]
 							})
