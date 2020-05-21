@@ -1,4 +1,8 @@
-//META{"name":"HideUtils","displayName":"HideUtils","website":"https://github.com/Arashiryuu","source":"https://github.com/Arashiryuu/crap/blob/master/ToastIntegrated/HideUtils/HideUtils.plugin.js"}*//
+/**
+ * @name HideUtils
+ * @website https://github.com/Arashiryuu
+ * @source https://github.com/Arashiryuu/crap/blob/master/ToastIntegrated/HideUtils/HideUtils.plugin.js
+ */
 
 /*@cc_on
 @if (@_jscript)
@@ -41,7 +45,7 @@ var HideUtils = (() => {
 					twitter_username: ''
 				}
 			],
-			version: '2.1.34',
+			version: '2.1.35',
 			description: 'Allows you to hide users, servers, and channels individually.',
 			github: 'https://github.com/Arashiryuu',
 			github_raw: 'https://raw.githubusercontent.com/Arashiryuu/crap/master/ToastIntegrated/HideUtils/HideUtils.plugin.js',
@@ -52,7 +56,8 @@ var HideUtils = (() => {
 				title: 'Bugs Squashed!',
 				type: 'fixed',
 				items: [
-					'Hides folders again.'
+					'Hides channels and users in the memberlist again.',
+					'Context menu entries are back.'
 				]
 			}
 		]
@@ -104,6 +109,7 @@ var HideUtils = (() => {
 			...WebpackModules.getByProps('messageCompact', 'headerCozy', 'username'),
 			...WebpackModules.getByProps('message', 'groupStart')
 		};
+		const ContextMenuClasses = WebpackModules.getByProps('menu', 'submenu', 'accommodateScrollbar');
 	
 		const Button = class Button extends React.Component {
 			constructor(props) {
@@ -629,7 +635,7 @@ var HideUtils = (() => {
 				this.patchMessages(promiseState);
 				this.patchMemberList(promiseState);
 				this.patchTypingUsers(promiseState);
-				this.patchContextMenu(promiseState);
+				// this.patchContextMenu(promiseState);
 				this.patchIsMentioned(promiseState);
 				this.patchReceiveMessages(promiseState);
 			}
@@ -639,7 +645,7 @@ var HideUtils = (() => {
 				this.updateChannels();
 				this.updateMessages();
 				this.updateMemberList();
-				this.updateContextMenu();
+				// this.updateContextMenu();
 			}
 	
 			patchReceiveMessages() {
@@ -833,6 +839,7 @@ var HideUtils = (() => {
 	
 			updateContextMenu() {
 				const menus = document.querySelectorAll(DiscordSelectors.ContextMenu.contextMenu.toString());
+				if (!menus.length) return;
 				for (let i = 0, len = menus.length; i < len; i++) ReactTools.getOwnerInstance(menus[i]).forceUpdate();
 			}
 	
@@ -926,7 +933,7 @@ var HideUtils = (() => {
 	
 				Patcher.after(Scroller.prototype, 'render', (that, args, value) => {
 					const props = this.getProps(that, 'props');
-					if (!props || !props['data-ref-id'] || !props['data-ref-id'].startsWith('members')) return value;
+					if (!props || !props.children[0] || !props.children[0].props || !props.children[0].props.id || !props.children[0].props.id.startsWith('members')) return value;
 
 					const children = this.getProps(props, 'children.0.props.children');
 					if (!children || !Array.isArray(children)) return value;
@@ -937,11 +944,8 @@ var HideUtils = (() => {
 					for (let i = 0, len = children.length; i < len; i++) {
 						if (!Array.isArray(children[i])) continue;
 						for (let j = 0, ren = children[i].length; j < ren; j++) {
-							if (Array.isArray(children[i][j])) continue;
-							const childProps = this.getProps(children[i][j], 'props.children.1.props');
-							if (!childProps) continue;
-							childProps.children = childProps.children.filter((child) => !child || !child.key || !has.call(this.settings.users, child.key));
-							if (childProps.children.length === 1 && childProps.children[0] === null) children[i][j].props.children.splice(0, 1);
+							if (!Array.isArray(children[i][j])) continue;
+							children[i][j] = children[i][j].filter((child) => !child || !child.key || !has.call(this.settings.users, child.key));
 						}
 					}
 	
@@ -984,7 +988,7 @@ var HideUtils = (() => {
 				*/
 				
 				Patcher.after(Scroller.prototype, 'render', (that, args, value) => {
-					if (!that.props['data-ref-id'] || that.props['data-ref-id'] !== 'channels') return value;
+					if (!that.props.children[0] || !that.props.children[0].props || !that.props.children[0].props.id || that.props.children[0].props.id !== 'channels') return value;
 	
 					const children = this.getProps(that, 'props.children.0.props.children.1');
 					if (!children || !Array.isArray(children)) return value;
@@ -1024,41 +1028,51 @@ var HideUtils = (() => {
 				const inst = ReactTools.getReactInstance(cm);
 				const own = ReactTools.getOwnerInstance(cm);
 				const props = this.getProps(inst, 'memoizedProps');
-				if (!own) return;
-				if (typeof own.getContext !== 'undefined') return this.addUserContextItems(inst, own, cm);
-				else if (has.call(inst.memoizedProps, 'style')) return this.addChannelContextItems(inst, own, cm);
-				else if (props && Array.isArray(props.children)) {
-					const readItem = this.getProps(props, 'children.0.props.children');
+				const childProps = this.getProps(props, 'children.props');
+				if (!own || !props || !Array.isArray(childProps.children)) return;
+				if (props.id === 'user-context') return this.addUserContextItems(inst, own, cm);
+				else if (props.id === 'channel-context') return this.addChannelContextItems(inst, own, cm);
+				else if (props.id === 'guild-context') {
+					const readItem = this.getProps(childProps, 'children.0.props.children');
 					if (!readItem || Array.isArray(readItem)) return;
-					if (has.call(readItem.props, 'folderId')) return this.addFolderContextItems(inst, own, cm);
-					else if (has.call(readItem.props, 'guildId')) return this.addGuildContextItems(inst, own, cm);
+					if (readItem.props.id === 'mark-folder-read') return this.addFolderContextItems(inst, own, cm);
+					else if (readItem.props.id === 'mark-guild-read') return this.addGuildContextItems(inst, own, cm);
 				}
 			}
 	
 			addUserContextItems(instance, owner, context) {
 				if (!DiscordModules.GuildStore.getGuild(DiscordModules.SelectedGuildStore.getGuildId())) return;
 				const group = new ContextMenu.ItemGroup();
-				const props = this.getProps(instance, 'memoizedProps.children.props.children.0.props.children.0.props');
+				const props = this.getProps(instance, 'return.return.return.return.return.memoizedProps');
+				if (!props) return;
 				const item = new ContextMenu.TextItem('Hide User', {
 					callback: (e) => {
 						MenuActions.closeContextMenu();
 						if (!props) return;
-						const { userId: id } = props;
+						const { user: { id } } = props;
 						this.userPush(id);
 					}
 				});
 				const elements = item.getElement();
-				elements.classList.add(...DiscordClasses.ContextMenu.clickable.value.split(' '));
-				elements.firstChild.classList.add(...DiscordClasses.ContextMenu.label.value.split(' '));
+				const groupEl = group.getElement();
+				elements.className = `${ContextMenuClasses.item} ${ContextMenuClasses.labelContainer} ${ContextMenuClasses.colorDefault}`;
+				elements.setAttribute('role', 'menuitem');
+				elements.setAttribute('tabindex', '-1');
+				elements.firstChild.classList.add(ContextMenuClasses.label);
+				groupEl.removeAttribute('class');
+				groupEl.setAttribute('role', 'group');
+				// elements.classList.add(...DiscordClasses.ContextMenu.clickable.value.split(' '));
+				// elements.firstChild.classList.add(...DiscordClasses.ContextMenu.label.value.split(' '));
 				group.addItems(item);
-				context.prepend(group.getElement());
+				context.firstChild.firstChild.firstChild.firstChild.insertAdjacentElement('afterend', groupEl);
 				setImmediate(() => this.updateContextPosition(owner));
 			}
 	
 			addChannelContextItems(instance, owner, context) {
-				if (instance.memoizedProps.children[0] && instance.memoizedProps.children[0].props && instance.memoizedProps.children[0].props.type === 4) return;
 				const group = new ContextMenu.ItemGroup();
-				const channel = this.getProps(instance, 'memoizedProps.children.2.props.children.1.props.channel') || this.getProps(instance, 'memoizedProps.children.1.props.channel');
+				const ref = owner.props.children({ position: owner.props.reference() }, owner.updatePosition);
+				if (!ref.props.channel || typeof ref.props.channel.type === 'undefined' || ref.props.channel.type === 4) return;
+				const channel = this.getProps(ref, 'props.channel');
 				if (!channel) return;
 				const itemProps = {
 					label: 'Hide Channel',
@@ -1076,10 +1090,17 @@ var HideUtils = (() => {
 				}
 				const item = new ContextMenu.TextItem(itemProps.label, { callback: itemProps.action });
 				const elements = item.getElement();
-				elements.classList.add(...DiscordClasses.ContextMenu.clickable.value.split(' '));
-				elements.firstChild.classList.add(...DiscordClasses.ContextMenu.label.value.split(' '));
+				const groupEl = group.getElement();
+				elements.className = `${ContextMenuClasses.item} ${ContextMenuClasses.labelContainer} ${ContextMenuClasses.colorDefault}`;
+				elements.setAttribute('role', 'menuitem');
+				elements.setAttribute('tabindex', '-1');
+				elements.firstChild.classList.add(ContextMenuClasses.label);
+				groupEl.removeAttribute('class');
+				groupEl.setAttribute('role', 'group');
+				// elements.classList.add(...DiscordClasses.ContextMenu.clickable.value.split(' '));
+				// elements.firstChild.classList.add(...DiscordClasses.ContextMenu.label.value.split(' '));
 				group.addItems(item);
-				context.firstChild.insertAdjacentElement('afterend', group.getElement());
+				context.firstChild.firstChild.firstChild.insertAdjacentElement('afterend', groupEl);
 				setImmediate(() => this.updateContextPosition(owner));
 			}
 	
@@ -1110,12 +1131,20 @@ var HideUtils = (() => {
 				const firstItem = item.getElement();
 				const secondItem = toggle.getElement();
 				const thirdItem = clear.getElement();
-				for (const i of [firstItem, secondItem, thirdItem]) {
-					i.classList.add(...DiscordClasses.ContextMenu.clickable.value.split(' '));
-					i.firstChild.classList.add(...DiscordClasses.ContextMenu.label.value.split(' '));
+				const groupEl = group.getElement();
+				const grouped = [firstItem, secondItem, thirdItem];
+				for (let i = 0; i < 3; i++) {
+					const elements = grouped[i];
+					elements.className = `${ContextMenuClasses.item} ${ContextMenuClasses.labelContainer} ${ContextMenuClasses.colorDefault}`;
+					elements.setAttribute('role', 'menuitem');
+					elements.setAttribute('tabindex', '-1');
+					elements.firstChild.classList.add(ContextMenuClasses.label);
+					if (i === 2) elements.classList.add(ContextMenuClasses.colorDanger.split(' ')[0]);
 				}
+				groupEl.removeAttribute('class');
+				groupEl.setAttribute('role', 'group');
 				group.addItems(item, toggle, clear);
-				context.firstChild.insertAdjacentElement('afterend', group.getElement());
+				context.firstChild.firstChild.firstChild.insertAdjacentElement('afterend', groupEl);
 				setImmediate(() => this.updateContextPosition(owner));
 			}
 	
@@ -1135,10 +1164,17 @@ var HideUtils = (() => {
 					}
 				});
 				const elements = item.getElement();
-				elements.classList.add(...DiscordClasses.ContextMenu.clickable.value.split(' '));
-				elements.firstChild.classList.add(...DiscordClasses.ContextMenu.label.value.split(' '));
+				const groupEl = group.getElement();
+				elements.className = `${ContextMenuClasses.item} ${ContextMenuClasses.labelContainer} ${ContextMenuClasses.colorDefault}`;
+				elements.setAttribute('role', 'menuitem');
+				elements.setAttribute('tabindex', '-1');
+				elements.firstChild.classList.add(ContextMenuClasses.label);
+				groupEl.removeAttribute('class');
+				groupEl.setAttribute('role', 'group');
+				// elements.classList.add(...DiscordClasses.ContextMenu.clickable.value.split(' '));
+				// elements.firstChild.classList.add(...DiscordClasses.ContextMenu.label.value.split(' '));
 				group.addItems(item);
-				context.firstChild.insertAdjacentElement('afterend', group.getElement());
+				context.firstChild.firstChild.firstChild.insertAdjacentElement('afterend', groupEl);
 				setImmediate(() => this.updateContextPosition(owner));
 			}
 	
@@ -1274,14 +1310,14 @@ var HideUtils = (() => {
 			}
 	
 			/* Observer */
-			// observer({ addedNodes }) {
-			// 	for (const node of addedNodes) {
-			// 		if (!node) continue;
-			// 		if (node.firstChild && node.firstChild.className && typeof node.firstChild.className === 'string' && node.firstChild.className.split(' ')[0] === DiscordClasses.ContextMenu.contextMenu.value.split(' ')[0]) {
-			// 			this.processContextMenu(node.firstChild);
-			// 		}
-			// 	}
-			// }
+			observer({ addedNodes }) {
+				for (const node of addedNodes) {
+					if (!node) continue;
+					if (node.firstChild && node.firstChild.className && typeof node.firstChild.className === 'string' && node.firstChild.className.split(' ')[0] === ContextMenuClasses.menu.split(' ')[0]) {
+						this.processContextMenu(node.firstChild);
+					}
+				}
+			}
 	
 			/**
 			 * @name safelyGetNestedProps
@@ -1374,15 +1410,29 @@ var HideUtils = (() => {
 			load() {
 				const title = 'Library Missing';
 				const ModalStack = window.BdApi.findModuleByProps('push', 'update', 'pop', 'popWithKey');
-				const TextElement = window.BdApi.findModuleByDisplayName('Text');
+				const TextElement = window.BdApi.findModuleByProps('Sizes', 'Weights');
 				const ConfirmationModal = window.BdApi.findModule((m) => m.defaultProps && m.key && m.key() === 'confirm-modal');
-				if (!ModalStack || !ConfirmationModal || !TextElement) return window.BdApi.getCore().alert(title, `The library plugin needed for ${config.info.name} is missing.<br /><br /> <a href="https://betterdiscord.net/ghdl?url=https://raw.githubusercontent.com/rauenzi/BDPluginLibrary/master/release/0PluginLibrary.plugin.js" target="_blank">Click here to download the library!</a>`);
+				const children = window.BdApi.React.createElement('span', {
+					children: [
+						window.BdApi.React.createElement(TextElement, {
+							color: TextElement.Colors.PRIMARY,
+							children: [`The library plugin needed for ${config.info.name} is missing.`]
+						}),
+						window.BdApi.React.createElement('br', {}),
+						window.BdApi.React.createElement('a', {
+							target: '_blank',
+							href: 'https://betterdiscord.net/ghdl?url=https://raw.githubusercontent.com/rauenzi/BDPluginLibrary/master/release/0PluginLibrary.plugin.js',
+							children: ['Click here to download the library!']
+						})
+					]
+				});
+				if (!ModalStack || !ConfirmationModal || !TextElement) return window.BdApi.alert(title, children);
 				ModalStack.push(function(props) {
 					return window.BdApi.React.createElement(ConfirmationModal, Object.assign({
 						header: title,
 						children: [
 							window.BdApi.React.createElement(TextElement, {
-								color: TextElement.Colors.STANDARD,
+								color: TextElement.Colors.PRIMARY,
 								children: [`The library plugin needed for ${config.info.name} is missing. Please click Download Now to install it.`]
 							})
 						],
@@ -1392,7 +1442,7 @@ var HideUtils = (() => {
 						onConfirm: () => {
 							require('request').get('https://rauenzi.github.io/BDPluginLibrary/release/0PluginLibrary.plugin.js', async (error, response, body) => {
 								if (error) return require('electron').shell.openExternal('https://betterdiscord.net/ghdl?url=https://raw.githubusercontent.com/rauenzi/BDPluginLibrary/master/release/0PluginLibrary.plugin.js');
-								await new Promise((r) => require('fs').writeFile(require('path').join(window.ContentManager.pluginsFolder, '0PluginLibrary.plugin.js'), body, r));
+								await new Promise(r => require('fs').writeFile(require('path').join(window.ContentManager.pluginsFolder, '0PluginLibrary.plugin.js'), body, r));
 							});
 						}
 					}, props));
@@ -1407,5 +1457,7 @@ var HideUtils = (() => {
 		}
 		: buildPlugin(global.ZeresPluginLibrary.buildPlugin(config));
 })();
+
+module.exports = HideUtils;
 
 /*@end@*/
