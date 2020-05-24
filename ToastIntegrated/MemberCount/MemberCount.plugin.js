@@ -44,7 +44,7 @@ var MemberCount = (() => {
 					twitter_username: ''
 				}
 			],
-			version: '2.1.17',
+			version: '2.1.18',
 			description: 'Displays a server\'s member-count at the top of the member-list, can be styled with the #MemberCount selector.',
 			github: 'https://github.com/Arashiryuu',
 			github_raw: 'https://raw.githubusercontent.com/Arashiryuu/crap/master/ToastIntegrated/MemberCount/MemberCount.plugin.js'
@@ -54,8 +54,7 @@ var MemberCount = (() => {
 				title: 'Bugs Squashed!',
 				type: 'fixed',
 				items: [
-					'Renders in the memberlist again.',
-					'Context menu item works again.'
+					'Corrected TextElement in load method for the lib not found instance.'
 				]
 			}
 		]
@@ -463,12 +462,12 @@ var MemberCount = (() => {
 			load() {
 				const title = 'Library Missing';
 				const ModalStack = window.BdApi.findModuleByProps('push', 'update', 'pop', 'popWithKey');
-				const TextElement = window.BdApi.findModuleByProps('Sizes', 'Weights');
+				const TextElement = window.BdApi.findModuleByDisplayName('Text');
 				const ConfirmationModal = window.BdApi.findModule((m) => m.defaultProps && m.key && m.key() === 'confirm-modal');
 				const children = window.BdApi.React.createElement('span', {
 					children: [
 						window.BdApi.React.createElement(TextElement, {
-							color: TextElement.Colors.PRIMARY,
+							color: TextElement.Colors.STANDARD,
 							children: [`The library plugin needed for ${config.info.name} is missing.`]
 						}),
 						window.BdApi.React.createElement('br', {}),
