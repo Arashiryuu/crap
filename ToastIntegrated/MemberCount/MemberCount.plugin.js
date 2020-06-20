@@ -44,7 +44,7 @@ var MemberCount = (() => {
 					twitter_username: ''
 				}
 			],
-			version: '2.1.18',
+			version: '2.1.19',
 			description: 'Displays a server\'s member-count at the top of the member-list, can be styled with the #MemberCount selector.',
 			github: 'https://github.com/Arashiryuu',
 			github_raw: 'https://raw.githubusercontent.com/Arashiryuu/crap/master/ToastIntegrated/MemberCount/MemberCount.plugin.js'
@@ -54,7 +54,7 @@ var MemberCount = (() => {
 				title: 'Bugs Squashed!',
 				type: 'fixed',
 				items: [
-					'Corrected TextElement in load method for the lib not found instance.'
+					'Adapted to class module change.'
 				]
 			}
 		]
@@ -80,7 +80,7 @@ var MemberCount = (() => {
 		const Flux = WebpackModules.getByProps('connectStores');
 		const MenuItem = WebpackModules.getByString('disabled', 'danger', 'brand');
 
-		const ctxMenuClasses = WebpackModules.getByProps('menu', 'submenu', 'accommodateScrollbar');
+		const ctxMenuClasses = WebpackModules.getByProps('menu', 'scroller');
 
 		const ItemGroup = class ItemGroup extends React.Component {
 			constructor(props) {
