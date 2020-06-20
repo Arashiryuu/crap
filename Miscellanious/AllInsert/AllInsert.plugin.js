@@ -64,9 +64,46 @@ var AllInsert = (() => {
 		const { Toasts, Logger, Patcher, Settings, Utilities, DOMTools, ReactTools, ReactComponents, DiscordModules, WebpackModules, DiscordSelectors } = Api;
 		const { SettingPanel, SettingGroup, SettingField, RadioGroup, Switch } = Settings;
 		const { ComponentDispatch: Dispatcher } = WebpackModules.getByProps('ComponentDispatch');
+		const SlateUtils = WebpackModules.getByProps('serialize', 'deserialize');
 
 		const has = Object.prototype.hasOwnProperty;
 		const chat = WebpackModules.getByProps('chat');
+
+		const getChar = (...codes) => {
+			const results = [];
+			for (const code of codes) results.push(String.fromCharCode(code));
+			return results.join('');
+		};
+
+		const v = {
+			'/>=': '\u2265',
+			'/<=': '\u2264',
+			'\'\'\'': '```',
+			'==>': '\u21D2',
+			'/!=': '\u2260',
+			'/.l': '\u2190',
+			'/.u': '\u2191',
+			'/.r': '\u2192',
+			'/.d': '\u2193',
+			'/.>': '\u27A2',
+			'/.-': '\u2014',
+			'/..': '\u2022',
+			'/+-': '\u00B1',
+			'/.|>': '\u2BC8',
+			'/-tl': '\u21E6',
+			'/-tr': '\u21E8',
+			'/-tu': '\u21E7',
+			'/-td': '\u21E9',
+			'/-tn': '\u2605',
+			'/-t-db': getChar(55358, 56407),
+			'/-t-ub': getChar(55358, 56404),
+			'/-t-df': getChar(55358, 56406),
+			'/-t-uf': getChar(55358, 56405),
+			'/->': getChar(55358, 56402),
+			'\\u200b': getChar(8203)
+		};
+
+		const vKeys = Object.keys(v);
 		
 		return class AllInserts extends Plugin {
 			constructor() {
@@ -76,33 +113,6 @@ var AllInsert = (() => {
 					state: { cancelled: false },
 					cancel() { this.state.cancelled = true; },
 					restore() { this.state.cancelled = false; }
-				};
-				this.values = {
-					'/>=': '\u2265',
-					'/<=': '\u2264',
-					'\'\'\'': '```',
-					'==>': '\u21D2',
-					'/!=': '\u2260',
-					'/.l': '\u2190',
-					'/.u': '\u2191',
-					'/.r': '\u2192',
-					'/.d': '\u2193',
-					'/.>': '\u27A2',
-					'/.-': '\u2014',
-					'/..': '\u2022',
-					'/+-': '\u00B1',
-					'/.|>': '\u2BC8',
-					'/-tl': '\u21E6',
-					'/-tr': '\u21E8',
-					'/-tu': '\u21E7',
-					'/-td': '\u21E9',
-					'/-tn': '\u2605',
-					'/-t-db': this.getChar(55358, 56407),
-					'/-t-ub': this.getChar(55358, 56404),
-					'/-t-df': this.getChar(55358, 56406),
-					'/-t-uf': this.getChar(55358, 56405),
-					'/->': this.getChar(55358, 56402),
-					'\\u200b': this.getChar(8203)
 				};
 			}
 
@@ -129,7 +139,16 @@ var AllInsert = (() => {
 				Patcher.after(Textarea.prototype, 'componentDidUpdate', (that, args, value) => {
 					if (!that.state.textValue) return value;
 
-					for (const key of Object.keys(this.values)) this.processKey(that, key);
+					const textAreaRef = this.getProps(that, 'channelTextAreaRef.current');
+					if (!textAreaRef) return value;
+					
+					const hasKey = vKeys.some((key) => that.state.textValue.includes(key));
+					if (!hasKey) return value;
+					
+					let newString = that.state.textValue;
+					for (const key of vKeys) newString = this.replaceStrings(newString, key);
+					
+					that.handleTextareaChange(that, newString, SlateUtils.deserialize(newString));
 					
 					return value;
 				});
@@ -137,22 +156,9 @@ var AllInsert = (() => {
 				TextForm.forceUpdateAll();
 			}
 
-			processKey(that, key) {
-				const included = that.state.textValue.includes(key);
-				return included && that.handleTextareaChange(that, this.replaceStrings(that.state.textValue, key));
-			}
-
 			replaceStrings(string, key) {
-				if (!has.call(this.values, key)) return string;
-				return string.replace(key, this.values[key]);
-			}
-
-			/* Plugin Methods */
-
-			getChar(...codes) {
-				const results = [];
-				for (const code of codes) results.push(String.fromCharCode(code));
-				return results.join('');
+				if (!has.call(v, key)) return string;
+				return string.replace(key, v[key]);
 			}
 
 			/* Utility */
