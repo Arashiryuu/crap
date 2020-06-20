@@ -45,7 +45,7 @@ var HideUtils = (() => {
 					twitter_username: ''
 				}
 			],
-			version: '2.1.35',
+			version: '2.1.36',
 			description: 'Allows you to hide users, servers, and channels individually.',
 			github: 'https://github.com/Arashiryuu',
 			github_raw: 'https://raw.githubusercontent.com/Arashiryuu/crap/master/ToastIntegrated/HideUtils/HideUtils.plugin.js',
@@ -56,8 +56,7 @@ var HideUtils = (() => {
 				title: 'Bugs Squashed!',
 				type: 'fixed',
 				items: [
-					'Hides channels and users in the memberlist again.',
-					'Context menu entries are back.'
+					'Adapted to class module change.'
 				]
 			}
 		]
@@ -109,7 +108,7 @@ var HideUtils = (() => {
 			...WebpackModules.getByProps('messageCompact', 'headerCozy', 'username'),
 			...WebpackModules.getByProps('message', 'groupStart')
 		};
-		const ContextMenuClasses = WebpackModules.getByProps('menu', 'submenu', 'accommodateScrollbar');
+		const ContextMenuClasses = WebpackModules.getByProps('menu', 'scroller');
 	
 		const Button = class Button extends React.Component {
 			constructor(props) {
@@ -1064,7 +1063,7 @@ var HideUtils = (() => {
 				// elements.classList.add(...DiscordClasses.ContextMenu.clickable.value.split(' '));
 				// elements.firstChild.classList.add(...DiscordClasses.ContextMenu.label.value.split(' '));
 				group.addItems(item);
-				context.firstChild.firstChild.firstChild.firstChild.insertAdjacentElement('afterend', groupEl);
+				context.firstChild.firstChild.firstChild.insertAdjacentElement('afterend', groupEl);
 				setImmediate(() => this.updateContextPosition(owner));
 			}
 	
