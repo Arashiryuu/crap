@@ -79,6 +79,7 @@ var MemberCount = (() => {
 		const has = Object.prototype.hasOwnProperty;
 		const Flux = WebpackModules.getByProps('connectStores');
 		const MenuItem = WebpackModules.getByString('disabled', 'danger', 'brand');
+		const Lists = WebpackModules.getByProps('ListThin');
 
 		const ctxMenuClasses = WebpackModules.getByProps('menu', 'scroller');
 
@@ -186,12 +187,13 @@ var MemberCount = (() => {
 			}
 
 			patchMemberList() {
-				const Lists = WebpackModules.find(m => m.ListThin);
-				Lists && Patcher.after(Lists.ListThin, 'render', (that, args, value) => {
-					const id = this.getProps(value, 'props.id');
-					if (!id || !id.startsWith('members')) return value;
+				if (!Lists) return;
+				
+				Patcher.after(Lists.ListThin, 'render', (that, args, value) => {
+					const props = this.getProps(value, 'props');
+					if (!props || !props.id || !props.id.startsWith('members')) return value;
 
-					const children = this.getProps(value, 'props.children.props.children');
+					const children = this.getProps(props, 'children.props.children');
 					if (!children || !Array.isArray(children)) return value;
 					
 					const guildId = SelectedGuildStore.getGuildId();
