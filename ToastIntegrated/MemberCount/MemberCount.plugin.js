@@ -44,7 +44,7 @@ var MemberCount = (() => {
 					twitter_username: ''
 				}
 			],
-			version: '2.1.19',
+			version: '2.1.20',
 			description: 'Displays a server\'s member-count at the top of the member-list, can be styled with the #MemberCount selector.',
 			github: 'https://github.com/Arashiryuu',
 			github_raw: 'https://raw.githubusercontent.com/Arashiryuu/crap/master/ToastIntegrated/MemberCount/MemberCount.plugin.js'
@@ -54,7 +54,7 @@ var MemberCount = (() => {
 				title: 'Bugs Squashed!',
 				type: 'fixed',
 				items: [
-					'Adapted to class module change.'
+					'Fixed for new scroller component.'
 				]
 			}
 		]
@@ -186,22 +186,21 @@ var MemberCount = (() => {
 			}
 
 			patchMemberList() {
-				const Scroller = WebpackModules.getByDisplayName('VerticalScroller');
-				
-				Patcher.after(Scroller.prototype, 'render', (that, args, value) => {
-					const props = this.getProps(that, 'props');
-					if (!props || !props.children[0] || !props.children[0].props || !props.children[0].props.id || !props.children[0].props.id.startsWith('members')) return value;
+				const Lists = WebpackModules.find(m => m.ListThin);
+				Lists && Patcher.after(Lists.ListThin, 'render', (that, args, value) => {
+					const id = this.getProps(value, 'props.id');
+					if (!id || !id.startsWith('members')) return value;
 
-					const children = this.getProps(props, 'children.0.props.children.1');
+					const children = this.getProps(value, 'props.children.props.children');
 					if (!children || !Array.isArray(children)) return value;
 					
 					const guildId = SelectedGuildStore.getGuildId();
 					if (this.settings.blacklist.includes(guildId) || !guildId) return value;
 
 					const counter = React.createElement(MemberCounter, {});
-					const fn = (item) => Array.isArray(item) && item[0].type && item[0].type.displayName && item[0].type.displayName === 'FluxContainer(Counter)';
+					const fn = (item) => item && item.type && item.type.displayName && item.type.displayName === 'FluxContainer(Counter)';
 
-					if (!children.find(fn)) children.unshift([counter, null]);
+					if (!children.find(fn)) children.unshift(counter);
 
 					return value;
 				});
