@@ -44,7 +44,7 @@ var MemberCount = (() => {
 					twitter_username: ''
 				}
 			],
-			version: '2.1.20',
+			version: '2.1.21',
 			description: 'Displays a server\'s member-count at the top of the member-list, can be styled with the #MemberCount selector.',
 			github: 'https://github.com/Arashiryuu',
 			github_raw: 'https://raw.githubusercontent.com/Arashiryuu/crap/master/ToastIntegrated/MemberCount/MemberCount.plugin.js'
@@ -54,7 +54,7 @@ var MemberCount = (() => {
 				title: 'Bugs Squashed!',
 				type: 'fixed',
 				items: [
-					'Fixed for new scroller component.'
+					'Persistent settings.'
 				]
 			}
 		]
@@ -83,6 +83,36 @@ var MemberCount = (() => {
 
 		const ctxMenuClasses = WebpackModules.getByProps('menu', 'scroller');
 
+		const ErrorBoundary = class ErrorBoundary extends React.Component {
+			constructor(props) {
+				super(props);
+				this.state = { hasError: false };
+			}
+
+			static getDerivedStateFromError(error) {
+				return { hasError: true };
+			}
+
+			componentDidCatch(error, info) {
+				console.group(`%c[${config.info.name}]`, 'color: #3A71C1; font-weight: 700;');
+				console.error(error);
+				console.groupEnd();
+			}
+
+			render() {
+				if (this.state.hasError) return React.createElement('div', { className: `${config.info.name}-error` }, 'Component Error');
+				return this.props.children;
+			}
+		};
+
+		const WrapBoundary = (Original) => {
+			return class Boundary extends React.Component {
+				render() {
+					return React.createElement(ErrorBoundary, null, React.createElement(Original, this.props));
+				}
+			};
+		};
+
 		const ItemGroup = class ItemGroup extends React.Component {
 			constructor(props) {
 				super(props);
@@ -99,12 +129,14 @@ var MemberCount = (() => {
 		const Counter = class Counter extends React.Component {
 			constructor(props) {
 				super(props);
+				this.ref = React.createRef();
 			}
 
 			render() {
 				return React.createElement('div', {
 					id: 'MemberCount',
 					role: 'listitem',
+					ref: this.ref,
 					children: [
 						React.createElement('h2', {
 							className: `${DiscordClasses.MemberList.membersGroup} container-2ax-kl`,
@@ -199,7 +231,7 @@ var MemberCount = (() => {
 					const guildId = SelectedGuildStore.getGuildId();
 					if (this.settings.blacklist.includes(guildId) || !guildId) return value;
 
-					const counter = React.createElement(MemberCounter, {});
+					const counter = React.createElement(WrapBoundary(MemberCounter), {});
 					const fn = (item) => item && item.type && item.type.displayName && item.type.displayName === 'FluxContainer(Counter)';
 
 					if (!children.find(fn)) children.unshift(counter);
@@ -345,7 +377,7 @@ var MemberCount = (() => {
 			/* Load Settings */
 
 			loadSettings() {
-				const data = super.loadSettings();
+				const data = super.loadSettings(this.default);
 				if (!data) return (this.settings = Utilities.deepclone(this.default));
 
 				if (Array.isArray(data)) return (this.settings = { blacklist: [...data], sticky: true });
@@ -354,6 +386,8 @@ var MemberCount = (() => {
 					data.blacklist = [...Object.values(data.blacklist)];
 					return (this.settings = Utilities.deepclone(data));
 				}
+
+				return this.settings = Utilities.deepclone(data);
 			}
 
 			/* Utility */
