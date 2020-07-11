@@ -44,17 +44,17 @@ var MemberCount = (() => {
 					twitter_username: ''
 				}
 			],
-			version: '2.1.21',
+			version: '2.1.22',
 			description: 'Displays a server\'s member-count at the top of the member-list, can be styled with the #MemberCount selector.',
 			github: 'https://github.com/Arashiryuu',
 			github_raw: 'https://raw.githubusercontent.com/Arashiryuu/crap/master/ToastIntegrated/MemberCount/MemberCount.plugin.js'
 		},
 		changelog: [
 			{
-				title: 'Bugs Squashed!',
+				title: 'Number Formatting',
 				type: 'fixed',
 				items: [
-					'Persistent settings.'
+					'Member count is now formatted with a comma if the number is over 1000.'
 				]
 			}
 		]
@@ -142,7 +142,7 @@ var MemberCount = (() => {
 							className: `${DiscordClasses.MemberList.membersGroup} container-2ax-kl`,
 							children: [
 								React.createElement('span', {
-									children: ['Members', '—', this.props.count]
+									children: ['Members', '—', this.props.count.toLocaleString()]
 								})
 							]
 						})
