@@ -1409,7 +1409,7 @@ var HideUtils = (() => {
 			load() {
 				const title = 'Library Missing';
 				const ModalStack = window.BdApi.findModuleByProps('push', 'update', 'pop', 'popWithKey');
-				const TextElement = window.BdApi.findModuleByProps('Sizes', 'Weights');
+				const TextElement = window.BdApi.findModuleByDisplayName('Text');
 				const ConfirmationModal = window.BdApi.findModule((m) => m.defaultProps && m.key && m.key() === 'confirm-modal');
 				const children = window.BdApi.React.createElement('span', {
 					children: [
