@@ -45,7 +45,7 @@ var HideUtils = (() => {
 					twitter_username: ''
 				}
 			],
-			version: '2.1.36',
+			version: '2.1.37',
 			description: 'Allows you to hide users, servers, and channels individually.',
 			github: 'https://github.com/Arashiryuu',
 			github_raw: 'https://raw.githubusercontent.com/Arashiryuu/crap/master/ToastIntegrated/HideUtils/HideUtils.plugin.js',
@@ -56,7 +56,7 @@ var HideUtils = (() => {
 				title: 'Bugs Squashed!',
 				type: 'fixed',
 				items: [
-					'Adapted to class module change.'
+					'Works again!'
 				]
 			}
 		]
@@ -109,6 +109,7 @@ var HideUtils = (() => {
 			...WebpackModules.getByProps('message', 'groupStart')
 		};
 		const ContextMenuClasses = WebpackModules.getByProps('menu', 'scroller');
+		const Lists = WebpackModules.getByProps('ListThin');
 	
 		const Button = class Button extends React.Component {
 			constructor(props) {
@@ -887,12 +888,12 @@ var HideUtils = (() => {
 				if (messages) ReactTools.getOwnerInstance(messages).forceUpdate();
 			}
 	
-			async patchGuilds(promiseState) {
+			async patchGuilds(state) {
 				const Guilds = await new Promise((resolve) => {
 					const guildsWrapper = document.querySelector(`.${guilds.wrapper.replace(/\s/, '.')}`);
 					if (guildsWrapper) return resolve(ReactTools.getOwnerInstance(guildsWrapper).constructor);
 				});
-				if (promiseState.cancelled) return;
+				if (state.cancelled) return;
 				Patcher.after(Guilds.prototype, 'render', (that, args, value) => {
 					const props = this.getProps(that, 'props');
 					if (!props.guildFolders || !Array.isArray(props.guildFolders)) return value;
@@ -927,26 +928,30 @@ var HideUtils = (() => {
 				if (guildWrapper) ReactTools.getOwnerInstance(guildWrapper).forceUpdate();
 			}
 	
-			patchMemberList() {
-				const Scroller = WebpackModules.getByDisplayName('VerticalScroller');
-	
-				Patcher.after(Scroller.prototype, 'render', (that, args, value) => {
-					const props = this.getProps(that, 'props');
-					if (!props || !props.children[0] || !props.children[0].props || !props.children[0].props.id || !props.children[0].props.id.startsWith('members')) return value;
+			patchMemberList(state) {
+				if (state.cancelled) return;
+				Patcher.after(Lists.ListThin, 'render', (that, args, value) => {
+					const props = this.getProps(value, 'props');
+					if (!props || !props.id || !props.id.startsWith('members')) return value;
 
-					const children = this.getProps(props, 'children.0.props.children');
+					const children = this.getProps(props, 'children.props.children');
 					if (!children || !Array.isArray(children)) return value;
 	
-					const memberlist = this.getProps(children, '1');
-					if (!memberlist || !Array.isArray(memberlist)) return value;
-	
-					for (let i = 0, len = children.length; i < len; i++) {
-						if (!Array.isArray(children[i])) continue;
-						for (let j = 0, ren = children[i].length; j < ren; j++) {
-							if (!Array.isArray(children[i][j])) continue;
-							children[i][j] = children[i][j].filter((child) => !child || !child.key || !has.call(this.settings.users, child.key));
-						}
-					}
+					props.children.props.children = children.filter((user) => {
+						if (!user.key || !user.key.startsWith('member')) return true;
+						const { 1: id } = user.key.split('-');
+						return has.call(this.settings.users, id)
+							? false
+							: true;
+					});
+
+					// for (let i = 0, len = children.length; i < len; i++) {
+					// 	if (!Array.isArray(children[i])) continue;
+					// 	for (let j = 0, ren = children[i].length; j < ren; j++) {
+					// 		if (!Array.isArray(children[i][j])) continue;
+					// 		children[i][j] = children[i][j].filter((child) => !child || !child.key || !has.call(this.settings.users, child.key));
+					// 	}
+					// }
 	
 					return value;
 				});
@@ -956,60 +961,56 @@ var HideUtils = (() => {
 	
 			updateMemberList() {
 				const memberList = document.querySelector(DiscordSelectors.MemberList.members.value.trim());
-				if (memberList) ReactTools.getOwnerInstance(memberList).handleOnScroll();
+				if (!memberList) return;
+				const owner = ReactTools.getOwnerInstance(memberList);
+				owner.forceUpdate();
+				if (owner.handleScroll) owner.handleScroll();
 			}
 	
-			patchChannels() {
-				const Scroller = WebpackModules.getByDisplayName('VerticalScroller');
-				const Channels = WebpackModules.getByDisplayName('Channels');
-	
-				/*
-				Patcher.after(Channels.prototype, 'renderList', (that, args, value) => {
-					if (this.settings.servers.unhidden.includes(that.props.guildId)) return value;
-					const { rowHeight, sectionHeight } = value.props;
-					value.props.rowHeight = (category, index) => {
-						if (this.settings.servers.unhidden.includes(that.props.guildId)) return rowHeight(category, index);
-						const cat = this.getProps(that, `props.channels.4.${category}`);
-						if (!cat || !cat.channel) return rowHeight(category, index);
-						const c = this.getProps(that, `props.categories.${cat.channel.id}.${index}`);
-						if (!c || !c.channel || !has.call(this.settings.channels, c.channel.id)) return rowHeight(category, index);
-						return 0;
-					};
-					value.props.sectionHeight = (category) => {
-						if (!category || this.settings.servers.unhidden.includes(that.props.guildId)) return sectionHeight(category);
-						const cat = this.getProps(that, `props.channels.4.${category}`);
-						if (!cat) return sectionHeight(category);
-						const f = this.getProps(that, `props.categories.${cat.channel.id}`).filter((c) => !has.call(this.settings.channels, c.id));
-						return f.length && sectionHeight(category) || 0;
-					};
-					return value;
-				});
-				*/
-				
-				Patcher.after(Scroller.prototype, 'render', (that, args, value) => {
-					if (!that.props.children[0] || !that.props.children[0].props || !that.props.children[0].props.id || that.props.children[0].props.id !== 'channels') return value;
-	
-					const children = this.getProps(that, 'props.children.0.props.children.1');
+			patchChannels(state) {
+				if (state.cancelled) return;	
+				Patcher.after(Lists.ListThin, 'render', (that, args, value) => {
+					const props = this.getProps(value, 'props');
+					if (!props || !props.id || !props.id.startsWith('channels')) return value;
+					
+					const children = this.getProps(props, 'children.props.children');
 					if (!children || !Array.isArray(children)) return value;
 	
-					const guildId = this.getProps(children, '0.0.props.channel.guild_id');
+					const guildId = this.getProps(children, '1.props.channel.guild_id');
 					if (this.settings.servers.unhidden.includes(guildId)) return value;
 	
-					for (let i = 0, len = children.length; i < len; i++) {
-						if (!children[i] || !Array.isArray(children[i])) continue;
-						children[i] = children[i].filter((channel) => {
-							if (!channel) return channel;
-							const props = this.getProps(channel, 'props');
-							if (!props.voiceStates || !Array.isArray(props.voiceStates)) return !channel.key || (channel.key && !has.call(this.settings.channels, channel.key));
-							props.voiceStates = props.voiceStates.filter((user) => {
-								const { voiceState: { userId } } = user;
-								if (!has.call(this.settings.users, userId)) return true;
-								this.mute(userId, 0);
-								return false;
-							});
-							return !channel.key || (channel.key && !has.call(this.settings.channels, channel.key));
+					props.children.props.children = children.map((channel) => {
+						if (!channel) return channel;
+						const channelProps = this.getProps(channel, 'props');
+						if (!props.voiceStates || !Array.isArray(props.voiceStates)) {
+							return !channel.key || !has.call(this.settings.channels, channel.key)
+								? channel
+								: null;
+						}
+						props.voiceStates = props.voiceStates.filter((user) => {
+							const { voiceState: { userId } } = user;
+							if (!has.call(this.settings.users, userId)) return true;
+							this.mute(userId, 0);
+							return false;
 						});
-					}
+						return !channel.key || !has.call(this.settings.channels, channel.key);
+					});
+
+					// for (let i = 0, len = children.length; i < len; i++) {
+					// 	if (!children[i] || !Array.isArray(children[i])) continue;
+					// 	children[i] = children[i].filter((channel) => {
+					// 		if (!channel) return channel;
+					// 		const props = this.getProps(channel, 'props');
+					// 		if (!props.voiceStates || !Array.isArray(props.voiceStates)) return !channel.key || (channel.key && !has.call(this.settings.channels, channel.key));
+					// 		props.voiceStates = props.voiceStates.filter((user) => {
+					// 			const { voiceState: { userId } } = user;
+					// 			if (!has.call(this.settings.users, userId)) return true;
+					// 			this.mute(userId, 0);
+					// 			return false;
+					// 		});
+					// 		return !channel.key || (channel.key && !has.call(this.settings.channels, channel.key));
+					// 	});
+					// }
 	
 					return value;
 				});
@@ -1414,7 +1415,7 @@ var HideUtils = (() => {
 				const children = window.BdApi.React.createElement('span', {
 					children: [
 						window.BdApi.React.createElement(TextElement, {
-							color: TextElement.Colors.PRIMARY,
+							color: TextElement.Colors.STANDARD,
 							children: [`The library plugin needed for ${config.info.name} is missing.`]
 						}),
 						window.BdApi.React.createElement('br', {}),
@@ -1425,13 +1426,24 @@ var HideUtils = (() => {
 						})
 					]
 				});
-				if (!ModalStack || !ConfirmationModal || !TextElement) return window.BdApi.alert(title, children);
+				if (!TextElement) return window.BdApi.alert(title, window.BdApi.React.createElement('span', {
+					children: [
+						`The library plugin needed for ${config.info.name} is missing.`,
+						window.BdApi.React.createElement('br', {}),
+						window.BdApi.React.createElement('a', {
+							target: '_blank',
+							href: 'https://betterdiscord.net/ghdl?url=https://raw.githubusercontent.com/rauenzi/BDPluginLibrary/master/release/0PluginLibrary.plugin.js',
+							children: ['Click here to download the library!']
+						})
+					]
+				}));
+				if (!ModalStack || !ConfirmationModal) return window.BdApi.alert(title, children);
 				ModalStack.push(function(props) {
 					return window.BdApi.React.createElement(ConfirmationModal, Object.assign({
 						header: title,
 						children: [
 							window.BdApi.React.createElement(TextElement, {
-								color: TextElement.Colors.PRIMARY,
+								color: TextElement.Colors.STANDARD,
 								children: [`The library plugin needed for ${config.info.name} is missing. Please click Download Now to install it.`]
 							})
 						],
