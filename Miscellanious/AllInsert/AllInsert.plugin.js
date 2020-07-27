@@ -64,7 +64,7 @@ var AllInsert = (() => {
 		const { Toasts, Logger, Patcher, Settings, Utilities, DOMTools, ReactTools, ReactComponents, DiscordModules, WebpackModules, DiscordSelectors } = Api;
 		const { SettingPanel, SettingGroup, SettingField, RadioGroup, Switch } = Settings;
 		const { ComponentDispatch: Dispatcher } = WebpackModules.getByProps('ComponentDispatch');
-		const SlateUtils = WebpackModules.getByProps('serialize', 'deserialize');
+		const SlateUtils = WebpackModules.getAllByProps('serialize', 'deserialize').find((mod) => Object.keys(mod).length === 2);
 
 		const has = Object.prototype.hasOwnProperty;
 		const chat = WebpackModules.getByProps('chat');
