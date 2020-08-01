@@ -513,4 +513,6 @@ var HideServersChannelsRedux = (() => {
 		: buildPlugin(global.ZeresPluginLibrary.buildPlugin(config));
 })();
 
+module.exports = HideServersChannelsRedux;
+
 /*@end@*/
