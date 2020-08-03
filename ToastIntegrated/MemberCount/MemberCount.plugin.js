@@ -44,7 +44,7 @@ var MemberCount = (() => {
 					twitter_username: ''
 				}
 			],
-			version: '2.1.21',
+			version: '2.1.22',
 			description: 'Displays a server\'s member-count at the top of the member-list, can be styled with the #MemberCount selector.',
 			github: 'https://github.com/Arashiryuu',
 			github_raw: 'https://raw.githubusercontent.com/Arashiryuu/crap/master/ToastIntegrated/MemberCount/MemberCount.plugin.js'
@@ -54,7 +54,7 @@ var MemberCount = (() => {
 				title: 'Bugs Squashed!',
 				type: 'fixed',
 				items: [
-					'Persistent settings.'
+					'DateViewer compatibility fix.'
 				]
 			}
 		]
@@ -83,7 +83,7 @@ var MemberCount = (() => {
 
 		const ctxMenuClasses = WebpackModules.getByProps('menu', 'scroller');
 
-		const ErrorBoundary = class ErrorBoundary extends React.Component {
+		const ErrorBoundary = class ErrorBoundary extends React.PureComponent {
 			constructor(props) {
 				super(props);
 				this.state = { hasError: false };
@@ -106,7 +106,7 @@ var MemberCount = (() => {
 		};
 
 		const WrapBoundary = (Original) => {
-			return class Boundary extends React.Component {
+			return class Boundary extends React.PureComponent {
 				render() {
 					return React.createElement(ErrorBoundary, null, React.createElement(Original, this.props));
 				}
@@ -126,7 +126,7 @@ var MemberCount = (() => {
 			}
 		};
 
-		const Counter = class Counter extends React.Component {
+		const Counter = class Counter extends React.PureComponent {
 			constructor(props) {
 				super(props);
 				this.ref = React.createRef();
@@ -197,7 +197,7 @@ var MemberCount = (() => {
 				this.promises.restore();
 				this.loadSettings();
 				this.addCSS();
-				this.patchMemberList();
+				this.patchMemberList(this.promises.state);
 				// this.patchGuildContextMenu(this.promises.state);
 				Toasts.info(`${this.name} ${this.version} has started!`, { timeout: 2e3 });
 			}
@@ -218,11 +218,12 @@ var MemberCount = (() => {
 				PluginUtilities.removeStyle(this.short);
 			}
 
-			patchMemberList() {
-				if (!Lists) return;
+			patchMemberList(state) {
+				if (!Lists || state.cancelled) return;
 				
 				Patcher.after(Lists.ListThin, 'render', (that, args, value) => {
-					const props = this.getProps(value, 'props');
+					const val = Array.isArray(value) ? value[0] : value;
+					const props = this.getProps(val, 'props');
 					if (!props || !props.id || !props.id.startsWith('members')) return value;
 
 					const children = this.getProps(props, 'children.props.children');
@@ -231,8 +232,8 @@ var MemberCount = (() => {
 					const guildId = SelectedGuildStore.getGuildId();
 					if (this.settings.blacklist.includes(guildId) || !guildId) return value;
 
-					const counter = React.createElement(WrapBoundary(MemberCounter), {});
-					const fn = (item) => item && item.type && item.type.displayName && item.type.displayName === 'FluxContainer(Counter)';
+					const counter = React.createElement(WrapBoundary(MemberCounter), { key: `MemberCount-${guildId}` });
+					const fn = (item) => item && item.key && item.key.startsWith('MemberCount');
 
 					if (!children.find(fn)) children.unshift(counter);
 
@@ -495,31 +496,45 @@ var MemberCount = (() => {
 			}
 
 			load() {
+				const { BdApi, BdApi: { React } } = window;
 				const title = 'Library Missing';
-				const ModalStack = window.BdApi.findModuleByProps('push', 'update', 'pop', 'popWithKey');
-				const TextElement = window.BdApi.findModuleByDisplayName('Text');
-				const ConfirmationModal = window.BdApi.findModule((m) => m.defaultProps && m.key && m.key() === 'confirm-modal');
-				const children = window.BdApi.React.createElement('span', {
-					children: [
-						window.BdApi.React.createElement(TextElement, {
-							color: TextElement.Colors.STANDARD,
+				const ModalStack = BdApi.findModuleByProps('push', 'update', 'pop', 'popWithKey');
+				const TextElement = BdApi.findModuleByDisplayName('Text');
+				const ConfirmationModal = BdApi.findModule((m) => m.defaultProps && m.key && m.key() === 'confirm-modal');
+				const children = [];
+				if (!TextElement) {
+					children.push(
+						React.createElement('span', {
 							children: [`The library plugin needed for ${config.info.name} is missing.`]
 						}),
-						window.BdApi.React.createElement('br', {}),
-						window.BdApi.React.createElement('a', {
+						React.createElement('br', {}),
+						React.createElement('a', {
 							target: '_blank',
 							href: 'https://betterdiscord.net/ghdl?url=https://raw.githubusercontent.com/rauenzi/BDPluginLibrary/master/release/0PluginLibrary.plugin.js',
 							children: ['Click here to download the library!']
 						})
-					]
-				});
-				if (!ModalStack || !ConfirmationModal || !TextElement) return window.BdApi.alert(title, children);
+					);
+					return BdApi.alert(title, React.createElement('span', { children }));
+				}
+				children.push(
+					React.createElement(TextElement, {
+						color: TextElement.Colors.STANDARD,
+						children: [`The library plugin needed for ${config.info.name} is missing.`]
+					}),
+					React.createElement('br', {}),
+					React.createElement('a', {
+						target: '_blank',
+						href: 'https://betterdiscord.net/ghdl?url=https://raw.githubusercontent.com/rauenzi/BDPluginLibrary/master/release/0PluginLibrary.plugin.js',
+						children: ['Click here to download the library!']
+					})
+				);
+				if (!ModalStack || !ConfirmationModal) return BdApi.alert(title, children);
 				ModalStack.push(function(props) {
-					return window.BdApi.React.createElement(ConfirmationModal, Object.assign({
+					return React.createElement(ConfirmationModal, Object.assign({
 						header: title,
 						children: [
-							window.BdApi.React.createElement(TextElement, {
-								color: TextElement.Colors.PRIMARY,
+							React.createElement(TextElement, {
+								color: TextElement.Colors.STANDARD,
 								children: [`The library plugin needed for ${config.info.name} is missing. Please click Download Now to install it.`]
 							})
 						],
