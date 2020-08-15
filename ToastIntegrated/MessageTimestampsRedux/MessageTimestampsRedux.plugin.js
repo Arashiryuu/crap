@@ -40,7 +40,7 @@ var MessageTimestampsRedux = (() => {
 					twitter_username: ''
 				}
 			],
-			version: '1.0.11',
+			version: '1.0.13',
 			description: 'Displays the timestamp for a message, simply right-click and select "Show Timestamp."',
 			github: 'https://github.com/Arashiryuu',
 			github_raw: 'https://raw.githubusercontent.com/Arashiryuu/crap/master/ToastIntegrated/MessageTimestampsRedux/MessageTimestampsRedux.plugin.js'
@@ -50,7 +50,7 @@ var MessageTimestampsRedux = (() => {
 				title: 'Bugs Squashed!',
 				type: 'fixed',
 				items: [
-					'Loads settings again!'
+					'Displays in the context-menu again.'
 				]
 			}
 		]
@@ -68,20 +68,48 @@ var MessageTimestampsRedux = (() => {
 	/* Build */
 
 	const buildPlugin = ([Plugin, Api]) => {
-		const { Toasts, Logger, Tooltip, Patcher, Settings, Utilities, ReactTools, DOMTools, ContextMenu, EmulatedTooltip, ReactComponents, DiscordModules, WebpackModules, DiscordClassModules, DiscordClasses, DiscordSelectors, PluginUtilities } = Api;
+		const { Toasts, Logger, Tooltip, Patcher, Settings, Utilities, ReactTools, DOMTools, ContextMenu, DiscordContextMenu, EmulatedTooltip, ReactComponents, DiscordModules, WebpackModules, DiscordClassModules, DiscordClasses, DiscordSelectors, PluginUtilities } = Api;
 		const { SettingPanel, SettingGroup, RadioGroup, Slider, Switch } = Settings;
 		const { React, ReactDOM, ContextMenuActions: MenuActions } = DiscordModules;
 		
 		const MenuItem = WebpackModules.getByString('disabled', 'danger', 'brand');
 
-		const ItemGroup = class ItemGroup extends React.Component {
+		const ErrorBoundary = class ErrorBoundary extends React.PureComponent {
+			constructor(props) {
+				super(props);
+				this.state = { hasError: false };
+			}
+
+			static getDerivedStateFromError(error) {
+				return { hasError: true };
+			}
+
+			componentDidCatch(error, info) {
+				console.group(`%c[${config.info.name}]`, 'color: #3A71C1; font-weight: 700;');
+				console.error(error);
+				console.groupEnd();
+			}
+
+			render() {
+				if (this.state.hasError) return React.createElement('div', { className: 'react-error' }, 'Component Error!');
+				return this.props.children;
+			}
+		};
+
+		const WrapBoundary = (Original) => class Boundary extends React.PureComponent {
+			render() {
+				return React.createElement(ErrorBoundary, null, React.createElement(Original, this.props));
+			}
+		};
+
+		const ItemGroup = class ItemGroup extends React.PureComponent {
 			constructor(props) {
 				super(props);
 			}
 
 			render() {
 				return React.createElement('div', {
-					className: DiscordClasses.ContextMenu.itemGroup.toString(),
+					role: 'group',
 					children: this.props.children || []
 				});
 			}
@@ -113,7 +141,7 @@ var MessageTimestampsRedux = (() => {
 			onStart() {
 				this.promises.restore();
 				this.settings = this.loadSettings(this.default);
-				// this.getContextMenu(this.promises.state).catch((err) => this.didError(err));
+				// this.getContextMenu(this.promises.state).catch(this.didError);
 				Toasts.info(`${this.name} ${this.version} has started!`, { timeout: 2e3 });
 			}
 
@@ -141,9 +169,12 @@ var MessageTimestampsRedux = (() => {
 			 * @returns {Promise<Void>}
 			 */
 			async getContextMenu(promiseState) {
-				const ContextMenu = await PluginUtilities.getContextMenu('MESSAGE_MAIN');
+				const ContextMenu = await ReactComponents.getComponent('MessageContextMenu', DiscordSelectors.ContextMenu.value.trim(), (n) => {
+					return n.displayName && n.displayName === 'MessageContextMenu';
+				});
 				if (promiseState.cancelled) return;
-				this.patchContextMenu(ContextMenu.default);
+				log(ContextMenu);
+				// this.patchContextMenu(ContextMenu);
 			}
 
 			/**
@@ -154,22 +185,27 @@ var MessageTimestampsRedux = (() => {
 			patchContextMenu(ContextMenu) {
 				if (!ContextMenu) return;
 
-				Patcher.after(ContextMenu.prototype, 'render', (that, args, value) => {
-					if (!that.props.message) return value;
+				const key = 'MessageTimestampsRedux-GroupItem';
+				Patcher.after(ContextMenu, 'default', (that, args, value) => {
+					const [props] = args;
+					if (!props.message) return value;
 					
-					const { message } = that.props, children = this.getProps(value, 'props.children');
+					const { message, target } = props, children = this.getProps(value, 'props.children');
 
 					if (!Array.isArray(children)) return value;
 
 					const item = new MenuItem({
 						label: 'Show Timestamp',
-						action: () => {
-							MenuActions.closeContextMenu();
-							!this.settings.tooltips ? this.showTimestamp(message, that) : this.showTooltip(message, that);
-						}
+						action: () => this.action(message, target)
 					});
 
-					children.unshift(React.createElement(ItemGroup, { children: [item] }));
+					const group = React.createElement(WrapBoundary(ItemGroup), {
+						children: [item],
+						key
+					});
+
+					const fn = (item) => item && item.key && item.key === key;
+					if (!children.find(fn)) children.unshift(group);
 					
 					setImmediate(() => this.updateContextPosition(that));
 
@@ -202,8 +238,11 @@ var MessageTimestampsRedux = (() => {
 				/**
 				 * @type {String}
 				 */
-				const ts = this.getProps(message, 'timestamp._d');
-				const tip = new EmulatedTooltip(target, !this.settings.shortened ? String(ts) : String(ts).split(' ').slice(0, 5).join(' '), { side: 'top', disabled: true });
+				const ts = String(this.getProps(message, 'timestamp._d'));
+				const time = !this.settings.shortened
+					? ts
+					: ts.split(' ').slice(0, 5).join(' ');
+				const tip = new EmulatedTooltip(target, time, { side: 'top', disabled: true });
 
 				tip.show();
 				setTimeout(() => tip.hide(), this.settings.displayTime);
@@ -220,10 +259,10 @@ var MessageTimestampsRedux = (() => {
 				/**
 				 * @type {String}
 				 */
-				const ts = this.getProps(message, 'timestamp._d');
+				const ts = String(this.getProps(message, 'timestamp._d'));
 
 				if (!this.settings.shortened) Toasts.show(ts, { timeout: this.settings.displayTime });
-				else Toasts.show(String(ts).split(' ').slice(0, 5).join(' '), { timeout: this.settings.displayTime });
+				else Toasts.show(ts.split(' ').slice(0, 5).join(' '), { timeout: this.settings.displayTime });
 			}
 
 			/**
@@ -255,10 +294,14 @@ var MessageTimestampsRedux = (() => {
 				const group = new ContextMenu.ItemGroup();
 				const item = new ContextMenu.TextItem('Show Timestamp', { callback: () => this.action(message, target) });
 				const elements = item.getElement();
-				elements.classList.add(...DiscordClasses.ContextMenu.clickable.value.split(' '));
+				group.getElement().setAttribute('role', 'group');
+				elements.classList.add(
+					...DiscordClasses.ContextMenu.labelContainer.value.split(' '),
+					...DiscordClasses.ContextMenu.colorDefault.value.split(' ')
+				);
 				elements.firstChild.classList.add(...DiscordClasses.ContextMenu.label.value.split(' '));
 				group.addItems(item);
-				menu.prepend(group.getElement());
+				menu.querySelector('div[role="group"]').insertAdjacentElement('afterend', group.getElement());
 				setImmediate(() => this.updateContextPosition(owner));
 			}
 
@@ -272,15 +315,16 @@ var MessageTimestampsRedux = (() => {
 				const inst = ReactTools.getReactInstance(cm);
 				const own = ReactTools.getOwnerInstance(cm);
 				const props = this.getProps(inst, 'return.memoizedProps');
-				if (!own || !props.type || props.type !== 'MESSAGE_MAIN') return;
-				this.addContextMenuItem(cm, inst, own, props);
+				if (!own || !props.navId || props.navId !== 'message') return;
+				const ref = own.props.children({ position: own.props.reference() }, own.updatePosition);
+				this.addContextMenuItem(cm, inst, own, ref.props);
 			}
 
 			/* Observer */
 			observer({ addedNodes }) {
 				for (const node of addedNodes.values()) {
 					if (!node) continue;
-					if (node.firstChild && node.firstChild.className && typeof node.firstChild.className === 'string' && node.firstChild.className.split(' ')[0] === DiscordClasses.ContextMenu.contextMenu.value.split(' ')[0]) {
+					if (node.firstChild && node.firstChild.className && typeof node.firstChild.className === 'string' && node.firstChild.className.split(' ')[0] === DiscordClasses.ContextMenu.menu.value.split(' ')[0]) {
 						this.processContextMenu(node.firstChild);
 					}
 				}
@@ -457,3 +501,5 @@ var MessageTimestampsRedux = (() => {
 		}
 		: buildPlugin(global.ZeresPluginLibrary.buildPlugin(config));
 })();
+
+module.exports = MessageTimestampsRedux;
