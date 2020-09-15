@@ -142,7 +142,7 @@ var MemberCount = (() => {
 							className: `${DiscordClasses.MemberList.membersGroup} container-2ax-kl`,
 							children: [
 								React.createElement('span', {
-									children: ['Members', '—', this.props.count]
+									children: ['Total Members: ', this.props.count]
 								})
 							]
 						})
