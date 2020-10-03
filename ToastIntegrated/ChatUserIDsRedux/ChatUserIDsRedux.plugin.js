@@ -1,4 +1,9 @@
-//META{"name":"ChatUserIDsRedux","displayName":"ChatUserIDsRedux","website":"https://github.com/Arashiryuu","source":"https://github.com/Arashiryuu/crap/blob/master/ToastIntegrated/ChatUserIDsRedux/ChatUserIDsRedux.plugin.js"}*//
+/**
+ * @name ChatUserIDsRedux
+ * @author Arashiryuu
+ * @website https://github.com/Arashiryuu
+ * @source https://github.com/Arashiryuu/crap/blob/master/ToastIntegrated/ChatUserIDsRedux/ChatUserIDsRedux.plugin.js
+ */
 
 /*@cc_on
 @if (@_jscript)
@@ -40,7 +45,7 @@ var ChatUserIDsRedux = (() => {
 					twitter_username: ''
 				}
 			],
-			version: '1.0.16',
+			version: '1.0.17',
 			description: 'Adds a user\'s ID next to their name in chat, makes accessing a user ID simpler. Double-click to copy the ID.',
 			github: 'https://github.com/Arashiryuu',
 			github_raw: 'https://raw.githubusercontent.com/Arashiryuu/crap/master/ToastIntegrated/ChatUserIDsRedux/ChatUserIDsRedux.plugin.js'
@@ -49,7 +54,7 @@ var ChatUserIDsRedux = (() => {
 			{
 				title: 'Bugs Squashed!',
 				type: 'fixed',
-				items: ['Loads settings again!']
+				items: ['Working again.']
 			}
 		]
 	};
@@ -78,7 +83,7 @@ var ChatUserIDsRedux = (() => {
 
 	const buildPlugin = ([Plugin, Api]) => {
 		const { Toasts, Logger, Patcher, Settings, Utilities, ReactTools, DOMTools, DiscordModules, WebpackModules, DiscordSelectors, PluginUtilities } = Api;
-		const { SettingPanel, SettingGroup, ColorPicker, RadioGroup } = Settings;
+		const { SettingPanel, SettingGroup, ColorPicker, RadioGroup, Switch } = Settings;
 		const { React, ReactDOM } = DiscordModules;
 
 		const has = Object.prototype.hasOwnProperty;
@@ -87,7 +92,8 @@ var ChatUserIDsRedux = (() => {
 			...WebpackModules.getByProps('compact', 'cozy', 'username')
 		};
 
-		const MessageHeader = WebpackModules.getModule((m) => m && m.default && m.default.displayName && m.default.displayName === 'MessageHeader');
+		const MessageHeader = WebpackModules.getByProps('MessageTimestamp');
+		const TooltipWrapper = WebpackModules.getByPrototypes('renderTooltip');
 
 		const options = [
 			{
@@ -102,10 +108,63 @@ var ChatUserIDsRedux = (() => {
 			}
 		];
 
+		const ErrorBoundary = class ErrorBoundary extends React.Component {
+			constructor(props) {
+				super(props);
+				this.state = { hasError: false };
+			}
+
+			static getDerivedStateFromError(error) {
+				return { hasError: true };
+			}
+
+			componentDidCatch(error, info) {
+				err(error);
+			}
+
+			render() {
+				if (this.state.hasError) return React.createElement('div', { className: `${config.info.name}-error` }, 'Component Error');
+				return this.props.children;
+			}
+		};
+
+		const WrapBoundary = (Original) => class Boundary extends React.Component {
+			render() {
+				return React.createElement(ErrorBoundary, null, React.createElement(Original, this.props));
+			}
+		};
+
 		const Tag = class Tag extends React.Component {
 			constructor(props) {
 				super(props);
 				this.onDoubleClick = this.onDoubleClick.bind(this);
+			}
+
+			static getClasses(instance) {
+				return Array.isArray(instance.props.classes)
+					? instance.props.classes
+					: [];
+			}
+
+			static getRenderProps(instance, classes) {
+				return {
+					className: instance.props.hover
+						? `tooltip-wrapper ${classes.join(' ')}`.trim()
+						: classes.join(' ').trim(),
+					children: [
+						React.createElement('span', {
+							className: 'tag',
+							onDoubleClick: instance.onDoubleClick
+						}, instance.props.id)
+					]
+				};
+			}
+
+			static getRenderElement(instance, props, classes) {
+				const renderProps = Tag.getRenderProps(instance, classes);
+				return instance.props.hover
+					? React.createElement('span', Object.assign(renderProps, props))
+					: React.createElement('span', renderProps);
 			}
 
 			onDoubleClick(e) {
@@ -113,14 +172,14 @@ var ChatUserIDsRedux = (() => {
 			}
 
 			render() {
-				const classes = Array.isArray(this.props.classes)
-					? this.props.classes
-					: [];
+				const classes = Tag.getClasses(this);
 				classes.unshift('tagID');
-				return React.createElement('span', {
-					className: classes.join(' '),
-					onDoubleClick: this.onDoubleClick
-				}, this.props.text);
+				return React.createElement(TooltipWrapper, {
+					position: TooltipWrapper.Positions.TOP,
+					color: TooltipWrapper.Colors.BLACK,
+					text: this.props.text,
+					children: (props) => Tag.getRenderElement(this, props, classes)
+				});
 			}
 		};
 		
@@ -140,7 +199,8 @@ var ChatUserIDsRedux = (() => {
 						0x99DDF3, 0x718184, 0xF78C6A, 0xC3E88D
 					],
 					color: '#798AED',
-					tagPosition: 0
+					tagPosition: 0,
+					hoverTip: false
 				};
 				this.settings = null;
 				this._css;
@@ -181,6 +241,10 @@ var ChatUserIDsRedux = (() => {
 					.${MessageClasses.compact.split(' ')[0]} .tagID {
 						padding: 2px 3px;
 					}
+
+					#app-mount :-webkit-any(.tooltip-2QfLtc, .bd-tooltip, .toolbar-2bjZV7, .bubble-3we2d) {
+						white-space: break-spaces;
+					}
 				`;
 			}
 
@@ -190,33 +254,52 @@ var ChatUserIDsRedux = (() => {
 				this.settings = this.loadSettings(this.default);
 				this.reinjectCSS();
 				this.promises.restore();
-				// this.patchMessages();
+				this.patchMessages();
 				Toasts.info(`${this.name} ${this.version} has started!`, { timeout: 2e3 });
 			}
 
 			onStop() {
 				PluginUtilities.removeStyle(this.short);
 				this.promises.cancel();
-				this.clearTags();
-				// Patcher.unpatchAll();
+				// this.clearTags();
+				Patcher.unpatchAll();
+				this.updateMessages();
 				Toasts.info(`${this.name} ${this.version} has stopped!`, { timeout: 2e3 });
 			}
 
 			patchMessages() {
 				if (this.promises.state.cancelled) return;
-				Patcher.after(MessageHeader, 'default', (that, args, value) => {
-					const [{ message: { author } }] = args;
-					const { props } = value;
-					if (!props.children || !Array.isArray(props.children)) return value;
+				Patcher.after(MessageHeader, 'default', (that, [props], value) => {
+					const { message: { type, author } } = props;
+					if (type !== 0) return value;
+
+					const children = this.getProps(value, 'props.children.1.props.children');
+					if (!children || !Array.isArray(children)) return value;
+
 					const { extraClass, pos } = this.getPos(this.settings);
-					const tag = React.createElement(Tag, {
-						text: author.id,
+					const date = author.createdAt.toString().replace(/\([\w\d].+\)/g, '').split(' ');
+					const gmt = date.pop();
+					const tag = React.createElement(WrapBoundary(Tag), {
+						id: author.id,
+						key: `ChatUserID-${author.id}`,
+						text: `${date.join(' ').trim()}\n${gmt.trim()}`,
+						hover: this.settings.hoverTip,
 						classes: [extraClass],
 						onDoubleClick: (e) => this.double(e)
 					});
-					props.children.splice(pos + 2, 0, tag);
+
+					const fn = (child) => child && child.key && child.key.startsWith('ChatUserID');
+					if (!children.find(fn)) children.splice(pos === 'beforebegin' ? 0 : 2, 0, tag);
+					
 					return value;
 				});
+				this.updateMessages();
+			}
+
+			updateMessages() {
+				const messages = document.querySelectorAll(`.${MessageClasses.message}`);
+				if (!messages.length) return;
+				for (let i = 0, len = messages.length; i < len; i++) ReactTools.getOwnerInstance(messages[i]).forceUpdate();
 			}
 
 			reinjectCSS() {
@@ -286,17 +369,17 @@ var ChatUserIDsRedux = (() => {
 			}
 
 			/* Observer */
-			observer({ addedNodes }) {
-				for (const node of addedNodes.values()) {
-					if (!node) continue;
-					if (node.classList && node.classList.contains(MessageClasses.groupStart.split(' ')[0])) this.processNode(node);
-				}
-			}
+			// observer({ addedNodes }) {
+			// 	for (const node of addedNodes.values()) {
+			// 		if (!node) continue;
+			// 		if (node.classList && node.classList.contains(MessageClasses.groupStart.split(' ')[0])) this.processNode(node);
+			// 	}
+			// }
 
 			/* onSwitch */
-			onSwitch() {
-				for (const node of document.querySelectorAll(`.${MessageClasses.groupStart.split(' ')[0]}`)) this.processNode(node);
-			}
+			// onSwitch() {
+			// 	for (const node of document.querySelectorAll(`.${MessageClasses.groupStart.split(' ')[0]}`)) this.processNode(node);
+			// }
 
 			/* Settings Panel */
 
@@ -309,8 +392,13 @@ var ChatUserIDsRedux = (() => {
 						}, { colors: this.settings.colors }),
 						new RadioGroup('Tag Placement', 'Decides whether the tag is placed before the username, or after it.', this.settings.tagPosition || 0, options, (i) => {
 							this.settings.tagPosition = i;
-							this.clearTags();
-							this.onSwitch();
+							// this.clearTags();
+							// this.onSwitch();
+							this.updateMessages();
+						}),
+						new Switch('Hover Tooltip', 'Decides whether or not the account creation date tooltip is displayed.', this.settings.hoverTip, (i) => {
+							this.settings.hoverTip = i;
+							this.updateMessages();
 						})
 					)
 				);
@@ -386,17 +474,45 @@ var ChatUserIDsRedux = (() => {
 			}
 
 			load() {
+				const { BdApi, BdApi: { React } } = window;
 				const title = 'Library Missing';
-				const ModalStack = window.BdApi.findModuleByProps('push', 'update', 'pop', 'popWithKey');
-				const TextElement = window.BdApi.findModuleByProps('Sizes', 'Weights');
-				const ConfirmationModal = window.BdApi.findModule((m) => m.defaultProps && m.key && m.key() === 'confirm-modal');
-				if (!ModalStack || !ConfirmationModal || !TextElement) return window.BdApi.getCore().alert(title, `The library plugin needed for ${config.info.name} is missing.<br /><br /> <a href="https://betterdiscord.net/ghdl?url=https://raw.githubusercontent.com/rauenzi/BDPluginLibrary/master/release/0PluginLibrary.plugin.js" target="_blank">Click here to download the library!</a>`);
+				const ModalStack = BdApi.findModuleByProps('push', 'update', 'pop', 'popWithKey');
+				const TextElement = BdApi.findModuleByDisplayName('Text');
+				const ConfirmationModal = BdApi.findModule((m) => m.defaultProps && m.key && m.key() === 'confirm-modal');
+				const children = [];
+				if (!TextElement) {
+					children.push(
+						React.createElement('span', {
+							children: [`The library plugin needed for ${config.info.name} is missing.`]
+						}),
+						React.createElement('br', {}),
+						React.createElement('a', {
+							target: '_blank',
+							href: 'https://betterdiscord.net/ghdl?url=https://raw.githubusercontent.com/rauenzi/BDPluginLibrary/master/release/0PluginLibrary.plugin.js',
+							children: ['Click here to download the library!']
+						})
+					);
+					return BdApi.alert(title, React.createElement('span', { children }));
+				}
+				children.push(
+					React.createElement(TextElement, {
+						color: TextElement.Colors.STANDARD,
+						children: [`The library plugin needed for ${config.info.name} is missing.`]
+					}),
+					React.createElement('br', {}),
+					React.createElement('a', {
+						target: '_blank',
+						href: 'https://betterdiscord.net/ghdl?url=https://raw.githubusercontent.com/rauenzi/BDPluginLibrary/master/release/0PluginLibrary.plugin.js',
+						children: ['Click here to download the library!']
+					})
+				);
+				if (!ModalStack || !ConfirmationModal) return BdApi.alert(title, children);
 				ModalStack.push(function(props) {
-					return window.BdApi.React.createElement(ConfirmationModal, Object.assign({
+					return React.createElement(ConfirmationModal, Object.assign({
 						header: title,
 						children: [
-							window.BdApi.React.createElement(TextElement, {
-								color: TextElement.Colors.PRIMARY,
+							React.createElement(TextElement, {
+								color: TextElement.Colors.STANDARD,
 								children: [`The library plugin needed for ${config.info.name} is missing. Please click Download Now to install it.`]
 							})
 						],
@@ -452,5 +568,7 @@ var ChatUserIDsRedux = (() => {
 		}
 		: buildPlugin(global.ZeresPluginLibrary.buildPlugin(config));
 })();
+
+module.exports = ChatUserIDsRedux;
 
 /*@end@*/
