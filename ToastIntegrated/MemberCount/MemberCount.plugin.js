@@ -44,7 +44,7 @@ var MemberCount = (() => {
 					twitter_username: ''
 				}
 			],
-			version: '2.1.22',
+			version: '2.1.23',
 			description: 'Displays a server\'s member-count at the top of the member-list, can be styled with the #MemberCount selector.',
 			github: 'https://github.com/Arashiryuu',
 			github_raw: 'https://raw.githubusercontent.com/Arashiryuu/crap/master/ToastIntegrated/MemberCount/MemberCount.plugin.js'
@@ -54,7 +54,7 @@ var MemberCount = (() => {
 				title: 'Bugs Squashed!',
 				type: 'fixed',
 				items: [
-					'DateViewer compatibility fix.'
+					'Works again.'
 				]
 			}
 		]
@@ -226,7 +226,7 @@ var MemberCount = (() => {
 					const props = this.getProps(val, 'props');
 					if (!props || !props.id || !props.id.startsWith('members')) return value;
 
-					const children = this.getProps(props, 'children.props.children');
+					const children = this.getProps(props, 'children.props.children.props.children');
 					if (!children || !Array.isArray(children)) return value;
 					
 					const guildId = SelectedGuildStore.getGuildId();
