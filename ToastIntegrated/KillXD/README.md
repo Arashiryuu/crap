@@ -1,2 +1,0 @@
-# KillXD
-Removes shitty XDs.
