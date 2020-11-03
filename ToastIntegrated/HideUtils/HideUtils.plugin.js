@@ -45,7 +45,7 @@ var HideUtils = (() => {
 					twitter_username: ''
 				}
 			],
-			version: '2.1.37',
+			version: '2.1.38',
 			description: 'Allows you to hide users, servers, and channels individually.',
 			github: 'https://github.com/Arashiryuu',
 			github_raw: 'https://raw.githubusercontent.com/Arashiryuu/crap/master/ToastIntegrated/HideUtils/HideUtils.plugin.js',
@@ -56,7 +56,8 @@ var HideUtils = (() => {
 				title: 'Bugs Squashed!',
 				type: 'fixed',
 				items: [
-					'Works again!'
+					'Settings display properly again.',
+					'Hides things again. (Messages require forcing chat to refresh, toggle channels/servers or reload.)'
 				]
 			}
 		]
@@ -255,7 +256,12 @@ var HideUtils = (() => {
 								const hasImage = type === 'User' || type === 'Server';
 								const style = {};
 	
-								if (hasImage) Object.assign(style, { backgroundImage: `url(${entry.icon})`, backgroundSize: 'cover', backgroundPosition: 'center' });
+								if (hasImage) Object.assign(style, {
+									backgroundImage: `url(${entry.icon})`,
+									backgroundSize: 'cover',
+									backgroundPosition: 'center',
+									textShadow: '0 0 1px black, 0 0 2px black, 0 0 3px black'
+								});
 	
 								return React.createElement('div', Object.assign({
 									className: 'buttonWrapper'
@@ -361,7 +367,7 @@ var HideUtils = (() => {
 						className: scroller.scrollerWrap
 					},
 						React.createElement('div', {
-							className: `${scroller.scroller} ${scroller.systemPad} ${wrapper.messagesPopout}`,
+							className: `${scroller.scroller} ${wrapper.messagesPopout}`,
 							scrollable: true,
 							children: data
 						})
@@ -474,6 +480,9 @@ var HideUtils = (() => {
 				this.css = `
 					.theme-light #HideUtils-Header .close-button {
 						fill: #72767d;
+					}
+					#HideUtils-Header + div > div:first-child {
+						position: relative;
 					}
 					#HideUtils-Header .close-button {
 						fill: white;
@@ -858,25 +867,45 @@ var HideUtils = (() => {
 			 * @author Zerebos
 			 */
 			async patchMessages(promiseState) {
-				const Component = await ReactComponents.getComponentByName('Messages', `.${messagesWrapper.messagesWrapper.replace(/\s/, '.')}`);
-				const { component: Message } = Component;
 				if (promiseState.cancelled) return;
-				Patcher.after(Message.prototype, 'render', (that, args, value) => {
-					const props = this.getProps(value, 'props.children.1.props.children.props');
-					const messageGroups = this.getProps(props, 'children.1');
-					if (!messageGroups || !Array.isArray(messageGroups)) return value;
-	
-					props.children[1] = messageGroups.filter((message) => {
+				const t = await new Promise((resolve, reject) => {
+					DOMTools.observer.subscribeToQuerySelector(() => {
+						const instance = ReactTools.getReactInstance(document.querySelector('[data-list-id="chat-messages"]'));
+						if (instance) resolve(this.getProps(instance, 'return.return.return.return.return.type'));
+						else resolve(null);
+					}, '.chat-3bRxxu', null, true);
+				});
+				if (!t) return;
+				Patcher.before(t, 'render', (that, args, value) => {
+					const [props] = args;
+					const children = this.getProps(props, 'children.props.children');
+					const list = this.getProps(children, '1');
+					children[1] = list.filter((message) => {
 						if (!message || message.key && (message.key.includes('divider') || message.key === 'has-more')) return message;
 						const author = this.getProps(message, 'props.message.author');
 						const type = this.getProps(message, 'type.type');
 						const blocked = (type && type.displayName && type.displayName === 'BlockedMessages') && this.settings.hideBlocked;
 						return !blocked && author && !has.call(this.settings.users, author.id) || !blocked && !author;
 					});
-	
-					return value;
 				});
-				Component.forceUpdateAll();
+				this.updateMessages();
+				// Patcher.after(t, 'render', (that, args, value) => {
+				// 	log(that, args, value);
+				// 	const props = this.getProps(value, 'props.children.props.children.props');
+				// 	const messageGroups = this.getProps(props, 'children.1');
+				// 	if (!messageGroups || !Array.isArray(messageGroups)) return value;
+	
+				// 	props.children[1] = messageGroups.filter((message) => {
+				// 		if (!message || message.key && (message.key.includes('divider') || message.key === 'has-more')) return message;
+				// 		const author = this.getProps(message, 'props.message.author');
+				// 		const type = this.getProps(message, 'type.type');
+				// 		const blocked = (type && type.displayName && type.displayName === 'BlockedMessages') && this.settings.hideBlocked;
+				// 		return !blocked && author && !has.call(this.settings.users, author.id) || !blocked && !author;
+				// 	});
+	
+				// 	return value;
+				// });
+				// this.updateMessages();
 			}
 	
 			/**
@@ -898,24 +927,27 @@ var HideUtils = (() => {
 					const props = this.getProps(that, 'props');
 					if (!props.guildFolders || !Array.isArray(props.guildFolders)) return value;
 	
-					const list = this.getProps(value, 'props.children.1.props.children');
-					const guildList = list.find((child) => child.props['data-ref-id'] && child.props['data-ref-id'] === 'guildsnav');
-					const children = this.getProps(guildList, 'props.children');
-					if (!guildList || !children || !Array.isArray(children)) return value;
-	
-					// const guildIndex = children.findIndex((item) => Array.isArray(item));
-					// const guilds = this.getProps(children, guildIndex.toString());
-					// if (!guilds || !Array.isArray(guilds)) return value;
-	
-					guildList.props.children = children.filter((guild) => {
-						if (Array.isArray(guild.props.guildIds)) {
-							if (has.call(this.settings.folders, guild.props.folderId)) return false;
-							guild.props.guildIds = guild.props.guildIds.filter((id) => !has.call(this.settings.servers, id));
-							if (!guild.props.guildIds.length) return false;
-							return true;
-						}
-						return !guild || !guild.key || !has.call(this.settings.servers, guild.key);
-					});
+					const orig = value.props.children;
+					if (!orig || typeof orig !== 'function' || value.props.children.__patched_HideUtils) return value;
+
+					value.props.children = (...props) => {
+						const o = orig(...props);
+						const list = this.getProps(o, 'props.children.props.children.1.props.children');
+						const guildsList = list.find((child) => child.type && child.type === 'div');
+						if (!guildsList) return o;
+						guildsList.props.children = guildsList.props.children.filter((guild) => {
+							if (Array.isArray(guild.props.guildIds)) {
+								if (has.call(this.settings.folders, guild.props.folderId)) return false;
+								guild.props.guildIds = guild.props.guildIds.filter((id) => !has.call(this.settings.servers, id));
+								if (!guild.props.guildIds.length) return false;
+								return true;
+							}
+							return !guild || !guild.key || !has.call(this.settings.servers, guild.key);
+						});
+						return o;
+					};
+					value.props.children.__patched = true;
+					value.props.children.__patched_HideUtils = true;
 	
 					return value;
 				});
@@ -931,13 +963,16 @@ var HideUtils = (() => {
 			patchMemberList(state) {
 				if (state.cancelled) return;
 				Patcher.after(Lists.ListThin, 'render', (that, args, value) => {
-					const props = this.getProps(value, 'props');
+					const [props] = args;
 					if (!props || !props.id || !props.id.startsWith('members')) return value;
 
-					const children = this.getProps(props, 'children.props.children');
+					const childProps = Array.isArray(value)
+						? this.getProps(value, '0.props.children.props.children.props')
+						: this.getProps(value, 'props.children.props.children.props');
+					const children = this.getProps(childProps, 'children');
 					if (!children || !Array.isArray(children)) return value;
 	
-					props.children.props.children = children.filter((user) => {
+					childProps.children = children.filter((user) => {
 						if (!user.key || !user.key.startsWith('member')) return true;
 						const { 1: id } = user.key.split('-');
 						return has.call(this.settings.users, id)
@@ -970,16 +1005,17 @@ var HideUtils = (() => {
 			patchChannels(state) {
 				if (state.cancelled) return;	
 				Patcher.after(Lists.ListThin, 'render', (that, args, value) => {
-					const props = this.getProps(value, 'props');
+					const [props] = args;
 					if (!props || !props.id || !props.id.startsWith('channels')) return value;
 					
-					const children = this.getProps(props, 'children.props.children');
+					const childProps = this.getProps(value, 'props.children.props.children.props');
+					const children = this.getProps(childProps, 'children');
 					if (!children || !Array.isArray(children)) return value;
 	
 					const guildId = this.getProps(children, '1.props.channel.guild_id');
 					if (this.settings.servers.unhidden.includes(guildId)) return value;
 	
-					props.children.props.children = children.map((channel) => {
+					childProps.children = children.map((channel) => {
 						if (!channel) return channel;
 						const channelProps = this.getProps(channel, 'props');
 						if (!props.voiceStates || !Array.isArray(props.voiceStates)) {
@@ -1408,41 +1444,44 @@ var HideUtils = (() => {
 				return config.info.version;
 			}
 			load() {
+				const { BdApi, BdApi: { React } } = window;
 				const title = 'Library Missing';
-				const ModalStack = window.BdApi.findModuleByProps('push', 'update', 'pop', 'popWithKey');
-				const TextElement = window.BdApi.findModuleByDisplayName('Text');
-				const ConfirmationModal = window.BdApi.findModule((m) => m.defaultProps && m.key && m.key() === 'confirm-modal');
-				const children = window.BdApi.React.createElement('span', {
-					children: [
-						window.BdApi.React.createElement(TextElement, {
-							color: TextElement.Colors.STANDARD,
+				const ModalStack = BdApi.findModuleByProps('push', 'update', 'pop', 'popWithKey');
+				const TextElement = BdApi.findModuleByDisplayName('Text');
+				const ConfirmationModal = BdApi.findModule((m) => m.defaultProps && m.key && m.key() === 'confirm-modal');
+				const children = [];
+				if (!TextElement) {
+					children.push(
+						React.createElement('span', {
 							children: [`The library plugin needed for ${config.info.name} is missing.`]
 						}),
-						window.BdApi.React.createElement('br', {}),
-						window.BdApi.React.createElement('a', {
+						React.createElement('br', {}),
+						React.createElement('a', {
 							target: '_blank',
 							href: 'https://betterdiscord.net/ghdl?url=https://raw.githubusercontent.com/rauenzi/BDPluginLibrary/master/release/0PluginLibrary.plugin.js',
 							children: ['Click here to download the library!']
 						})
-					]
-				});
-				if (!TextElement) return window.BdApi.alert(title, window.BdApi.React.createElement('span', {
-					children: [
-						`The library plugin needed for ${config.info.name} is missing.`,
-						window.BdApi.React.createElement('br', {}),
-						window.BdApi.React.createElement('a', {
-							target: '_blank',
-							href: 'https://betterdiscord.net/ghdl?url=https://raw.githubusercontent.com/rauenzi/BDPluginLibrary/master/release/0PluginLibrary.plugin.js',
-							children: ['Click here to download the library!']
-						})
-					]
-				}));
-				if (!ModalStack || !ConfirmationModal) return window.BdApi.alert(title, children);
+					);
+					return BdApi.alert(title, React.createElement('span', { children }));
+				}
+				children.push(
+					React.createElement(TextElement, {
+						color: TextElement.Colors.STANDARD,
+						children: [`The library plugin needed for ${config.info.name} is missing.`]
+					}),
+					React.createElement('br', {}),
+					React.createElement('a', {
+						target: '_blank',
+						href: 'https://betterdiscord.net/ghdl?url=https://raw.githubusercontent.com/rauenzi/BDPluginLibrary/master/release/0PluginLibrary.plugin.js',
+						children: ['Click here to download the library!']
+					})
+				);
+				if (!ModalStack || !ConfirmationModal) return BdApi.alert(title, children);
 				ModalStack.push(function(props) {
-					return window.BdApi.React.createElement(ConfirmationModal, Object.assign({
+					return React.createElement(ConfirmationModal, Object.assign({
 						header: title,
 						children: [
-							window.BdApi.React.createElement(TextElement, {
+							React.createElement(TextElement, {
 								color: TextElement.Colors.STANDARD,
 								children: [`The library plugin needed for ${config.info.name} is missing. Please click Download Now to install it.`]
 							})
@@ -1453,7 +1492,7 @@ var HideUtils = (() => {
 						onConfirm: () => {
 							require('request').get('https://rauenzi.github.io/BDPluginLibrary/release/0PluginLibrary.plugin.js', async (error, response, body) => {
 								if (error) return require('electron').shell.openExternal('https://betterdiscord.net/ghdl?url=https://raw.githubusercontent.com/rauenzi/BDPluginLibrary/master/release/0PluginLibrary.plugin.js');
-								await new Promise(r => require('fs').writeFile(require('path').join(window.ContentManager.pluginsFolder, '0PluginLibrary.plugin.js'), body, r));
+								await new Promise((r) => require('fs').writeFile(require('path').join(window.ContentManager.pluginsFolder, '0PluginLibrary.plugin.js'), body, r));
 							});
 						}
 					}, props));
