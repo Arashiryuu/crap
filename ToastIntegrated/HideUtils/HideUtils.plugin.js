@@ -45,7 +45,7 @@ var HideUtils = (() => {
 					twitter_username: ''
 				}
 			],
-			version: '2.1.38',
+			version: '2.1.39',
 			description: 'Allows you to hide users, servers, and channels individually.',
 			github: 'https://github.com/Arashiryuu',
 			github_raw: 'https://raw.githubusercontent.com/Arashiryuu/crap/master/ToastIntegrated/HideUtils/HideUtils.plugin.js',
@@ -927,23 +927,31 @@ var HideUtils = (() => {
 					const props = this.getProps(that, 'props');
 					if (!props.guildFolders || !Array.isArray(props.guildFolders)) return value;
 	
-					const orig = value.props.children;
+					const orig = this.getProps(value, 'props.children');
 					if (!orig || typeof orig !== 'function' || value.props.children.__patched_HideUtils) return value;
 
 					value.props.children = (...props) => {
 						const o = orig(...props);
-						const list = this.getProps(o, 'props.children.props.children.1.props.children');
-						const guildsList = list.find((child) => child.type && child.type === 'div');
-						if (!guildsList) return o;
-						guildsList.props.children = guildsList.props.children.filter((guild) => {
-							if (Array.isArray(guild.props.guildIds)) {
-								if (has.call(this.settings.folders, guild.props.folderId)) return false;
-								guild.props.guildIds = guild.props.guildIds.filter((id) => !has.call(this.settings.servers, id));
-								if (!guild.props.guildIds.length) return false;
-								return true;
-							}
-							return !guild || !guild.key || !has.call(this.settings.servers, guild.key);
-						});
+						const oChild = this.getProps(o, 'props.children.props.children');
+						if (!oChild || oChild.__patched_HideUtils) return o;
+						o.props.children.props.children = (...data) => {
+							const oValue = oChild(...data);
+							const list = this.getProps(oValue, 'props.children.1.props.children');
+							if (!list) return oValue;
+							const guildsList = list.find((child) => child.type && child.type === 'div');
+							if (!guildsList) return oValue;
+							guildsList.props.children = guildsList.props.children.filter((guild) => {
+								if (Array.isArray(guild.props.guildIds)) {
+									if (has.call(this.settings.folders, guild.props.folderId)) return false;
+									guild.props.guildIds = guild.props.guildIds.filter((id) => !has.call(this.settings.servers, id));
+									if (!guild.props.guildIds.length) return false;
+									return true;
+								}
+								return !guild || !guild.key || !has.call(this.settings.servers, guild.key);
+							});
+							return oValue;
+						};
+						o.props.children.props.children.__patched_HideUtils = true;
 						return o;
 					};
 					value.props.children.__patched = true;
