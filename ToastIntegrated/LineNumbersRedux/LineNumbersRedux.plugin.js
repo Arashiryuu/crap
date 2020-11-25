@@ -40,7 +40,7 @@ var LineNumbersRedux = (() => {
 					twitter_username: ''
 				}
 			],
-			version: '1.1.7',
+			version: '1.1.8',
 			description: 'Adds line numbers to codeblocks.',
 			github: 'https://github.com/Arashiryuu',
 			github_raw: 'https://raw.githubusercontent.com/Arashiryuu/crap/master/ToastIntegrated/LineNumbersRedux/LineNumbersRedux.plugin.js'
@@ -49,7 +49,7 @@ var LineNumbersRedux = (() => {
 			{
 				title: 'Bugs Squashed!',
 				type: 'fixed',
-				items: ['Loads settings again!']
+				items: ['Works again.']
 			}
 		]
 	};
@@ -249,21 +249,27 @@ var LineNumbersRedux = (() => {
 			}
 
 			async patchMessages(state) {
-				const Component = await ReactComponents.getComponentByName('Messages', `.${messagesWrapper.messagesWrapper.replace(/\s/, '.')}`);
-				const { component: Message } = Component;
-
 				if (state.cancelled) return;
 
-				Patcher.after(Message.prototype, 'render', (that, args, value) => {
+				const t = await new Promise((resolve, reject) => {
+					DOMTools.observer.subscribeToQuerySelector(() => {
+						const instance = ReactTools.getReactInstance(document.querySelector('[data-list-id="chat-messages"]'));
+						if (instance) resolve(this.getProps(instance, 'return.return.return.return.return.type'));
+						else resolve(null);
+					}, '.chat-3bRxxu', null, true);
+				});
+				if (!t) return;
+
+				Patcher.after(t, 'render', (that, args, value) => {
 					setImmediate(() => this.processCodeblocks());
 					return value;
 				});
 
-				Component.forceUpdateAll();
+				this.updateMessages();
 			}
 
 			updateMessages() {
-				const messages = document.querySelectorAll(`.${MessageClasses.container.split(' ')[0]}`);
+				const messages = document.querySelectorAll(`.${messagesWrapper.messagesWrapper.replace(/\s/, '.')}`);
 				if (!messages.length) return;
 				for (let i = 0, len = messages.length; i < len; i++) ReactTools.getOwnerInstance(messages[i]).forceUpdate();
 			}
@@ -411,5 +417,7 @@ var LineNumbersRedux = (() => {
 		}
 		: buildPlugin(global.ZeresPluginLibrary.buildPlugin(config));
 })();
+
+module.exports = LineNumbersRedux;
 
 /*@end@*/
