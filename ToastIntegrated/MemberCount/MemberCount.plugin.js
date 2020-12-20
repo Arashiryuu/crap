@@ -167,7 +167,7 @@ var MemberCount = (() => {
 				};
 				this.css = `
 					.theme-dark #MemberCount {
-						background: #2f3136;
+						background: #2f313600;
 					} 
 					
 					.theme-light #MemberCount {
