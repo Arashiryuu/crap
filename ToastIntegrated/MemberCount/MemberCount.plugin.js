@@ -167,11 +167,11 @@ var MemberCount = (() => {
 				};
 				this.css = `
 					.theme-dark #MemberCount {
-						background: #2f3136;
+						background: transparent;
 					} 
 					
 					.theme-light #MemberCount {
-						background: #f3f3f3;
+						background: transparent;
 					}
 				`;
 				this.optIn = `
