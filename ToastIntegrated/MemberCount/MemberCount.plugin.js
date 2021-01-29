@@ -51,10 +51,10 @@ var MemberCount = (() => {
 		},
 		changelog: [
 			{
-				title: 'Bugs Squashed!',
+				title: 'New feature!',
 				type: 'fixed',
 				items: [
-					'Works again.'
+					'Added thousand seperator for member count'
 				]
 			}
 		]
