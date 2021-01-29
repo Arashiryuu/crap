@@ -44,7 +44,7 @@ var MemberCount = (() => {
 					twitter_username: ''
 				}
 			],
-			version: '2.1.23',
+			version: '2.1.24',
 			description: 'Displays a server\'s member-count at the top of the member-list, can be styled with the #MemberCount selector.',
 			github: 'https://github.com/Arashiryuu',
 			github_raw: 'https://raw.githubusercontent.com/Arashiryuu/crap/master/ToastIntegrated/MemberCount/MemberCount.plugin.js'
@@ -105,6 +105,10 @@ var MemberCount = (() => {
 			}
 		};
 
+		function thousandSeperator(x) {
+			return x.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+		}
+
 		const WrapBoundary = (Original) => {
 			return class Boundary extends React.PureComponent {
 				render() {
@@ -142,7 +146,7 @@ var MemberCount = (() => {
 							className: `${DiscordClasses.MemberList.membersGroup} container-2ax-kl`,
 							children: [
 								React.createElement('span', {
-									children: ['Members', '—', this.props.count]
+									children: ['Members', '—', thousandSeperator(this.props.count)]
 								})
 							]
 						})
