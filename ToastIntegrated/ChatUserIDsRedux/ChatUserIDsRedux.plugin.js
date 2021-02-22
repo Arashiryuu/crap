@@ -1,6 +1,8 @@
 /**
  * @name ChatUserIDsRedux
  * @author Arashiryuu
+ * @version 1.0.18
+ * @description Adds a user's ID next to their name in chat, makes accessing a user ID simpler. Double-click to copy the ID.
  * @website https://github.com/Arashiryuu
  * @source https://github.com/Arashiryuu/crap/blob/master/ToastIntegrated/ChatUserIDsRedux/ChatUserIDsRedux.plugin.js
  */
