@@ -6,8 +6,8 @@
 
 ## Preview
 ### Settings
-![1](./util/ChatUserIDsSettings.png)
+![1](https://github.com/Arashiryuu/crap/blob/master/ToastIntegrated/ChatUserIDsRedux/util/ChatUserIDsSettings.png)
 ### Color Picker
-![2](./util/ChatUserIDsColorPicker.png)
+![2](https://github.com/Arashiryuu/crap/blob/master/ToastIntegrated/ChatUserIDsRedux/util/ChatUserIDsColorPicker.png)
 ### Chat
-![3](./util/ChatUserIDsExample.png)
+![3](https://github.com/Arashiryuu/crap/blob/master/ToastIntegrated/ChatUserIDsRedux/util/ChatUserIDsExample.png)
