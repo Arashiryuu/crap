@@ -1,5 +1,7 @@
 /**
  * @name HideUtils
+ * @version 2.1.39
+ * @description Allows you to hide users, servers, and channels individually.
  * @website https://github.com/Arashiryuu
  * @source https://github.com/Arashiryuu/crap/blob/master/ToastIntegrated/HideUtils/HideUtils.plugin.js
  */
