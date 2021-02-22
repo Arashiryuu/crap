@@ -1,5 +1,5 @@
 # HideUtils
-### A combination plugin featuring hideUsers, hideChannelsPerServer, and hideServers, all rolled into one with some refactoring.
+### A plugin designed to allow hiding of individual users, channels, and or servers.
 
 ## Download
 **[Click me!](https://betterdiscord.net/ghdl?id=1169)**
