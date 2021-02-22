@@ -1,4 +1,11 @@
-//META{"name":"HideServersChannelsRedux","displayName":"HideServersChannelsRedux","website":"https://github.com/Arashiryuu","source":"https://github.com/Arashiryuu/crap/blob/master/ToastIntegrated/HideServersChannelsRedux/HideServersChannelsRedux.plugin.js"}*//
+/**
+ * @name HideServerChannelsRedux
+ * @author Arashiryuu
+ * @version 1.1.5
+ * @description Adds buttons to the header for hiding the servers list and channels list.
+ * @website https://github.com/Arashiryuu
+ * @source https://github.com/Arashiryuu/crap/blob/master/ToastIntegrated/HideServersChannelsRedux/HideServersChannelsRedux.plugin.js
+ */
 
 /*@cc_on
 @if (@_jscript)
