@@ -45,7 +45,7 @@ var ChatUserIDsRedux = (() => {
 					twitter_username: ''
 				}
 			],
-			version: '1.0.17',
+			version: '1.0.18',
 			description: 'Adds a user\'s ID next to their name in chat, makes accessing a user ID simpler. Double-click to copy the ID.',
 			github: 'https://github.com/Arashiryuu',
 			github_raw: 'https://raw.githubusercontent.com/Arashiryuu/crap/master/ToastIntegrated/ChatUserIDsRedux/ChatUserIDsRedux.plugin.js'
@@ -54,7 +54,7 @@ var ChatUserIDsRedux = (() => {
 			{
 				title: 'Bugs Squashed!',
 				type: 'fixed',
-				items: ['Working again.']
+				items: ['Fix issue with copying ID when tag is placed after the username.']
 			}
 		]
 	};
@@ -270,8 +270,8 @@ var ChatUserIDsRedux = (() => {
 			patchMessages() {
 				if (this.promises.state.cancelled) return;
 				Patcher.after(MessageHeader, 'default', (that, [props], value) => {
-					const { message: { type, author } } = props;
-					if (type !== 0) return value;
+					const { message: { id, author }, subscribeToGroupId } = props;
+					if (id !== subscribeToGroupId) return value;
 
 					const children = this.getProps(value, 'props.children.1.props.children');
 					if (!children || !Array.isArray(children)) return value;
@@ -285,7 +285,7 @@ var ChatUserIDsRedux = (() => {
 						text: `${date.join(' ').trim()}\n${gmt.trim()}`,
 						hover: this.settings.hoverTip,
 						classes: [extraClass],
-						onDoubleClick: (e) => this.double(e)
+						onDoubleClick: (e) => this.double(e, author)
 					});
 
 					const fn = (child) => child && child.key && child.key.startsWith('ChatUserID');
@@ -307,15 +307,16 @@ var ChatUserIDsRedux = (() => {
 				PluginUtilities.addStyle(this.short, this.css.replace(/{color}/, this.settings.color));
 			}
 
-			double(e) {
+			async double(e, author) {
 				try {
-					document.execCommand('copy');
+					await window.navigator.clipboard.writeText(author.id);
 					Toasts.info('Successfully copied!', { timeout: 2e3 });
-					window.getSelection().removeAllRanges();
 				} catch(err) {
 					err(err);
 					Toasts.error('Failed to copy! See console for error(s)!', { timeout: 2e3 });
 				}
+				if (e.target) e.target.blur();
+				setImmediate(() => window.getSelection().removeAllRanges());
 			}
 
 			createTag(id) {
