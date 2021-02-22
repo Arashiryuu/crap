@@ -20,12 +20,12 @@
 
 ## Preview
 ### Settings hub-page:
-![settings](../Previews/HideUtils/HideUtilsNewSettings.png)
+![settings](https://github.com/Arashiryuu/crap/blob/master/ToastIntegrated/Previews/HideUtils/HideUtilsNewSettings.png)
 ### Instructions page:
-![modal](../Previews/HideUtils/HideUtilsNewSettingsModal.png)
+![modal](https://github.com/Arashiryuu/crap/blob/master/ToastIntegrated/Previews/HideUtils/HideUtilsNewSettingsModal.png)
 ### Context-menus:
-![context](../Previews/HideUtils/contextsM.png)
-![context](../Previews/HideUtils/contextsM2.png)
-![context](../Previews/HideUtils/contextsM3.png)
+![context](https://github.com/Arashiryuu/crap/blob/master/ToastIntegrated/Previews/HideUtils/contextsM.png)
+![context](https://github.com/Arashiryuu/crap/blob/master/ToastIntegrated/Previews/HideUtils/contextsM2.png)
+![context](https://github.com/Arashiryuu/crap/blob/master/ToastIntegrated/Previews/HideUtils/contextsM3.png)
 ### Unhide channels toggle and purge option:
-![context](../Previews/HideUtils/TJtrxrUbxi.gif)
+![context](https://github.com/Arashiryuu/crap/blob/master/ToastIntegrated/Previews/HideUtils/TJtrxrUbxi.gif)
