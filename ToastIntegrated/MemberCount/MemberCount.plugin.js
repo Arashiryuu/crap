@@ -1,5 +1,8 @@
 /**
  * @name MemberCount
+ * @author Arashiryuu
+ * @version 2.1.23
+ * @description Displays a server's member-count at the top of the member-list, can be styled with the #MemberCount selector.
  * @website https://github.com/Arashiryuu
  * @source https://github.com/Arashiryuu/crap/blob/master/ToastIntegrated/MemberCount/MemberCount.plugin.js
  */
