@@ -170,18 +170,11 @@ var MemberCount = (() => {
 					restore() { this.state.cancelled = false; }
 				};
 				this.css = `
-					.theme-light #MemberCount {
-						background: #f2f3f5;
-					}
-
-					.theme-dark #MemberCount {
-						background: #2f3136;
-					}
-
 					#MemberCount {
 						position: absolute;
 						display: flex;
 						width: 240px;
+                        background-color: var(--background-secondary-alt);
 						text-align: center;
 						align-items: center;
 						justify-content: center;
