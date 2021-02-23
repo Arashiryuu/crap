@@ -1,7 +1,7 @@
 /**
  * @name MemberCount
  * @author Arashiryuu
- * @version 2.1.23
+ * @version 2.2.0
  * @description Displays a server's member-count at the top of the member-list, can be styled with the #MemberCount selector.
  * @website https://github.com/Arashiryuu
  * @source https://github.com/Arashiryuu/crap/blob/master/ToastIntegrated/MemberCount/MemberCount.plugin.js
@@ -47,17 +47,18 @@ var MemberCount = (() => {
 					twitter_username: ''
 				}
 			],
-			version: '2.1.23',
+			version: '2.2.0',
 			description: 'Displays a server\'s member-count at the top of the member-list, can be styled with the #MemberCount selector.',
 			github: 'https://github.com/Arashiryuu',
 			github_raw: 'https://raw.githubusercontent.com/Arashiryuu/crap/master/ToastIntegrated/MemberCount/MemberCount.plugin.js'
 		},
 		changelog: [
 			{
-				title: 'Bugs Squashed!',
-				type: 'fixed',
+				title: 'Evolving?',
+				type: 'improved',
 				items: [
-					'Works again.'
+					'Improved positioning of the counter in the DOM.',
+					'Reworked styling rules.'
 				]
 			}
 		]
@@ -161,7 +162,7 @@ var MemberCount = (() => {
 				super();
 				this._css;
 				this._optIn;
-				this.default = { blacklist: [], sticky: true };
+				this.default = { blacklist: [] };
 				this.settings = Utilities.deepclone(this.default);
 				this.promises = {
 					state: { cancelled: false },
@@ -169,27 +170,29 @@ var MemberCount = (() => {
 					restore() { this.state.cancelled = false; }
 				};
 				this.css = `
+					.theme-light #MemberCount {
+						background: #f2f3f5;
+					}
+
 					.theme-dark #MemberCount {
 						background: #2f3136;
-					} 
-					
-					.theme-light #MemberCount {
-						background: #f3f3f3;
 					}
-				`;
-				this.optIn = `
+
 					#MemberCount {
-						position: sticky;
-						width: 97%;
+						position: absolute;
+						display: flex;
+						width: 240px;
 						text-align: center;
-						padding: 0.3vh 0 0 3%;
+						align-items: center;
+						justify-content: center;
+						padding: 0;
 						z-index: 5;
-						top: -10px;
+						top: 0;
 						margin-top: -10px;
 					}
 
-					${DiscordSelectors.MemberList.membersWrap} ${DiscordSelectors.MemberList.membersGroup}:nth-child(3) {
-						margin-top: -10px;
+					${DiscordSelectors.MemberList.membersWrap} ${DiscordSelectors.MemberList.members} {
+						margin-top: 30px;
 					}
 				`;
 			}
@@ -214,7 +217,7 @@ var MemberCount = (() => {
 			}
 
 			addCSS() {
-				PluginUtilities.addStyle(this.short, this.settings.sticky ? [this.css, this.optIn].join('\n') : this.css);
+				PluginUtilities.addStyle(this.short, this.css);
 			}
 
 			clearCSS() {
@@ -229,8 +232,8 @@ var MemberCount = (() => {
 					const props = this.getProps(val, 'props');
 					if (!props || !props.id || !props.id.startsWith('members')) return value;
 
-					const children = this.getProps(props, 'children.props.children.props.children');
-					if (!children || !Array.isArray(children)) return value;
+					// const children = this.getProps(props, 'children.props.children.props.children');
+					// if (!children || !Array.isArray(children)) return value;
 					
 					const guildId = SelectedGuildStore.getGuildId();
 					if (this.settings.blacklist.includes(guildId) || !guildId) return value;
@@ -238,7 +241,9 @@ var MemberCount = (() => {
 					const counter = React.createElement(WrapBoundary(MemberCounter), { key: `MemberCount-${guildId}` });
 					const fn = (item) => item && item.key && item.key.startsWith('MemberCount');
 
-					if (!children.find(fn)) children.unshift(counter);
+					if (!Array.isArray(value)) value = [value];
+					if (!value.find(fn)) value.unshift(counter);
+					// if (!children.find(fn)) children.unshift(counter);
 
 					return value;
 				});
@@ -384,7 +389,7 @@ var MemberCount = (() => {
 				const data = super.loadSettings(this.default);
 				if (!data) return (this.settings = Utilities.deepclone(this.default));
 
-				if (Array.isArray(data)) return (this.settings = { blacklist: [...data], sticky: true });
+				if (Array.isArray(data)) return (this.settings = { blacklist: [...data] });
 
 				if (data.blacklist && !Array.isArray(data.blacklist)) {
 					data.blacklist = [...Object.values(data.blacklist)];
@@ -410,25 +415,21 @@ var MemberCount = (() => {
 
 			/* Settings Panel */
 
-			getSettingsPanel() {
-				return SettingPanel.build(() => this.saveSettings(this.settings),
-					new SettingGroup('Plugin Settings').append(
-						new Switch('Sticky Counter', 'Adds CSS to always position the counter atop the member list, regardless of scroll.', this.settings.sticky, (i) => {
-							this.settings.sticky = i;
-							this.updateCSS();
-						})
-					)
-				);
-			}
+			// getSettingsPanel() {
+			// 	return SettingPanel.build(() => this.saveSettings(this.settings),
+			// 		new SettingGroup('Plugin Settings').append(
+			// 			new Switch('Sticky Counter', 'Adds CSS to always position the counter atop the member list, regardless of scroll.', this.settings.sticky, (i) => {
+			// 				this.settings.sticky = i;
+			// 				this.updateCSS();
+			// 			})
+			// 		)
+			// 	);
+			// }
 
 			/* Setters */
 
 			set css(style = '') {
 				return this._css = style.split(/\s+/g).join(' ').trim();
-			}
-
-			set optIn(style = '') {
-				return this._optIn = style.split(/\s+/g).join(' ').trim();
 			}
 
 			/* Getters */
@@ -439,10 +440,6 @@ var MemberCount = (() => {
 
 			get css() {
 				return this._css;
-			}
-
-			get optIn() {
-				return this._optIn;
 			}
 
 			get name() {
