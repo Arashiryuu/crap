@@ -1,6 +1,6 @@
 /**
  * @name HideUtils
- * @version 2.1.39
+ * @version 2.1.40
  * @description Allows you to hide users, servers, and channels individually.
  * @website https://github.com/Arashiryuu
  * @source https://github.com/Arashiryuu/crap/blob/master/ToastIntegrated/HideUtils/HideUtils.plugin.js
@@ -47,7 +47,7 @@ var HideUtils = (() => {
 					twitter_username: ''
 				}
 			],
-			version: '2.1.39',
+			version: '2.1.40',
 			description: 'Allows you to hide users, servers, and channels individually.',
 			github: 'https://github.com/Arashiryuu',
 			github_raw: 'https://raw.githubusercontent.com/Arashiryuu/crap/master/ToastIntegrated/HideUtils/HideUtils.plugin.js',
@@ -58,8 +58,7 @@ var HideUtils = (() => {
 				title: 'Bugs Squashed!',
 				type: 'fixed',
 				items: [
-					'Settings display properly again.',
-					'Hides things again. (Messages require forcing chat to refresh, toggle channels/servers or reload.)'
+					'Fix crashing.'
 				]
 			}
 		]
