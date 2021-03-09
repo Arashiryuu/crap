@@ -940,7 +940,7 @@ var HideUtils = (() => {
 							const oValue = oChild(...data);
 							const list = this.getProps(oValue, 'props.children.1.props.children');
 							if (!list) return oValue;
-							const guildsList = list.find((child) => child.type && child.type === 'div');
+							const guildsList = list.find((child) => child && child.type && child.type === 'div');
 							if (!guildsList) return oValue;
 							guildsList.props.children = guildsList.props.children.filter((guild) => {
 								if (Array.isArray(guild.props.guildIds)) {
