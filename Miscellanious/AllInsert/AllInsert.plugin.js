@@ -75,6 +75,22 @@ var AllInsert = (() => {
 			return results.join('');
 		};
 
+		const debounce = (fn, wait = 100, immediate = false) => {
+			if (typeof fn !== 'function') fn = function () {};
+			let timeout;
+			return function () {
+				const context = this, args = arguments;
+				const later = () => {
+					timeout = null;
+					if (!immediate) fn.apply(context, args);
+				};
+				const now = immediate && !timeout;
+				clearTimeout(timeout);
+				timeout = setTimeout(later, wait);
+				if (now) fn.apply(context, args);
+			};
+		};
+
 		const v = {
 			'/>=': '\u2265',
 			'/<=': '\u2264',
@@ -105,7 +121,7 @@ var AllInsert = (() => {
 
 		const vKeys = Object.keys(v);
 		
-		return class AllInserts extends Plugin {
+		return class AllInsert extends Plugin {
 			constructor() {
 				super();
 				this._css;
@@ -120,7 +136,7 @@ var AllInsert = (() => {
 
 			onStart() {
 				this.promises.restore();
-				this.patchTextareaComponent(this.promises.state);
+				this.patchTextareaComponent(this.promises.state).catch(console.error);
 				Toasts.info(`${this.name} ${this.version} has started!`, { icon: true, timeout: 2e3 });
 			}
 
@@ -131,29 +147,32 @@ var AllInsert = (() => {
 			}
 
 			async patchTextareaComponent(state) {
-				const TextForm = await ReactComponents.getComponentByName('ChannelTextAreaForm', `.${chat.chat.replace(/\s+/g, '.')} form`);
+				// const TextForm = await ReactComponents.getComponentByName('ChannelTextAreaForm', `.${chat.chat.replace(/\s+/g, '.')} form`);
 
-				if (state.cancelled) return;
-				const { component: Textarea } = TextForm;
-				
-				Patcher.after(Textarea.prototype, 'componentDidUpdate', (that, args, value) => {
-					if (!that.state.textValue) return value;
+				const EditArea = WebpackModules.getByDisplayName('ChannelEditorContainer');
+				if (!EditArea || state.cancelled) return;
+				// const { component: Textarea } = TextForm;
+				Patcher.after(EditArea.prototype, 'render', debounce((that, args, value) => {
+					if (!that.props.textValue) return value;
 
-					const textAreaRef = this.getProps(that, 'channelTextAreaRef.current');
+					const textAreaRef = this.getProps(that, 'ref.current');
 					if (!textAreaRef) return value;
 					
-					const hasKey = vKeys.some((key) => that.state.textValue.includes(key));
+					const hasKey = vKeys.some((key) => that.props.textValue.includes(key));
 					if (!hasKey) return value;
 					
-					let newString = that.state.textValue;
+					let newString = that.props.textValue;
 					for (const key of vKeys) newString = this.replaceStrings(newString, key);
 					
-					that.handleTextareaChange(that, newString, SlateUtils.deserialize(newString));
+					textAreaRef.handleChange({ value: SlateUtils.deserialize(newString) });
+					//.handleTextareaChange(that, newString, SlateUtils.deserialize(newString));
+					setImmediate(() => Dispatcher.dispatch('TEXTAREA_FOCUS', null));
 					
 					return value;
-				});
+				}, 250));
 
-				TextForm.forceUpdateAll();
+				ReactTools.getOwnerInstance(document.querySelector(`.${chat.chat.replace(/\s+/g, '.')} form`)).forceUpdate();
+				// TextForm.forceUpdateAll();
 			}
 
 			replaceStrings(string, key) {
@@ -287,5 +306,7 @@ var AllInsert = (() => {
 		}
 		: buildPlugin(global.ZeresPluginLibrary.buildPlugin(config));
 })();
+
+module.exports = AllInsert;
 
 /*@end@*/
