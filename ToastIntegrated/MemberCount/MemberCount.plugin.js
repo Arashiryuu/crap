@@ -1,7 +1,7 @@
 /**
  * @name MemberCount
  * @author Arashiryuu
- * @version 2.2.0
+ * @version 2.2.1
  * @description Displays a server's member-count at the top of the member-list, can be styled with the #MemberCount selector.
  * @website https://github.com/Arashiryuu
  * @source https://github.com/Arashiryuu/crap/blob/master/ToastIntegrated/MemberCount/MemberCount.plugin.js
@@ -47,18 +47,17 @@ var MemberCount = (() => {
 					twitter_username: ''
 				}
 			],
-			version: '2.2.0',
+			version: '2.2.1',
 			description: 'Displays a server\'s member-count at the top of the member-list, can be styled with the #MemberCount selector.',
 			github: 'https://github.com/Arashiryuu',
 			github_raw: 'https://raw.githubusercontent.com/Arashiryuu/crap/master/ToastIntegrated/MemberCount/MemberCount.plugin.js'
 		},
 		changelog: [
 			{
-				title: 'Evolving?',
-				type: 'improved',
+				title: 'Bugs Squashed!',
+				type: 'fixed',
 				items: [
-					'Improved positioning of the counter in the DOM.',
-					'Reworked styling rules.'
+					'Background color should match the rest of the userlist.'
 				]
 			}
 		]
@@ -174,7 +173,7 @@ var MemberCount = (() => {
 						position: absolute;
 						display: flex;
 						width: 240px;
-                        background-color: var(--background-secondary-alt);
+                        background-color: var(--background-secondary);
 						text-align: center;
 						align-items: center;
 						justify-content: center;
@@ -282,7 +281,10 @@ var MemberCount = (() => {
 
 			updateContextPosition(that) {
 				if (!that) return;
-				const height = this.getProps(that, 'props.onHeightUpdate') || this.getProps(that, '_reactInternalFiber.return.memoizedProps.onHeightUpdate') || this.getProps(that, '_reactInternalFiber.child.child.memoizedProps.onHeightUpdate');
+				const height = this.getProps(that, 'updatePosition')
+					|| this.getProps(that, 'props.onHeightUpdate')
+					|| this.getProps(that, '_reactInternalFiber.return.memoizedProps.onHeightUpdate')
+					|| this.getProps(that, '_reactInternalFiber.child.child.memoizedProps.onHeightUpdate');
 				height && height();
 			}
 
