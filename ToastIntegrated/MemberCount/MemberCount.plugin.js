@@ -173,7 +173,7 @@ var MemberCount = (() => {
 						position: absolute;
 						display: flex;
 						width: 240px;
-                        background-color: var(--background-secondary);
+                        background-color: transparent;
 						text-align: center;
 						align-items: center;
 						justify-content: center;
