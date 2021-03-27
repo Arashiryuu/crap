@@ -1,6 +1,7 @@
 /**
  * @name HideUtils
- * @version 2.1.40
+ * @author Arashiryuu
+ * @version 2.1.41
  * @description Allows you to hide users, servers, and channels individually.
  * @website https://github.com/Arashiryuu
  * @source https://github.com/Arashiryuu/crap/blob/master/ToastIntegrated/HideUtils/HideUtils.plugin.js
@@ -47,7 +48,7 @@ var HideUtils = (() => {
 					twitter_username: ''
 				}
 			],
-			version: '2.1.40',
+			version: '2.1.41',
 			description: 'Allows you to hide users, servers, and channels individually.',
 			github: 'https://github.com/Arashiryuu',
 			github_raw: 'https://raw.githubusercontent.com/Arashiryuu/crap/master/ToastIntegrated/HideUtils/HideUtils.plugin.js',
@@ -58,7 +59,7 @@ var HideUtils = (() => {
 				title: 'Bugs Squashed!',
 				type: 'fixed',
 				items: [
-					'Fix crashing.'
+					'Hides folders again.'
 				]
 			}
 		]
@@ -461,6 +462,8 @@ var HideUtils = (() => {
 			}
 		};
 		
+		let subscription;
+
 		return class HideUtils extends Plugin {
 			constructor() {
 				super();
@@ -547,6 +550,7 @@ var HideUtils = (() => {
 						padding: 0 5px;
 						display: flex;
 						justify-content: center;
+						align-items: center;
 						overflow: hidden;
 					}
 					#HideUtils-Settings .icons .container::-webkit-scrollbar {
@@ -618,6 +622,10 @@ var HideUtils = (() => {
 				Dispatcher.unsubscribe('HIDEUTILS_BUTTON_SERVERCLEAR', this.servClear);
 				Dispatcher.unsubscribe('HIDEUTILS_BUTTON_FOLDERCLEAR', this.foldClear);
 				Dispatcher.unsubscribe('HIDEUTILS_BUTTON_CHANNELCLEAR', this.chanClear);
+				if (subscription) {
+					DOMTools.observer.unsubscribe(subscription);
+					subscription = null;
+				}
 			}
 	
 			onStart() {
@@ -856,11 +864,12 @@ var HideUtils = (() => {
 			updateContextPosition(m) {
 				if (!m) return;
 	
-				let height = this.getProps(m, 'props.onHeightUpdate');
+				let height = this.getProps(m, 'updatePosition');
+				if (!height) height = this.getProps(m, 'props.onHeightUpdate');
 				if (!height) height = this.getProps(m, '_reactInternalFiber.return.memoizedProps.onHeightUpdate');
 				if (!height) height = this.getProps(m, '_reactInternalFiber.child.child.memoizedProps.onHeightUpdate');
 	
-				height && height();
+				if (typeof height === 'function') height();
 			}
 	
 			/**
@@ -870,7 +879,7 @@ var HideUtils = (() => {
 			async patchMessages(promiseState) {
 				if (promiseState.cancelled) return;
 				const t = await new Promise((resolve, reject) => {
-					DOMTools.observer.subscribeToQuerySelector(() => {
+					subscription = DOMTools.observer.subscribeToQuerySelector(() => {
 						const instance = ReactTools.getReactInstance(document.querySelector('[data-list-id="chat-messages"]'));
 						if (instance) resolve(this.getProps(instance, 'return.return.return.return.return.type'));
 						else resolve(null);
@@ -1201,7 +1210,7 @@ var HideUtils = (() => {
 				const item = new ContextMenu.TextItem('Hide Folder', {
 					callback: (e) => {
 						MenuActions.closeContextMenu();
-						const [p] = DOMTools.parents(target, '.wrapper-21YSNc');
+						const [p] = DOMTools.parents(target, '.wrapper-3Njo_c');
 						if (!p) return;
 						const i = ReactTools.getOwnerInstance(p);
 						if (!i) return;
@@ -1333,12 +1342,12 @@ var HideUtils = (() => {
 	
 			foldPush(instance) {
 				if (!instance) return;
-				const id = instance.props.childProps.folderId;
+				const id = instance.props.folderId;
 				if (has.call(this.settings.folders, id)) return Toasts.info('This folder is already being hidden.', { timeout: 3e3 });
 				this.settings.folders[id] = {
 					id: id,
-					name: instance.props.childProps.folderName || instance.props.childProps.defaultFolderName,
-					servers: instance.props.childProps.guildIds || []
+					name: instance.props.folderName || instance.props.defaultFolderName,
+					servers: instance.props.guildIds || []
 				};
 				Toasts.info('Folder has successfully been hidden.', { timeout: 3e3 });
 				this.saveSettings(this.settings);
