@@ -590,11 +590,16 @@ var HideUtils = (() => {
 						background: #72767D;
 					}
 				`;
-				
 				this.userClear = this.userClear.bind(this);
 				this.servClear = this.servClear.bind(this);
 				this.chanClear = this.chanClear.bind(this);
 				this.foldClear = this.foldClear.bind(this);
+				this.subscriptions = [
+					['USERCLEAR', this.userClear],
+					['SERVERCLEAR', this.servClear],
+					['FOLDERCLEAR', this.foldClear],
+					['CHANNELCLEAR', this.chanClear]
+				];
 				this.channel;
 				this.guild;
 				this.user;
@@ -611,17 +616,19 @@ var HideUtils = (() => {
 			}
 	
 			subscribe() {
-				Dispatcher.subscribe('HIDEUTILS_BUTTON_USERCLEAR', this.userClear);
-				Dispatcher.subscribe('HIDEUTILS_BUTTON_SERVERCLEAR', this.servClear);
-				Dispatcher.subscribe('HIDEUTILS_BUTTON_FOLDERCLEAR', this.foldClear);
-				Dispatcher.subscribe('HIDEUTILS_BUTTON_CHANNELCLEAR', this.chanClear);
+				for (const [type, callback] of this.subscriptions) Dispatcher.subscribe(`HIDEUTILS_BUTTON_${type}`, callback);
+				// Dispatcher.subscribe('HIDEUTILS_BUTTON_USERCLEAR', this.userClear);
+				// Dispatcher.subscribe('HIDEUTILS_BUTTON_SERVERCLEAR', this.servClear);
+				// Dispatcher.subscribe('HIDEUTILS_BUTTON_FOLDERCLEAR', this.foldClear);
+				// Dispatcher.subscribe('HIDEUTILS_BUTTON_CHANNELCLEAR', this.chanClear);
 			}
 	
 			unsubscribe() {
-				Dispatcher.unsubscribe('HIDEUTILS_BUTTON_USERCLEAR', this.userClear);
-				Dispatcher.unsubscribe('HIDEUTILS_BUTTON_SERVERCLEAR', this.servClear);
-				Dispatcher.unsubscribe('HIDEUTILS_BUTTON_FOLDERCLEAR', this.foldClear);
-				Dispatcher.unsubscribe('HIDEUTILS_BUTTON_CHANNELCLEAR', this.chanClear);
+				for (const [type, callback] of this.subscriptions) Dispatcher.unsubscribe(`HIDEUTILS_BUTTON_${type}`, callback);
+				// Dispatcher.unsubscribe('HIDEUTILS_BUTTON_USERCLEAR', this.userClear);
+				// Dispatcher.unsubscribe('HIDEUTILS_BUTTON_SERVERCLEAR', this.servClear);
+				// Dispatcher.unsubscribe('HIDEUTILS_BUTTON_FOLDERCLEAR', this.foldClear);
+				// Dispatcher.unsubscribe('HIDEUTILS_BUTTON_CHANNELCLEAR', this.chanClear);
 				if (subscription) {
 					DOMTools.observer.unsubscribe(subscription);
 					subscription = null;
@@ -1113,6 +1120,14 @@ var HideUtils = (() => {
 				elements.setAttribute('role', 'menuitem');
 				elements.setAttribute('tabindex', '-1');
 				elements.firstChild.classList.add(ContextMenuClasses.label);
+				elements.addEventListener('mouseenter', (e) => {
+					if (elements.classList.contains(ContextMenuClasses.focused)) return;
+					elements.classList.add(ContextMenuClasses.focused);
+				});
+				elements.addEventListener('mouseleave', (e) => {
+					if (!elements.classList.contains(ContextMenuClasses.focused)) return;
+					elements.classList.remove(ContextMenuClasses.focused);
+				});
 				groupEl.removeAttribute('class');
 				groupEl.setAttribute('role', 'group');
 				// elements.classList.add(...DiscordClasses.ContextMenu.clickable.value.split(' '));
@@ -1149,6 +1164,14 @@ var HideUtils = (() => {
 				elements.setAttribute('role', 'menuitem');
 				elements.setAttribute('tabindex', '-1');
 				elements.firstChild.classList.add(ContextMenuClasses.label);
+				elements.addEventListener('mouseenter', (e) => {
+					if (elements.classList.contains(ContextMenuClasses.focused)) return;
+					elements.classList.add(ContextMenuClasses.focused);
+				});
+				elements.addEventListener('mouseleave', (e) => {
+					if (!elements.classList.contains(ContextMenuClasses.focused)) return;
+					elements.classList.remove(ContextMenuClasses.focused);
+				});
 				groupEl.removeAttribute('class');
 				groupEl.setAttribute('role', 'group');
 				// elements.classList.add(...DiscordClasses.ContextMenu.clickable.value.split(' '));
@@ -1194,6 +1217,14 @@ var HideUtils = (() => {
 					elements.setAttribute('tabindex', '-1');
 					elements.firstChild.classList.add(ContextMenuClasses.label);
 					if (i === 2) elements.classList.add(ContextMenuClasses.colorDanger.split(' ')[0]);
+					elements.addEventListener('mouseenter', (e) => {
+						if (elements.classList.contains(ContextMenuClasses.focused)) return;
+						elements.classList.add(ContextMenuClasses.focused);
+					});
+					elements.addEventListener('mouseleave', (e) => {
+						if (!elements.classList.contains(ContextMenuClasses.focused)) return;
+						elements.classList.remove(ContextMenuClasses.focused);
+					});
 				}
 				groupEl.removeAttribute('class');
 				groupEl.setAttribute('role', 'group');
@@ -1223,6 +1254,14 @@ var HideUtils = (() => {
 				elements.setAttribute('role', 'menuitem');
 				elements.setAttribute('tabindex', '-1');
 				elements.firstChild.classList.add(ContextMenuClasses.label);
+				elements.addEventListener('mouseenter', (e) => {
+					if (elements.classList.contains(ContextMenuClasses.focused)) return;
+					elements.classList.add(ContextMenuClasses.focused);
+				});
+				elements.addEventListener('mouseleave', (e) => {
+					if (!elements.classList.contains(ContextMenuClasses.focused)) return;
+					elements.classList.remove(ContextMenuClasses.focused);
+				});
 				groupEl.removeAttribute('class');
 				groupEl.setAttribute('role', 'group');
 				// elements.classList.add(...DiscordClasses.ContextMenu.clickable.value.split(' '));
