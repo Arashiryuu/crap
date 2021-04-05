@@ -170,10 +170,10 @@ var MemberCount = (() => {
 				};
 				this.css = `
 					#MemberCount {
+						background: var(--background-secondary);
 						position: absolute;
 						display: flex;
 						width: 240px;
-                        background-color: var(--background-secondary);
 						text-align: center;
 						align-items: center;
 						justify-content: center;
@@ -321,6 +321,14 @@ var MemberCount = (() => {
 				elements.setAttribute('role', 'menuitem');
 				elements.setAttribute('tabindex', '-1');
 				elements.firstChild.classList.add(ctxMenuClasses.label);
+				elements.addEventListener('mouseenter', (e) => {
+					if (elements.classList.contains(ctxMenuClasses.focused)) return;
+					elements.classList.add(ctxMenuClasses.focused);
+				});
+				elements.addEventListener('mouseleave', (e) => {
+					if (!elements.classList.contains(ctxMenuClasses.focused)) return;
+					elements.classList.remove(ctxMenuClasses.focused);
+				});
 				groupEl.removeAttribute('class');
 				groupEl.setAttribute('role', 'group');
 				// elements.classList.add(...DiscordClasses.ContextMenu.clickable.value.split(' '));
