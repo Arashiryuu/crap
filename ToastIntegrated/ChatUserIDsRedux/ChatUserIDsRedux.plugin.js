@@ -1,9 +1,11 @@
 /**
  * @name ChatUserIDsRedux
  * @author Arashiryuu
- * @version 1.0.18
+ * @version 1.0.19
  * @description Adds a user's ID next to their name in chat, makes accessing a user ID simpler. Double-click to copy the ID.
- * @website https://github.com/Arashiryuu
+ * @authorId 238108500109033472
+ * @authorLink https://github.com/Arashiryuu
+ * @website https://github.com/Arashiryuu/crap
  * @source https://github.com/Arashiryuu/crap/blob/master/ToastIntegrated/ChatUserIDsRedux/ChatUserIDsRedux.plugin.js
  */
 
@@ -47,7 +49,7 @@ var ChatUserIDsRedux = (() => {
 					twitter_username: ''
 				}
 			],
-			version: '1.0.18',
+			version: '1.0.19',
 			description: 'Adds a user\'s ID next to their name in chat, makes accessing a user ID simpler. Double-click to copy the ID.',
 			github: 'https://github.com/Arashiryuu',
 			github_raw: 'https://raw.githubusercontent.com/Arashiryuu/crap/master/ToastIntegrated/ChatUserIDsRedux/ChatUserIDsRedux.plugin.js'
@@ -56,7 +58,7 @@ var ChatUserIDsRedux = (() => {
 			{
 				title: 'Bugs Squashed!',
 				type: 'fixed',
-				items: ['Fix issue with copying ID when tag is placed after the username.']
+				items: ['Works again.']
 			}
 		]
 	};
@@ -94,6 +96,7 @@ var ChatUserIDsRedux = (() => {
 			...WebpackModules.getByProps('compact', 'cozy', 'username')
 		};
 
+		const TextElement = WebpackModules.getByDisplayName('Text');
 		const MessageHeader = WebpackModules.getByProps('MessageTimestamp');
 		const TooltipWrapper = WebpackModules.getByPrototypes('renderTooltip');
 
@@ -125,7 +128,17 @@ var ChatUserIDsRedux = (() => {
 			}
 
 			render() {
-				if (this.state.hasError) return React.createElement('div', { className: `${config.info.name}-error` }, 'Component Error');
+				if (this.state.hasError) return React.createElement('div', {
+					className: `${config.info.name}-error`,
+					children: [
+						React.createElement(TextElement, {
+							color: TextElement.Colors.ERROR,
+							children: [
+								`${config.info.name} Component Error!`
+							]
+						})
+					]
+				});
 				return this.props.children;
 			}
 		};
@@ -205,6 +218,7 @@ var ChatUserIDsRedux = (() => {
 					hoverTip: false
 				};
 				this.settings = null;
+				this.subscription = null;
 				this._css;
 				this.css = `
 					@import 'https://fonts.googleapis.com/css?family=Roboto|Inconsolata';
@@ -213,16 +227,17 @@ var ChatUserIDsRedux = (() => {
 						font-size: 10px;
 						letter-spacing: 0.025rem;
 						position: relative;
-						top: 3px;
+						top: -2px;
 						height: 9px;
 						line-height: 10px;
 						text-shadow: 0 1px 3px black;
 						background: {color};
 						border-radius: 3px;
 						font-weight: 500;
-						padding: 3px 5px;
+						padding: 1px 5px;
 						color: #FFF;
 						font-family: 'Roboto', 'Inconsolata', 'Whitney', sans-serif;
+						width: fit-content;
 					}
 
 					.tagID.before {
@@ -256,45 +271,51 @@ var ChatUserIDsRedux = (() => {
 				this.settings = this.loadSettings(this.default);
 				this.reinjectCSS();
 				this.promises.restore();
-				this.patchMessages();
+				// this.patchMessages();
 				Toasts.info(`${this.name} ${this.version} has started!`, { timeout: 2e3 });
 			}
 
 			onStop() {
 				PluginUtilities.removeStyle(this.short);
 				this.promises.cancel();
-				// this.clearTags();
+				this.clearTags();
 				Patcher.unpatchAll();
 				this.updateMessages();
 				Toasts.info(`${this.name} ${this.version} has stopped!`, { timeout: 2e3 });
 			}
 
+			onHeader() {
+				const headers = document.querySelectorAll(`.${MessageClasses.header.split(' ')[0]}`);
+				if (!headers.length) return;
+				for (const header of headers) this.processNode(header);
+			}
+
 			patchMessages() {
 				if (this.promises.state.cancelled) return;
-				Patcher.after(MessageHeader, 'default', (that, [props], value) => {
-					const { message: { id, author }, subscribeToGroupId } = props;
-					if (id !== subscribeToGroupId) return value;
+				// Patcher.after(MessageHeader, 'default', (that, [props], value) => {
+				// 	const { message: { id, author }, subscribeToGroupId } = props;
+				// 	if (id !== subscribeToGroupId) return value;
 
-					const children = this.getProps(value, 'props.children.1.props.children');
-					if (!children || !Array.isArray(children)) return value;
+				// 	const children = this.getProps(value, 'props.children.1.props.children');
+				// 	if (!children || !Array.isArray(children)) return value;
 
-					const { extraClass, pos } = this.getPos(this.settings);
-					const date = author.createdAt.toString().replace(/\([\w\d].+\)/g, '').split(' ');
-					const gmt = date.pop();
-					const tag = React.createElement(WrapBoundary(Tag), {
-						id: author.id,
-						key: `ChatUserID-${author.id}`,
-						text: `${date.join(' ').trim()}\n${gmt.trim()}`,
-						hover: this.settings.hoverTip,
-						classes: [extraClass],
-						onDoubleClick: (e) => this.double(e, author)
-					});
+				// 	const { extraClass, pos } = this.getPos(this.settings);
+				// 	const date = author.createdAt.toString().replace(/\([\w\d].+\)/g, '').split(' ');
+				// 	const gmt = date.pop();
+				// 	const tag = React.createElement(WrapBoundary(Tag), {
+				// 		id: author.id,
+				// 		key: `ChatUserID-${author.id}`,
+				// 		text: `${date.join(' ').trim()}\n${gmt.trim()}`,
+				// 		hover: this.settings.hoverTip,
+				// 		classes: [extraClass],
+				// 		onDoubleClick: (e) => this.double(e, author)
+				// 	});
 
-					const fn = (child) => child && child.key && child.key.startsWith('ChatUserID');
-					if (!children.find(fn)) children.splice(pos === 'beforebegin' ? 0 : 2, 0, tag);
+				// 	const fn = (child) => child && child.key && child.key.startsWith('ChatUserID');
+				// 	if (!children.find(fn)) children.splice(pos === 'beforebegin' ? 0 : 2, 0, tag);
 					
-					return value;
-				});
+				// 	return value;
+				// });
 				this.updateMessages();
 			}
 
@@ -313,8 +334,8 @@ var ChatUserIDsRedux = (() => {
 				try {
 					await window.navigator.clipboard.writeText(author.id);
 					Toasts.info('Successfully copied!', { timeout: 2e3 });
-				} catch(err) {
-					err(err);
+				} catch(error) {
+					err(error);
 					Toasts.error('Failed to copy! See console for error(s)!', { timeout: 2e3 });
 				}
 				if (e.target) e.target.blur();
@@ -330,12 +351,12 @@ var ChatUserIDsRedux = (() => {
 				if (node.querySelector('.tagID')) return;
 				const instance = ReactTools.getReactInstance(node);
 				if (!instance) return;
-				const props = this.getProps(instance, 'memoizedProps.children.0.props.children.1.props');
+				const props = this.getProps(instance, 'memoizedProps.children.1.props.children.props.children.0.props');
 				if (!props || !this.getProps(props, 'message')) return;
 				const { message: { author } } = props;
 				const tag = this.createTag(author.id);
 				const username = node.querySelector(`.${MessageClasses.username.split(' ')[0]}`);
-				DOMTools.on(tag, `dblclick.${this.short}`, (e) => this.double(e));
+				DOMTools.on(tag, `dblclick.${this.short}`, (e) => this.double(e, author));
 				const { extraClass, pos } = this.getPos(this.settings);
 				tag.classList.add(extraClass);
 				username.insertAdjacentElement(pos, tag);
@@ -372,17 +393,10 @@ var ChatUserIDsRedux = (() => {
 			}
 
 			/* Observer */
-			// observer({ addedNodes }) {
-			// 	for (const node of addedNodes.values()) {
-			// 		if (!node) continue;
-			// 		if (node.classList && node.classList.contains(MessageClasses.groupStart.split(' ')[0])) this.processNode(node);
-			// 	}
-			// }
-
-			/* onSwitch */
-			// onSwitch() {
-			// 	for (const node of document.querySelectorAll(`.${MessageClasses.groupStart.split(' ')[0]}`)) this.processNode(node);
-			// }
+			observer({ addedNodes }) {
+				if (!addedNodes || !addedNodes.length) return;
+				this.onHeader();
+			}
 
 			/* Settings Panel */
 
