@@ -409,14 +409,14 @@ var ChatUserIDsRedux = (() => {
 						}, { colors: this.settings.colors }),
 						new RadioGroup('Tag Placement', 'Decides whether the tag is placed before the username, or after it.', this.settings.tagPosition || 0, options, (i) => {
 							this.settings.tagPosition = i;
-							// this.clearTags();
-							// this.onSwitch();
+							this.clearTags();
+							this.onHeader();
 							this.updateMessages();
 						}),
 						new Switch('Hover Tooltip', 'Decides whether or not the account creation date tooltip is displayed.', this.settings.hoverTip, (i) => {
 							this.settings.hoverTip = i;
 							this.updateMessages();
-						})
+						}, { disabled: true }) // feature doesn't exists for non-React version of tags
 					)
 				);
 			}
