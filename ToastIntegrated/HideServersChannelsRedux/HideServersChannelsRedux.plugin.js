@@ -1,9 +1,11 @@
 /**
- * @name HideServerChannelsRedux
+ * @name HideServersChannelsRedux
  * @author Arashiryuu
- * @version 1.1.5
+ * @version 1.1.6
  * @description Adds buttons to the header for hiding the servers list and channels list.
- * @website https://github.com/Arashiryuu
+ * @authorId 238108500109033472
+ * @authorLink https://github.com/Arashiryuu
+ * @website https://github.com/Arashiryuu/crap
  * @source https://github.com/Arashiryuu/crap/blob/master/ToastIntegrated/HideServersChannelsRedux/HideServersChannelsRedux.plugin.js
  */
 
@@ -47,7 +49,7 @@ var HideServersChannelsRedux = (() => {
 					twitter_username: ''
 				}
 			],
-			version: '1.1.5',
+			version: '1.1.6',
 			description: 'Adds buttons to the header for hiding the servers list and channels list.',
 			github: 'https://github.com/Arashiryuu',
 			github_raw: 'https://raw.githubusercontent.com/Arashiryuu/crap/master/ToastIntegrated/HideServersChannelsRedux/HideServersChannelsRedux.plugin.js'
@@ -56,7 +58,7 @@ var HideServersChannelsRedux = (() => {
 			{
 				title: 'Bugs Squashed!',
 				type: 'fixed',
-				items: ['Loads settings again!']
+				items: ['Fixed issue with unhiding the guild list creating extra space.']
 			}
 		]
 	};
@@ -175,6 +177,11 @@ var HideServersChannelsRedux = (() => {
 		return class HideServersChannelsRedux extends Plugin {
 			constructor() {
 				super();
+				this.promises = {
+					state: { cancelled: false },
+					cancel() { this.state.cancelled = true; },
+					restore() { this.state.cancelled = false; }
+				};
 				this.default = { keybinds: false, animations: true };
 				this.settings = null;
 				this._css;
@@ -233,14 +240,16 @@ var HideServersChannelsRedux = (() => {
 			/* Methods */
 
 			onStart() {
+				this.promises.restore();
 				this.settings = this.loadSettings(this.default);
 				this.handleCSS();
-				this.patchHeader();
+				this.patchHeader(this.promises.state);
 				this.handleKeybinds();
 				Toasts.info(`${this.name} ${this.version} has started!`, { timeout: 2e3 });
 			}
 
 			onStop() {
+				this.promises.cancel();
 				Patcher.unpatchAll();
 				this.updateHeader();
 				this.removeKeybinds();
@@ -278,13 +287,13 @@ var HideServersChannelsRedux = (() => {
 
 			closeElement(el, guilds, base) {
 				if (!this.settings.animations && guilds && base) {
-					base.style.setProperty('left', '0');
+					// base.style.setProperty('left', '0');
 					return DOMTools.addClass(el, '_closed');
 				} else if (guilds && base) {
 					DOMTools.addClass(base, 'closing-guild');
 					return setTimeout(() => {
 						DOMTools.addClass(el, '_closed');
-						base.style.setProperty('left', '0');
+						// base.style.setProperty('left', '0');
 						DOMTools.removeClass(base, 'closing-guild');
 					}, 400);
 				} else if (this.settings.animations && !guilds && !base) {
@@ -298,9 +307,9 @@ var HideServersChannelsRedux = (() => {
 			}
 
 			openElement(el, guilds, base) {
-				if (guilds && base) base.style.setProperty('left', '72px');
+				// if (guilds && base) base.style.setProperty('left', '0');
 				if (!this.settings.animations && guilds && base) {
-					base.style.setProperty('left', '72px');
+					// base.style.setProperty('left', '0');
 					return DOMTools.removeClass(el, '_closed');
 				} else if (guilds && base) {
 					DOMTools.addClass(base, 'opening-guild');
@@ -347,7 +356,8 @@ var HideServersChannelsRedux = (() => {
 				this.openElement(element);
 			}
 
-			patchHeader() {
+			patchHeader(state) {
+				if (state.cancelled) return;
 				const Header = WebpackModules.getByDisplayName('HeaderBarContainer');
 
 				Patcher.after(Header.prototype, 'render', (that, args, value) => {
@@ -356,8 +366,9 @@ var HideServersChannelsRedux = (() => {
 
 					const S = DiscordModules.React.createElement(ServerButton, { key: 'servers', onClick: (e) => this.onServerButtonClick(e) });
 					const C = DiscordModules.React.createElement(ChannelButton, { key: 'channels', onClick: (e) => this.onChannelButtonClick(e) });
+					const fn = (key) => (item) => item && item.key && item.key === key;
 
-					children.unshift(S, C);
+					if (!children.some(fn('servers')) || !children.some(fn('channels'))) children.unshift(S, C);
 
 					return value;
 				});
