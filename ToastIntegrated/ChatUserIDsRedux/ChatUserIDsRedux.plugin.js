@@ -1,7 +1,7 @@
 /**
  * @name ChatUserIDsRedux
  * @author Arashiryuu
- * @version 1.0.19
+ * @version 1.0.20
  * @description Adds a user's ID next to their name in chat, makes accessing a user ID simpler. Double-click to copy the ID.
  * @authorId 238108500109033472
  * @authorLink https://github.com/Arashiryuu
@@ -49,16 +49,19 @@ var ChatUserIDsRedux = (() => {
 					twitter_username: ''
 				}
 			],
-			version: '1.0.19',
+			version: '1.0.20',
 			description: 'Adds a user\'s ID next to their name in chat, makes accessing a user ID simpler. Double-click to copy the ID.',
 			github: 'https://github.com/Arashiryuu',
 			github_raw: 'https://raw.githubusercontent.com/Arashiryuu/crap/master/ToastIntegrated/ChatUserIDsRedux/ChatUserIDsRedux.plugin.js'
 		},
 		changelog: [
 			{
-				title: 'Bugs Squashed!',
-				type: 'fixed',
-				items: ['Works again.']
+				// title: 'Bugs Squashed!',
+				// type: 'fixed',
+				// items: ['Works again.']
+				title: 'Evolving?',
+				type: 'improved',
+				items: ['Re-enabled hover tooltip setting. We\'re back using React.']
 			}
 		]
 	};
@@ -90,6 +93,18 @@ var ChatUserIDsRedux = (() => {
 		const { SettingPanel, SettingGroup, ColorPicker, RadioGroup, Switch } = Settings;
 		const { React, ReactDOM } = DiscordModules;
 
+		const queryStrings = ['ANIMATE_CHAT_AVATAR', 'showUsernamePopout'];
+		const MessageHeader = WebpackModules.find((mod) => {
+			if (!mod || !mod.default) return false;
+			let s = '';
+			try {
+				s = mod.default.toString([]);
+			} catch (e) {
+				s = JSON.stringify(mod.default);
+			}
+			return queryStrings.every((n) => s.includes(n));
+		});
+
 		const has = Object.prototype.hasOwnProperty;
 		const MessageClasses = {
 			...WebpackModules.getByProps('message', 'groupStart'),
@@ -97,7 +112,7 @@ var ChatUserIDsRedux = (() => {
 		};
 
 		const TextElement = WebpackModules.getByDisplayName('Text');
-		const MessageHeader = WebpackModules.getByProps('MessageTimestamp');
+		// const MessageHeader = WebpackModules.getByProps('MessageTimestamp');
 		const TooltipWrapper = WebpackModules.getByPrototypes('renderTooltip');
 
 		const options = [
@@ -188,7 +203,7 @@ var ChatUserIDsRedux = (() => {
 
 			render() {
 				const classes = Tag.getClasses(this);
-				classes.unshift('tagID');
+				if (!classes.includes('tagID')) classes.unshift('tagID');
 				return React.createElement(TooltipWrapper, {
 					position: TooltipWrapper.Positions.TOP,
 					color: TooltipWrapper.Colors.BLACK,
@@ -218,7 +233,6 @@ var ChatUserIDsRedux = (() => {
 					hoverTip: false
 				};
 				this.settings = null;
-				this.subscription = null;
 				this._css;
 				this.css = `
 					@import 'https://fonts.googleapis.com/css?family=Roboto|Inconsolata';
@@ -227,14 +241,14 @@ var ChatUserIDsRedux = (() => {
 						font-size: 10px;
 						letter-spacing: 0.025rem;
 						position: relative;
-						top: -2px;
+						top: 3px;
 						height: 9px;
 						line-height: 10px;
 						text-shadow: 0 1px 3px black;
 						background: {color};
 						border-radius: 3px;
 						font-weight: 500;
-						padding: 1px 5px;
+						padding: 3px 5px;
 						color: #FFF;
 						font-family: 'Roboto', 'Inconsolata', 'Whitney', sans-serif;
 						width: fit-content;
@@ -271,14 +285,14 @@ var ChatUserIDsRedux = (() => {
 				this.settings = this.loadSettings(this.default);
 				this.reinjectCSS();
 				this.promises.restore();
-				// this.patchMessages();
+				this.patchMessages(this.promises.state);
 				Toasts.info(`${this.name} ${this.version} has started!`, { timeout: 2e3 });
 			}
 
 			onStop() {
 				PluginUtilities.removeStyle(this.short);
 				this.promises.cancel();
-				this.clearTags();
+				// this.clearTags();
 				Patcher.unpatchAll();
 				this.updateMessages();
 				Toasts.info(`${this.name} ${this.version} has stopped!`, { timeout: 2e3 });
@@ -290,32 +304,32 @@ var ChatUserIDsRedux = (() => {
 				for (const header of headers) this.processNode(header);
 			}
 
-			patchMessages() {
-				if (this.promises.state.cancelled) return;
-				// Patcher.after(MessageHeader, 'default', (that, [props], value) => {
-				// 	const { message: { id, author }, subscribeToGroupId } = props;
-				// 	if (id !== subscribeToGroupId) return value;
+			patchMessages(state) {
+				if (state.cancelled || !MessageHeader) return;
+				Patcher.after(MessageHeader, 'default', (that, [props], value) => {
+					const { message: { id, author }, subscribeToGroupId } = props;
+					if (id !== subscribeToGroupId) return value;
 
-				// 	const children = this.getProps(value, 'props.children.1.props.children');
-				// 	if (!children || !Array.isArray(children)) return value;
+					const children = this.getProps(value, 'props.children.1.props.children');
+					if (!children || !Array.isArray(children)) return value;
 
-				// 	const { extraClass, pos } = this.getPos(this.settings);
-				// 	const date = author.createdAt.toString().replace(/\([\w\d].+\)/g, '').split(' ');
-				// 	const gmt = date.pop();
-				// 	const tag = React.createElement(WrapBoundary(Tag), {
-				// 		id: author.id,
-				// 		key: `ChatUserID-${author.id}`,
-				// 		text: `${date.join(' ').trim()}\n${gmt.trim()}`,
-				// 		hover: this.settings.hoverTip,
-				// 		classes: [extraClass],
-				// 		onDoubleClick: (e) => this.double(e, author)
-				// 	});
+					const { extraClass, pos } = this.getPos(this.settings);
+					const date = author.createdAt.toString().replace(/\([\w\d].+\)/g, '').split(' ');
+					const gmt = date.pop();
+					const tag = React.createElement(WrapBoundary(Tag), {
+						id: author.id,
+						key: `ChatUserID-${author.id}`,
+						text: `${date.join(' ').trim()}\n${gmt.trim()}`,
+						hover: this.settings.hoverTip,
+						classes: [extraClass],
+						onDoubleClick: (e) => this.double(e, author)
+					});
 
-				// 	const fn = (child) => child && child.key && child.key.startsWith('ChatUserID');
-				// 	if (!children.find(fn)) children.splice(pos === 'beforebegin' ? 0 : 2, 0, tag);
+					const fn = (child) => child && child.key && child.key.startsWith('ChatUserID');
+					if (!children.find(fn)) children.splice(pos === 'beforebegin' ? 0 : 2, 0, tag);
 					
-				// 	return value;
-				// });
+					return value;
+				});
 				this.updateMessages();
 			}
 
@@ -393,10 +407,10 @@ var ChatUserIDsRedux = (() => {
 			}
 
 			/* Observer */
-			observer({ addedNodes }) {
-				if (!addedNodes || !addedNodes.length) return;
-				this.onHeader();
-			}
+			// observer({ addedNodes }) {
+			// 	if (!addedNodes || !addedNodes.length) return;
+			// 	this.onHeader();
+			// }
 
 			/* Settings Panel */
 
@@ -409,14 +423,14 @@ var ChatUserIDsRedux = (() => {
 						}, { colors: this.settings.colors }),
 						new RadioGroup('Tag Placement', 'Decides whether the tag is placed before the username, or after it.', this.settings.tagPosition || 0, options, (i) => {
 							this.settings.tagPosition = i;
-							this.clearTags();
-							this.onHeader();
+							// this.clearTags();
+							// this.onHeader();
 							this.updateMessages();
 						}),
 						new Switch('Hover Tooltip', 'Decides whether or not the account creation date tooltip is displayed.', this.settings.hoverTip, (i) => {
 							this.settings.hoverTip = i;
 							this.updateMessages();
-						}, { disabled: true }) // feature doesn't exists for non-React version of tags
+						})
 					)
 				);
 			}
