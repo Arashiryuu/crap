@@ -107,6 +107,9 @@ var TitleForTitlebar = (() => {
 						font-family: 'Inconsolata', sans-serif;
 						text-transform: capitalize;
 						align-self: center;
+						justify-self: center;
+						margin-right: auto;
+						margin-left: -10vw;
 					}
 
 					.winButton-iRh8-Z {
@@ -143,7 +146,7 @@ var TitleForTitlebar = (() => {
 					}
 				`;
 				this.switchList = [
-					WebpackModules.getByProps('app').app.split(' ')[0],
+					WebpackModules.getByProps('app', 'layers').app.split(' ')[0],
 					DiscordSelectors.TitleWrap.chat.value.split('.')[1],
 					WebpackModules.getByProps('messages', 'messagesWrapper').messagesWrapper.split(' ')[0],
 					WebpackModules.getByProps('chatContent').chatContent.split(' ')[0]
@@ -154,6 +157,8 @@ var TitleForTitlebar = (() => {
 
 			onStart() {
 				const { ChannelStore: { getChannel }, SelectedChannelStore: { getChannelId } } = DiscordModules;
+
+				this.settings = this.loadSettings(this.default);
 
 				this.getChannel = getChannel;
 				this.activeChannel = getChannelId;
@@ -173,7 +178,7 @@ var TitleForTitlebar = (() => {
 			}
 
 			appendStyle() {
-				const e = DOMTools.parseHTML(`<link href="https://fonts.googleapis.com/css?family=Roboto|Inconsolata" rel="preload stylesheet" as="font" crossorigin/>`);
+				const e = DOMTools.parseHTML(`<link href="https://fonts.googleapis.com/css?family=Roboto|Inconsolata" rel="preload stylesheet" as="font" crossorigin/>`); // eslint-disable-line
 				DOMTools.appendTo(e, document.head);
 				PluginUtilities.addStyle('TitleForTitlebarCSS', !this.settings.hideChannelName ? this.css : this.css + this.optInCSS);
 			}
@@ -412,5 +417,7 @@ var TitleForTitlebar = (() => {
 		}
 		: buildPlugin(global.ZeresPluginLibrary.buildPlugin(config));
 })();
+
+module.exports = TitleForTitlebar;
 
 /*@end@*/
