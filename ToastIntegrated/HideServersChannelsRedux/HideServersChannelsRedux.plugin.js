@@ -1,7 +1,7 @@
 /**
  * @name HideServersChannelsRedux
  * @author Arashiryuu
- * @version 1.1.6
+ * @version 1.1.7
  * @description Adds buttons to the header for hiding the servers list and channels list.
  * @authorId 238108500109033472
  * @authorLink https://github.com/Arashiryuu
@@ -49,7 +49,7 @@ var HideServersChannelsRedux = (() => {
 					twitter_username: ''
 				}
 			],
-			version: '1.1.6',
+			version: '1.1.7',
 			description: 'Adds buttons to the header for hiding the servers list and channels list.',
 			github: 'https://github.com/Arashiryuu',
 			github_raw: 'https://raw.githubusercontent.com/Arashiryuu/crap/master/ToastIntegrated/HideServersChannelsRedux/HideServersChannelsRedux.plugin.js'
@@ -58,7 +58,7 @@ var HideServersChannelsRedux = (() => {
 			{
 				title: 'Bugs Squashed!',
 				type: 'fixed',
-				items: ['Fixed issue with unhiding the guild list creating extra space.']
+				items: ['Fixed issue with loading plugin when library is missing.']
 			}
 		]
 	};
@@ -368,7 +368,7 @@ var HideServersChannelsRedux = (() => {
 					const C = DiscordModules.React.createElement(ChannelButton, { key: 'channels', onClick: (e) => this.onChannelButtonClick(e) });
 					const fn = (key) => (item) => item && item.key && item.key === key;
 
-					if (!children.some(fn('servers')) || !children.some(fn('channels'))) children.unshift(S, C);
+					if (!children.some(fn('servers')) && !children.some(fn('channels'))) children.unshift(S, C);
 
 					return value;
 				});
@@ -480,17 +480,45 @@ var HideServersChannelsRedux = (() => {
 			}
 
 			load() {
+				const { BdApi, BdApi: { React } } = window;
 				const title = 'Library Missing';
-				const ModalStack = window.BdApi.findModuleByProps('push', 'update', 'pop', 'popWithKey');
-				const TextElement = window.BdApi.findModuleByProps('Sizes', 'Weights');
-				const ConfirmationModal = window.BdApi.findModule((m) => m.defaultProps && m.key && m.key() === 'confirm-modal');
-				if (!ModalStack || !ConfirmationModal || !TextElement) return window.BdApi.getCore().alert(title, `The library plugin needed for ${config.info.name} is missing.<br /><br /> <a href="https://betterdiscord.net/ghdl?url=https://raw.githubusercontent.com/rauenzi/BDPluginLibrary/master/release/0PluginLibrary.plugin.js" target="_blank">Click here to download the library!</a>`);
+				const ModalStack = BdApi.findModuleByProps('push', 'update', 'pop', 'popWithKey');
+				const TextElement = BdApi.findModuleByDisplayName('Text');
+				const ConfirmationModal = BdApi.findModule((m) => m.defaultProps && m.key && m.key() === 'confirm-modal');
+				const children = [];
+				if (!TextElement) {
+					children.push(
+						React.createElement('span', {
+							children: [`The library plugin needed for ${config.info.name} is missing.`]
+						}),
+						React.createElement('br', {}),
+						React.createElement('a', {
+							target: '_blank',
+							href: 'https://betterdiscord.net/ghdl?url=https://raw.githubusercontent.com/rauenzi/BDPluginLibrary/master/release/0PluginLibrary.plugin.js',
+							children: ['Click here to download the library!']
+						})
+					);
+					return BdApi.alert(title, React.createElement('span', { children }));
+				}
+				children.push(
+					React.createElement(TextElement, {
+						color: TextElement.Colors.STANDARD,
+						children: [`The library plugin needed for ${config.info.name} is missing.`]
+					}),
+					React.createElement('br', {}),
+					React.createElement('a', {
+						target: '_blank',
+						href: 'https://betterdiscord.net/ghdl?url=https://raw.githubusercontent.com/rauenzi/BDPluginLibrary/master/release/0PluginLibrary.plugin.js',
+						children: ['Click here to download the library!']
+					})
+				);
+				if (!ModalStack || !ConfirmationModal) return BdApi.alert(title, children);
 				ModalStack.push(function(props) {
-					return window.BdApi.React.createElement(ConfirmationModal, Object.assign({
+					return React.createElement(ConfirmationModal, Object.assign({
 						header: title,
 						children: [
-							TextElement({
-								color: TextElement.Colors.PRIMARY,
+							React.createElement(TextElement, {
+								color: TextElement.Colors.STANDARD,
 								children: [`The library plugin needed for ${config.info.name} is missing. Please click Download Now to install it.`]
 							})
 						],
@@ -500,7 +528,7 @@ var HideServersChannelsRedux = (() => {
 						onConfirm: () => {
 							require('request').get('https://rauenzi.github.io/BDPluginLibrary/release/0PluginLibrary.plugin.js', async (error, response, body) => {
 								if (error) return require('electron').shell.openExternal('https://betterdiscord.net/ghdl?url=https://raw.githubusercontent.com/rauenzi/BDPluginLibrary/master/release/0PluginLibrary.plugin.js');
-								await new Promise(r => require('fs').writeFile(require('path').join(window.ContentManager.pluginsFolder, '0PluginLibrary.plugin.js'), body, r));
+								await new Promise((r) => require('fs').writeFile(require('path').join(window.ContentManager.pluginsFolder, '0PluginLibrary.plugin.js'), body, r));
 							});
 						}
 					}, props));
