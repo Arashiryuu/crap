@@ -1,4 +1,13 @@
-//META{"name":"MessageTimestampsRedux","displayName":"MessageTimestampsRedux","website":"https://github.com/Arashiryuu","source":"https://github.com/Arashiryuu/crap/blob/master/ToastIntegrated/MessageTimestampsRedux/MessageTimestampsRedux.plugin.js"}*//
+/**
+ * @name MessageTimestampsRedux
+ * @author Arashiryuu
+ * @version 1.0.14
+ * @description Displays the timestamp for a message, simply right-click and select "Show Timestamp."
+ * @authorId 238108500109033472
+ * @authorLink https://github.com/Arashiryuu
+ * @website https://github.com/Arashiryuu/crap
+ * @source https://github.com/Arashiryuu/crap/blob/master/ToastIntegrated/MessageTimestampsRedux/MessageTimestampsRedux.plugin.js
+ */
 
 /*@cc_on
 @if (@_jscript)
@@ -40,17 +49,17 @@ var MessageTimestampsRedux = (() => {
 					twitter_username: ''
 				}
 			],
-			version: '1.0.13',
+			version: '1.0.14',
 			description: 'Displays the timestamp for a message, simply right-click and select "Show Timestamp."',
 			github: 'https://github.com/Arashiryuu',
 			github_raw: 'https://raw.githubusercontent.com/Arashiryuu/crap/master/ToastIntegrated/MessageTimestampsRedux/MessageTimestampsRedux.plugin.js'
 		},
 		changelog: [
 			{
-				title: 'Bugs Squashed!',
-				type: 'fixed',
+				title: 'Evolving?',
+				type: 'improved',
 				items: [
-					'Displays in the context-menu again.'
+					'Using React again.'
 				]
 			}
 		]
@@ -72,48 +81,52 @@ var MessageTimestampsRedux = (() => {
 		const { SettingPanel, SettingGroup, RadioGroup, Slider, Switch } = Settings;
 		const { React, ReactDOM, ContextMenuActions: MenuActions } = DiscordModules;
 		
-		const MenuItem = WebpackModules.getByString('disabled', 'danger', 'brand');
+		const Menu = WebpackModules.getByProps('MenuItem', 'MenuGroup', 'MenuSeparator');
+		const ContextMenuClasses = WebpackModules.getByProps('menu', 'scroller');
+		const MessageContextMenu = WebpackModules.find((mod) => mod && mod.default && mod.default.displayName === 'MessageContextMenu');
 
-		const ErrorBoundary = class ErrorBoundary extends React.PureComponent {
-			constructor(props) {
-				super(props);
-				this.state = { hasError: false };
-			}
+		const isNil = (anything) => typeof anything === 'undefined' || anything === null;
 
-			static getDerivedStateFromError(error) {
-				return { hasError: true };
-			}
+		// const ErrorBoundary = class ErrorBoundary extends React.PureComponent {
+		// 	constructor(props) {
+		// 		super(props);
+		// 		this.state = { hasError: false };
+		// 	}
 
-			componentDidCatch(error, info) {
-				console.group(`%c[${config.info.name}]`, 'color: #3A71C1; font-weight: 700;');
-				console.error(error);
-				console.groupEnd();
-			}
+		// 	static getDerivedStateFromError(error) {
+		// 		return { hasError: true };
+		// 	}
 
-			render() {
-				if (this.state.hasError) return React.createElement('div', { className: 'react-error' }, 'Component Error!');
-				return this.props.children;
-			}
-		};
+		// 	componentDidCatch(error, info) {
+		// 		console.group(`%c[${config.info.name}]`, 'color: #3A71C1; font-weight: 700;');
+		// 		console.error(error);
+		// 		console.groupEnd();
+		// 	}
 
-		const WrapBoundary = (Original) => class Boundary extends React.PureComponent {
-			render() {
-				return React.createElement(ErrorBoundary, null, React.createElement(Original, this.props));
-			}
-		};
+		// 	render() {
+		// 		if (this.state.hasError) return React.createElement('div', { className: 'react-error' }, 'Component Error!');
+		// 		return this.props.children;
+		// 	}
+		// };
 
-		const ItemGroup = class ItemGroup extends React.PureComponent {
-			constructor(props) {
-				super(props);
-			}
+		// const WrapBoundary = (Original) => class Boundary extends React.PureComponent {
+		// 	render() {
+		// 		return React.createElement(ErrorBoundary, null, React.createElement(Original, this.props));
+		// 	}
+		// };
 
-			render() {
-				return React.createElement('div', {
-					role: 'group',
-					children: this.props.children || []
-				});
-			}
-		};
+		// const ItemGroup = class ItemGroup extends React.PureComponent {
+		// 	constructor(props) {
+		// 		super(props);
+		// 	}
+
+		// 	render() {
+		// 		return React.createElement('div', {
+		// 			role: 'group',
+		// 			children: this.props.children || []
+		// 		});
+		// 	}
+		// };
 		
 		return class MessageTimestampsRedux extends Plugin {
 			constructor() {
@@ -141,7 +154,7 @@ var MessageTimestampsRedux = (() => {
 			onStart() {
 				this.promises.restore();
 				this.settings = this.loadSettings(this.default);
-				// this.getContextMenu(this.promises.state).catch(this.didError);
+				this.patchContextMenu(this.promises.state);
 				Toasts.info(`${this.name} ${this.version} has started!`, { timeout: 2e3 });
 			}
 
@@ -168,44 +181,58 @@ var MessageTimestampsRedux = (() => {
 			 * Asynchronously gets the MessageContextMenu component as it renders, then patches it.
 			 * @returns {Promise<Void>}
 			 */
-			async getContextMenu(promiseState) {
-				const ContextMenu = await ReactComponents.getComponent('MessageContextMenu', DiscordSelectors.ContextMenu.value.trim(), (n) => {
-					return n.displayName && n.displayName === 'MessageContextMenu';
-				});
-				if (promiseState.cancelled) return;
-				log(ContextMenu);
-				// this.patchContextMenu(ContextMenu);
-			}
+			// async getContextMenu(promiseState) {
+			// 	const ContextMenu = await ReactComponents.getComponent('MessageContextMenu', DiscordSelectors.ContextMenu.value.trim(), (n) => {
+			// 		return n.displayName && n.displayName === 'MessageContextMenu';
+			// 	});
+			// 	if (promiseState.cancelled) return;
+			// 	log(ContextMenu);
+			// 	// this.patchContextMenu(ContextMenu);
+			// }
 
 			/**
 			 * Patches the render of the MessageContextMenu react component which is passed to it.
 			 * @param {ReactComponent} ContextMenu
 			 * @returns {Void}
 			 */
-			patchContextMenu(ContextMenu) {
-				if (!ContextMenu) return;
+			patchContextMenu(state) {
+				if (state.cancelled) return;
 
 				const key = 'MessageTimestampsRedux-GroupItem';
-				Patcher.after(ContextMenu, 'default', (that, args, value) => {
+				Patcher.after(MessageContextMenu, 'default', (that, args, value) => {
 					const [props] = args;
 					if (!props.message) return value;
 					
-					const { message, target } = props, children = this.getProps(value, 'props.children');
+					const { message, target } = props
+						, children = this.getProps(value, 'props.children');
 
 					if (!Array.isArray(children)) return value;
 
-					const item = new MenuItem({
+					const firstGroup = children.find((child) => child && child.props && Array.isArray(child.props.children));
+					if (!firstGroup) return value;
+
+					const item = React.createElement(Menu.MenuItem, {
 						label: 'Show Timestamp',
+						id: 'show-timestamp',
 						action: () => this.action(message, target)
 					});
 
-					const group = React.createElement(WrapBoundary(ItemGroup), {
-						children: [item],
-						key
+					const separator = React.createElement(Menu.MenuSeparator, {});
+					const separator2 = React.cloneElement(separator);
+
+					const group = React.createElement(Menu.MenuGroup, {
+						key,
+						children: [
+							!isNil(firstGroup.props.children[0]) && !isNil(firstGroup.props.children[1])
+								? separator 
+								: null,
+							item,
+							separator2
+						]
 					});
 
 					const fn = (item) => item && item.key && item.key === key;
-					if (!children.find(fn)) children.unshift(group);
+					if (!firstGroup.props.children.find(fn)) firstGroup.props.children.splice(2, 0, group);
 					
 					setImmediate(() => this.updateContextPosition(that));
 
@@ -282,11 +309,12 @@ var MessageTimestampsRedux = (() => {
 			updateContextPosition(m) {
 				if (!m) return;
 	
-				let height = this.getProps(m, 'props.onHeightUpdate');
+				let height = this.getProps(m, 'updatePosition');
+				if (!height) height = this.getProps(m, 'props.onHeightUpdate');
 				if (!height) height = this.getProps(m, '_reactInternalFiber.return.memoizedProps.onHeightUpdate');
 				if (!height) height = this.getProps(m, '_reactInternalFiber.child.child.memoizedProps.onHeightUpdate');
 	
-				height && height();
+				if (typeof height === 'function') height();
 			}
 
 			addContextMenuItem(menu, instance, owner, props) {
@@ -300,6 +328,14 @@ var MessageTimestampsRedux = (() => {
 					...DiscordClasses.ContextMenu.colorDefault.value.split(' ')
 				);
 				elements.firstChild.classList.add(...DiscordClasses.ContextMenu.label.value.split(' '));
+				elements.addEventListener('mouseenter', (e) => {
+					if (elements.classList.contains(ContextMenuClasses.focused)) return;
+					elements.classList.add(ContextMenuClasses.focused);
+				});
+				elements.addEventListener('mouseleave', (e) => {
+					if (!elements.classList.contains(ContextMenuClasses.focused)) return;
+					elements.classList.remove(ContextMenuClasses.focused);
+				});
 				group.addItems(item);
 				menu.querySelector('div[role="group"]').insertAdjacentElement('afterend', group.getElement());
 				setImmediate(() => this.updateContextPosition(owner));
@@ -321,14 +357,14 @@ var MessageTimestampsRedux = (() => {
 			}
 
 			/* Observer */
-			observer({ addedNodes }) {
-				for (const node of addedNodes.values()) {
-					if (!node) continue;
-					if (node.firstChild && node.firstChild.className && typeof node.firstChild.className === 'string' && node.firstChild.className.split(' ')[0] === DiscordClasses.ContextMenu.menu.value.split(' ')[0]) {
-						this.processContextMenu(node.firstChild);
-					}
-				}
-			}
+			// observer({ addedNodes }) {
+			// 	for (const node of addedNodes.values()) {
+			// 		if (!node) continue;
+			// 		if (node.firstChild && node.firstChild.className && typeof node.firstChild.className === 'string' && node.firstChild.className.split(' ')[0] === DiscordClasses.ContextMenu.menu.value.split(' ')[0]) {
+			// 			this.processContextMenu(node.firstChild);
+			// 		}
+			// 	}
+			// }
 
 			/**
 			 * Safely traverses or accesses an object's properties via the provided path.
@@ -355,9 +391,9 @@ var MessageTimestampsRedux = (() => {
 						], (i) => {
 							this.settings.tooltips = i;
 						}),
-						new Slider('Timestamp Display Length', 'How long to display the timestamps for. Default is 2000ms which is 2 seconds. Minimum is 1000ms, maximum is 10000ms.', 1000, 10000, this.settings.displayTime, (i) => {
+						new Slider('Timestamp Display Length', 'How long to display the timestamps for. Default is 2000ms which is 2 seconds. Minimum is 1000ms, maximum is 10000ms.', 1000, 10000, this.settings.displayTime, Utilities.debounce((i) => {
 							this.settings.displayTime = i;
-						}, {
+						}, 250), {
 							markers: [1000, 2000, 3000, 4000, 5000, 6000, 7000, 8000, 9000, 10000],
 							stickToMarkers: true
 						})
@@ -435,17 +471,45 @@ var MessageTimestampsRedux = (() => {
 			}
 
 			load() {
+				const { BdApi, BdApi: { React } } = window;
 				const title = 'Library Missing';
-				const ModalStack = window.BdApi.findModuleByProps('push', 'update', 'pop', 'popWithKey');
-				const TextElement = window.BdApi.findModuleByProps('Sizes', 'Weights');
-				const ConfirmationModal = window.BdApi.findModule((m) => m.defaultProps && m.key && m.key() === 'confirm-modal');
-				if (!ModalStack || !ConfirmationModal || !TextElement) return window.BdApi.getCore().alert(title, `The library plugin needed for ${config.info.name} is missing.<br /><br /> <a href="https://betterdiscord.net/ghdl?url=https://raw.githubusercontent.com/rauenzi/BDPluginLibrary/master/release/0PluginLibrary.plugin.js" target="_blank">Click here to download the library!</a>`);
+				const ModalStack = BdApi.findModuleByProps('push', 'update', 'pop', 'popWithKey');
+				const TextElement = BdApi.findModuleByDisplayName('Text');
+				const ConfirmationModal = BdApi.findModule((m) => m.defaultProps && m.key && m.key() === 'confirm-modal');
+				const children = [];
+				if (!TextElement) {
+					children.push(
+						React.createElement('span', {
+							children: [`The library plugin needed for ${config.info.name} is missing.`]
+						}),
+						React.createElement('br', {}),
+						React.createElement('a', {
+							target: '_blank',
+							href: 'https://betterdiscord.net/ghdl?url=https://raw.githubusercontent.com/rauenzi/BDPluginLibrary/master/release/0PluginLibrary.plugin.js',
+							children: ['Click here to download the library!']
+						})
+					);
+					return BdApi.alert(title, React.createElement('span', { children }));
+				}
+				children.push(
+					React.createElement(TextElement, {
+						color: TextElement.Colors.STANDARD,
+						children: [`The library plugin needed for ${config.info.name} is missing.`]
+					}),
+					React.createElement('br', {}),
+					React.createElement('a', {
+						target: '_blank',
+						href: 'https://betterdiscord.net/ghdl?url=https://raw.githubusercontent.com/rauenzi/BDPluginLibrary/master/release/0PluginLibrary.plugin.js',
+						children: ['Click here to download the library!']
+					})
+				);
+				if (!ModalStack || !ConfirmationModal) return BdApi.alert(title, children);
 				ModalStack.push(function(props) {
-					return window.BdApi.React.createElement(ConfirmationModal, Object.assign({
+					return React.createElement(ConfirmationModal, Object.assign({
 						header: title,
 						children: [
-							window.BdApi.React.createElement(TextElement, {
-								color: TextElement.Colors.PRIMARY,
+							React.createElement(TextElement, {
+								color: TextElement.Colors.STANDARD,
 								children: [`The library plugin needed for ${config.info.name} is missing. Please click Download Now to install it.`]
 							})
 						],
@@ -455,7 +519,7 @@ var MessageTimestampsRedux = (() => {
 						onConfirm: () => {
 							require('request').get('https://rauenzi.github.io/BDPluginLibrary/release/0PluginLibrary.plugin.js', async (error, response, body) => {
 								if (error) return require('electron').shell.openExternal('https://betterdiscord.net/ghdl?url=https://raw.githubusercontent.com/rauenzi/BDPluginLibrary/master/release/0PluginLibrary.plugin.js');
-								await new Promise(r => require('fs').writeFile(require('path').join(window.ContentManager.pluginsFolder, '0PluginLibrary.plugin.js'), body, r));
+								await new Promise((r) => require('fs').writeFile(require('path').join(window.ContentManager.pluginsFolder, '0PluginLibrary.plugin.js'), body, r));
 							});
 						}
 					}, props));
@@ -503,3 +567,5 @@ var MessageTimestampsRedux = (() => {
 })();
 
 module.exports = MessageTimestampsRedux;
+
+/*@end@*/
