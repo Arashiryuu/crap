@@ -1,7 +1,7 @@
 /**
  * @name MessageTimestampsRedux
  * @author Arashiryuu
- * @version 1.0.14
+ * @version 1.0.15
  * @description Displays the timestamp for a message, simply right-click and select "Show Timestamp."
  * @authorId 238108500109033472
  * @authorLink https://github.com/Arashiryuu
@@ -49,7 +49,7 @@ var MessageTimestampsRedux = (() => {
 					twitter_username: ''
 				}
 			],
-			version: '1.0.14',
+			version: '1.0.15',
 			description: 'Displays the timestamp for a message, simply right-click and select "Show Timestamp."',
 			github: 'https://github.com/Arashiryuu',
 			github_raw: 'https://raw.githubusercontent.com/Arashiryuu/crap/master/ToastIntegrated/MessageTimestampsRedux/MessageTimestampsRedux.plugin.js'
@@ -59,7 +59,8 @@ var MessageTimestampsRedux = (() => {
 				title: 'Evolving?',
 				type: 'improved',
 				items: [
-					'Using React again.'
+					'Using React again.',
+					'Fix potential conflict with ImageUtilities plugin.'
 				]
 			}
 		]
@@ -209,9 +210,6 @@ var MessageTimestampsRedux = (() => {
 					});
 
 					if (!firstGroup.props.children.some(fn)) firstGroup.props.children.splice(2, 0, group);
-					
-					setImmediate(() => this.updateContextPosition(that));
-
 					return value;
 				});
 
