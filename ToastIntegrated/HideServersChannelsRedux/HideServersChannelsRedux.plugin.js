@@ -1,7 +1,7 @@
 /**
  * @name HideServersChannelsRedux
  * @author Arashiryuu
- * @version 1.1.7
+ * @version 1.1.8
  * @description Adds buttons to the header for hiding the servers list and channels list.
  * @authorId 238108500109033472
  * @authorLink https://github.com/Arashiryuu
@@ -49,7 +49,7 @@ var HideServersChannelsRedux = (() => {
 					twitter_username: ''
 				}
 			],
-			version: '1.1.7',
+			version: '1.1.8',
 			description: 'Adds buttons to the header for hiding the servers list and channels list.',
 			github: 'https://github.com/Arashiryuu',
 			github_raw: 'https://raw.githubusercontent.com/Arashiryuu/crap/master/ToastIntegrated/HideServersChannelsRedux/HideServersChannelsRedux.plugin.js'
@@ -58,7 +58,9 @@ var HideServersChannelsRedux = (() => {
 			{
 				title: 'Bugs Squashed!',
 				type: 'fixed',
-				items: ['Fixed issue with loading plugin when library is missing.']
+				items: [
+					'Fixed issue with buttons losing their highlight if active when switching channels/servers.'
+				]
 			}
 		]
 	};
@@ -84,6 +86,15 @@ var HideServersChannelsRedux = (() => {
 		const guilds = WebpackModules.getByProps('wrapper', 'unreadMentionsIndicatorTop');
 		const channelBase = WebpackModules.getByProps('base', 'container', 'sidebar');
 
+		const buttonStates = {
+			channels: {
+				active: false,
+			},
+			guilds: {
+				active: false
+			}
+		};
+
 		const ServerButton = class ServerButton extends DiscordModules.React.Component {
 			constructor(props) {
 				super(props);
@@ -95,13 +106,16 @@ var HideServersChannelsRedux = (() => {
 			}
 
 			render() {
+				const active = buttonStates.guilds.active
+					? icons.selected
+					: '';
 				return DiscordModules.React.createElement(TooltipWrapper, {
 					color: TooltipWrapper.Colors.BLACK,
 					position: TooltipWrapper.Positions.BOTTOM,
 					text: 'Toggle Servers',
 					children: (props) => DiscordModules.React.createElement('div', Object.assign({
 						tabindex: 0,
-						className: `${icons.iconWrapper} ${icons.clickable}`,
+						className: `${icons.iconWrapper} ${icons.clickable} ${active}`.trim(),
 						role: 'button'
 					}, props), 
 						DiscordModules.React.createElement('svg', {
@@ -140,13 +154,16 @@ var HideServersChannelsRedux = (() => {
 			}
 
 			render() {
+				const active = buttonStates.channels.active
+					? icons.selected
+					: '';
 				return DiscordModules.React.createElement(TooltipWrapper, {
 					color: TooltipWrapper.Colors.BLACK,
 					position: TooltipWrapper.Positions.BOTTOM,
 					text: 'Toggle Channels',
 					children: (props) => DiscordModules.React.createElement('div', Object.assign({
 						tabindex: 0,
-						className: `${icons.iconWrapper} ${icons.clickable}`,
+						className: `${icons.iconWrapper} ${icons.clickable} ${active}`.trim(),
 						role: 'button'
 					}, props),
 						DiscordModules.React.createElement('svg', {
@@ -335,6 +352,8 @@ var HideServersChannelsRedux = (() => {
 				
 				if (!button) return;
 
+				buttonStates.guilds.active = !buttonStates.guilds.active;
+
 				DOMTools.toggleClass(button.parentElement, icons.selected);
 
 				if (this.isNotClosed(element)) return this.closeElement(element, true, channelsBase);
@@ -348,6 +367,8 @@ var HideServersChannelsRedux = (() => {
 				const element = document.querySelector(`.${channelBase.sidebar.split(' ')[0]}`);
 				
 				if (!button) return;
+
+				buttonStates.channels.active = !buttonStates.channels.active;
 
 				DOMTools.toggleClass(button.parentElement, icons.selected);
 
