@@ -1,7 +1,7 @@
 /**
  * @name MemberCount
  * @author Arashiryuu
- * @version 2.2.2
+ * @version 2.2.3
  * @description Displays a server's member-count at the top of the member-list, can be styled with the #MemberCount selector.
  * @authorId 238108500109033472
  * @authorLink https://github.com/Arashiryuu
@@ -49,7 +49,7 @@ var MemberCount = (() => {
 					twitter_username: ''
 				}
 			],
-			version: '2.2.2',
+			version: '2.2.3',
 			description: 'Displays a server\'s member-count at the top of the member-list, can be styled with the #MemberCount selector.',
 			github: 'https://github.com/Arashiryuu',
 			github_raw: 'https://raw.githubusercontent.com/Arashiryuu/crap/master/ToastIntegrated/MemberCount/MemberCount.plugin.js'
@@ -315,7 +315,6 @@ var MemberCount = (() => {
 					if (!Array.isArray(orig.children)) orig.children = [orig.children];
 					if (!orig.children.some(fn)) orig.children.splice(1, 0, group);
 
-					setImmediate(() => this.updateContextPosition(that));
 					return value;
 				});
 
