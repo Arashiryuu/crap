@@ -1,7 +1,7 @@
 /**
  * @name MemberCount
  * @author Arashiryuu
- * @version 2.2.3
+ * @version 2.2.4
  * @description Displays a server's member-count at the top of the member-list, can be styled with the #MemberCount selector.
  * @authorId 238108500109033472
  * @authorLink https://github.com/Arashiryuu
@@ -49,10 +49,22 @@ var MemberCount = (() => {
 					twitter_username: ''
 				}
 			],
-			version: '2.2.3',
+			version: '2.2.4',
 			description: 'Displays a server\'s member-count at the top of the member-list, can be styled with the #MemberCount selector.',
 			github: 'https://github.com/Arashiryuu',
 			github_raw: 'https://raw.githubusercontent.com/Arashiryuu/crap/master/ToastIntegrated/MemberCount/MemberCount.plugin.js'
+		},
+		strings: {
+			pl: {
+				INCLUDE: 'Obejmują Serwer',
+				EXCLUDE: 'Wykluczyć Serwer',
+				MEMBERS: 'Członkowie'
+			},
+			en: {
+				INCLUDE: 'Include Server',
+				EXCLUDE: 'Exclude Server',
+				MEMBERS: 'Members'
+			}
 		},
 		changelog: [
 			{
@@ -61,7 +73,8 @@ var MemberCount = (() => {
 				items: [
 					'Using React for the context menu item again.',
 					'Context menu hint now uses an svg image instead of "MCount" text.',
-					'Excluded servers no longer have empty space above their members in the list.'
+					'Excluded servers no longer have empty space above their members in the list.',
+					'Added polish translations.'
 				]
 			}
 		]
@@ -138,7 +151,7 @@ var MemberCount = (() => {
 							children: [
 								React.createElement('span', {
 									children: [
-										'Members',
+										window.BdApi.Plugins.get('MemberCount')?.instance.strings.MEMBERS,
 										'—',
 										this.props.count
 									]
@@ -389,11 +402,15 @@ var MemberCount = (() => {
 			}
 
 			getAction(id, blacklisted) {
-				return blacklisted ? () => this.unlistGuild(id) : () => this.blacklistGuild(id);
+				return blacklisted
+					? () => this.unlistGuild(id)
+					: () => this.blacklistGuild(id);
 			}
 
 			getLabel(blacklisted) {
-				return blacklisted ? 'Include Server' : 'Exclude Server';
+				return blacklisted
+					? this.strings.INCLUDE
+					: this.strings.EXCLUDE;
 			}
 
 			blacklistGuild(id) {
@@ -461,19 +478,6 @@ var MemberCount = (() => {
 				return path.split(/\s?\.\s?/).reduce((object, prop) => object && object[prop], obj);
 			}
 
-			/* Settings Panel */
-
-			// getSettingsPanel() {
-			// 	return SettingPanel.build(() => this.saveSettings(this.settings),
-			// 		new SettingGroup('Plugin Settings').append(
-			// 			new Switch('Sticky Counter', 'Adds CSS to always position the counter atop the member list, regardless of scroll.', this.settings.sticky, (i) => {
-			// 				this.settings.sticky = i;
-			// 				this.updateCSS();
-			// 			})
-			// 		)
-			// 	);
-			// }
-
 			/* Setters */
 
 			set css(style = '') {
@@ -523,6 +527,10 @@ var MemberCount = (() => {
 
 	return !global.ZeresPluginLibrary 
 		? class {
+			constructor() {
+				this._config = config;
+			}
+			
 			getName() {
 				return this.name.replace(/\s+/g, '');
 			}
