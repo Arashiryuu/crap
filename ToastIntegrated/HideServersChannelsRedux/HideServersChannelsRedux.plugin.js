@@ -1,7 +1,7 @@
 /**
  * @name HideServersChannelsRedux
  * @author Arashiryuu
- * @version 1.1.8
+ * @version 1.1.9
  * @description Adds buttons to the header for hiding the servers list and channels list.
  * @authorId 238108500109033472
  * @authorLink https://github.com/Arashiryuu
@@ -49,7 +49,7 @@ var HideServersChannelsRedux = (() => {
 					twitter_username: ''
 				}
 			],
-			version: '1.1.8',
+			version: '1.1.9',
 			description: 'Adds buttons to the header for hiding the servers list and channels list.',
 			github: 'https://github.com/Arashiryuu',
 			github_raw: 'https://raw.githubusercontent.com/Arashiryuu/crap/master/ToastIntegrated/HideServersChannelsRedux/HideServersChannelsRedux.plugin.js'
@@ -59,7 +59,7 @@ var HideServersChannelsRedux = (() => {
 				title: 'Bugs Squashed!',
 				type: 'fixed',
 				items: [
-					'Fixed issue with buttons losing their highlight if active when switching channels/servers.'
+					'SpotifyControls compatibility. (???)'
 				]
 			}
 		]
@@ -110,7 +110,7 @@ var HideServersChannelsRedux = (() => {
 					? icons.selected
 					: '';
 				return DiscordModules.React.createElement(TooltipWrapper, {
-					color: TooltipWrapper.Colors.BLACK,
+					color: TooltipWrapper.Colors.PRIMARY,
 					position: TooltipWrapper.Positions.BOTTOM,
 					text: 'Toggle Servers',
 					children: (props) => DiscordModules.React.createElement('div', Object.assign({
@@ -158,7 +158,7 @@ var HideServersChannelsRedux = (() => {
 					? icons.selected
 					: '';
 				return DiscordModules.React.createElement(TooltipWrapper, {
-					color: TooltipWrapper.Colors.BLACK,
+					color: TooltipWrapper.Colors.PRIMARY,
 					position: TooltipWrapper.Positions.BOTTOM,
 					text: 'Toggle Channels',
 					children: (props) => DiscordModules.React.createElement('div', Object.assign({
@@ -233,7 +233,9 @@ var HideServersChannelsRedux = (() => {
 				`;
 				this.css = `
 					._closed {
-						display: none;
+						visibility: hidden;
+						width: 0;
+						pointer-events: none;
 					}
 
 					.closing-guild {
