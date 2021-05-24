@@ -88,7 +88,7 @@ var HideServersChannelsRedux = (() => {
 
 		const buttonStates = {
 			channels: {
-				active: false,
+				active: false
 			},
 			guilds: {
 				active: false
