@@ -1,9 +1,11 @@
 /**
  * @name HideUtils
  * @author Arashiryuu
- * @version 2.1.41
+ * @version 2.1.42
  * @description Allows you to hide users, servers, and channels individually.
- * @website https://github.com/Arashiryuu
+ * @authorId 238108500109033472
+ * @authorLink https://github.com/Arashiryuu
+ * @website https://github.com/Arashiryuu/crap
  * @source https://github.com/Arashiryuu/crap/blob/master/ToastIntegrated/HideUtils/HideUtils.plugin.js
  */
 
@@ -48,7 +50,7 @@ var HideUtils = (() => {
 					twitter_username: ''
 				}
 			],
-			version: '2.1.41',
+			version: '2.1.42',
 			description: 'Allows you to hide users, servers, and channels individually.',
 			github: 'https://github.com/Arashiryuu',
 			github_raw: 'https://raw.githubusercontent.com/Arashiryuu/crap/master/ToastIntegrated/HideUtils/HideUtils.plugin.js',
@@ -56,10 +58,10 @@ var HideUtils = (() => {
 		},
 		changelog: [
 			{
-				title: 'Bugs Squashed!',
-				type: 'fixed',
+				title: 'Maintenance?',
+				type: 'improved',
 				items: [
-					'Hides folders again.'
+					'Maintenance done for hiding respective to the Chat and Memberlist areas.'
 				]
 			}
 		]
@@ -68,21 +70,27 @@ var HideUtils = (() => {
 	/* Utility */
 
 	const log = function() {
-		/**
-		 * @type {Array}
-		 */
-		const args = Array.prototype.slice.call(arguments);
-		args.unshift(`%c[${config.info.name}]`, 'color: #3A71C1; font-weight: 700;');
-		return console.log.apply(this, args);
+		const parts = [
+			`%c[${config.info.name}]%c %s`,
+			'color: #3A71C1; font-weight: 700;',
+			'',
+			new Date().toUTCString()
+		];
+		console.group.apply(null, parts);
+		console.log.apply(null, arguments);
+		console.groupEnd();
 	};
 
 	const err = function() {
-		/**
-		 * @type {Array}
-		 */
-		const args = Array.prototype.slice.call(arguments);
-		args.unshift(`%c[${config.info.name}]`, 'color: #3A71C1; font-weight: 700;');
-		return console.error.apply(this, args);
+		const parts = [
+			`%c[${config.info.name}]%c %s`,
+			'color: #3A71C1; font-weight: 700;',
+			'',
+			new Date().toUTCString()
+		];
+		console.group.apply(null, parts);
+		console.error.apply(null, arguments);
+		console.groupEnd();
 	};
 	
 	/* Build */
@@ -98,7 +106,7 @@ var HideUtils = (() => {
 	
 		const has = Object.prototype.hasOwnProperty;
 		const slice = Array.prototype.slice;
-		const MenuItem = WebpackModules.getByString('disabled', 'danger', 'brand');
+		const Menu = WebpackModules.getByProps('MenuItem', 'MenuGroup', 'MenuSeparator');
 		const ToggleMenuItem = WebpackModules.getByString('disabled', 'itemToggle');
 		const guilds = WebpackModules.getByProps('wrapper', 'unreadMentionsIndicatorTop');
 		const buttons = WebpackModules.getByProps('button');
@@ -127,23 +135,10 @@ var HideUtils = (() => {
 			render() {
 				const style = this.props.style || {};
 				return React.createElement('button', {
-					className: this.props.className || 'button',
 					style,
+					className: this.props.className || 'button',
 					onClick: this.onClick,
 				}, this.props.text);
-			}
-		};
-	
-		const ItemGroup = class ItemGroup extends React.Component {
-			constructor(props) {
-				super(props);
-			}
-	
-			render() {
-				return React.createElement('div', {
-					className: DiscordClasses.ContextMenu.itemGroup.toString(),
-					children: this.props.children || []
-				});
 			}
 		};
 	
@@ -617,18 +612,10 @@ var HideUtils = (() => {
 	
 			subscribe() {
 				for (const [type, callback] of this.subscriptions) Dispatcher.subscribe(`HIDEUTILS_BUTTON_${type}`, callback);
-				// Dispatcher.subscribe('HIDEUTILS_BUTTON_USERCLEAR', this.userClear);
-				// Dispatcher.subscribe('HIDEUTILS_BUTTON_SERVERCLEAR', this.servClear);
-				// Dispatcher.subscribe('HIDEUTILS_BUTTON_FOLDERCLEAR', this.foldClear);
-				// Dispatcher.subscribe('HIDEUTILS_BUTTON_CHANNELCLEAR', this.chanClear);
 			}
 	
 			unsubscribe() {
 				for (const [type, callback] of this.subscriptions) Dispatcher.unsubscribe(`HIDEUTILS_BUTTON_${type}`, callback);
-				// Dispatcher.unsubscribe('HIDEUTILS_BUTTON_USERCLEAR', this.userClear);
-				// Dispatcher.unsubscribe('HIDEUTILS_BUTTON_SERVERCLEAR', this.servClear);
-				// Dispatcher.unsubscribe('HIDEUTILS_BUTTON_FOLDERCLEAR', this.foldClear);
-				// Dispatcher.unsubscribe('HIDEUTILS_BUTTON_CHANNELCLEAR', this.chanClear);
 				if (subscription) {
 					DOMTools.observer.unsubscribe(subscription);
 					subscription = null;
@@ -749,13 +736,12 @@ var HideUtils = (() => {
 						};
 					}
 	
-					const item = new MenuItem(itemProps);
-					const group = React.createElement(ItemGroup, { children: [item] });
+					const item = React.createElement(Menu.MenuItem, itemProps);
+					const group = React.createElement(Menu.MenuGroup, { children: [item] });
 	
 					if (Array.isArray(orig.children)) orig.children.splice(1, 0, group);
 					else orig.children = [orig.children], orig.children.splice(1, 0, group);
 	
-					setImmediate(() => this.updateContextPosition(that));
 	
 					return value;
 				});
@@ -763,29 +749,22 @@ var HideUtils = (() => {
 			}
 	
 			async patchGuildContextMenu(promiseState) {
-				const Component = await PluginUtilities.getContextMenu('GUILD_ICON_');
+				const Context = WebpackModules.find((mod) => mod?.default?.displayName === 'GuildContextMenu');
 				if (promiseState.cancelled) return;
-				Patcher.after(Component, 'default', (that, args, value) => {
+				Patcher.after(Context, 'default', (that, args, value) => {
 					const [props] = args;
-					const orig = this.getProps(value, 'props.children.0.props');
+					if (!props.guild) return value;
+					const orig = this.getProps(value, 'props');
 					const id = this.getProps(props, 'guild.id');
-					const folderId = this.getProps(props, 'folderId');
 					const active = this.settings.servers.unhidden.includes(id);
 	
-					if (!orig || !folderId && !id) return;
+					if (!orig || !id) return;
 	
-					const folderItem = new MenuItem({
-						label: 'Hide Folder',
-						action: () => {
-							MenuActions.closeContextMenu();
-							const [p] = DOMTools.parents(props.target, '.wrapper-21YSNc');
-							if (!p) return;
-							const i = ReactTools.getOwnerInstance(p);
-							this.foldPush(i);
-						}
-					});
+					const topSeparator = React.createElement(Menu.MenuSeparator, {});
+					const bottomSeparator = React.cloneElement(topSeparator);
 	
-					const hideItem = new MenuItem({
+					const hideItem = React.createElement(Menu.MenuItem, {
+						id: 'hide-server-hide-utils',
 						label: 'Hide Server',
 						action: () => {
 							MenuActions.closeContextMenu();
@@ -794,48 +773,73 @@ var HideUtils = (() => {
 						}
 					});
 	
-					const unhideItem = new ToggleMenuItem({
+					const unhideItem = React.createElement(Menu.MenuCheckboxItem, {
+						id: 'unhide-channels-hide-utils',
 						label: 'Unhide Channels',
-						active: active,
+						checked: active,
 						action: () => {
 							this.servUnhideChannels(id);
+							this.updateContextMenu();
 						}
 					});
 	
-					const clearItem = new MenuItem({
+					const clearItem = React.createElement(Menu.MenuItem, {
+						id: 'purge-channels-hide-utils',
 						label: 'Purge Hidden Channels',
-						danger: true,
+						color: 'colorDanger',
 						action: () => {
 							MenuActions.closeContextMenu();
 							this.chanPurge(id);
 						}
 					});
 	
-					const children = folderId ? [folderItem] : id ? [hideItem, unhideItem, clearItem] : [];
+					const children = [
+						hideItem,
+						unhideItem,
+						clearItem,
+						bottomSeparator
+					];
 	
-					const group = React.createElement(ItemGroup, { children: children });
+					const group = React.createElement(Menu.MenuGroup, {
+						key: 'HideUtils-HideItemGroup',
+						children
+					});
+					const fn = (child) => child && child.key && child.key === 'HideUtils-HideItemGroup';
 	
-					if (Array.isArray(orig.children)) orig.children.splice(1, 0, group);
-					else orig.children = [orig.children], orig.children.splice(1, 0, group);
-	
-					setImmediate(() => this.updateContextPosition(that));
+					if (!Array.isArray(orig.children)) orig.children = [orig.children];
+					if (!orig.children.some(fn)) orig.children.splice(1, 0, group);
 	
 					return value;
 				});
-				this.updateContextMenu();
+				PluginUtilities.forceUpdateContextMenus();
+			}
+
+			patchGuildFolderContextMenu(promiseState) {
+				const Context = WebpackModules.find((mod) => mod?.default?.displayName === 'GuildFolderContextMenu');
+				if (promiseState.cancelled || !Context) return;
+				Patcher.after(Context, 'default', (that, args, value) => {
+					const [props] = args;
+					log(props, value);
+					if (!props.folderId) return value;
+					//
+					return value;
+				});
+				PluginUtilities.forceUpdateContextMenus();
 			}
 	
-			async patchUserContextMenu(promiseState) {
-				const Component = await PluginUtilities.getContextMenu('USER_');
-				if (promiseState.cancelled) return;
-				Patcher.after(Component, 'default', (that, args, value) => {
+			patchUserContextMenu(promiseState) {
+				const Context = WebpackModules.find((mod) => mod?.default?.displayName === 'GuildChannelUserContextMenu');
+				if (promiseState.cancelled || !Context) return;
+				Patcher.after(Context, 'default', (that, args, value) => {
 					if (!DiscordModules.GuildStore.getGuild(DiscordModules.SelectedGuildStore.getGuildId())) return value;
 					const [props] = args;
-					const orig = this.getProps(value, 'props.children.props.children.props');
+					if (!props.user) return value;
+					const orig = this.getProps(value, 'props.children.props');
 					const user = this.getProps(props, 'user');
-					if (!orig || !user) return;
+					if (!orig || !user) return value;
 					
-					const item = new MenuItem({
+					const item = React.createElement(Menu.MenuItem, {
+						id: 'hide-user-hide-utils',
 						label: 'Hide User',
 						action: () => {
 							MenuActions.closeContextMenu();
@@ -843,16 +847,15 @@ var HideUtils = (() => {
 						}
 					});
 	
-					const group = React.createElement(ItemGroup, { children: [item] });
-	
-					if (Array.isArray(orig.children)) orig.children.unshift(group);
-					else orig.children = [group, orig.children];
-	
-					setImmediate(() => this.updateContextPosition(that));
-	
+					const profileGroup = this.getProps(orig, 'children.1.props.children');
+					const fn = (child) => child && child.id && child.id === 'hide-user-hide-utils';
+					
+					if (profileGroup.some(fn)) return value;
+					profileGroup.splice(1, 0, item);
+
 					return value;
 				});
-				this.updateContextMenu();
+				PluginUtilities.forceUpdateContextMenus();
 			}
 	
 			async patchContextMenu(promiseState) {
@@ -863,7 +866,7 @@ var HideUtils = (() => {
 			}
 	
 			updateContextMenu() {
-				const menus = document.querySelectorAll(DiscordSelectors.ContextMenu.contextMenu.toString());
+				const menus = document.querySelectorAll(DiscordSelectors.ContextMenu.menu.value.trim());
 				if (!menus.length) return;
 				for (let i = 0, len = menus.length; i < len; i++) ReactTools.getOwnerInstance(menus[i]).forceUpdate();
 			}
@@ -898,10 +901,10 @@ var HideUtils = (() => {
 					const children = this.getProps(props, 'children.props.children');
 					const list = this.getProps(children, '1');
 					children[1] = list.filter((message) => {
-						if (!message || message.key && (message.key.includes('divider') || message.key === 'has-more')) return message;
+						if (!message || message.key && (message.key.includes('divider') || ['has-more', 'buffer'].some((k) => message.key === k))) return message;
 						const author = this.getProps(message, 'props.message.author');
 						const type = this.getProps(message, 'type.type');
-						const blocked = (type && type.displayName && type.displayName === 'BlockedMessages') && this.settings.hideBlocked;
+						const blocked = Boolean((type && type.displayName && type.displayName === 'BlockedMessages') && this.settings.hideBlocked);
 						return !blocked && author && !has.call(this.settings.users, author.id) || !blocked && !author;
 					});
 				});
@@ -991,18 +994,26 @@ var HideUtils = (() => {
 					const [props] = args;
 					if (!props || !props.id || !props.id.startsWith('members')) return value;
 
-					const childProps = Array.isArray(value)
-						? this.getProps(value, '0.props.children.props.children.props')
-						: this.getProps(value, 'props.children.props.children.props');
+					let target;
+					if (Array.isArray(value)) {
+						target = value.find((i) => !i.key);
+					} else {
+						target = value;
+					}
+					const childProps = this.getProps(target, 'props.children.props.children.props');
+					if (!childProps) return value;
 					const children = this.getProps(childProps, 'children');
 					if (!children || !Array.isArray(children)) return value;
 	
 					childProps.children = children.filter((user) => {
 						if (!user.key || !user.key.startsWith('member')) return true;
 						const { 1: id } = user.key.split('-');
-						return has.call(this.settings.users, id)
-							? false
-							: true;
+						return !has.call(this.settings.users, id);
+					}).map((entry, i, arr) => {
+						// hide groups with no users under them
+						const { key } = entry;
+						if (key.startsWith('section-') && arr[i + 1].key?.startsWith('section-')) return null;
+						return entry;
 					});
 
 					// for (let i = 0, len = children.length; i < len; i++) {
