@@ -221,7 +221,7 @@ var MemberCount = (() => {
 						background: var(--background-secondary);
 						position: absolute;
 						display: flex;
-						width: 240px;
+						width: 100%;
 						text-align: center;
 						align-items: center;
 						justify-content: center;
