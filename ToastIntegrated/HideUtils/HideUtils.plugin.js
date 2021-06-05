@@ -33,7 +33,6 @@
 
 @else@*/
 
-
 var HideUtils = (() => {
 
 	/* Config */
@@ -137,7 +136,7 @@ var HideUtils = (() => {
 				return React.createElement('button', {
 					style,
 					className: this.props.className || 'button',
-					onClick: this.onClick,
+					onClick: this.onClick
 				}, this.props.text);
 			}
 		};
@@ -246,7 +245,7 @@ var HideUtils = (() => {
 	
 						const item = React.createElement(TooltipWrapper, {
 							text: this.replaceLabels(label, entry),
-							color: TooltipWrapper.Colors.BLACK,
+							color: TooltipWrapper.Colors.PRIMARY,
 							position: TooltipWrapper.Positions.TOP,
 							children: (props) => {
 								const type = label.slice(0, -1);
@@ -994,12 +993,9 @@ var HideUtils = (() => {
 					const [props] = args;
 					if (!props || !props.id || !props.id.startsWith('members')) return value;
 
-					let target;
-					if (Array.isArray(value)) {
-						target = value.find((i) => !i.key);
-					} else {
-						target = value;
-					}
+					const target = Array.isArray(value)
+						? value.find((i) => i && !i.key)
+						: value;
 					const childProps = this.getProps(target, 'props.children.props.children.props');
 					if (!childProps) return value;
 					const children = this.getProps(childProps, 'children');
@@ -1012,7 +1008,12 @@ var HideUtils = (() => {
 					}).map((entry, i, arr) => {
 						// hide groups with no users under them
 						const { key } = entry;
-						if (key.startsWith('section-') && arr[i + 1].key?.startsWith('section-')) return null;
+						const next = arr[i + 1];
+						const prev = arr[i - 1];
+						const hasNext = (item) => item && item.key.startsWith('section-');
+						const hasPrev = (item) => item && item.key.startsWith('section-');
+						const bool = hasNext(next) || hasPrev(prev);
+						if (key.startsWith('section-') && bool) return null;
 						return entry;
 					});
 
