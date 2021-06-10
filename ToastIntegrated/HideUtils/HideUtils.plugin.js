@@ -1,7 +1,7 @@
 /**
  * @name HideUtils
  * @author Arashiryuu
- * @version 2.1.42
+ * @version 2.1.43
  * @description Allows you to hide users, servers, and channels individually.
  * @authorId 238108500109033472
  * @authorLink https://github.com/Arashiryuu
@@ -49,7 +49,7 @@ var HideUtils = (() => {
 					twitter_username: ''
 				}
 			],
-			version: '2.1.42',
+			version: '2.1.43',
 			description: 'Allows you to hide users, servers, and channels individually.',
 			github: 'https://github.com/Arashiryuu',
 			github_raw: 'https://raw.githubusercontent.com/Arashiryuu/crap/master/ToastIntegrated/HideUtils/HideUtils.plugin.js',
@@ -60,7 +60,14 @@ var HideUtils = (() => {
 				title: 'Maintenance?',
 				type: 'improved',
 				items: [
-					'Maintenance done for hiding respective to the Chat and Memberlist areas.'
+					'User, Channel, and Guild (server) context items are back using React.'
+				]
+			},
+			{
+				title: 'Bugs Squashed!',
+				type: 'fixed',
+				items: [
+					'Hides users again.'
 				]
 			}
 		]
@@ -646,7 +653,7 @@ var HideUtils = (() => {
 				this.patchMessages(promiseState);
 				this.patchMemberList(promiseState);
 				this.patchTypingUsers(promiseState);
-				// this.patchContextMenu(promiseState);
+				this.patchContextMenu(promiseState);
 				this.patchIsMentioned(promiseState);
 				this.patchReceiveMessages(promiseState);
 			}
@@ -656,7 +663,7 @@ var HideUtils = (() => {
 				this.updateChannels();
 				this.updateMessages();
 				this.updateMemberList();
-				// this.updateContextMenu();
+				this.updateContextMenu();
 			}
 	
 			patchReceiveMessages() {
@@ -679,8 +686,8 @@ var HideUtils = (() => {
 	
 			patchIsMentioned() {
 				const Module = WebpackModules.getByProps('isMentioned', 'isRawMessageMentioned');
-				// const { getMentions } = WebpackModules.getByProps('getMentions');
-				// let o = getMentions();
+				const { getMentions } = WebpackModules.getByProps('getMentions');
+				let o = getMentions();
 				Patcher.instead(Module, 'isMentioned', (that, args, value) => {
 					const { 0: currentUserId, 1: channelId, 3: mentionList } = args;
 					const channel = this.channel(channelId);
@@ -690,14 +697,15 @@ var HideUtils = (() => {
 						const servers = [...Object.values(folder.servers)];
 						return servers.includes(guild.id);
 					});
-					// const n = getMentions() && o ? getMentions().filter((m) => !o.includes(m.id)) : [];
-					// if (!n.length) return value.apply(that, args);
-					// const thisMention = n.find((mention) => mention.channel_id === channelId && mention.mentions.includes(currentUserId));
-					// if (!thisMention) return value.apply(that, args);
-					// o = o.concat(n);
-					// const { author } = thisMention;
-					// log(author);
-					if (/*author && has.call(this.settings.users, author.id) ||*/ has.call(this.settings.channels, channelId)) return false;
+					const n = getMentions() && o ? getMentions().filter((m) => !o.includes(m.id)) : [];
+					if (!n.length) return value.apply(that, args);
+					const thisMention = n.find((mention) => mention.channel_id === channelId && mention.mentions.includes(currentUserId));
+					const mentionIndex = n.find((mention) => mention.channel_id === channelId && mention.mentions.includes(currentUserId));
+					if (!thisMention) return value.apply(that, args);
+					o = o.concat(n);
+					getMentions().splice(mentionIndex, 1);
+					const { author } = thisMention;
+					if (author && has.call(this.settings.users, author.id) || has.call(this.settings.channels, channelId)) return false;
 					if (!guild || !guild.id) return value.apply(that, args);
 					if (has.call(this.settings.servers, guild.id) || isHiddenFolderMention()) return false;
 					return value.apply(that, args);
@@ -713,13 +721,15 @@ var HideUtils = (() => {
 			}
 	
 			async patchChannelContextMenu(promiseState) {
-				const Component = await PluginUtilities.getContextMenu('CHANNEL_LIST_');
+				const Context = WebpackModules.find((mod) => mod?.default?.displayName === 'ChannelListTextChannelContextMenu');
+				// const Component = await PluginUtilities.getContextMenu('CHANNEL_LIST_');
 				if (promiseState.cancelled) return;
-				Patcher.after(Component, 'default', (that, args, value) => {
+				Patcher.after(Context, 'default', (that, args, value) => {
 					const [props] = args;
 					const channel = this.getProps(props, 'channel');
 					const orig = this.getProps(value, 'props');
 					const itemProps = {
+						id: 'hide-channel-hide-utils',
 						label: 'Hide Channel',
 						action: () => {
 							MenuActions.closeContextMenu();
@@ -728,6 +738,7 @@ var HideUtils = (() => {
 					};
 	
 					if (this.settings.servers.unhidden.includes(channel.guild_id) && has.call(this.settings.channels, channel.id)) {
+						itemProps.id = 'unhide-channel-hide-utils';
 						itemProps.label = 'Unhide Channel';
 						itemProps.action = () => {
 							MenuActions.closeContextMenu();
@@ -736,7 +747,7 @@ var HideUtils = (() => {
 					}
 	
 					const item = React.createElement(Menu.MenuItem, itemProps);
-					const group = React.createElement(Menu.MenuGroup, { children: [item] });
+					const group = React.createElement(Menu.MenuGroup, { children: item });
 	
 					if (Array.isArray(orig.children)) orig.children.splice(1, 0, group);
 					else orig.children = [orig.children], orig.children.splice(1, 0, group);
@@ -908,23 +919,6 @@ var HideUtils = (() => {
 					});
 				});
 				this.updateMessages();
-				// Patcher.after(t, 'render', (that, args, value) => {
-				// 	log(that, args, value);
-				// 	const props = this.getProps(value, 'props.children.props.children.props');
-				// 	const messageGroups = this.getProps(props, 'children.1');
-				// 	if (!messageGroups || !Array.isArray(messageGroups)) return value;
-	
-				// 	props.children[1] = messageGroups.filter((message) => {
-				// 		if (!message || message.key && (message.key.includes('divider') || message.key === 'has-more')) return message;
-				// 		const author = this.getProps(message, 'props.message.author');
-				// 		const type = this.getProps(message, 'type.type');
-				// 		const blocked = (type && type.displayName && type.displayName === 'BlockedMessages') && this.settings.hideBlocked;
-				// 		return !blocked && author && !has.call(this.settings.users, author.id) || !blocked && !author;
-				// 	});
-	
-				// 	return value;
-				// });
-				// this.updateMessages();
 			}
 	
 			/**
@@ -1016,14 +1010,6 @@ var HideUtils = (() => {
 						if (key.startsWith('section-') && bool) return null;
 						return entry;
 					});
-
-					// for (let i = 0, len = children.length; i < len; i++) {
-					// 	if (!Array.isArray(children[i])) continue;
-					// 	for (let j = 0, ren = children[i].length; j < ren; j++) {
-					// 		if (!Array.isArray(children[i][j])) continue;
-					// 		children[i][j] = children[i][j].filter((child) => !child || !child.key || !has.call(this.settings.users, child.key));
-					// 	}
-					// }
 	
 					return value;
 				});
@@ -1068,22 +1054,6 @@ var HideUtils = (() => {
 						});
 						return !channel.key || !has.call(this.settings.channels, channel.key);
 					});
-
-					// for (let i = 0, len = children.length; i < len; i++) {
-					// 	if (!children[i] || !Array.isArray(children[i])) continue;
-					// 	children[i] = children[i].filter((channel) => {
-					// 		if (!channel) return channel;
-					// 		const props = this.getProps(channel, 'props');
-					// 		if (!props.voiceStates || !Array.isArray(props.voiceStates)) return !channel.key || (channel.key && !has.call(this.settings.channels, channel.key));
-					// 		props.voiceStates = props.voiceStates.filter((user) => {
-					// 			const { voiceState: { userId } } = user;
-					// 			if (!has.call(this.settings.users, userId)) return true;
-					// 			this.mute(userId, 0);
-					// 			return false;
-					// 		});
-					// 		return !channel.key || (channel.key && !has.call(this.settings.channels, channel.key));
-					// 	});
-					// }
 	
 					return value;
 				});
@@ -1103,13 +1073,13 @@ var HideUtils = (() => {
 				const props = this.getProps(inst, 'memoizedProps');
 				const childProps = this.getProps(props, 'children.props');
 				if (!own || !props || !Array.isArray(childProps.children)) return;
-				if (props.id === 'user-context') return this.addUserContextItems(inst, own, cm);
-				else if (props.id === 'channel-context') return this.addChannelContextItems(inst, own, cm);
+				// if (props.id === 'user-context') return this.addUserContextItems(inst, own, cm);
+				// else if (props.id === 'channel-context') return this.addChannelContextItems(inst, own, cm);
 				else if (props.id === 'guild-context') {
 					const readItem = this.getProps(childProps, 'children.0.props.children');
 					if (!readItem || Array.isArray(readItem)) return;
 					if (readItem.props.id === 'mark-folder-read') return this.addFolderContextItems(inst, own, cm);
-					else if (readItem.props.id === 'mark-guild-read') return this.addGuildContextItems(inst, own, cm);
+					// else if (readItem.props.id === 'mark-guild-read') return this.addGuildContextItems(inst, own, cm);
 				}
 			}
 	
