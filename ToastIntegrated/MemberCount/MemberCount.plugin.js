@@ -1,7 +1,7 @@
 /**
  * @name MemberCount
  * @author Arashiryuu
- * @version 2.2.4
+ * @version 2.2.5
  * @description Displays a server's member-count at the top of the member-list, can be styled with the #MemberCount selector.
  * @authorId 238108500109033472
  * @authorLink https://github.com/Arashiryuu
@@ -49,7 +49,7 @@ var MemberCount = (() => {
 					twitter_username: ''
 				}
 			],
-			version: '2.2.4',
+			version: '2.2.5',
 			description: 'Displays a server\'s member-count at the top of the member-list, can be styled with the #MemberCount selector.',
 			github: 'https://github.com/Arashiryuu',
 			github_raw: 'https://raw.githubusercontent.com/Arashiryuu/crap/master/ToastIntegrated/MemberCount/MemberCount.plugin.js'
@@ -71,22 +71,36 @@ var MemberCount = (() => {
 				title: 'Evolving?',
 				type: 'improved',
 				items: [
-					'Using React for the context menu item again.',
-					'Context menu hint now uses an svg image instead of "MCount" text.',
-					'Excluded servers no longer have empty space above their members in the list.',
-					'Added polish translations.'
+					'Added flexibility to the memberlist patch, should allow for better multi-patch compatibility.',
+					'Refactored how the counter gets its strings.',
+					'Refactored how the context menu item gets its labels and actions.'
 				]
 			}
 		]
 	};
 	
 	const log = function() {
-		/**
-		 * @type {Array}
-		 */
-		const args = Array.prototype.slice.call(arguments);
-		args.unshift(`%c[${config.info.name}]`, 'color: #3A71C1; font-weight: 700;');
-		return console.log.apply(this, args);
+		const parts = [
+			`%c[${config.info.name}]%c \u2014 %s`,
+			'color: #3A71C1; font-weight: 700;',
+			'',
+			new Date().toUTCString()
+		];
+		console.group.apply(null, parts);
+		console.log.apply(null, arguments);
+		console.groupEnd();
+	};
+
+	const err = function() {
+		const parts = [
+			`%c[${config.info.name}]%c \u2014 %s`,
+			'color: #3A71C1; font-weight: 700;',
+			'',
+			new Date().toUTCString()
+		];
+		console.group.apply(null, parts);
+		console.error.apply(null, arguments);
+		console.groupEnd();
 	};
 
 	/* Build */
@@ -94,9 +108,10 @@ var MemberCount = (() => {
 	const buildPlugin = ([Plugin, Api]) => {
 		const { Toasts, Logger, Patcher, Settings, Utilities, DOMTools, ReactTools, ContextMenu, ReactComponents, DiscordModules, DiscordClasses, WebpackModules, DiscordSelectors, PluginUtilities } = Api;
 		const { SettingPanel, SettingGroup, SettingField, Textbox, Switch } = Settings;
-		const { React, MemberCountStore, SelectedGuildStore, ContextMenuActions: MenuActions } = DiscordModules;
+		const { React, ReactDOM, MemberCountStore, SelectedGuildStore, ContextMenuActions: MenuActions } = DiscordModules;
 
 		const has = Object.prototype.hasOwnProperty;
+		const LangUtils = WebpackModules.getByProps('getLocale', 'getLanguages', 'languages');
 		const Flux = WebpackModules.getByProps('connectStores');
 		const Lists = WebpackModules.getByProps('ListThin');
 		const Menu = WebpackModules.getByProps('MenuItem', 'MenuGroup', 'MenuSeparator');
@@ -121,7 +136,12 @@ var MemberCount = (() => {
 			}
 
 			render() {
-				if (this.state.hasError) return React.createElement('div', { className: `${config.info.name}-error` }, 'Component Error');
+				if (this.state.hasError) return React.createElement('div', {
+					className: `${config.info.name}-error`,
+					children: [
+						`${config.info.name} Component Error`
+					]
+				});
 				return this.props.children;
 			}
 		};
@@ -140,6 +160,11 @@ var MemberCount = (() => {
 				this.ref = React.createRef();
 			}
 
+			static get strings() {
+				const [lang] = LangUtils.getLocale().split('-');
+				return config.strings[lang] ?? config.strings.en;
+			}
+
 			render() {
 				return React.createElement('div', {
 					id: 'MemberCount',
@@ -151,7 +176,7 @@ var MemberCount = (() => {
 							children: [
 								React.createElement('span', {
 									children: [
-										window.BdApi.Plugins.get('MemberCount')?.instance.strings.MEMBERS,
+										Counter.strings.MEMBERS,
 										'—',
 										this.props.count
 									]
@@ -185,13 +210,13 @@ var MemberCount = (() => {
 					c2.166-21.436,13.917-39.843,30.6-47.059c2.389-1.036,4.03-3.278,4.287-5.869c0.259-2.597-0.913-5.12-3.052-6.606
 					c-6.338-4.387-10.118-11.584-10.118-19.25c0-12.905,10.501-23.398,23.403-23.398c12.905,0,23.403,10.494,23.403,23.398
 					c0,7.575-3.712,14.72-9.931,19.112c-2.126,1.5-3.272,4.042-2.992,6.632c0.282,2.585,1.941,4.823,4.345,5.831
-					c16.874,7.113,28.766,25.585,30.936,47.208H14.692z`.split(/\s+/g).join('').trim(),
+					c16.874,7.113,28.766,25.585,30.936,47.208H14.692z`.split(/\s+/g).join('').trim()
 				}),
 				React.createElement('path', {
 					d: `M176.705,102.872c-2.801-2.8-7.337-2.8-10.137,0l-14.57,14.566l-14.562-14.566c-2.801-2.8-7.339-2.8-10.14,0
 					c-2.8,2.8-2.8,7.337,0,10.137l14.563,14.566l-14.563,14.563c-2.8,2.8-2.8,7.337,0,10.137c1.4,1.4,3.234,2.101,5.071,2.101
 					c1.834,0,3.668-0.7,5.068-2.101l14.57-14.562l14.562,14.562c1.4,1.4,3.238,2.101,5.073,2.101c1.834,0,3.673-0.7,5.073-2.101
-					c2.8-2.8,2.8-7.337,0-10.137l-14.571-14.563l14.571-14.566C179.505,110.208,179.505,105.672,176.705,102.872z`.split(/\s+/g).join('').trim(),
+					c2.8-2.8,2.8-7.337,0-10.137l-14.571-14.563l14.571-14.566C179.505,110.208,179.505,105.672,176.705,102.872z`.split(/\s+/g).join('').trim()
 				}),
 				React.createElement('path', {
 					d: `M228.01,119.603c-3.593,0-6.646,0.467-9.143,1.396c-1.498,0.565-3.574,1.715-6.249,3.461l3.15-19.231h35.927V90.546
@@ -199,10 +224,21 @@ var MemberCount = (() => {
 					c4.438,0,7.705,1.55,9.805,4.64c2.096,3.099,3.146,6.889,3.146,11.378c0,4.574-1.12,8.363-3.36,11.379
 					c-2.24,3.015-5.498,4.518-9.773,4.518c-3.715,0-6.534-1.018-8.476-3.062c-1.932-2.045-3.248-4.947-3.93-8.709h-17.23
 					c0.606,8.251,3.594,14.617,8.971,19.116c5.376,4.485,12.246,6.729,20.609,6.729c10.384,0,18.183-3.196,23.4-9.586
-					c5.209-6.389,7.812-13.646,7.812-21.786c0-9.343-2.702-16.456-8.115-21.354C241.624,122.044,235.286,119.603,228.01,119.603z`.split(/\s+/g).join('').trim(),
+					c5.209-6.389,7.812-13.646,7.812-21.786c0-9.343-2.702-16.456-8.115-21.354C241.624,122.044,235.286,119.603,228.01,119.603z`.split(/\s+/g).join('').trim()
 				})
 			]
 		});
+
+		const blacklistData = {
+			actions: {
+				true: (id, context) => () => context.unlistGuild(id),
+				false: (id, context) => () => context.blacklistGuild(id)
+			},
+			strings: {
+				true: (context) => context.strings.INCLUDE,
+				false: (context) => context.strings.EXCLUDE
+			}
+		};
 		
 		return class MemberCount extends Plugin {
 			constructor() {
@@ -266,7 +302,9 @@ var MemberCount = (() => {
 				if (!Lists || state.cancelled) return;
 				
 				Patcher.after(Lists.ListThin, 'render', (that, args, value) => {
-					const val = Array.isArray(value) ? value[0] : value;
+					const val = Array.isArray(value)
+						? value.find((item) => item && !item.key)
+						: value;
 					const props = this.getProps(val, 'props');
 					if (!props || !props.id || !props.id.startsWith('members')) return value;
 					
@@ -402,15 +440,11 @@ var MemberCount = (() => {
 			}
 
 			getAction(id, blacklisted) {
-				return blacklisted
-					? () => this.unlistGuild(id)
-					: () => this.blacklistGuild(id);
+				return blacklistData.actions[blacklisted](id, this);
 			}
 
 			getLabel(blacklisted) {
-				return blacklisted
-					? this.strings.INCLUDE
-					: this.strings.EXCLUDE;
+				return blacklistData.strings[blacklisted](this);
 			}
 
 			blacklistGuild(id) {
