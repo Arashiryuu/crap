@@ -1,7 +1,7 @@
 /**
  * @name HideServersChannelsRedux
  * @author Arashiryuu
- * @version 1.1.9
+ * @version 1.1.10
  * @description Adds buttons to the header for hiding the servers list and channels list.
  * @authorId 238108500109033472
  * @authorLink https://github.com/Arashiryuu
@@ -49,7 +49,7 @@ var HideServersChannelsRedux = (() => {
 					twitter_username: ''
 				}
 			],
-			version: '1.1.9',
+			version: '1.1.10',
 			description: 'Adds buttons to the header for hiding the servers list and channels list.',
 			github: 'https://github.com/Arashiryuu',
 			github_raw: 'https://raw.githubusercontent.com/Arashiryuu/crap/master/ToastIntegrated/HideServersChannelsRedux/HideServersChannelsRedux.plugin.js'
@@ -59,7 +59,7 @@ var HideServersChannelsRedux = (() => {
 				title: 'Bugs Squashed!',
 				type: 'fixed',
 				items: [
-					'SpotifyControls compatibility. (???)'
+					'Minimal Mode compatibility.'
 				]
 			}
 		]
@@ -232,6 +232,7 @@ var HideServersChannelsRedux = (() => {
 					}
 				`;
 				this.css = `
+					.bd-minimal ._closed,
 					._closed {
 						visibility: hidden;
 						width: 0;
@@ -277,7 +278,9 @@ var HideServersChannelsRedux = (() => {
 			}
 
 			handleCSS() {
-				const css = this.settings.animations ? [this.css.trim(), this.animationCSS.trim()].join('\n') : this.css;
+				const css = this.settings.animations
+					? [this.css.trim(), this.animationCSS.trim()].join('\n')
+					: this.css;
 				const sheet = document.getElementById(this.short);
 				if (sheet) sheet.remove();
 				PluginUtilities.addStyle(this.short, css);
