@@ -1,7 +1,7 @@
 /**
  * @name MemberCount
  * @author Arashiryuu
- * @version 2.2.5
+ * @version 2.2.6
  * @description Displays a server's member-count at the top of the member-list, can be styled with the #MemberCount selector.
  * @authorId 238108500109033472
  * @authorLink https://github.com/Arashiryuu
@@ -49,7 +49,7 @@ var MemberCount = (() => {
 					twitter_username: ''
 				}
 			],
-			version: '2.2.5',
+			version: '2.2.6',
 			description: 'Displays a server\'s member-count at the top of the member-list, can be styled with the #MemberCount selector.',
 			github: 'https://github.com/Arashiryuu',
 			github_raw: 'https://raw.githubusercontent.com/Arashiryuu/crap/master/ToastIntegrated/MemberCount/MemberCount.plugin.js'
@@ -67,13 +67,20 @@ var MemberCount = (() => {
 			}
 		},
 		changelog: [
+			// {
+			// 	title: 'Evolving?',
+			// 	type: 'improved',
+			// 	items: [
+			// 		'Added flexibility to the memberlist patch, should allow for better multi-patch compatibility.',
+			// 		'Refactored how the counter gets its strings.',
+			// 		'Refactored how the context menu item gets its labels and actions.'
+			// 	]
+			// }
 			{
-				title: 'Evolving?',
-				type: 'improved',
+				title: 'Bugs Squashed!',
+				type: 'fixed',
 				items: [
-					'Added flexibility to the memberlist patch, should allow for better multi-patch compatibility.',
-					'Refactored how the counter gets its strings.',
-					'Refactored how the context menu item gets its labels and actions.'
+					'Works again!'
 				]
 			}
 		]
@@ -111,7 +118,7 @@ var MemberCount = (() => {
 		const { React, ReactDOM, MemberCountStore, SelectedGuildStore, ContextMenuActions: MenuActions } = DiscordModules;
 
 		const has = Object.prototype.hasOwnProperty;
-		const LangUtils = WebpackModules.getByProps('getLocale', 'getLanguages', 'languages');
+		const LangUtils = WebpackModules.getByProps('getLocale', 'getLanguages');
 		const Flux = WebpackModules.getByProps('connectStores');
 		const Lists = WebpackModules.getByProps('ListThin');
 		const Menu = WebpackModules.getByProps('MenuItem', 'MenuGroup', 'MenuSeparator');
@@ -588,9 +595,7 @@ var MemberCount = (() => {
 			load() {
 				const { BdApi, BdApi: { React } } = window;
 				const title = 'Library Missing';
-				const ModalStack = BdApi.findModuleByProps('push', 'update', 'pop', 'popWithKey');
 				const TextElement = BdApi.findModuleByDisplayName('Text');
-				const ConfirmationModal = BdApi.findModule((m) => m.defaultProps && m.key && m.key() === 'confirm-modal');
 				const children = [];
 				if (!TextElement) {
 					children.push(
@@ -618,17 +623,15 @@ var MemberCount = (() => {
 						children: ['Click here to download the library!']
 					})
 				);
-				if (!ModalStack || !ConfirmationModal) return BdApi.alert(title, children);
-				ModalStack.push(function(props) {
-					return React.createElement(ConfirmationModal, Object.assign({
-						header: title,
-						children: [
-							React.createElement(TextElement, {
-								color: TextElement.Colors.STANDARD,
-								children: [`The library plugin needed for ${config.info.name} is missing. Please click Download Now to install it.`]
-							})
-						],
-						red: false,
+				if (!BdApi.showConfirmationModal) return BdApi.alert(title, children);
+				BdApi.showConfirmationModal(title, [
+						React.createElement(TextElement, {
+							color: TextElement.Colors.STANDARD,
+							children: [`The library plugin needed for ${config.info.name} is missing. Please click Download Now to install it.`]
+						})
+					],
+					{
+						danger: false,
 						confirmText: 'Download Now',
 						cancelText: 'Cancel',
 						onConfirm: () => {
@@ -637,8 +640,8 @@ var MemberCount = (() => {
 								await new Promise(r => require('fs').writeFile(require('path').join(window.ContentManager.pluginsFolder, '0PluginLibrary.plugin.js'), body, r));
 							});
 						}
-					}, props));
-				});
+					}
+				);
 			}
 
 			start() {
