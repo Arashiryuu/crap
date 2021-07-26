@@ -1,7 +1,7 @@
 /**
  * @name HideServersChannelsRedux
  * @author Arashiryuu
- * @version 1.1.10
+ * @version 1.1.11
  * @description Adds buttons to the header for hiding the servers list and channels list.
  * @authorId 238108500109033472
  * @authorLink https://github.com/Arashiryuu
@@ -34,6 +34,7 @@
 @else@*/
 
 var HideServersChannelsRedux = (() => {
+	/* global BdApi */
 
 	/* Setup */
 
@@ -49,29 +50,52 @@ var HideServersChannelsRedux = (() => {
 					twitter_username: ''
 				}
 			],
-			version: '1.1.10',
+			version: '1.1.11',
 			description: 'Adds buttons to the header for hiding the servers list and channels list.',
 			github: 'https://github.com/Arashiryuu',
 			github_raw: 'https://raw.githubusercontent.com/Arashiryuu/crap/master/ToastIntegrated/HideServersChannelsRedux/HideServersChannelsRedux.plugin.js'
 		},
 		changelog: [
+			// {
+			// 	title: 'Bugs Squashed!',
+			// 	type: 'fixed',
+			// 	items: [
+			// 		'Minimal Mode compatibility.'
+			// 	]
+			// }
 			{
-				title: 'Bugs Squashed!',
-				type: 'fixed',
+				title: 'Maintenance!',
+				type: 'improved',
 				items: [
-					'Minimal Mode compatibility.'
+					'Inverted button highlights to match member list button.',
+					'Moved plugin added buttons\' positions.'
 				]
 			}
 		]
 	};
 	
-	const log = function() {
-		/**
-		 * @type {Array}
-		 */
-		const args = Array.prototype.slice.call(arguments);
-		args.unshift(`%c[${config.info.name}]`, 'color: #3A71C1; font-weight: 700;');
-		return console.log.apply(this, args);
+	const log = function () {
+		const parts = [
+			`%c[${config.info.name}]%c \u2014 %s`,
+			'color: #3A71C1; font-weight: 700;',
+			'',
+			new Date().toUTCString()
+		];
+		console.group.apply(null, parts);
+		console.log.apply(null, arguments);
+		console.groupEnd();
+	};
+
+	const error = function () {
+		const parts = [
+			`%c[${config.info.name}]%c \u2014 %s`,
+			'color: #3A71C1; font-weight: 700;',
+			'',
+			new Date().toUTCString()
+		];
+		console.group.apply(null, parts);
+		console.error.apply(null, arguments);
+		console.groupEnd();
 	};
 
 	/* Build */
@@ -81,6 +105,7 @@ var HideServersChannelsRedux = (() => {
 		const { SettingPanel, SettingGroup, Switch } = Settings;
 
 		const has = Object.prototype.hasOwnProperty;
+		const Header = WebpackModules.getByDisplayName('HeaderBarContainer');
 		const TooltipWrapper = WebpackModules.getByPrototypes('renderTooltip');
 		const icons = WebpackModules.getByProps('iconWrapper', 'clickable');
 		const guilds = WebpackModules.getByProps('wrapper', 'unreadMentionsIndicatorTop');
@@ -88,10 +113,10 @@ var HideServersChannelsRedux = (() => {
 
 		const buttonStates = {
 			channels: {
-				active: false
+				active: true
 			},
 			guilds: {
-				active: false
+				active: true
 			}
 		};
 
@@ -383,8 +408,7 @@ var HideServersChannelsRedux = (() => {
 			}
 
 			patchHeader(state) {
-				if (state.cancelled) return;
-				const Header = WebpackModules.getByDisplayName('HeaderBarContainer');
+				if (state.cancelled || !Header) return;
 
 				Patcher.after(Header.prototype, 'render', (that, args, value) => {
 					const children = this.getProps(value, 'props.toolbar.props.children.0');
@@ -394,7 +418,7 @@ var HideServersChannelsRedux = (() => {
 					const C = DiscordModules.React.createElement(ChannelButton, { key: 'channels', onClick: (e) => this.onChannelButtonClick(e) });
 					const fn = (key) => (item) => item && item.key && item.key === key;
 
-					if (!children.some(fn('servers')) && !children.some(fn('channels'))) children.unshift(S, C);
+					if (!children.some(fn('servers')) && !children.some(fn('channels'))) children.splice(3, 0, S, C);
 
 					return value;
 				});
@@ -485,6 +509,10 @@ var HideServersChannelsRedux = (() => {
 
 	return !global.ZeresPluginLibrary 
 		? class {
+			constructor() {
+				this._config = config;
+			}
+
 			getName() {
 				return config.info.name.replace(/\s+/g, '');
 			}
@@ -508,9 +536,7 @@ var HideServersChannelsRedux = (() => {
 			load() {
 				const { BdApi, BdApi: { React } } = window;
 				const title = 'Library Missing';
-				const ModalStack = BdApi.findModuleByProps('push', 'update', 'pop', 'popWithKey');
 				const TextElement = BdApi.findModuleByDisplayName('Text');
-				const ConfirmationModal = BdApi.findModule((m) => m.defaultProps && m.key && m.key() === 'confirm-modal');
 				const children = [];
 				if (!TextElement) {
 					children.push(
@@ -520,7 +546,7 @@ var HideServersChannelsRedux = (() => {
 						React.createElement('br', {}),
 						React.createElement('a', {
 							target: '_blank',
-							href: 'https://betterdiscord.net/ghdl?url=https://raw.githubusercontent.com/rauenzi/BDPluginLibrary/master/release/0PluginLibrary.plugin.js',
+							href: 'https://betterdiscord.app/Download?id=9',
 							children: ['Click here to download the library!']
 						})
 					);
@@ -534,31 +560,31 @@ var HideServersChannelsRedux = (() => {
 					React.createElement('br', {}),
 					React.createElement('a', {
 						target: '_blank',
-						href: 'https://betterdiscord.net/ghdl?url=https://raw.githubusercontent.com/rauenzi/BDPluginLibrary/master/release/0PluginLibrary.plugin.js',
+						href: 'https://betterdiscord.app/Download?id=9',
 						children: ['Click here to download the library!']
 					})
 				);
-				if (!ModalStack || !ConfirmationModal) return BdApi.alert(title, children);
-				ModalStack.push(function(props) {
-					return React.createElement(ConfirmationModal, Object.assign({
-						header: title,
-						children: [
-							React.createElement(TextElement, {
-								color: TextElement.Colors.STANDARD,
-								children: [`The library plugin needed for ${config.info.name} is missing. Please click Download Now to install it.`]
-							})
-						],
-						red: false,
+				try {
+					BdApi.showConfirmationModal(title, [
+						React.createElement(TextElement, {
+							color: TextElement.Colors.STANDARD,
+							children: [`The library plugin needed for ${config.info.name} is missing. Please click Download Now to install it.`]
+						})
+					], {
+						danger: false,
 						confirmText: 'Download Now',
 						cancelText: 'Cancel',
 						onConfirm: () => {
 							require('request').get('https://rauenzi.github.io/BDPluginLibrary/release/0PluginLibrary.plugin.js', async (error, response, body) => {
-								if (error) return require('electron').shell.openExternal('https://betterdiscord.net/ghdl?url=https://raw.githubusercontent.com/rauenzi/BDPluginLibrary/master/release/0PluginLibrary.plugin.js');
+								if (error) return require('electron').shell.openExternal('https://betterdiscord.app/Download?id=9');
 								await new Promise((r) => require('fs').writeFile(require('path').join(window.ContentManager.pluginsFolder, '0PluginLibrary.plugin.js'), body, r));
 							});
 						}
-					}, props));
-				});
+					});
+				} catch (e) {
+					error(e);
+					BdApi.alert(title, children);
+				}
 			}
 
 			start() {
