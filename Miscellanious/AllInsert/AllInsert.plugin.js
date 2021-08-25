@@ -50,12 +50,15 @@ var AllInsert = (() => {
 	/* Utility */
 
 	const log = function() {
-		/**
-		 * @type {Array}
-		 */
-		const args = Array.prototype.slice.call(arguments);
-		args.unshift(`%c[${config.info.name}]`, 'color: #3A71C1; font-weight: 700;');
-		return console.log.apply(this, args);
+		const parts = [
+			`%c[${config.info.name}]%c %s`,
+			'color: #3A71C1; font-weight: 700;',
+			'',
+			new Date().toUTCString()
+		];
+		console.group.apply(null, parts);
+		console.log.apply(null, arguments);
+		console.groupEnd();
 	};
 
 	/* Build */
@@ -69,11 +72,7 @@ var AllInsert = (() => {
 		const has = Object.prototype.hasOwnProperty;
 		const chat = WebpackModules.getByProps('chat');
 
-		const getChar = (...codes) => {
-			const results = [];
-			for (const code of codes) results.push(String.fromCharCode(code));
-			return results.join('');
-		};
+		const getChar = (...codes) => codes.map((code) => String.fromCharCode(code)).join('');
 
 		const debounce = (fn, wait = 100, immediate = false) => {
 			if (typeof fn !== 'function') fn = function () {};
@@ -92,9 +91,10 @@ var AllInsert = (() => {
 		};
 
 		const v = {
+			'/-f': 'ƒ',
+			'\'\'\'': '```',
 			'/>=': '\u2265',
 			'/<=': '\u2264',
-			'\'\'\'': '```',
 			'==>': '\u21D2',
 			'/!=': '\u2260',
 			'/.l': '\u2190',
@@ -147,11 +147,9 @@ var AllInsert = (() => {
 			}
 
 			async patchTextareaComponent(state) {
-				// const TextForm = await ReactComponents.getComponentByName('ChannelTextAreaForm', `.${chat.chat.replace(/\s+/g, '.')} form`);
-
 				const EditArea = WebpackModules.getByDisplayName('ChannelEditorContainer');
 				if (!EditArea || state.cancelled) return;
-				// const { component: Textarea } = TextForm;
+
 				Patcher.after(EditArea.prototype, 'render', debounce((that, args, value) => {
 					if (!that.props.textValue) return value;
 
@@ -165,14 +163,18 @@ var AllInsert = (() => {
 					for (const key of vKeys) newString = this.replaceStrings(newString, key);
 					
 					textAreaRef.handleChange({ value: SlateUtils.deserialize(newString) });
-					//.handleTextareaChange(that, newString, SlateUtils.deserialize(newString));
+					textAreaRef.editorRef.moveToEndOfText();
 					setImmediate(() => Dispatcher.dispatch('TEXTAREA_FOCUS', null));
 					
 					return value;
 				}, 250));
 
-				ReactTools.getOwnerInstance(document.querySelector(`.${chat.chat.replace(/\s+/g, '.')} form`)).forceUpdate();
-				// TextForm.forceUpdateAll();
+				this.updateTextArea();
+			}
+
+			updateTextArea() {
+				const owner = ReactTools.getOwnerInstance(document.querySelector(`.${chat.chat.replace(/\s+/g, '.')} form`));
+				if (owner) owner.forceUpdate();
 			}
 
 			replaceStrings(string, key) {
