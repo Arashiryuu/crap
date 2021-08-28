@@ -1,7 +1,7 @@
 /**
  * @name MemberCount
  * @author Arashiryuu
- * @version 2.2.6
+ * @version 2.2.7
  * @description Displays a server's member-count at the top of the member-list, can be styled with the #MemberCount selector.
  * @authorId 238108500109033472
  * @authorLink https://github.com/Arashiryuu
@@ -49,7 +49,7 @@ var MemberCount = (() => {
 					twitter_username: ''
 				}
 			],
-			version: '2.2.6',
+			version: '2.2.7',
 			description: 'Displays a server\'s member-count at the top of the member-list, can be styled with the #MemberCount selector.',
 			github: 'https://github.com/Arashiryuu',
 			github_raw: 'https://raw.githubusercontent.com/Arashiryuu/crap/master/ToastIntegrated/MemberCount/MemberCount.plugin.js'
@@ -235,17 +235,6 @@ var MemberCount = (() => {
 				})
 			]
 		});
-
-		const blacklistData = {
-			actions: {
-				true: (id, context) => () => context.unlistGuild(id),
-				false: (id, context) => () => context.blacklistGuild(id)
-			},
-			strings: {
-				true: (context) => context.strings.INCLUDE,
-				false: (context) => context.strings.EXCLUDE
-			}
-		};
 		
 		return class MemberCount extends Plugin {
 			constructor() {
@@ -313,7 +302,7 @@ var MemberCount = (() => {
 						? value.find((item) => item && !item.key)
 						: value;
 					const props = this.getProps(val, 'props');
-					if (!props || !props.id || !props.id.startsWith('members')) return value;
+					if (!props || !props['data-list-id'] || !props['data-list-id'].startsWith('members')) return value;
 					
 					const guildId = SelectedGuildStore.getGuildId();
 					const list = document.querySelector(`${DiscordSelectors.MemberList.membersWrap}`);
@@ -447,11 +436,15 @@ var MemberCount = (() => {
 			}
 
 			getAction(id, blacklisted) {
-				return blacklistData.actions[blacklisted](id, this);
+				return blacklisted
+					? () => this.unlistGuild(id)
+					: () => this.blacklistGuild(id);
 			}
 
 			getLabel(blacklisted) {
-				return blacklistData.strings[blacklisted](this);
+				return blacklisted
+					? this.strings.INCLUDE
+					: this.strings.EXCLUDE;
 			}
 
 			blacklistGuild(id) {
