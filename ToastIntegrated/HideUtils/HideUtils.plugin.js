@@ -1,7 +1,7 @@
 /**
  * @name HideUtils
  * @author Arashiryuu
- * @version 2.1.45
+ * @version 2.1.46
  * @description Allows you to hide users, servers, and channels individually.
  * @authorId 238108500109033472
  * @authorLink https://github.com/Arashiryuu
@@ -49,7 +49,7 @@ var HideUtils = (() => {
 					twitter_username: ''
 				}
 			],
-			version: '2.1.45',
+			version: '2.1.46',
 			description: 'Allows you to hide users, servers, and channels individually.',
 			github: 'https://github.com/Arashiryuu',
 			github_raw: 'https://raw.githubusercontent.com/Arashiryuu/crap/master/ToastIntegrated/HideUtils/HideUtils.plugin.js',
@@ -57,10 +57,10 @@ var HideUtils = (() => {
 		},
 		changelog: [
 			{
-				title: 'Bugs Squashed!',
-				type: 'fixed',
+				title: 'Maintenance!',
+				type: 'improved',
 				items: [
-					'Works again.'
+					'Fix voice channels disappearing when people join them.'
 				]
 			}
 		]
@@ -1047,17 +1047,19 @@ var HideUtils = (() => {
 						if (!channel) return channel;
 						const channelProps = this.getProps(channel, 'props');
 						if (!channelProps.voiceStates || !Array.isArray(channelProps.voiceStates)) {
-							return !channel.key || !has.call(this.settings.channels, channel.key)
-								? channel
-								: null;
+							if (channel.key && !has.call(this.settings.channels, channel.key)) return channel;
+							return null;
 						}
 						channelProps.voiceStates = channelProps.voiceStates.filter((user) => {
+							if (!user) return false;
 							const { voiceState: { userId } } = user;
 							if (!has.call(this.settings.users, userId)) return true;
 							this.mute(userId, 0);
 							return false;
 						});
-						return !channel.key || !has.call(this.settings.channels, channel.key);
+						// weird voice channel bug fix
+						if (channel.type && channel.type.displayName === 'ConnectedVoiceChannel') return channel;
+						return channel.key && !has.call(this.settings.channels, channel.key);
 					});
 	
 					return value;
