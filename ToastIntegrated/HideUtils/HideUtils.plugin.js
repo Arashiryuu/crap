@@ -1,7 +1,7 @@
 /**
  * @name HideUtils
  * @author Arashiryuu
- * @version 2.1.43
+ * @version 2.1.44
  * @description Allows you to hide users, servers, and channels individually.
  * @authorId 238108500109033472
  * @authorLink https://github.com/Arashiryuu
@@ -49,7 +49,7 @@ var HideUtils = (() => {
 					twitter_username: ''
 				}
 			],
-			version: '2.1.43',
+			version: '2.1.44',
 			description: 'Allows you to hide users, servers, and channels individually.',
 			github: 'https://github.com/Arashiryuu',
 			github_raw: 'https://raw.githubusercontent.com/Arashiryuu/crap/master/ToastIntegrated/HideUtils/HideUtils.plugin.js',
@@ -57,17 +57,10 @@ var HideUtils = (() => {
 		},
 		changelog: [
 			{
-				title: 'Maintenance?',
-				type: 'improved',
-				items: [
-					'User, Channel, and Guild (server) context items are back using React.'
-				]
-			},
-			{
 				title: 'Bugs Squashed!',
 				type: 'fixed',
 				items: [
-					'Hides users again.'
+					'Works again.'
 				]
 			}
 		]
@@ -214,9 +207,11 @@ var HideUtils = (() => {
 				this.close = this.close.bind(this);
 				this.replaceLabels = this.replaceLabels.bind(this);
 			}
+
+			static modalKey = 'HideUtils-SettingsModal';
 	
 			close() {
-				ModalStack.popWithKey('HideUtils-SettingsModal');
+				ModalStack.popWithKey(Modal.modalKey);
 			}
 	
 			replaceLabels(label, data) {
@@ -390,23 +385,23 @@ var HideUtils = (() => {
 			}
 	
 			openFolders() {
-				ModalStack.push(Modal, { name: 'Folders', data: this.props.folders }, 'HideUtils-SettingsModal');
+				ModalStack.push(Modal, { name: 'Folders', data: this.props.folders }, Modal.modalKey);
 			}
 	
 			openChannels() {
-				ModalStack.push(Modal, { name: 'Channels', data: this.props.channels }, 'HideUtils-SettingsModal');
+				ModalStack.push(Modal, { name: 'Channels', data: this.props.channels }, Modal.modalKey);
 			}
 	
 			openServers() {
-				ModalStack.push(Modal, { name: 'Servers', data: this.props.servers }, 'HideUtils-SettingsModal');
+				ModalStack.push(Modal, { name: 'Servers', data: this.props.servers }, Modal.modalKey);
 			}
 	
 			openUsers() {
-				ModalStack.push(Modal, { name: 'Users', data: this.props.users }, 'HideUtils-SettingsModal');
+				ModalStack.push(Modal, { name: 'Users', data: this.props.users }, Modal.modalKey);
 			}
 	
 			openInstructions() {
-				ModalStack.push(Modal, { name: 'Instructions', data: null }, 'HideUtils-SettingsModal');
+				ModalStack.push(Modal, { name: 'Instructions', data: null }, Modal.modalKey);
 			}
 	
 			render() {
@@ -901,7 +896,18 @@ var HideUtils = (() => {
 				const t = await new Promise((resolve, reject) => {
 					subscription = DOMTools.observer.subscribeToQuerySelector(() => {
 						const instance = ReactTools.getReactInstance(document.querySelector('[data-list-id="chat-messages"]'));
-						if (instance) resolve(this.getProps(instance, 'return.return.return.return.return.type'));
+						const forwarded = Utilities.findInTree(instance, (tree) => {
+							if (!tree) return false;
+							const forward = String(tree['$$typeof']).includes('react.forward_ref');
+							const string = tree.render?.toString().includes('contentClassName');
+							return forward && string;
+						}, {
+							walkable: [
+								'return',
+								'type'
+							]
+						});
+						if (instance && forwarded) resolve(forwarded);
 						else resolve(null);
 					}, '.chat-3bRxxu', null, true);
 				});
@@ -985,7 +991,7 @@ var HideUtils = (() => {
 				if (state.cancelled) return;
 				Patcher.after(Lists.ListThin, 'render', (that, args, value) => {
 					const [props] = args;
-					if (!props || !props.id || !props.id.startsWith('members')) return value;
+					if (!props || !props['data-list-id'] || !props['data-list-id'].startsWith('members')) return value;
 
 					const target = Array.isArray(value)
 						? value.find((i) => i && !i.key)
@@ -1001,12 +1007,11 @@ var HideUtils = (() => {
 						return !has.call(this.settings.users, id);
 					}).map((entry, i, arr) => {
 						// hide groups with no users under them
+						if (!entry) return null;
 						const { key } = entry;
 						const next = arr[i + 1];
-						const prev = arr[i - 1];
-						const hasNext = (item) => item && item.key.startsWith('section-');
-						const hasPrev = (item) => item && item.key.startsWith('section-');
-						const bool = hasNext(next) || hasPrev(prev);
+						const sect = (item) => item && item.key.startsWith('section-');
+						const bool = sect(next);
 						if (key.startsWith('section-') && bool) return null;
 						return entry;
 					});
@@ -1029,7 +1034,7 @@ var HideUtils = (() => {
 				if (state.cancelled) return;	
 				Patcher.after(Lists.ListThin, 'render', (that, args, value) => {
 					const [props] = args;
-					if (!props || !props.id || !props.id.startsWith('channels')) return value;
+					if (!props || !props['data-list-id'] || !props['data-list-id'].startsWith('channels')) return value;
 					
 					const childProps = this.getProps(value, 'props.children.props.children.props');
 					const children = this.getProps(childProps, 'children');
@@ -1497,7 +1502,7 @@ var HideUtils = (() => {
 						React.createElement('br', {}),
 						React.createElement('a', {
 							target: '_blank',
-							href: 'https://betterdiscord.net/ghdl?url=https://raw.githubusercontent.com/rauenzi/BDPluginLibrary/master/release/0PluginLibrary.plugin.js',
+							href: 'https://betterdiscord.app/Download?id=9',
 							children: ['Click here to download the library!']
 						})
 					);
@@ -1511,7 +1516,7 @@ var HideUtils = (() => {
 					React.createElement('br', {}),
 					React.createElement('a', {
 						target: '_blank',
-						href: 'https://betterdiscord.net/ghdl?url=https://raw.githubusercontent.com/rauenzi/BDPluginLibrary/master/release/0PluginLibrary.plugin.js',
+						href: 'https://betterdiscord.app/Download?id=9',
 						children: ['Click here to download the library!']
 					})
 				);
@@ -1530,7 +1535,7 @@ var HideUtils = (() => {
 						cancelText: 'Cancel',
 						onConfirm: () => {
 							require('request').get('https://rauenzi.github.io/BDPluginLibrary/release/0PluginLibrary.plugin.js', async (error, response, body) => {
-								if (error) return require('electron').shell.openExternal('https://betterdiscord.net/ghdl?url=https://raw.githubusercontent.com/rauenzi/BDPluginLibrary/master/release/0PluginLibrary.plugin.js');
+								if (error) return require('electron').shell.openExternal('https://betterdiscord.app/Download?id=9');
 								await new Promise((r) => require('fs').writeFile(require('path').join(window.ContentManager.pluginsFolder, '0PluginLibrary.plugin.js'), body, r));
 							});
 						}
