@@ -1,7 +1,7 @@
 /**
  * @name HideUtils
  * @author Arashiryuu
- * @version 2.1.44
+ * @version 2.1.45
  * @description Allows you to hide users, servers, and channels individually.
  * @authorId 238108500109033472
  * @authorLink https://github.com/Arashiryuu
@@ -49,7 +49,7 @@ var HideUtils = (() => {
 					twitter_username: ''
 				}
 			],
-			version: '2.1.44',
+			version: '2.1.45',
 			description: 'Allows you to hide users, servers, and channels individually.',
 			github: 'https://github.com/Arashiryuu',
 			github_raw: 'https://raw.githubusercontent.com/Arashiryuu/crap/master/ToastIntegrated/HideUtils/HideUtils.plugin.js',
@@ -1034,7 +1034,7 @@ var HideUtils = (() => {
 				if (state.cancelled) return;	
 				Patcher.after(Lists.ListThin, 'render', (that, args, value) => {
 					const [props] = args;
-					if (!props || !props['data-list-id'] || !props['data-list-id'].startsWith('channels')) return value;
+					if (!props || !props.id || !props.id.startsWith('channels')) return value;
 					
 					const childProps = this.getProps(value, 'props.children.props.children.props');
 					const children = this.getProps(childProps, 'children');
@@ -1046,12 +1046,12 @@ var HideUtils = (() => {
 					childProps.children = children.map((channel) => {
 						if (!channel) return channel;
 						const channelProps = this.getProps(channel, 'props');
-						if (!props.voiceStates || !Array.isArray(props.voiceStates)) {
+						if (!channelProps.voiceStates || !Array.isArray(channelProps.voiceStates)) {
 							return !channel.key || !has.call(this.settings.channels, channel.key)
 								? channel
 								: null;
 						}
-						props.voiceStates = props.voiceStates.filter((user) => {
+						channelProps.voiceStates = channelProps.voiceStates.filter((user) => {
 							const { voiceState: { userId } } = user;
 							if (!has.call(this.settings.users, userId)) return true;
 							this.mute(userId, 0);
