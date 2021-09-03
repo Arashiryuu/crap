@@ -184,7 +184,7 @@ var MemberCount = (() => {
 								React.createElement('span', {
 									children: [
 										Counter.strings.MEMBERS,
-										'—',
+										' — ',
 										this.props.count
 									]
 								})
