@@ -346,7 +346,7 @@ var ChatUserIDsRedux = (() => {
 
 			async double(e, author) {
 				try {
-					await window.navigator.clipboard.writeText(author.id);
+					await DiscordNative.clipboard.copy(author.id);
 					Toasts.info('Successfully copied!', { timeout: 2e3 });
 				} catch(error) {
 					err(error);
