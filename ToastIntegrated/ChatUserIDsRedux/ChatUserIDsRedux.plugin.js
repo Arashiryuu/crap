@@ -1,7 +1,7 @@
 /**
  * @name ChatUserIDsRedux
  * @author Arashiryuu
- * @version 1.0.20
+ * @version 1.0.21
  * @description Adds a user's ID next to their name in chat, makes accessing a user ID simpler. Double-click to copy the ID.
  * @authorId 238108500109033472
  * @authorLink https://github.com/Arashiryuu
@@ -49,19 +49,19 @@ var ChatUserIDsRedux = (() => {
 					twitter_username: ''
 				}
 			],
-			version: '1.0.20',
+			version: '1.0.21',
 			description: 'Adds a user\'s ID next to their name in chat, makes accessing a user ID simpler. Double-click to copy the ID.',
 			github: 'https://github.com/Arashiryuu',
 			github_raw: 'https://raw.githubusercontent.com/Arashiryuu/crap/master/ToastIntegrated/ChatUserIDsRedux/ChatUserIDsRedux.plugin.js'
 		},
 		changelog: [
 			{
-				// title: 'Bugs Squashed!',
-				// type: 'fixed',
-				// items: ['Works again.']
-				title: 'Evolving?',
-				type: 'improved',
-				items: ['Re-enabled hover tooltip setting. We\'re back using React.']
+				title: 'Bugs Squashed!',
+				type: 'fixed',
+				items: ['Copying IDs works again.']
+				// title: 'Evolving?',
+				// type: 'improved',
+				// items: ['Re-enabled hover tooltip setting. We\'re back using React.']
 			}
 		]
 	};
@@ -92,6 +92,7 @@ var ChatUserIDsRedux = (() => {
 		const { Toasts, Logger, Patcher, Settings, Utilities, ReactTools, DOMTools, DiscordModules, WebpackModules, DiscordSelectors, PluginUtilities } = Api;
 		const { SettingPanel, SettingGroup, ColorPicker, RadioGroup, Switch } = Settings;
 		const { React, ReactDOM } = DiscordModules;
+		const { clipboard } = require('electron');
 
 		const queryStrings = ['ANIMATE_CHAT_AVATAR', 'showUsernamePopout'];
 		const MessageHeader = WebpackModules.find((mod) => {
@@ -112,7 +113,6 @@ var ChatUserIDsRedux = (() => {
 		};
 
 		const TextElement = WebpackModules.getByDisplayName('Text');
-		// const MessageHeader = WebpackModules.getByProps('MessageTimestamp');
 		const TooltipWrapper = WebpackModules.getByPrototypes('renderTooltip');
 
 		const options = [
@@ -344,11 +344,11 @@ var ChatUserIDsRedux = (() => {
 				PluginUtilities.addStyle(this.short, this.css.replace(/{color}/, this.settings.color));
 			}
 
-			async double(e, author) {
+			double(e, author) {
 				try {
-					await window.navigator.clipboard.writeText(author.id);
+					clipboard.writeText(author.id);
 					Toasts.info('Successfully copied!', { timeout: 2e3 });
-				} catch(error) {
+				} catch (error) {
 					err(error);
 					Toasts.error('Failed to copy! See console for error(s)!', { timeout: 2e3 });
 				}
