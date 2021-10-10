@@ -1,7 +1,7 @@
 /**
  * @name HideUtils
  * @author Arashiryuu
- * @version 2.1.46
+ * @version 2.1.47
  * @description Allows you to hide users, servers, and channels individually.
  * @authorId 238108500109033472
  * @authorLink https://github.com/Arashiryuu
@@ -49,7 +49,7 @@ var HideUtils = (() => {
 					twitter_username: ''
 				}
 			],
-			version: '2.1.46',
+			version: '2.1.47',
 			description: 'Allows you to hide users, servers, and channels individually.',
 			github: 'https://github.com/Arashiryuu',
 			github_raw: 'https://raw.githubusercontent.com/Arashiryuu/crap/master/ToastIntegrated/HideUtils/HideUtils.plugin.js',
@@ -57,10 +57,10 @@ var HideUtils = (() => {
 		},
 		changelog: [
 			{
-				title: 'Maintenance!',
-				type: 'improved',
+				title: 'Bugs Squashed!',
+				type: 'fixed',
 				items: [
-					'Fix voice channels disappearing when people join them.'
+					'Hides servers again.'
 				]
 			}
 		]
@@ -939,44 +939,37 @@ var HideUtils = (() => {
 			async patchGuilds(state) {
 				const Guilds = await new Promise((resolve) => {
 					const guildsWrapper = document.querySelector(`.${guilds.wrapper.replace(/\s/, '.')}`);
-					if (guildsWrapper) return resolve(ReactTools.getOwnerInstance(guildsWrapper).constructor);
+					if (!guildsWrapper) return resolve(null);
+					const instance = ReactTools.getReactInstance(guildsWrapper);
+					const forwarded = Utilities.findInTree(instance, (tree) => {
+						if (!tree) return false;
+						const forward = String(tree['$$typeof']).includes('react.forward_ref');
+						const string = tree.render?.toString().includes('ltr');
+						return forward && string;
+					}, {
+						walkable: [
+							'type',
+							'child',
+							'sibling'
+						]
+					});
+					if (instance && forwarded) resolve(forwarded);
+					else resolve(null);
 				});
-				if (state.cancelled) return;
-				Patcher.after(Guilds.prototype, 'render', (that, args, value) => {
-					const props = this.getProps(that, 'props');
-					if (!props.guildFolders || !Array.isArray(props.guildFolders)) return value;
-	
-					const orig = this.getProps(value, 'props.children');
-					if (!orig || typeof orig !== 'function' || value.props.children.__patched_HideUtils) return value;
-
-					value.props.children = (...props) => {
-						const o = orig(...props);
-						const oChild = this.getProps(o, 'props.children.props.children');
-						if (!oChild || oChild.__patched_HideUtils) return o;
-						o.props.children.props.children = (...data) => {
-							const oValue = oChild(...data);
-							const list = this.getProps(oValue, 'props.children.1.props.children');
-							if (!list) return oValue;
-							const guildsList = list.find((child) => child && child.type && child.type === 'div');
-							if (!guildsList) return oValue;
-							guildsList.props.children = guildsList.props.children.filter((guild) => {
-								if (Array.isArray(guild.props.guildIds)) {
-									if (has.call(this.settings.folders, guild.props.folderId)) return false;
-									guild.props.guildIds = guild.props.guildIds.filter((id) => !has.call(this.settings.servers, id));
-									if (!guild.props.guildIds.length) return false;
-									return true;
-								}
-								return !guild || !guild.key || !has.call(this.settings.servers, guild.key);
-							});
-							return oValue;
-						};
-						o.props.children.props.children.__patched_HideUtils = true;
-						return o;
-					};
-					value.props.children.__patched = true;
-					value.props.children.__patched_HideUtils = true;
-	
-					return value;
+				if (state.cancelled || !Guilds) return;
+				Patcher.before(Guilds, 'render', (that, [guildnav, spring], value) => {
+					if (!guildnav || !guildnav.children || !guildnav.children.length) return;
+					const list = guildnav.children.find((child) => child && child.type === 'div' && child.props['aria-label']);
+					if (!list) return;
+					list.props.children = list.props.children.filter((guild) => {
+						if (Array.isArray(guild.props.guildIds)) {
+							if (has.call(this.settings.folders, guild.props.folderId)) return false;
+							guild.props.guildIds = guild.props.guildIds.filter((id) => !has.call(this.settings.servers, id));
+							if (!guild.props.guildIds.length) return false;
+							return true;
+						}
+						return !guild || !guild.key || !has.call(this.settings.servers, guild.key);
+					});
 				});
 	
 				this.updateGuilds();
