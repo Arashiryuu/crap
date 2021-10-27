@@ -1,7 +1,7 @@
 /**
  * @name HideUtils
  * @author Arashiryuu
- * @version 2.1.47
+ * @version 2.1.48
  * @description Allows you to hide users, servers, and channels individually.
  * @authorId 238108500109033472
  * @authorLink https://github.com/Arashiryuu
@@ -49,7 +49,7 @@ var HideUtils = (() => {
 					twitter_username: ''
 				}
 			],
-			version: '2.1.47',
+			version: '2.1.48',
 			description: 'Allows you to hide users, servers, and channels individually.',
 			github: 'https://github.com/Arashiryuu',
 			github_raw: 'https://raw.githubusercontent.com/Arashiryuu/crap/master/ToastIntegrated/HideUtils/HideUtils.plugin.js',
@@ -383,25 +383,29 @@ var HideUtils = (() => {
 				this.openServers = this.openServers.bind(this);
 				this.openUsers = this.openUsers.bind(this);
 			}
+
+			static pushModal(name, data) {
+				ModalStack.push(Modal, { name, data }, Modal.modalKey);
+			}
 	
 			openFolders() {
-				ModalStack.push(Modal, { name: 'Folders', data: this.props.folders }, Modal.modalKey);
+				Select.pushModal('Folders', this.props.folders);
 			}
 	
 			openChannels() {
-				ModalStack.push(Modal, { name: 'Channels', data: this.props.channels }, Modal.modalKey);
+				Select.pushModal('Channels', this.props.channels);
 			}
 	
 			openServers() {
-				ModalStack.push(Modal, { name: 'Servers', data: this.props.servers }, Modal.modalKey);
+				Select.pushModal('Servers', this.props.servers);
 			}
 	
 			openUsers() {
-				ModalStack.push(Modal, { name: 'Users', data: this.props.users }, Modal.modalKey);
+				Select.pushModal('Users', this.props.users);
 			}
 	
 			openInstructions() {
-				ModalStack.push(Modal, { name: 'Instructions', data: null }, Modal.modalKey);
+				Select.pushModal('Instructions', null);
 			}
 	
 			render() {
@@ -957,15 +961,16 @@ var HideUtils = (() => {
 					else resolve(null);
 				});
 				if (state.cancelled || !Guilds) return;
-				Patcher.before(Guilds, 'render', (that, [guildnav, spring], value) => {
+				Patcher.before(Guilds, 'render', (that, [guildnav, springRef], value) => {
 					if (!guildnav || !guildnav.children || !guildnav.children.length) return;
 					const list = guildnav.children.find((child) => child && child.type === 'div' && child.props['aria-label']);
 					if (!list) return;
 					list.props.children = list.props.children.filter((guild) => {
-						if (Array.isArray(guild.props.guildIds)) {
-							if (has.call(this.settings.folders, guild.props.folderId)) return false;
-							guild.props.guildIds = guild.props.guildIds.filter((id) => !has.call(this.settings.servers, id));
-							if (!guild.props.guildIds.length) return false;
+						const { folderNode } = guild.props;
+						if (folderNode) {
+							if (has.call(this.settings.folders, folderNode.id)) return false;
+							folderNode.children = folderNode.children.filter(({ id }) => !has.call(this.settings.servers, id));
+							if (!folderNode.children.length) return false;
 							return true;
 						}
 						return !guild || !guild.key || !has.call(this.settings.servers, guild.key);
