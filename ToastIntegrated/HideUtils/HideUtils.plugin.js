@@ -1,7 +1,7 @@
 /**
  * @name HideUtils
  * @author Arashiryuu
- * @version 2.1.49
+ * @version 2.1.50
  * @description Allows you to hide users, servers, and channels individually.
  * @authorId 238108500109033472
  * @authorLink https://github.com/Arashiryuu
@@ -49,7 +49,7 @@ var HideUtils = (() => {
 					twitter_username: ''
 				}
 			],
-			version: '2.1.49',
+			version: '2.1.50',
 			description: 'Allows you to hide users, servers, and channels individually.',
 			github: 'https://github.com/Arashiryuu',
 			github_raw: 'https://raw.githubusercontent.com/Arashiryuu/crap/master/ToastIntegrated/HideUtils/HideUtils.plugin.js',
@@ -60,7 +60,7 @@ var HideUtils = (() => {
 				title: 'Bugs Squashed!',
 				type: 'fixed',
 				items: [
-					'Hides servers again. (Discord pls.)'
+					'Channel context menu item displays again.'
 				]
 			}
 		]
@@ -383,29 +383,25 @@ var HideUtils = (() => {
 				this.openServers = this.openServers.bind(this);
 				this.openUsers = this.openUsers.bind(this);
 			}
-
-			static pushModal(name, data) {
-				ModalStack.push(Modal, { name, data }, Modal.modalKey);
-			}
 	
 			openFolders() {
-				Select.pushModal('Folders', this.props.folders);
+				ModalStack.push(Modal, { name: 'Folders', data: this.props.folders }, Modal.modalKey);
 			}
 	
 			openChannels() {
-				Select.pushModal('Channels', this.props.channels);
+				ModalStack.push(Modal, { name: 'Channels', data: this.props.channels }, Modal.modalKey);
 			}
 	
 			openServers() {
-				Select.pushModal('Servers', this.props.servers);
+				ModalStack.push(Modal, { name: 'Servers', data: this.props.servers }, Modal.modalKey);
 			}
 	
 			openUsers() {
-				Select.pushModal('Users', this.props.users);
+				ModalStack.push(Modal, { name: 'Users', data: this.props.users }, Modal.modalKey);
 			}
 	
 			openInstructions() {
-				Select.pushModal('Instructions', null);
+				ModalStack.push(Modal, { name: 'Instructions', data: null }, Modal.modalKey);
 			}
 	
 			render() {
@@ -720,7 +716,11 @@ var HideUtils = (() => {
 			}
 	
 			async patchChannelContextMenu(promiseState) {
-				const Context = WebpackModules.find((mod) => mod?.default?.displayName === 'ChannelListTextChannelContextMenu');
+				const Context = WebpackModules.find((mod) => {
+					const isMenu = mod?.default?.displayName === 'ChannelListTextChannelContextMenu';
+					const string = mod?.default?.toString([]);
+					return isMenu && string.includes('function I(e){') && !string.includes('includeTopic');
+				});
 				// const Component = await PluginUtilities.getContextMenu('CHANNEL_LIST_');
 				if (promiseState.cancelled) return;
 				Patcher.after(Context, 'default', (that, args, value) => {
@@ -961,24 +961,17 @@ var HideUtils = (() => {
 					else resolve(null);
 				});
 				if (state.cancelled || !Guilds) return;
-				Patcher.before(Guilds, 'render', (that, [guildnav, springRef], value) => {
+				Patcher.before(Guilds, 'render', (that, [guildnav, spring], value) => {
 					if (!guildnav || !guildnav.children || !guildnav.children.length) return;
 					const list = guildnav.children.find((child) => child && child.type === 'div' && child.props['aria-label']);
 					if (!list) return;
 					list.props.children = list.props.children.filter((guild) => {
 						if (Array.isArray(guild.props.guildIds)) {
-							if (has.call(this.settings.servers, guild.props.folderId)) return false;
+							if (has.call(this.settings.folders, guild.props.folderId)) return false;
 							guild.props.guildIds = guild.props.guildIds.filter((id) => !has.call(this.settings.servers, id));
 							if (!guild.props.guildIds.length) return false;
+							return true;
 						}
-						// may need to uncomment this in the future if Discord push that change again but for real
-// 						const { folderNode } = guild.props;
-// 						if (folderNode) {
-// 							if (has.call(this.settings.folders, folderNode.id)) return false;
-// 							folderNode.children = folderNode.children.filter(({ id }) => !has.call(this.settings.servers, id));
-// 							if (!folderNode.children.length) return false;
-// 							return true;
-// 						}
 						return !guild || !guild.key || !has.call(this.settings.servers, guild.key);
 					});
 				});
