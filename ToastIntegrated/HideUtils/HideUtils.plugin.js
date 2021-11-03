@@ -1,7 +1,7 @@
 /**
  * @name HideUtils
  * @author Arashiryuu
- * @version 2.1.50
+ * @version 2.1.51
  * @description Allows you to hide users, servers, and channels individually.
  * @authorId 238108500109033472
  * @authorLink https://github.com/Arashiryuu
@@ -49,7 +49,7 @@ var HideUtils = (() => {
 					twitter_username: ''
 				}
 			],
-			version: '2.1.50',
+			version: '2.1.51',
 			description: 'Allows you to hide users, servers, and channels individually.',
 			github: 'https://github.com/Arashiryuu',
 			github_raw: 'https://raw.githubusercontent.com/Arashiryuu/crap/master/ToastIntegrated/HideUtils/HideUtils.plugin.js',
@@ -60,7 +60,7 @@ var HideUtils = (() => {
 				title: 'Bugs Squashed!',
 				type: 'fixed',
 				items: [
-					'Channel context menu item displays again.'
+					'Hides servers & folders again.'
 				]
 			}
 		]
@@ -961,15 +961,16 @@ var HideUtils = (() => {
 					else resolve(null);
 				});
 				if (state.cancelled || !Guilds) return;
-				Patcher.before(Guilds, 'render', (that, [guildnav, spring], value) => {
+				Patcher.before(Guilds, 'render', (that, [guildnav, springRef], value) => {
 					if (!guildnav || !guildnav.children || !guildnav.children.length) return;
 					const list = guildnav.children.find((child) => child && child.type === 'div' && child.props['aria-label']);
 					if (!list) return;
 					list.props.children = list.props.children.filter((guild) => {
-						if (Array.isArray(guild.props.guildIds)) {
-							if (has.call(this.settings.folders, guild.props.folderId)) return false;
-							guild.props.guildIds = guild.props.guildIds.filter((id) => !has.call(this.settings.servers, id));
-							if (!guild.props.guildIds.length) return false;
+						const { folderNode } = guild.props;
+						if (folderNode) {
+							if (has.call(this.settings.folders, guild.key)) return false;
+							folderNode.children = folderNode.children.filter(({ id }) => !has.call(this.settings.servers, id));
+							if (!folderNode.children.length) return false;
 							return true;
 						}
 						return !guild || !guild.key || !has.call(this.settings.servers, guild.key);
