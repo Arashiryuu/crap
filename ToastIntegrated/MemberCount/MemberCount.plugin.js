@@ -64,6 +64,11 @@ var MemberCount = (() => {
 				INCLUDE: 'Include Server',
 				EXCLUDE: 'Exclude Server',
 				MEMBERS: 'Members'
+			},
+			ru: {
+				INCLUDE: 'Включить Сервер',
+				EXCLUDE: 'Исключить Сервер',
+				MEMBERS: 'Участники'
 			}
 		},
 		changelog: [
@@ -250,7 +255,7 @@ var MemberCount = (() => {
 				};
 				this.css = `
 					#MemberCount {
-						background: var(--background-secondary);
+						background: flex;
 						position: absolute;
 						display: flex;
 						width: 240px;
