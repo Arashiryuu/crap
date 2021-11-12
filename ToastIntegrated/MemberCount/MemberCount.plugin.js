@@ -1,7 +1,7 @@
 /**
  * @name MemberCount
  * @author Arashiryuu
- * @version 2.2.7
+ * @version 2.2.8
  * @description Displays a server's member-count at the top of the member-list, can be styled with the #MemberCount selector.
  * @authorId 238108500109033472
  * @authorLink https://github.com/Arashiryuu
@@ -49,7 +49,7 @@ var MemberCount = (() => {
 					twitter_username: ''
 				}
 			],
-			version: '2.2.7',
+			version: '2.2.8',
 			description: 'Displays a server\'s member-count at the top of the member-list, can be styled with the #MemberCount selector.',
 			github: 'https://github.com/Arashiryuu',
 			github_raw: 'https://raw.githubusercontent.com/Arashiryuu/crap/master/ToastIntegrated/MemberCount/MemberCount.plugin.js'
@@ -60,6 +60,11 @@ var MemberCount = (() => {
 				EXCLUDE: 'Wykluczyć Serwer',
 				MEMBERS: 'Członkowie'
 			},
+			ru: {
+				INCLUDE: 'Включать Сервер',
+				EXCLUDE: 'Исключить Сервер',
+				MEMBERS: 'Члены'
+			},
 			en: {
 				INCLUDE: 'Include Server',
 				EXCLUDE: 'Exclude Server',
@@ -67,22 +72,20 @@ var MemberCount = (() => {
 			}
 		},
 		changelog: [
-			// {
-			// 	title: 'Evolving?',
-			// 	type: 'improved',
-			// 	items: [
-			// 		'Added flexibility to the memberlist patch, should allow for better multi-patch compatibility.',
-			// 		'Refactored how the counter gets its strings.',
-			// 		'Refactored how the context menu item gets its labels and actions.'
-			// 	]
-			// }
 			{
-				title: 'Bugs Squashed!',
-				type: 'fixed',
+				title: 'Evolving?',
+				type: 'improved',
 				items: [
-					'Works again!'
+					'Added Russian translations.'
 				]
 			}
+// 			{
+// 				title: 'Bugs Squashed!',
+// 				type: 'fixed',
+// 				items: [
+// 					'Works again!'
+// 				]
+// 			}
 		]
 	};
 	
