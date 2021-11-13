@@ -61,9 +61,9 @@ var MemberCount = (() => {
 				MEMBERS: 'Członkowie'
 			},
 			ru: {
-				INCLUDE: 'Включать Сервер',
-				EXCLUDE: 'Исключить Сервер',
-				MEMBERS: 'Члены'
+				INCLUDE: 'Включать отображение участников',
+				EXCLUDE: 'Отключить отображение участников',
+				MEMBERS: 'Участники'
 			},
 			en: {
 				INCLUDE: 'Include Server',
