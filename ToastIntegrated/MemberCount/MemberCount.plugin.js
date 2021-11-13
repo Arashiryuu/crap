@@ -1,7 +1,7 @@
 /**
  * @name MemberCount
  * @author Arashiryuu
- * @version 2.2.8
+ * @version 2.2.9
  * @description Displays a server's member-count at the top of the member-list, can be styled with the #MemberCount selector.
  * @authorId 238108500109033472
  * @authorLink https://github.com/Arashiryuu
@@ -49,7 +49,7 @@ var MemberCount = (() => {
 					twitter_username: ''
 				}
 			],
-			version: '2.2.8',
+			version: '2.2.9',
 			description: 'Displays a server\'s member-count at the top of the member-list, can be styled with the #MemberCount selector.',
 			github: 'https://github.com/Arashiryuu',
 			github_raw: 'https://raw.githubusercontent.com/Arashiryuu/crap/master/ToastIntegrated/MemberCount/MemberCount.plugin.js'
@@ -73,12 +73,19 @@ var MemberCount = (() => {
 		},
 		changelog: [
 			{
-				title: 'Evolving?',
-				type: 'improved',
+				title: 'Maintenance',
+				type: 'progress',
 				items: [
-					'Added Russian translations.'
+					'Improved translations.'
 				]
 			}
+// 			{
+// 				title: 'Evolving?',
+// 				type: 'improved',
+// 				items: [
+// 					'Added Russian translations.'
+// 				]
+// 			}
 // 			{
 // 				title: 'Bugs Squashed!',
 // 				type: 'fixed',
