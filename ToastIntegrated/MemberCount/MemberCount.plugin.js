@@ -56,8 +56,8 @@ var MemberCount = (() => {
 		},
 		strings: {
 			pl: {
-				INCLUDE: 'Obejmują Serwer',
-				EXCLUDE: 'Wykluczyć Serwer',
+				INCLUDE: 'Dołącz serwer',
+				EXCLUDE: 'Wyklucz serwer',
 				MEMBERS: 'Członkowie'
 			},
 			ru: {
