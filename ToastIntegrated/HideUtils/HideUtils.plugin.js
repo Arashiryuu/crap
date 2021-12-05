@@ -1,7 +1,7 @@
 /**
  * @name HideUtils
  * @author Arashiryuu
- * @version 2.1.51
+ * @version 2.1.52
  * @description Allows you to hide users, servers, and channels individually.
  * @authorId 238108500109033472
  * @authorLink https://github.com/Arashiryuu
@@ -49,7 +49,7 @@ var HideUtils = (() => {
 					twitter_username: ''
 				}
 			],
-			version: '2.1.51',
+			version: '2.1.52',
 			description: 'Allows you to hide users, servers, and channels individually.',
 			github: 'https://github.com/Arashiryuu',
 			github_raw: 'https://raw.githubusercontent.com/Arashiryuu/crap/master/ToastIntegrated/HideUtils/HideUtils.plugin.js',
@@ -60,7 +60,7 @@ var HideUtils = (() => {
 				title: 'Bugs Squashed!',
 				type: 'fixed',
 				items: [
-					'Hides servers & folders again.'
+					'Channel Context Menu Item displays again.'
 				]
 			}
 		]
@@ -719,7 +719,7 @@ var HideUtils = (() => {
 				const Context = WebpackModules.find((mod) => {
 					const isMenu = mod?.default?.displayName === 'ChannelListTextChannelContextMenu';
 					const string = mod?.default?.toString([]);
-					return isMenu && string.includes('function I(e){') && !string.includes('includeTopic');
+					return isMenu && string.includes('function O(e){') && !string.includes('includeTopic');
 				});
 				// const Component = await PluginUtilities.getContextMenu('CHANNEL_LIST_');
 				if (promiseState.cancelled) return;
