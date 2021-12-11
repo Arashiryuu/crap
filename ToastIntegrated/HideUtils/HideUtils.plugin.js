@@ -1,7 +1,7 @@
 /**
  * @name HideUtils
  * @author Arashiryuu
- * @version 2.1.52
+ * @version 2.1.53
  * @description Allows you to hide users, servers, and channels individually.
  * @authorId 238108500109033472
  * @authorLink https://github.com/Arashiryuu
@@ -49,7 +49,7 @@ var HideUtils = (() => {
 					twitter_username: ''
 				}
 			],
-			version: '2.1.52',
+			version: '2.1.53',
 			description: 'Allows you to hide users, servers, and channels individually.',
 			github: 'https://github.com/Arashiryuu',
 			github_raw: 'https://raw.githubusercontent.com/Arashiryuu/crap/master/ToastIntegrated/HideUtils/HideUtils.plugin.js',
@@ -60,7 +60,7 @@ var HideUtils = (() => {
 				title: 'Bugs Squashed!',
 				type: 'fixed',
 				items: [
-					'Channel Context Menu Item displays again.'
+					'Hides blocked user messages again.'
 				]
 			}
 		]
@@ -920,11 +920,12 @@ var HideUtils = (() => {
 					const [props] = args;
 					const children = this.getProps(props, 'children.props.children');
 					const list = this.getProps(children, '1');
+					if (!list) return;
 					children[1] = list.filter((message) => {
 						if (!message || message.key && (message.key.includes('divider') || ['has-more', 'buffer'].some((k) => message.key === k))) return message;
 						const author = this.getProps(message, 'props.message.author');
 						const type = this.getProps(message, 'type.type');
-						const blocked = Boolean((type && type.displayName && type.displayName === 'BlockedMessages') && this.settings.hideBlocked);
+						const blocked = Boolean((type && type.displayName && type.displayName === 'CollapsedMessages') && this.settings.hideBlocked);
 						return !blocked && author && !has.call(this.settings.users, author.id) || !blocked && !author;
 					});
 				});
