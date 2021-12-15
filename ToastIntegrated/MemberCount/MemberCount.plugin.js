@@ -1,7 +1,7 @@
 /**
  * @name MemberCount
  * @author Arashiryuu
- * @version 2.2.9
+ * @version 2.2.10
  * @description Displays a server's member-count at the top of the member-list, can be styled with the #MemberCount selector.
  * @authorId 238108500109033472
  * @authorLink https://github.com/Arashiryuu
@@ -59,6 +59,11 @@ var MemberCount = (() => {
 				INCLUDE: 'Dołącz serwer',
 				EXCLUDE: 'Wyklucz serwer',
 				MEMBERS: 'Członkowie'
+			},
+			fr: {
+				INCLUDE: 'Inclure le serveur',
+				EXCLUDE: 'Exclure le serveur',
+				MEMBERS: 'Membres'
 			},
 			ru: {
 				INCLUDE: 'Включить отображение участников',
