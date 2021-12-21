@@ -49,7 +49,7 @@ var MemberCount = (() => {
 					twitter_username: ''
 				}
 			],
-			version: '2.2.9',
+			version: '2.2.10',
 			description: 'Displays a server\'s member-count at the top of the member-list, can be styled with the #MemberCount selector.',
 			github: 'https://github.com/Arashiryuu',
 			github_raw: 'https://raw.githubusercontent.com/Arashiryuu/crap/master/ToastIntegrated/MemberCount/MemberCount.plugin.js'
@@ -60,15 +60,15 @@ var MemberCount = (() => {
 				EXCLUDE: 'Wyklucz serwer',
 				MEMBERS: 'Członkowie'
 			},
-			fr: {
-				INCLUDE: 'Inclure le serveur',
-				EXCLUDE: 'Exclure le serveur',
-				MEMBERS: 'Membres'
-			},
 			ru: {
 				INCLUDE: 'Включить отображение участников',
 				EXCLUDE: 'Отключить отображение участников',
 				MEMBERS: 'Участники'
+			},
+			fr: {
+				INCLUDE: 'Inclure le serveur',
+				EXCLUDE: 'Exclure le serveur',
+				MEMBERS: 'Membres'
 			},
 			de: {
 				INCLUDE: 'Server einschließen',
@@ -86,23 +86,23 @@ var MemberCount = (() => {
 				title: 'Maintenance',
 				type: 'progress',
 				items: [
-					'Improved translations.'
+					'General maintenance.'
 				]
 			}
-// 			{
-// 				title: 'Evolving?',
-// 				type: 'improved',
-// 				items: [
-// 					'Added Russian translations.'
-// 				]
-// 			}
-// 			{
-// 				title: 'Bugs Squashed!',
-// 				type: 'fixed',
-// 				items: [
-// 					'Works again!'
-// 				]
-// 			}
+			// {
+			// 	title: 'Evolving?',
+			// 	type: 'improved',
+			// 	items: [
+			// 		'Added Russian translations.'
+			// 	]
+			// }
+			// {
+			// 	title: 'Bugs Squashed!',
+			// 	type: 'fixed',
+			// 	items: [
+			// 		'Works again!'
+			// 	]
+			// }
 		]
 	};
 	
@@ -204,7 +204,7 @@ var MemberCount = (() => {
 								React.createElement('span', {
 									children: [
 										Counter.strings.MEMBERS,
-										'—',
+										' — ',
 										this.props.count
 									]
 								})
