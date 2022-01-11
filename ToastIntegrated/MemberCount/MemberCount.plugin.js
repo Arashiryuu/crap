@@ -1,7 +1,7 @@
 /**
  * @name MemberCount
  * @author Arashiryuu
- * @version 2.2.10
+ * @version 2.2.11
  * @description Displays a server's member-count at the top of the member-list, can be styled with the #MemberCount selector.
  * @authorId 238108500109033472
  * @authorLink https://github.com/Arashiryuu
@@ -49,7 +49,7 @@ var MemberCount = (() => {
 					twitter_username: ''
 				}
 			],
-			version: '2.2.10',
+			version: '2.2.11',
 			description: 'Displays a server\'s member-count at the top of the member-list, can be styled with the #MemberCount selector.',
 			github: 'https://github.com/Arashiryuu',
 			github_raw: 'https://raw.githubusercontent.com/Arashiryuu/crap/master/ToastIntegrated/MemberCount/MemberCount.plugin.js'
@@ -82,13 +82,13 @@ var MemberCount = (() => {
 			}
 		},
 		changelog: [
-			{
-				title: 'Maintenance',
-				type: 'progress',
-				items: [
-					'General maintenance.'
-				]
-			}
+			// {
+			// 	title: 'Maintenance',
+			// 	type: 'progress',
+			// 	items: [
+			// 		'General maintenance.'
+			// 	]
+			// }
 			// {
 			// 	title: 'Evolving?',
 			// 	type: 'improved',
@@ -96,13 +96,13 @@ var MemberCount = (() => {
 			// 		'Added Russian translations.'
 			// 	]
 			// }
-			// {
-			// 	title: 'Bugs Squashed!',
-			// 	type: 'fixed',
-			// 	items: [
-			// 		'Works again!'
-			// 	]
-			// }
+			{
+				title: 'Bugs Squashed!',
+				type: 'fixed',
+				items: [
+					'Reflects recent class change.'
+				]
+			}
 		]
 	};
 	
@@ -199,7 +199,7 @@ var MemberCount = (() => {
 					ref: this.ref,
 					children: [
 						React.createElement('h2', {
-							className: `${DiscordClasses.MemberList.membersGroup} container-2ax-kl`,
+							className: `${DiscordClasses.MemberList.membersGroup} container-q97qHp`,
 							children: [
 								React.createElement('span', {
 									children: [
