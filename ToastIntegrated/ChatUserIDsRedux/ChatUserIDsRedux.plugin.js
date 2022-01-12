@@ -1,7 +1,7 @@
 /**
  * @name ChatUserIDsRedux
  * @author Arashiryuu
- * @version 1.0.21
+ * @version 1.0.22
  * @description Adds a user's ID next to their name in chat, makes accessing a user ID simpler. Double-click to copy the ID.
  * @authorId 238108500109033472
  * @authorLink https://github.com/Arashiryuu
@@ -49,7 +49,7 @@ var ChatUserIDsRedux = (() => {
 					twitter_username: ''
 				}
 			],
-			version: '1.0.21',
+			version: '1.0.22',
 			description: 'Adds a user\'s ID next to their name in chat, makes accessing a user ID simpler. Double-click to copy the ID.',
 			github: 'https://github.com/Arashiryuu',
 			github_raw: 'https://raw.githubusercontent.com/Arashiryuu/crap/master/ToastIntegrated/ChatUserIDsRedux/ChatUserIDsRedux.plugin.js'
@@ -58,7 +58,7 @@ var ChatUserIDsRedux = (() => {
 			{
 				title: 'Bugs Squashed!',
 				type: 'fixed',
-				items: ['Copying IDs works again.']
+				items: ['Displays properly again.']
 				// title: 'Evolving?',
 				// type: 'improved',
 				// items: ['Re-enabled hover tooltip setting. We\'re back using React.']
@@ -109,7 +109,8 @@ var ChatUserIDsRedux = (() => {
 		const has = Object.prototype.hasOwnProperty;
 		const MessageClasses = {
 			...WebpackModules.getByProps('message', 'groupStart'),
-			...WebpackModules.getByProps('compact', 'cozy', 'username')
+			...WebpackModules.getByProps('compact', 'cozy', 'username'),
+			...WebpackModules.getByProps('username', 'zalgo', 'timestamp', 'header')
 		};
 
 		const TextElement = WebpackModules.getByDisplayName('Text');
@@ -206,7 +207,7 @@ var ChatUserIDsRedux = (() => {
 				if (!classes.includes('tagID')) classes.unshift('tagID');
 				return React.createElement(TooltipWrapper, {
 					position: TooltipWrapper.Positions.TOP,
-					color: TooltipWrapper.Colors.BLACK,
+					color: TooltipWrapper.Colors.PRIMARY,
 					text: this.props.text,
 					children: (props) => Tag.getRenderElement(this, props, classes)
 				});
@@ -264,7 +265,7 @@ var ChatUserIDsRedux = (() => {
 						margin-right: 4px;
 					}
 		
-					.${MessageClasses.groupStart.split(' ')[0]}.${MessageClasses.cozy.split(' ')[0]} h2.${MessageClasses.header.split(' ')[0]} {
+					.${MessageClasses.groupStart.split(' ')[0]}.${MessageClasses.cozyMessage.split(' ')[0]} h2.${MessageClasses.header.split(' ')[0]} {
 						display: flex;
 						position: relative;
 					}
