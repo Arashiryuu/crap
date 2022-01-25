@@ -1,7 +1,7 @@
 /**
  * @name HideServersChannelsRedux
  * @author Arashiryuu
- * @version 1.1.11
+ * @version 1.1.12
  * @description Adds buttons to the header for hiding the servers list and channels list.
  * @authorId 238108500109033472
  * @authorLink https://github.com/Arashiryuu
@@ -50,27 +50,27 @@ var HideServersChannelsRedux = (() => {
 					twitter_username: ''
 				}
 			],
-			version: '1.1.11',
+			version: '1.1.12',
 			description: 'Adds buttons to the header for hiding the servers list and channels list.',
 			github: 'https://github.com/Arashiryuu',
 			github_raw: 'https://raw.githubusercontent.com/Arashiryuu/crap/master/ToastIntegrated/HideServersChannelsRedux/HideServersChannelsRedux.plugin.js'
 		},
 		changelog: [
-			// {
-			// 	title: 'Bugs Squashed!',
-			// 	type: 'fixed',
-			// 	items: [
-			// 		'Minimal Mode compatibility.'
-			// 	]
-			// }
 			{
-				title: 'Maintenance!',
-				type: 'improved',
+				title: 'Bugs Squashed!',
+				type: 'fixed',
 				items: [
-					'Inverted button highlights to match member list button.',
-					'Moved plugin added buttons\' positions.'
+					'Working again.'
 				]
 			}
+			// {
+			// 	title: 'Maintenance!',
+			// 	type: 'improved',
+			// 	items: [
+			// 		'Inverted button highlights to match member list button.',
+			// 		'Moved plugin added buttons\' positions.'
+			// 	]
+			// }
 		]
 	};
 	
@@ -110,6 +110,7 @@ var HideServersChannelsRedux = (() => {
 		const icons = WebpackModules.getByProps('iconWrapper', 'clickable');
 		const guilds = WebpackModules.getByProps('wrapper', 'unreadMentionsIndicatorTop');
 		const channelBase = WebpackModules.getByProps('base', 'container', 'sidebar');
+		const headerClasses = WebpackModules.getByProps('title', 'container', 'children', 'themed');
 
 		const buttonStates = {
 			channels: {
@@ -321,11 +322,11 @@ var HideServersChannelsRedux = (() => {
 			}
 
 			onKeyup({ altKey, ctrlKey, key }) {
-				key = key.toLowerCase();
+				const k = key.toLowerCase();
 				
-				if (!altKey || ctrlKey || !has.call(this.keyFns, key)) return;
+				if (!altKey || ctrlKey || !has.call(this.keyFns, k)) return;
 
-				this.keyFns[key]();
+				this.keyFns[k]();
 			}
 
 			isNotClosed(el) {
@@ -427,7 +428,7 @@ var HideServersChannelsRedux = (() => {
 			}
 
 			updateHeader() {
-				const head = document.querySelector(DiscordSelectors.TitleWrap.title.value.trim());
+				const head = document.querySelector(`.${headerClasses.container}.${headerClasses.themed}`);
 				if (head) ReactTools.getOwnerInstance(head).forceUpdate();
 			}
 
