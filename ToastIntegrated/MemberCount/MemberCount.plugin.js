@@ -1,7 +1,7 @@
 /**
  * @name MemberCount
  * @author Arashiryuu
- * @version 2.2.11
+ * @version 2.2.12
  * @description Displays a server's member-count at the top of the member-list, can be styled with the #MemberCount selector.
  * @authorId 238108500109033472
  * @authorLink https://github.com/Arashiryuu
@@ -49,7 +49,7 @@ var MemberCount = (() => {
 					twitter_username: ''
 				}
 			],
-			version: '2.2.11',
+			version: '2.2.12',
 			description: 'Displays a server\'s member-count at the top of the member-list, can be styled with the #MemberCount selector.',
 			github: 'https://github.com/Arashiryuu',
 			github_raw: 'https://raw.githubusercontent.com/Arashiryuu/crap/master/ToastIntegrated/MemberCount/MemberCount.plugin.js'
@@ -100,7 +100,8 @@ var MemberCount = (() => {
 				title: 'Bugs Squashed!',
 				type: 'fixed',
 				items: [
-					'Reflects recent class change.'
+					'Reflects recent class change.',
+					'Context menu item renders again.'
 				]
 			}
 		]
@@ -142,7 +143,6 @@ var MemberCount = (() => {
 		const Flux = WebpackModules.getByProps('connectStores');
 		const Lists = WebpackModules.getByProps('ListThin');
 		const Menu = WebpackModules.getByProps('MenuItem', 'MenuGroup', 'MenuSeparator');
-		const GuildContextMenu = WebpackModules.find((mod) => mod && mod.default && mod.default.displayName === 'GuildContextMenu');
 
 		const ctxMenuClasses = WebpackModules.getByProps('menu', 'scroller');
 
@@ -173,46 +173,35 @@ var MemberCount = (() => {
 			}
 		};
 
-		const WrapBoundary = (Original) => {
-			return class Boundary extends React.PureComponent {
-				render() {
-					return React.createElement(ErrorBoundary, null, React.createElement(Original, this.props));
-				}
-			};
+		const WrapBoundary = (Original) => (props) => React.createElement(ErrorBoundary, null, React.createElement(Original, props));
+		
+		const getStrings = () => {
+			const [lang] = LangUtils.getLocale().split('-');
+			return config.strings[lang] ?? config.strings.en;
 		};
 
-		const Counter = class Counter extends React.PureComponent {
-			constructor(props) {
-				super(props);
-				this.ref = React.createRef();
-			}
-
-			static get strings() {
-				const [lang] = LangUtils.getLocale().split('-');
-				return config.strings[lang] ?? config.strings.en;
-			}
-
-			render() {
-				return React.createElement('div', {
-					id: 'MemberCount',
-					role: 'listitem',
-					ref: this.ref,
-					children: [
-						React.createElement('h2', {
-							className: `${DiscordClasses.MemberList.membersGroup} container-q97qHp`,
-							children: [
-								React.createElement('span', {
-									children: [
-										Counter.strings.MEMBERS,
-										' — ',
-										this.props.count
-									]
-								})
-							]
-						})
-					]
-				});
-			}
+		const Counter = (props) => {
+			const ref = React.useRef();
+			const strings = getStrings();
+			return React.createElement('div', {
+				id: 'MemberCount',
+				role: 'listitem',
+				ref: ref,
+				children: [
+					React.createElement('h2', {
+						className: `${DiscordClasses.MemberList.membersGroup} container-q97qHp`,
+						children: [
+							React.createElement('span', {
+								children: [
+									strings.MEMBERS,
+									' — ',
+									props.count
+								]
+							})
+						]
+					})
+				]
+			});
 		};
 
 		const MemberCounter = Flux.connectStores([MemberCountStore], () => ({
@@ -355,8 +344,11 @@ var MemberCount = (() => {
 				if (scroll) inst.handleOnScroll && inst.handleOnScroll();
 			}
 
-			patchGuildContextMenu(state) {
-				if (state.cancelled || !GuildContextMenu) return;
+			async patchGuildContextMenu(state) {
+				if (state.cancelled) return;
+
+				const GuildContextMenu = await ContextMenu.getDiscordMenu('GuildContextMenu');
+				if (!GuildContextMenu) return;
 
 				const fn = (item) => item && item.key && item.key === 'MemberCount-Group';
 
@@ -385,7 +377,7 @@ var MemberCount = (() => {
 					return value;
 				});
 
-				PluginUtilities.forceUpdateContextMenus();
+				ContextMenu.forceUpdateMenus();
 			}
 
 			updateContextPosition(that) {
