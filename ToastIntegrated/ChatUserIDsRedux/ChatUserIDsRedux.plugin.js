@@ -1,7 +1,7 @@
 /**
  * @name ChatUserIDsRedux
  * @author Arashiryuu
- * @version 1.0.22
+ * @version 1.0.23
  * @description Adds a user's ID next to their name in chat, makes accessing a user ID simpler. Double-click to copy the ID.
  * @authorId 238108500109033472
  * @authorLink https://github.com/Arashiryuu
@@ -49,7 +49,7 @@ var ChatUserIDsRedux = (() => {
 					twitter_username: ''
 				}
 			],
-			version: '1.0.22',
+			version: '1.0.23',
 			description: 'Adds a user\'s ID next to their name in chat, makes accessing a user ID simpler. Double-click to copy the ID.',
 			github: 'https://github.com/Arashiryuu',
 			github_raw: 'https://raw.githubusercontent.com/Arashiryuu/crap/master/ToastIntegrated/ChatUserIDsRedux/ChatUserIDsRedux.plugin.js'
@@ -58,7 +58,10 @@ var ChatUserIDsRedux = (() => {
 			{
 				title: 'Bugs Squashed!',
 				type: 'fixed',
-				items: ['Displays properly again.']
+				items: [
+					'Displays properly again.',
+					'ColorPicker default color displays properly again.'
+				]
 				// title: 'Evolving?',
 				// type: 'improved',
 				// items: ['Re-enabled hover tooltip setting. We\'re back using React.']
@@ -159,11 +162,7 @@ var ChatUserIDsRedux = (() => {
 			}
 		};
 
-		const WrapBoundary = (Original) => class Boundary extends React.Component {
-			render() {
-				return React.createElement(ErrorBoundary, null, React.createElement(Original, this.props));
-			}
-		};
+		const WrapBoundary = (Original) => (props) => React.createElement(ErrorBoundary, null, React.createElement(Original, props));
 
 		const Tag = class Tag extends React.Component {
 			constructor(props) {
@@ -418,10 +417,10 @@ var ChatUserIDsRedux = (() => {
 			getSettingsPanel() {
 				return SettingPanel.build(() => this.saveSettings(this.settings),
 					new SettingGroup('Plugin Settings').append(
-						new ColorPicker('ID Background Color', 'Determines what color the background for the IDs will be.', this.default.color, (i) => {
+						new ColorPicker('ID Background Color', 'Determines what color the background for the IDs will be.', this.settings.color ?? this.default.color, (i) => {
 							this.settings.color = i;
 							this.reinjectCSS();
-						}, { colors: this.settings.colors }),
+						}, { colors: this.settings.colors, defaultColor: this.default.color }),
 						new RadioGroup('Tag Placement', 'Decides whether the tag is placed before the username, or after it.', this.settings.tagPosition || 0, options, (i) => {
 							this.settings.tagPosition = i;
 							// this.clearTags();
