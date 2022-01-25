@@ -1,7 +1,7 @@
 /**
  * @name MessageTimestampsRedux
  * @author Arashiryuu
- * @version 1.0.15
+ * @version 1.0.16
  * @description Displays the timestamp for a message, simply right-click and select "Show Timestamp."
  * @authorId 238108500109033472
  * @authorLink https://github.com/Arashiryuu
@@ -49,18 +49,17 @@ var MessageTimestampsRedux = (() => {
 					twitter_username: ''
 				}
 			],
-			version: '1.0.15',
+			version: '1.0.16',
 			description: 'Displays the timestamp for a message, simply right-click and select "Show Timestamp."',
 			github: 'https://github.com/Arashiryuu',
 			github_raw: 'https://raw.githubusercontent.com/Arashiryuu/crap/master/ToastIntegrated/MessageTimestampsRedux/MessageTimestampsRedux.plugin.js'
 		},
 		changelog: [
 			{
-				title: 'Evolving?',
-				type: 'improved',
+				title: 'Bugs Squashed!',
+				type: 'fixed',
 				items: [
-					'Using React again.',
-					'Fix potential conflict with ImageUtilities plugin.'
+					'Context menu item renders again.'
 				]
 			}
 		]
@@ -87,7 +86,6 @@ var MessageTimestampsRedux = (() => {
 		 */
 		const Menu = WebpackModules.getByProps('MenuItem', 'MenuGroup', 'MenuSeparator');
 		const ContextMenuClasses = WebpackModules.getByProps('menu', 'scroller');
-		const MessageContextMenu = WebpackModules.find((mod) => mod && mod.default && mod.default.displayName === 'MessageContextMenu');
 
 		/**
 		 * Unique item key for our React MenuGroup.
@@ -174,8 +172,11 @@ var MessageTimestampsRedux = (() => {
 			 * @param {object} state
 			 * @returns {void}
 			 */
-			patchContextMenu(state) {
-				if (state.cancelled || !MessageContextMenu) return;
+			async patchContextMenu(state) {
+				if (state.cancelled) return;
+
+				const MessageContextMenu = await ContextMenu.getDiscordMenu('MessageContextMenu');
+				if (!MessageContextMenu) return;
 
 				Patcher.after(MessageContextMenu, 'default', (that, args, value) => {
 					const [props] = args;
@@ -213,7 +214,7 @@ var MessageTimestampsRedux = (() => {
 					return value;
 				});
 
-				return PluginUtilities.forceUpdateContextMenus();
+				return ContextMenu.forceUpdateMenus();
 			}
 
 			/**
@@ -243,7 +244,7 @@ var MessageTimestampsRedux = (() => {
 				const time = !this.settings.shortened
 					? ts
 					: ts.split(' ').slice(0, 5).join(' ');
-				const tip = new EmulatedTooltip(target, time, { side: 'top', disabled: true });
+				const tip = Tooltip.create(target, time, { side: 'top', style: 'primary', disabled: true });
 
 				tip.show();
 				setTimeout(() => tip.hide(), this.settings.displayTime);
