@@ -1,7 +1,7 @@
 /**
  * @name MemberCount
  * @author Arashiryuu
- * @version 2.2.13
+ * @version 2.2.14
  * @description Displays a server's member-count at the top of the member-list, can be styled with the #MemberCount selector.
  * @authorId 238108500109033472
  * @authorLink https://github.com/Arashiryuu
@@ -49,7 +49,7 @@ var MemberCount = (() => {
 					twitter_username: ''
 				}
 			],
-			version: '2.2.13',
+			version: '2.2.14',
 			description: 'Displays a server\'s member-count at the top of the member-list, can be styled with the #MemberCount selector.',
 			github: 'https://github.com/Arashiryuu',
 			github_raw: 'https://raw.githubusercontent.com/Arashiryuu/crap/master/ToastIntegrated/MemberCount/MemberCount.plugin.js'
@@ -94,21 +94,20 @@ var MemberCount = (() => {
 			// 		'General maintenance.'
 			// 	]
 			// }
-			{
-				title: 'Evolving?',
-				type: 'improved',
-				items: [
-					'Added online user count.'
-				]
-			}
 			// {
-			// 	title: 'Bugs Squashed!',
-			// 	type: 'fixed',
+			// 	title: 'Evolving?',
+			// 	type: 'improved',
 			// 	items: [
-			// 		'Reflects recent class change.',
-			// 		'Context menu item renders again.'
+			// 		'Added online user count.'
 			// 	]
 			// }
+			{
+				title: 'Bugs Squashed!',
+				type: 'fixed',
+				items: [
+					'Fix overflowing into toolbar, fix second counter being cut off.'
+				]
+			}
 		]
 	};
 	
@@ -248,7 +247,6 @@ var MemberCount = (() => {
 								string: strings.MEMBERS,
 								count: props.count
 							}),
-							React.createElement('br', {}),
 							React.createElement(Row, {
 								fill: 'hsl(139, calc(var(--saturation-factor, 1) * 47.3%), 43.9%)',
 								string: strings.ONLINE,
@@ -317,15 +315,20 @@ var MemberCount = (() => {
 					#MemberCount {
 						background: var(--background-secondary);
 						position: absolute;
-						display: flex;
 						width: 240px;
-						text-align: center;
-						align-items: center;
-						justify-content: center;
 						padding: 0;
-						z-index: 5;
+						z-index: 1;
 						top: 0;
 						margin-top: -20px;
+					}
+
+					#MemberCount h2 {
+						height: 60px;
+					}
+
+					#MemberCount .membercount-row {
+						display: flex;
+						justify-content: center;
 					}
 
 					${DiscordSelectors.MemberList.membersWrap}.hasCounter ${DiscordSelectors.MemberList.members} {
