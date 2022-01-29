@@ -1,7 +1,7 @@
 /**
  * @name MemberCount
  * @author Arashiryuu
- * @version 2.2.12
+ * @version 2.2.13
  * @description Displays a server's member-count at the top of the member-list, can be styled with the #MemberCount selector.
  * @authorId 238108500109033472
  * @authorLink https://github.com/Arashiryuu
@@ -49,7 +49,7 @@ var MemberCount = (() => {
 					twitter_username: ''
 				}
 			],
-			version: '2.2.12',
+			version: '2.2.13',
 			description: 'Displays a server\'s member-count at the top of the member-list, can be styled with the #MemberCount selector.',
 			github: 'https://github.com/Arashiryuu',
 			github_raw: 'https://raw.githubusercontent.com/Arashiryuu/crap/master/ToastIntegrated/MemberCount/MemberCount.plugin.js'
@@ -58,27 +58,32 @@ var MemberCount = (() => {
 			pl: {
 				INCLUDE: 'Dołącz serwer',
 				EXCLUDE: 'Wyklucz serwer',
-				MEMBERS: 'Członkowie'
+				MEMBERS: 'Członkowie',
+				ONLINE: 'Online'
 			},
 			ru: {
 				INCLUDE: 'Включить отображение участников',
 				EXCLUDE: 'Отключить отображение участников',
-				MEMBERS: 'Участники'
+				MEMBERS: 'Участники',
+				ONLINE: 'онлайн'
 			},
 			fr: {
 				INCLUDE: 'Inclure le serveur',
 				EXCLUDE: 'Exclure le serveur',
-				MEMBERS: 'Membres'
+				MEMBERS: 'Membres',
+				ONLINE: 'En ligne'
 			},
 			de: {
 				INCLUDE: 'Server einschließen',
 				EXCLUDE: 'Server ausschließen',
-				MEMBERS: 'Mitglieder'
+				MEMBERS: 'Mitglieder',
+				ONLINE: 'Online'
 			},
 			en: {
 				INCLUDE: 'Include Server',
 				EXCLUDE: 'Exclude Server',
-				MEMBERS: 'Members'
+				MEMBERS: 'Members',
+				ONLINE: 'Online'
 			}
 		},
 		changelog: [
@@ -89,21 +94,21 @@ var MemberCount = (() => {
 			// 		'General maintenance.'
 			// 	]
 			// }
-			// {
-			// 	title: 'Evolving?',
-			// 	type: 'improved',
-			// 	items: [
-			// 		'Added Russian translations.'
-			// 	]
-			// }
 			{
-				title: 'Bugs Squashed!',
-				type: 'fixed',
+				title: 'Evolving?',
+				type: 'improved',
 				items: [
-					'Reflects recent class change.',
-					'Context menu item renders again.'
+					'Added online user count.'
 				]
 			}
+			// {
+			// 	title: 'Bugs Squashed!',
+			// 	type: 'fixed',
+			// 	items: [
+			// 		'Reflects recent class change.',
+			// 		'Context menu item renders again.'
+			// 	]
+			// }
 		]
 	};
 	
@@ -136,13 +141,17 @@ var MemberCount = (() => {
 	const buildPlugin = ([Plugin, Api]) => {
 		const { Toasts, Logger, Patcher, Settings, Utilities, DOMTools, ReactTools, ContextMenu, ReactComponents, DiscordModules, DiscordClasses, WebpackModules, DiscordSelectors, PluginUtilities } = Api;
 		const { SettingPanel, SettingGroup, SettingField, Textbox, Switch } = Settings;
-		const { React, ReactDOM, MemberCountStore, SelectedGuildStore, ContextMenuActions: MenuActions } = DiscordModules;
+		const { React, ReactDOM, Dispatcher, DiscordConstants, MemberCountStore, SelectedGuildStore, ContextMenuActions: MenuActions } = DiscordModules;
+		const { ActionTypes } = DiscordConstants;
+		const { useStateFromStoresArray } = WebpackModules.getByProps('Dispatcher', 'Store', 'useStateFromStores');
 
 		const has = Object.prototype.hasOwnProperty;
 		const LangUtils = WebpackModules.getByProps('getLocale', 'getLanguages');
 		const Flux = WebpackModules.getByProps('connectStores');
 		const Lists = WebpackModules.getByProps('ListThin');
 		const Menu = WebpackModules.getByProps('MenuItem', 'MenuGroup', 'MenuSeparator');
+		const GuildPopoutActions = WebpackModules.getByProps('fetchGuildForPopout');
+		const GuildPopoutStore = WebpackModules.getByProps('getGuild', 'isFetchingGuild');
 
 		const ctxMenuClasses = WebpackModules.getByProps('menu', 'scroller');
 
@@ -174,6 +183,39 @@ var MemberCount = (() => {
 		};
 
 		const WrapBoundary = (Original) => (props) => React.createElement(ErrorBoundary, null, React.createElement(Original, props));
+
+		const Person = (props) => React.createElement('svg', {
+			className: 'membercount-icon',
+			xmlns: 'http://www.w3.org/2000/svg',
+			width: '12px',
+			height: '12px',
+			viewBox: '0 0 20 20',
+			fill: props.fill ?? 'currentColor',
+			children: [
+				React.createElement('path', {
+					d: 'M0 0h24v24H0z',
+					fill: 'none'
+				}),
+				React.createElement('path', {
+					d: 'M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z'
+				})
+			]
+		});
+
+		const Row = (props) => React.createElement('span', {
+			className: 'membercount-row',
+			children: [
+				// React.createElement(Person, { fill: props.fill ?? null }),
+				// ' ',
+				// props.count,
+				// ' ',
+				// props.string
+				// ' ',
+				props.string,
+				' — ',
+				props.count
+			]
+		});
 		
 		const getStrings = () => {
 			const [lang] = LangUtils.getLocale().split('-');
@@ -183,6 +225,17 @@ var MemberCount = (() => {
 		const Counter = (props) => {
 			const ref = React.useRef();
 			const strings = getStrings();
+			const id = SelectedGuildStore.getGuildId();
+			const [online] = useStateFromStoresArray([GuildPopoutStore], () => [
+				GuildPopoutStore.getGuild(id)?.presenceCount
+			]);
+
+			React.useEffect(() => {
+				if (!online && !GuildPopoutStore.isFetchingGuild(id)) {
+					GuildPopoutActions.fetchGuildForPopout(id);
+				}
+			}, [online]);
+
 			return React.createElement('div', {
 				id: 'MemberCount',
 				role: 'listitem',
@@ -191,12 +244,15 @@ var MemberCount = (() => {
 					React.createElement('h2', {
 						className: `${DiscordClasses.MemberList.membersGroup} container-q97qHp`,
 						children: [
-							React.createElement('span', {
-								children: [
-									strings.MEMBERS,
-									' — ',
-									props.count
-								]
+							React.createElement(Row, {
+								string: strings.MEMBERS,
+								count: props.count
+							}),
+							React.createElement('br', {}),
+							React.createElement(Row, {
+								fill: 'hsl(139, calc(var(--saturation-factor, 1) * 47.3%), 43.9%)',
+								string: strings.ONLINE,
+								count: online ?? 'Loading'
 							})
 						]
 					})
@@ -269,11 +325,11 @@ var MemberCount = (() => {
 						padding: 0;
 						z-index: 5;
 						top: 0;
-						margin-top: -10px;
+						margin-top: -20px;
 					}
 
 					${DiscordSelectors.MemberList.membersWrap}.hasCounter ${DiscordSelectors.MemberList.members} {
-						margin-top: 30px;
+						margin-top: 40px;
 					}
 				`;
 			}
@@ -285,7 +341,7 @@ var MemberCount = (() => {
 				this.loadSettings();
 				this.addCSS();
 				this.patchMemberList(this.promises.state);
-				this.patchGuildContextMenu(this.promises.state);
+				this.patchGuildContextMenu(this.promises.state).catch(err);
 			}
 
 			onStop() {
