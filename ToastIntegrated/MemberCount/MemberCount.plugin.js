@@ -1,7 +1,7 @@
 /**
  * @name MemberCount
  * @author Arashiryuu
- * @version 2.2.14
+ * @version 2.2.15
  * @description Displays a server's member-count at the top of the member-list, can be styled with the #MemberCount selector.
  * @authorId 238108500109033472
  * @authorLink https://github.com/Arashiryuu
@@ -49,7 +49,7 @@ var MemberCount = (() => {
 					twitter_username: ''
 				}
 			],
-			version: '2.2.14',
+			version: '2.2.15',
 			description: 'Displays a server\'s member-count at the top of the member-list, can be styled with the #MemberCount selector.',
 			github: 'https://github.com/Arashiryuu',
 			github_raw: 'https://raw.githubusercontent.com/Arashiryuu/crap/master/ToastIntegrated/MemberCount/MemberCount.plugin.js'
@@ -94,20 +94,21 @@ var MemberCount = (() => {
 			// 		'General maintenance.'
 			// 	]
 			// }
-			// {
-			// 	title: 'Evolving?',
-			// 	type: 'improved',
-			// 	items: [
-			// 		'Added online user count.'
-			// 	]
-			// }
 			{
-				title: 'Bugs Squashed!',
-				type: 'fixed',
+				title: 'Evolving?',
+				type: 'improved',
 				items: [
-					'Fix overflowing into toolbar, fix second counter being cut off.'
+					'Added setting to toggle online count displaying.',
+					'Added new display style setting.'
 				]
 			}
+			// {
+			// 	title: 'Bugs Squashed!',
+			// 	type: 'fixed',
+			// 	items: [
+			// 		'Fix overflowing into toolbar, fix second counter being cut off.'
+			// 	]
+			// }
 		]
 	};
 	
@@ -139,7 +140,7 @@ var MemberCount = (() => {
 
 	const buildPlugin = ([Plugin, Api]) => {
 		const { Toasts, Logger, Patcher, Settings, Utilities, DOMTools, ReactTools, ContextMenu, ReactComponents, DiscordModules, DiscordClasses, WebpackModules, DiscordSelectors, PluginUtilities } = Api;
-		const { SettingPanel, SettingGroup, SettingField, Textbox, Switch } = Settings;
+		const { SettingPanel, SettingGroup, SettingField, Textbox, Switch, RadioGroup } = Settings;
 		const { React, ReactDOM, Dispatcher, DiscordConstants, MemberCountStore, SelectedGuildStore, ContextMenuActions: MenuActions } = DiscordModules;
 		const { ActionTypes } = DiscordConstants;
 		const { useStateFromStoresArray } = WebpackModules.getByProps('Dispatcher', 'Store', 'useStateFromStores');
@@ -153,6 +154,20 @@ var MemberCount = (() => {
 		const GuildPopoutStore = WebpackModules.getByProps('getGuild', 'isFetchingGuild');
 
 		const ctxMenuClasses = WebpackModules.getByProps('menu', 'scroller');
+		const dispatchKey = 'MEMBERCOUNT_COUNTER_UPDATE';
+
+		const options = [
+			{
+				name: 'Classic',
+				desc: 'Use the classic display style - matches Discord\'s role headers in the member list.',
+				value: 0
+			},
+			{
+				name: 'New',
+				desc: 'Use the new display style.',
+				value: 1
+			}
+		];
 
 		const ErrorBoundary = class ErrorBoundary extends React.PureComponent {
 			constructor(props) {
@@ -190,6 +205,9 @@ var MemberCount = (() => {
 			height: '12px',
 			viewBox: '0 0 20 20',
 			fill: props.fill ?? 'currentColor',
+			style: {
+				marginRight: '1px'
+			},
 			children: [
 				React.createElement('path', {
 					d: 'M0 0h24v24H0z',
@@ -204,15 +222,21 @@ var MemberCount = (() => {
 		const Row = (props) => React.createElement('span', {
 			className: 'membercount-row',
 			children: [
-				// React.createElement(Person, { fill: props.fill ?? null }),
-				// ' ',
-				// props.count,
-				// ' ',
-				// props.string
-				// ' ',
-				props.string,
-				' — ',
-				props.count
+				...(
+					props.displayType === 1
+						? [
+							React.createElement(Person, { fill: props.fill ?? null }),
+							String.fromCodePoint(160),
+							props.count,
+							String.fromCodePoint(160),
+							props.string
+						]
+						: [
+							props.string,
+							' — ',
+							props.count
+						]
+				)
 			]
 		});
 		
@@ -222,9 +246,13 @@ var MemberCount = (() => {
 		};
 
 		const Counter = (props) => {
+			const { 1: forceUpdate } = React.useReducer((x) => x + 1, 0);
+			const listener = () => forceUpdate();
+
 			const ref = React.useRef();
 			const strings = getStrings();
 			const id = SelectedGuildStore.getGuildId();
+
 			const [online] = useStateFromStoresArray([GuildPopoutStore], () => [
 				GuildPopoutStore.getGuild(id)?.presenceCount
 			]);
@@ -233,6 +261,8 @@ var MemberCount = (() => {
 				if (!online && !GuildPopoutStore.isFetchingGuild(id)) {
 					GuildPopoutActions.fetchGuildForPopout(id);
 				}
+				Dispatcher.subscribe(dispatchKey, listener);
+				return () => Dispatcher.unsubscribe(dispatchKey, listener);
 			}, [online]);
 
 			return React.createElement('div', {
@@ -245,12 +275,14 @@ var MemberCount = (() => {
 						children: [
 							React.createElement(Row, {
 								string: strings.MEMBERS,
-								count: props.count
+								count: props.count,
+								displayType: props.displayType
 							}),
-							React.createElement(Row, {
+							props.online && React.createElement(Row, {
 								fill: 'hsl(139, calc(var(--saturation-factor, 1) * 47.3%), 43.9%)',
 								string: strings.ONLINE,
-								count: online ?? 'Loading'
+								count: online ?? 'Loading',
+								displayType: props.displayType
 							})
 						]
 					})
@@ -304,7 +336,7 @@ var MemberCount = (() => {
 				super();
 				this._css;
 				this._optIn;
-				this.default = { blacklist: [] };
+				this.default = { blacklist: [], online: false, displayType: 0 };
 				this.settings = Utilities.deepclone(this.default);
 				this.promises = {
 					state: { cancelled: false },
@@ -319,11 +351,13 @@ var MemberCount = (() => {
 						padding: 0;
 						z-index: 1;
 						top: 0;
-						margin-top: -20px;
+						margin-top: 0;
+						border-bottom: 1px solid hsla(0, 0%, 100%, 0.04);
 					}
 
 					#MemberCount h2 {
-						height: 60px;
+						padding: 12px 8px;
+						height: auto;
 					}
 
 					#MemberCount .membercount-row {
@@ -332,7 +366,7 @@ var MemberCount = (() => {
 					}
 
 					${DiscordSelectors.MemberList.membersWrap}.hasCounter ${DiscordSelectors.MemberList.members} {
-						margin-top: 40px;
+						margin-top: 60px;
 					}
 				`;
 			}
@@ -379,7 +413,11 @@ var MemberCount = (() => {
 						return value;
 					}
 
-					const counter = React.createElement(WrapBoundary(MemberCounter), { key: `MemberCount-${guildId}` });
+					const counter = React.createElement(WrapBoundary(MemberCounter), {
+						key: `MemberCount-${guildId}`,
+						online: this.settings.online,
+						displayType: this.settings.displayType
+					});
 					const fn = (item) => item && item.key && item.key.startsWith('MemberCount');
 
 					if (!Array.isArray(value)) value = [value];
@@ -559,7 +597,7 @@ var MemberCount = (() => {
 				const data = super.loadSettings(this.default);
 				if (!data) return (this.settings = Utilities.deepclone(this.default));
 
-				if (Array.isArray(data)) return (this.settings = { blacklist: [...data] });
+				if (Array.isArray(data)) return (this.settings = { blacklist: [...data], online: false, displayType: 0 });
 
 				if (data.blacklist && !Array.isArray(data.blacklist)) {
 					data.blacklist = [...Object.values(data.blacklist)];
@@ -567,6 +605,29 @@ var MemberCount = (() => {
 				}
 
 				return this.settings = Utilities.deepclone(data);
+			}
+
+			/* Settings Panel */
+
+			getSettingsPanel() {
+				return SettingPanel.build(() => this.saveSettings(this.settings),
+					new SettingGroup('Plugin Settings').append(
+						new Switch('Online Counter', 'Whether to display the online counter or not.', this.settings.online, (i) => {
+							this.settings.online = i;
+							setImmediate(() => {
+								Dispatcher.wait(() => Dispatcher.dispatch({ type: dispatchKey }));
+								setImmediate(() => this.updateMemberList());
+							});
+						}),
+						new RadioGroup('Display Style', 'Switch between the classic or newer display style.', this.settings.displayType || 0, options, (i) => {
+							this.settings.displayType = i;
+							setImmediate(() => {
+								Dispatcher.wait(() => Dispatcher.dispatch({ type: dispatchKey }));
+								setImmediate(() => this.updateMemberList());
+							});
+						})
+					)
+				);
 			}
 
 			/* Utility */
