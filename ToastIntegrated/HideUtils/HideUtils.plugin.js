@@ -1,7 +1,7 @@
 /**
  * @name HideUtils
  * @author Arashiryuu
- * @version 2.1.54
+ * @version 2.1.55
  * @description Allows you to hide users, servers, and channels individually.
  * @authorId 238108500109033472
  * @authorLink https://github.com/Arashiryuu
@@ -49,7 +49,7 @@ var HideUtils = (() => {
 					twitter_username: ''
 				}
 			],
-			version: '2.1.54',
+			version: '2.1.55',
 			description: 'Allows you to hide users, servers, and channels individually.',
 			github: 'https://github.com/Arashiryuu',
 			github_raw: 'https://raw.githubusercontent.com/Arashiryuu/crap/master/ToastIntegrated/HideUtils/HideUtils.plugin.js',
@@ -57,12 +57,26 @@ var HideUtils = (() => {
 		},
 		changelog: [
 			{
-				title: 'Bugs Squashed!',
-				type: 'fixed',
+				title: 'Maintenance',
+				type: 'progress',
 				items: [
-					'Works again.'
+					'Minor logic tweaks, restored date dividers.'
 				]
 			}
+			// {
+			// 	title: 'Evolving?',
+			// 	type: 'improved',
+			// 	items: [
+			// 		''
+			// 	]
+			// }
+			// {
+			// 	title: 'Bugs Squashed!',
+			// 	type: 'fixed',
+			// 	items: [
+			// 		'Works again.'
+			// 	]
+			// }
 		]
 	};
 
@@ -867,7 +881,8 @@ var HideUtils = (() => {
 					const props = this.getProps(render, 'props.children.props');
 					props.channelStream = props.channelStream.filter(({ type, content }) => {
 						const author = content?.author;
-						if (!author || (type === 'MESSAGE_GROUP_BLOCKED' && this.settings.hideBlocked)) return false;
+						if (type === 'MESSAGE_GROUP_BLOCKED' && this.settings.hideBlocked) return false;
+						if (type === 'DIVIDER') return true;
 						return !has.call(this.settings.users, author.id);
 					});
 					return render;
