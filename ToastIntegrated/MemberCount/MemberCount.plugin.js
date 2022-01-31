@@ -1,7 +1,7 @@
 /**
  * @name MemberCount
  * @author Arashiryuu
- * @version 2.2.15
+ * @version 2.2.16
  * @description Displays a server's member-count at the top of the member-list, can be styled with the #MemberCount selector.
  * @authorId 238108500109033472
  * @authorLink https://github.com/Arashiryuu
@@ -49,7 +49,7 @@ var MemberCount = (() => {
 					twitter_username: ''
 				}
 			],
-			version: '2.2.15',
+			version: '2.2.16',
 			description: 'Displays a server\'s member-count at the top of the member-list, can be styled with the #MemberCount selector.',
 			github: 'https://github.com/Arashiryuu',
 			github_raw: 'https://raw.githubusercontent.com/Arashiryuu/crap/master/ToastIntegrated/MemberCount/MemberCount.plugin.js'
@@ -99,7 +99,8 @@ var MemberCount = (() => {
 				type: 'improved',
 				items: [
 					'Added setting to toggle online count displaying.',
-					'Added new display style setting.'
+					'Added new display style setting.',
+					'Added setting for the extra spacing below the counter in the list.'
 				]
 			}
 			// {
@@ -165,6 +166,19 @@ var MemberCount = (() => {
 			{
 				name: 'New',
 				desc: 'Use the new display style.',
+				value: 1
+			}
+		];
+
+		const marginOptions = [
+			{
+				name: 'Compact',
+				desc: 'Old style spacing which cuts off part of the scrollbar in the memberlist.',
+				value: 0
+			},
+			{
+				name: 'Cozy',
+				desc: 'New style spacing which accomodates the scrollbar properly.',
 				value: 1
 			}
 		];
@@ -330,45 +344,29 @@ var MemberCount = (() => {
 				})
 			]
 		});
+
+		const getSpacing = (settings) => {
+			return settings.marginSpacing === 0
+				? !settings.online
+					? '30px'
+					: '40px'
+				: !settings.online
+					? '40px'
+					: '60px';
+		};
 		
 		return class MemberCount extends Plugin {
 			constructor() {
 				super();
 				this._css;
 				this._optIn;
-				this.default = { blacklist: [], online: false, displayType: 0 };
+				this.default = { blacklist: [], online: false, displayType: 0, marginSpacing: 0 };
 				this.settings = Utilities.deepclone(this.default);
 				this.promises = {
 					state: { cancelled: false },
 					cancel() { this.state.cancelled = true; },
 					restore() { this.state.cancelled = false; }
 				};
-				this.css = `
-					#MemberCount {
-						background: var(--background-secondary);
-						position: absolute;
-						width: 240px;
-						padding: 0;
-						z-index: 1;
-						top: 0;
-						margin-top: 0;
-						border-bottom: 1px solid hsla(0, 0%, 100%, 0.04);
-					}
-
-					#MemberCount h2 {
-						padding: 12px 8px;
-						height: auto;
-					}
-
-					#MemberCount .membercount-row {
-						display: flex;
-						justify-content: center;
-					}
-
-					${DiscordSelectors.MemberList.membersWrap}.hasCounter ${DiscordSelectors.MemberList.members} {
-						margin-top: 60px;
-					}
-				`;
 			}
 
 			/* Methods */
@@ -597,7 +595,7 @@ var MemberCount = (() => {
 				const data = super.loadSettings(this.default);
 				if (!data) return (this.settings = Utilities.deepclone(this.default));
 
-				if (Array.isArray(data)) return (this.settings = { blacklist: [...data], online: false, displayType: 0 });
+				if (Array.isArray(data)) return (this.settings = { blacklist: [...data], online: false, displayType: 0, marginSpacing: 0 });
 
 				if (data.blacklist && !Array.isArray(data.blacklist)) {
 					data.blacklist = [...Object.values(data.blacklist)];
@@ -614,6 +612,8 @@ var MemberCount = (() => {
 					new SettingGroup('Plugin Settings').append(
 						new Switch('Online Counter', 'Whether to display the online counter or not.', this.settings.online, (i) => {
 							this.settings.online = i;
+							this.clearCSS();
+							this.addCSS();
 							setImmediate(() => {
 								Dispatcher.wait(() => Dispatcher.dispatch({ type: dispatchKey }));
 								setImmediate(() => this.updateMemberList());
@@ -621,6 +621,15 @@ var MemberCount = (() => {
 						}),
 						new RadioGroup('Display Style', 'Switch between the classic or newer display style.', this.settings.displayType || 0, options, (i) => {
 							this.settings.displayType = i;
+							setImmediate(() => {
+								Dispatcher.wait(() => Dispatcher.dispatch({ type: dispatchKey }));
+								setImmediate(() => this.updateMemberList());
+							});
+						}),
+						new RadioGroup('Spacing Style', 'The amount of space left under the counters.', this.settings.marginSpacing || 0, marginOptions, (i) => {
+							this.settings.marginSpacing = i;
+							this.clearCSS();
+							this.addCSS();
 							setImmediate(() => {
 								Dispatcher.wait(() => Dispatcher.dispatch({ type: dispatchKey }));
 								setImmediate(() => this.updateMemberList());
@@ -657,7 +666,32 @@ var MemberCount = (() => {
 			}
 
 			get css() {
-				return this._css;
+				return `
+					#MemberCount {
+						background: var(--background-secondary);
+						position: absolute;
+						width: 240px;
+						padding: 0;
+						z-index: 1;
+						top: 0;
+						margin-top: 0;
+						border-bottom: 1px solid hsla(0, 0%, 100%, 0.04);
+					}
+
+					#MemberCount h2 {
+						padding: 12px 8px;
+						height: auto;
+					}
+
+					#MemberCount .membercount-row {
+						display: flex;
+						justify-content: center;
+					}
+
+					${DiscordSelectors.MemberList.membersWrap}.hasCounter ${DiscordSelectors.MemberList.members} {
+						margin-top: ${getSpacing(this.settings)};
+					}
+				`;
 			}
 
 			get name() {
