@@ -1,7 +1,7 @@
 /**
  * @name HideUtils
  * @author Arashiryuu
- * @version 2.1.55
+ * @version 2.1.56
  * @description Allows you to hide users, servers, and channels individually.
  * @authorId 238108500109033472
  * @authorLink https://github.com/Arashiryuu
@@ -49,20 +49,20 @@ var HideUtils = (() => {
 					twitter_username: ''
 				}
 			],
-			version: '2.1.55',
+			version: '2.1.56',
 			description: 'Allows you to hide users, servers, and channels individually.',
 			github: 'https://github.com/Arashiryuu',
 			github_raw: 'https://raw.githubusercontent.com/Arashiryuu/crap/master/ToastIntegrated/HideUtils/HideUtils.plugin.js',
 			github_source: 'https://github.com/Arashiryuu/crap/blob/master/ToastIntegrated/HideUtils/HideUtils.plugin.js'
 		},
 		changelog: [
-			{
-				title: 'Maintenance',
-				type: 'progress',
-				items: [
-					'Minor logic tweaks, restored date dividers.'
-				]
-			}
+			// {
+			// 	title: 'Maintenance',
+			// 	type: 'progress',
+			// 	items: [
+			// 		'Minor logic tweaks, restored date dividers.'
+			// 	]
+			// }
 			// {
 			// 	title: 'Evolving?',
 			// 	type: 'improved',
@@ -70,13 +70,13 @@ var HideUtils = (() => {
 			// 		''
 			// 	]
 			// }
-			// {
-			// 	title: 'Bugs Squashed!',
-			// 	type: 'fixed',
-			// 	items: [
-			// 		'Works again.'
-			// 	]
-			// }
+			{
+				title: 'Bugs Squashed!',
+				type: 'fixed',
+				items: [
+					'Channel context item displays again.'
+				]
+			}
 		]
 	};
 
@@ -674,7 +674,7 @@ var HideUtils = (() => {
 				Patcher.after(Context, 'default', (that, args, value) => {
 					const [props] = args;
 					const channel = this.getProps(props, 'channel');
-					const orig = this.getProps(value, 'props');
+					const orig = this.getProps(value, 'props.children.props');
 					const itemProps = {
 						id: 'hide-channel-hide-utils',
 						label: 'Hide Channel',
@@ -700,6 +700,44 @@ var HideUtils = (() => {
 					if (!Array.isArray(orig.children)) orig.children = [orig.children];
 					if (!orig.children.some(fn)) orig.children.splice(1, 0, group);
 	
+					return value;
+				});
+				ContextMenu.forceUpdateMenus();
+			}
+
+			async patchVoiceChannelContextMenu(promiseState) {
+				if (promiseState.cancelled) return;
+				const VoiceContext = await ContextMenu.getDiscordMenu('ChannelListVoiceChannelContextMenu');
+				if (!VoiceContext) return;
+				Patcher.after(VoiceContext, 'default', (that, args, value) => {
+					const [props] = args;
+					const channel = this.getProps(props, 'channel');
+					const orig = this.getProps(value, 'props.children.props');
+					const itemProps = {
+						id: 'hide-channel-hide-utils',
+						label: 'Hide Channel',
+						action: () => {
+							MenuActions.closeContextMenu();
+							this.chanPush(channel.id);
+						}
+					};
+					
+					if (this.settings.servers.unhidden.includes(channel.guild_id) && has.call(this.settings.channels, channel.id)) {
+						itemProps.id = 'unhide-channel-hide-utils';
+						itemProps.label = 'Unhide Channel';
+						itemProps.action = () => {
+							MenuActions.closeContextMenu();
+							this.chanClear(channel.id);
+						};
+					}
+
+					const item = React.createElement(Menu.MenuItem, itemProps);
+					const group = React.createElement(Menu.MenuGroup, { children: item, key: 'HideUtils-MenuGroup' });
+					const fn = (item) => item?.key === 'HideUtils-MenuGroup';
+	
+					if (!Array.isArray(orig.children)) orig.children = [orig.children];
+					if (!orig.children.some(fn)) orig.children.splice(2, 0, group);
+
 					return value;
 				});
 				ContextMenu.forceUpdateMenus();
@@ -844,6 +882,7 @@ var HideUtils = (() => {
 					this.patchUserContextMenu(promiseState);
 					this.patchGuildContextMenu(promiseState);
 					this.patchChannelContextMenu(promiseState);
+					this.patchVoiceChannelContextMenu(promiseState);
 					this.patchGuildFolderContextMenu(promiseState);
 				} catch (e) {
 					err(e);
@@ -1012,22 +1051,18 @@ var HideUtils = (() => {
 					const guildId = this.getProps(children, '1.props.channel.guild_id');
 					if (this.settings.servers.unhidden.includes(guildId)) return value;
 	
-					childProps.children = children.map((channel) => {
+					childProps.children = children.filter((channel) => {
 						if (!channel) return channel;
 						const channelProps = this.getProps(channel, 'props');
-						if (!channelProps.voiceStates || !Array.isArray(channelProps.voiceStates)) {
-							if (channel.key && !has.call(this.settings.channels, channel.key)) return channel;
-							return null;
+						if (Array.isArray(channelProps.voiceStates)) {
+							channelProps.voiceStates = channelProps.voiceStates.filter((user) => {
+								if (!user) return false;
+								const { voiceState: { userId } } = user;
+								if (!has.call(this.settings.users, userId)) return true;
+								mute(userId, 0);
+								return false;
+							});
 						}
-						channelProps.voiceStates = channelProps.voiceStates.filter((user) => {
-							if (!user) return false;
-							const { voiceState: { userId } } = user;
-							if (!has.call(this.settings.users, userId)) return true;
-							mute(userId, 0);
-							return false;
-						});
-						// weird voice channel bug fix
-						if (channel.type && channel.type.displayName === 'ConnectedVoiceChannel') return channel;
 						return channel.key && !has.call(this.settings.channels, channel.key);
 					});
 	
