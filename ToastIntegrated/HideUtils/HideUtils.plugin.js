@@ -1,7 +1,7 @@
 /**
  * @name HideUtils
  * @author Arashiryuu
- * @version 2.1.56
+ * @version 2.1.57
  * @description Allows you to hide users, servers, and channels individually.
  * @authorId 238108500109033472
  * @authorLink https://github.com/Arashiryuu
@@ -49,7 +49,7 @@ var HideUtils = (() => {
 					twitter_username: ''
 				}
 			],
-			version: '2.1.56',
+			version: '2.1.57',
 			description: 'Allows you to hide users, servers, and channels individually.',
 			github: 'https://github.com/Arashiryuu',
 			github_raw: 'https://raw.githubusercontent.com/Arashiryuu/crap/master/ToastIntegrated/HideUtils/HideUtils.plugin.js',
@@ -74,7 +74,7 @@ var HideUtils = (() => {
 				title: 'Bugs Squashed!',
 				type: 'fixed',
 				items: [
-					'Channel context item displays again.'
+					'Fixed a crashing bug.'
 				]
 			}
 		]
@@ -340,8 +340,15 @@ var HideUtils = (() => {
 		const Select = (props) => {
 			const open = (name, data) => {
 				if (hasAnyModalOpen()) closeAllModals();
-				openModal((modalProps) => React.createElement(Modal, { name, data }), { modalKey });
+				openModal(() => React.createElement(Modal, { name, data }), { modalKey });
 			};
+			const buttons = [
+				['Folders', props.folders],
+				['Channels', props.channels],
+				['Servers', props.servers],
+				['Users', props.users],
+				['Instructions', null]
+			];
 			return React.createElement('div', {
 				id: 'HideUtils-Settings',
 				className: 'HUSettings'
@@ -357,26 +364,7 @@ var HideUtils = (() => {
 							id: 'HideUtils-ButtonGroup',
 							className: 'buttonGroup'
 						},
-							React.createElement(Button, {
-								text: 'Folders',
-								action: () => open('Folders', props.folders)
-							}),
-							React.createElement(Button, {
-								text: 'Channels',
-								action: () => open('Channels', props.channels)
-							}),
-							React.createElement(Button, {
-								text: 'Servers',
-								action: () => open('Servers', props.servers)
-							}),
-							React.createElement(Button, {
-								text: 'Users',
-								action: () => open('Users', props.users)
-							}),
-							React.createElement(Button, {
-								text: 'Instructions',
-								action: () => open('Instructions', null)
-							})
+							...buttons.map(([text, data]) => React.createElement(Button, { text, action: () => open(text, data) }))
 						)
 					)
 				)
@@ -919,7 +907,10 @@ var HideUtils = (() => {
 					const render = original(...args);
 					const props = this.getProps(render, 'props.children.props');
 					props.channelStream = props.channelStream.filter(({ type, content }) => {
-						const author = content?.author;
+						const author = Array.isArray(content)
+							? this.getProps(content, '0.content.author')
+							: this.getProps(content, 'author');
+						if (!author) return true;
 						if (type === 'MESSAGE_GROUP_BLOCKED' && this.settings.hideBlocked) return false;
 						if (type === 'DIVIDER') return true;
 						return !has.call(this.settings.users, author.id);
