@@ -1,7 +1,7 @@
 /**
  * @name ChatUserIDsRedux
  * @author Arashiryuu
- * @version 1.0.23
+ * @version 1.0.24
  * @description Adds a user's ID next to their name in chat, makes accessing a user ID simpler. Double-click to copy the ID.
  * @authorId 238108500109033472
  * @authorLink https://github.com/Arashiryuu
@@ -49,7 +49,7 @@ var ChatUserIDsRedux = (() => {
 					twitter_username: ''
 				}
 			],
-			version: '1.0.23',
+			version: '1.0.24',
 			description: 'Adds a user\'s ID next to their name in chat, makes accessing a user ID simpler. Double-click to copy the ID.',
 			github: 'https://github.com/Arashiryuu',
 			github_raw: 'https://raw.githubusercontent.com/Arashiryuu/crap/master/ToastIntegrated/ChatUserIDsRedux/ChatUserIDsRedux.plugin.js'
@@ -59,8 +59,7 @@ var ChatUserIDsRedux = (() => {
 				title: 'Bugs Squashed!',
 				type: 'fixed',
 				items: [
-					'Displays properly again.',
-					'ColorPicker default color displays properly again.'
+					'Displays properly again.'
 				]
 				// title: 'Evolving?',
 				// type: 'improved',
@@ -164,53 +163,34 @@ var ChatUserIDsRedux = (() => {
 
 		const WrapBoundary = (Original) => (props) => React.createElement(ErrorBoundary, null, React.createElement(Original, props));
 
-		const Tag = class Tag extends React.Component {
-			constructor(props) {
-				super(props);
-				this.onDoubleClick = this.onDoubleClick.bind(this);
-			}
+		const getTagProps = (props, classes) => ({
+			className: `${props.hover ? 'tooltip-wrapper' : ''} ${classes.join(' ')}`.trim(),
+			children: [
+				React.createElement('span', {
+					className: 'tag',
+					children: [props.id],
+					onDoubleClick: (e) => props.onDoubleClick(e)
+				})
+			]
+		});
 
-			static getClasses(instance) {
-				return Array.isArray(instance.props.classes)
-					? instance.props.classes
-					: [];
-			}
+		const getTagElement = (props, classes) => {
+			return (cProps) => React.createElement('span', Object.assign(getTagProps(props, classes), props.hover && cProps));
+		};
 
-			static getRenderProps(instance, classes) {
-				return {
-					className: instance.props.hover
-						? `tooltip-wrapper ${classes.join(' ')}`.trim()
-						: classes.join(' ').trim(),
-					children: [
-						React.createElement('span', {
-							className: 'tag',
-							onDoubleClick: instance.onDoubleClick
-						}, instance.props.id)
-					]
-				};
-			}
+		const getTagClasses = (props) => Array.isArray(props.classes)
+			? props.classes
+			: [];
 
-			static getRenderElement(instance, props, classes) {
-				const renderProps = Tag.getRenderProps(instance, classes);
-				return instance.props.hover
-					? React.createElement('span', Object.assign(renderProps, props))
-					: React.createElement('span', renderProps);
-			}
-
-			onDoubleClick(e) {
-				if (this.props.onDoubleClick) this.props.onDoubleClick(e);
-			}
-
-			render() {
-				const classes = Tag.getClasses(this);
-				if (!classes.includes('tagID')) classes.unshift('tagID');
-				return React.createElement(TooltipWrapper, {
-					position: TooltipWrapper.Positions.TOP,
-					color: TooltipWrapper.Colors.PRIMARY,
-					text: this.props.text,
-					children: (props) => Tag.getRenderElement(this, props, classes)
-				});
-			}
+		const Tag = (props) => {
+			const classes = getTagClasses(props);
+			if (!classes.includes('tagID')) classes.unshift('tagID');
+			return React.createElement(TooltipWrapper, {
+				position: TooltipWrapper.Positions.TOP,
+				color: TooltipWrapper.Colors.PRIMARY,
+				text: props.text,
+				children: getTagElement(props, classes)
+			});
 		};
 		
 		return class ChatUserIDsRedux extends Plugin {
@@ -241,7 +221,7 @@ var ChatUserIDsRedux = (() => {
 						font-size: 10px;
 						letter-spacing: 0.025rem;
 						position: relative;
-						top: 3px;
+						/*top: 3px;*/
 						height: 9px;
 						line-height: 10px;
 						text-shadow: 0 1px 3px black;
@@ -264,9 +244,10 @@ var ChatUserIDsRedux = (() => {
 						margin-right: 4px;
 					}
 		
-					.${MessageClasses.groupStart.split(' ')[0]}.${MessageClasses.cozyMessage.split(' ')[0]} h2.${MessageClasses.header.split(' ')[0]} {
+					.${MessageClasses.groupStart.split(' ')[0]}.${MessageClasses.cozyMessage.split(' ')[0]} h2.${MessageClasses.header.split(' ')[0]},
+					.${MessageClasses.groupStart.split(' ')[0]}.${MessageClasses.cozyMessage.split(' ')[0]} h2.${MessageClasses.header.split(' ')[0]} .headerText-2z4IhQ {
 						display: flex;
-						position: relative;
+						align-items: center;
 					}
 
 					.${MessageClasses.compact.split(' ')[0]} .tagID {
@@ -310,7 +291,7 @@ var ChatUserIDsRedux = (() => {
 					const { message: { id, author }, subscribeToGroupId } = props;
 					if (id !== subscribeToGroupId) return value;
 
-					const children = this.getProps(value, 'props.children.1.props.children');
+					const children = this.getProps(value, 'props.username.props.children.1.props.children');
 					if (!children || !Array.isArray(children)) return value;
 
 					const { extraClass, pos } = this.getPos(this.settings);
