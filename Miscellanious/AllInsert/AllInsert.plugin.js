@@ -1,4 +1,12 @@
-//META{"name":"AllInsert","displayName":"AllInsert","website":"https://github.com/Arashiryuu","source":"https://github.com/Arashiryuu/crap/blob/master/Miscellanious/AllInsert/AllInsert.plugin.js"}*//
+/**
+ * @name AllInsert
+ * @displayName AllInsert
+ * @author Arashiryuu
+ * @version 1.0.0
+ * @description Replaces text and inserts replacement strings.
+ * @website https://github.com/Arashiryuu
+ * @source https://github.com/Arashiryuu/crap/blob/master/Miscellanious/AllInsert/AllInsert.plugin.js
+ */
 
 /*@cc_on
 @if (@_jscript)
@@ -67,7 +75,7 @@ var AllInsert = (() => {
 		const { Toasts, Logger, Patcher, Settings, Utilities, DOMTools, ReactTools, ReactComponents, DiscordModules, WebpackModules, DiscordSelectors } = Api;
 		const { SettingPanel, SettingGroup, SettingField, RadioGroup, Switch } = Settings;
 		const { ComponentDispatch: Dispatcher } = WebpackModules.getByProps('ComponentDispatch');
-		const SlateUtils = WebpackModules.getAllByProps('serialize', 'deserialize').find((mod) => Object.keys(mod).length === 2);
+		const SlateUtils = WebpackModules.getByProps('createState', 'createEmptyState', 'toRichValue'); // WebpackModules.getAllByProps('serialize', 'deserialize')?.find((mod) => Object.keys(mod).length === 2);
 
 		const has = Object.prototype.hasOwnProperty;
 		const chat = WebpackModules.getByProps('chat');
@@ -116,7 +124,8 @@ var AllInsert = (() => {
 			'/-t-df': getChar(55358, 56406),
 			'/-t-uf': getChar(55358, 56405),
 			'/->': getChar(55358, 56402),
-			'\\u200b': getChar(8203)
+			'\\u200b': getChar(8203),
+			'/,deg': getChar(176)
 		};
 
 		const vKeys = Object.keys(v);
@@ -148,7 +157,7 @@ var AllInsert = (() => {
 
 			async patchTextareaComponent(state) {
 				const EditArea = WebpackModules.getByDisplayName('ChannelEditorContainer');
-				if (!EditArea || state.cancelled) return;
+				if (!EditArea || !SlateUtils || state.cancelled) return;
 
 				Patcher.after(EditArea.prototype, 'render', debounce((that, args, value) => {
 					if (!that.props.textValue) return value;
@@ -161,9 +170,9 @@ var AllInsert = (() => {
 					
 					let newString = that.props.textValue;
 					for (const key of vKeys) newString = this.replaceStrings(newString, key);
-					
-					textAreaRef.handleChange({ value: SlateUtils.deserialize(newString) });
-					textAreaRef.editorRef.moveToEndOfText();
+
+					const { textValue, richValue } = SlateUtils.createState(newString);
+					that.props.onChange(null, textValue, richValue);
 					setImmediate(() => Dispatcher.dispatch('TEXTAREA_FOCUS', null));
 					
 					return value;
