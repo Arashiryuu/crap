@@ -1,7 +1,7 @@
 /**
  * @name MemberCount
  * @author Arashiryuu
- * @version 2.2.16
+ * @version 2.2.17
  * @description Displays a server's member-count at the top of the member-list, can be styled with the #MemberCount selector.
  * @authorId 238108500109033472
  * @authorLink https://github.com/Arashiryuu
@@ -49,7 +49,7 @@ var MemberCount = (() => {
 					twitter_username: ''
 				}
 			],
-			version: '2.2.16',
+			version: '2.2.17',
 			description: 'Displays a server\'s member-count at the top of the member-list, can be styled with the #MemberCount selector.',
 			github: 'https://github.com/Arashiryuu',
 			github_raw: 'https://raw.githubusercontent.com/Arashiryuu/crap/master/ToastIntegrated/MemberCount/MemberCount.plugin.js'
@@ -94,48 +94,39 @@ var MemberCount = (() => {
 			// 		'General maintenance.'
 			// 	]
 			// }
-			{
-				title: 'Evolving?',
-				type: 'improved',
-				items: [
-					'Added setting to toggle online count displaying.',
-					'Added new display style setting.',
-					'Added setting for the extra spacing below the counter in the list.'
-				]
-			}
 			// {
-			// 	title: 'Bugs Squashed!',
-			// 	type: 'fixed',
+			// 	title: 'Evolving?',
+			// 	type: 'improved',
 			// 	items: [
-			// 		'Fix overflowing into toolbar, fix second counter being cut off.'
+			// 		'Added setting to toggle online count displaying.',
+			// 		'Added new display style setting.',
+			// 		'Added setting for the extra spacing below the counter in the list.'
 			// 	]
 			// }
+			{
+				title: 'Bugs Squashed!',
+				type: 'fixed',
+				items: [
+					'Fix library missing links.'
+				]
+			}
 		]
 	};
 	
-	const log = function() {
-		const parts = [
+	const [log, err] = (() => {
+		const levels = ['log', 'error'];
+		const getParts = () => [
 			`%c[${config.info.name}]%c \u2014 %s`,
 			'color: #3A71C1; font-weight: 700;',
 			'',
 			new Date().toUTCString()
 		];
-		console.group.apply(null, parts);
-		console.log.apply(null, arguments);
-		console.groupEnd();
-	};
-
-	const err = function() {
-		const parts = [
-			`%c[${config.info.name}]%c \u2014 %s`,
-			'color: #3A71C1; font-weight: 700;',
-			'',
-			new Date().toUTCString()
-		];
-		console.group.apply(null, parts);
-		console.error.apply(null, arguments);
-		console.groupEnd();
-	};
+		return Array.from(levels, (_, i) => (function () {
+			console.group.apply(null, getParts());
+			console[levels[i]].apply(null, arguments);
+			console.groupEnd();
+		}));
+	})();
 
 	/* Build */
 
@@ -143,6 +134,7 @@ var MemberCount = (() => {
 		const { Toasts, Logger, Patcher, Settings, Utilities, DOMTools, ReactTools, ContextMenu, ReactComponents, DiscordModules, DiscordClasses, WebpackModules, DiscordSelectors, PluginUtilities } = Api;
 		const { SettingPanel, SettingGroup, SettingField, Textbox, Switch, RadioGroup } = Settings;
 		const { React, ReactDOM, Dispatcher, DiscordConstants, MemberCountStore, SelectedGuildStore, ContextMenuActions: MenuActions } = DiscordModules;
+		const { PureComponent, createElement, useRef, useState, useEffect, useReducer } = React;
 		const { ActionTypes } = DiscordConstants;
 		const { useStateFromStoresArray } = WebpackModules.getByProps('Dispatcher', 'Store', 'useStateFromStores');
 
@@ -157,33 +149,34 @@ var MemberCount = (() => {
 		const ctxMenuClasses = WebpackModules.getByProps('menu', 'scroller');
 		const dispatchKey = 'MEMBERCOUNT_COUNTER_UPDATE';
 
-		const options = [
-			{
-				name: 'Classic',
-				desc: 'Use the classic display style - matches Discord\'s role headers in the member list.',
-				value: 0
-			},
-			{
-				name: 'New',
-				desc: 'Use the new display style.',
-				value: 1
-			}
-		];
+		const options = {
+			style: [
+				{
+					name: 'Classic',
+					desc: 'Use the classic display style - matches Discord\'s role headers in the member list.',
+					value: 0
+				},
+				{
+					name: 'New',
+					desc: 'Use the new display style.',
+					value: 1
+				}
+			],
+			margin: [
+				{
+					name: 'Compact',
+					desc: 'Old style spacing which cuts off part of the scrollbar in the memberlist.',
+					value: 0
+				},
+				{
+					name: 'Cozy',
+					desc: 'New style spacing which accomodates the scrollbar properly.',
+					value: 1
+				}
+			]
+		};
 
-		const marginOptions = [
-			{
-				name: 'Compact',
-				desc: 'Old style spacing which cuts off part of the scrollbar in the memberlist.',
-				value: 0
-			},
-			{
-				name: 'Cozy',
-				desc: 'New style spacing which accomodates the scrollbar properly.',
-				value: 1
-			}
-		];
-
-		const ErrorBoundary = class ErrorBoundary extends React.PureComponent {
+		const ErrorBoundary = class ErrorBoundary extends PureComponent {
 			constructor(props) {
 				super(props);
 				this.state = { hasError: false };
@@ -200,7 +193,7 @@ var MemberCount = (() => {
 			}
 
 			render() {
-				if (this.state.hasError) return React.createElement('div', {
+				if (this.state.hasError) return createElement('div', {
 					className: `${config.info.name}-error`,
 					children: [
 						`${config.info.name} Component Error`
@@ -210,9 +203,9 @@ var MemberCount = (() => {
 			}
 		};
 
-		const WrapBoundary = (Original) => (props) => React.createElement(ErrorBoundary, null, React.createElement(Original, props));
+		const WrapBoundary = (Original) => (props) => createElement(ErrorBoundary, null, createElement(Original, props));
 
-		const Person = (props) => React.createElement('svg', {
+		const Person = (props) => createElement('svg', {
 			className: 'membercount-icon',
 			xmlns: 'http://www.w3.org/2000/svg',
 			width: '12px',
@@ -223,23 +216,23 @@ var MemberCount = (() => {
 				marginRight: '1px'
 			},
 			children: [
-				React.createElement('path', {
+				createElement('path', {
 					d: 'M0 0h24v24H0z',
 					fill: 'none'
 				}),
-				React.createElement('path', {
+				createElement('path', {
 					d: 'M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z'
 				})
 			]
 		});
 
-		const Row = (props) => React.createElement('span', {
+		const Row = (props) => createElement('span', {
 			className: 'membercount-row',
 			children: [
 				...(
 					props.displayType === 1
 						? [
-							React.createElement(Person, { fill: props.fill ?? null }),
+							createElement(Person, { fill: props.fill ?? null }),
 							String.fromCodePoint(160),
 							props.count,
 							String.fromCodePoint(160),
@@ -254,24 +247,24 @@ var MemberCount = (() => {
 			]
 		});
 		
-		const getStrings = () => {
+		const useStrings = () => {
 			const [lang] = LangUtils.getLocale().split('-');
 			return config.strings[lang] ?? config.strings.en;
 		};
 
 		const Counter = (props) => {
-			const { 1: forceUpdate } = React.useReducer((x) => x + 1, 0);
+			const { 1: forceUpdate } = useReducer((x) => x + 1, 0);
 			const listener = () => forceUpdate();
 
-			const ref = React.useRef();
-			const strings = getStrings();
+			const ref = useRef();
+			const strings = useStrings();
 			const id = SelectedGuildStore.getGuildId();
 
 			const [online] = useStateFromStoresArray([GuildPopoutStore], () => [
 				GuildPopoutStore.getGuild(id)?.presenceCount
 			]);
 
-			React.useEffect(() => {
+			useEffect(() => {
 				if (!online && !GuildPopoutStore.isFetchingGuild(id)) {
 					GuildPopoutActions.fetchGuildForPopout(id);
 				}
@@ -279,20 +272,20 @@ var MemberCount = (() => {
 				return () => Dispatcher.unsubscribe(dispatchKey, listener);
 			}, [online]);
 
-			return React.createElement('div', {
+			return createElement('div', {
 				id: 'MemberCount',
 				role: 'listitem',
 				ref: ref,
 				children: [
-					React.createElement('h2', {
+					createElement('h2', {
 						className: `${DiscordClasses.MemberList.membersGroup} container-q97qHp`,
 						children: [
-							React.createElement(Row, {
+							createElement(Row, {
 								string: strings.MEMBERS,
-								count: props.count,
+								count: props.count || 'Loading',
 								displayType: props.displayType
 							}),
-							props.online && React.createElement(Row, {
+							props.online && createElement(Row, {
 								fill: 'hsl(139, calc(var(--saturation-factor, 1) * 47.3%), 43.9%)',
 								string: strings.ONLINE,
 								count: online ?? 'Loading',
@@ -308,7 +301,7 @@ var MemberCount = (() => {
 			count: MemberCountStore.getMemberCount(SelectedGuildStore.getGuildId())
 		}))(Counter);
 
-		const getHintSVG = () => React.createElement('svg', {
+		const getHintSVG = () => createElement('svg', {
 			xmlns: 'http://www.w3.org/2000/svg',
 			width: '24px',
 			height: '24px',
@@ -319,7 +312,7 @@ var MemberCount = (() => {
 				top: '-1px'
 			},
 			children: [
-				React.createElement('path', {
+				createElement('path', {
 					d: `M89.452,123.229c5.185-6.581,8.109-14.79,8.109-23.34c0-20.808-16.932-37.735-37.74-37.735S22.08,79.082,22.08,99.889
 					c0,8.688,3.006,17.009,8.331,23.627C11.887,136.099,0,159.854,0,185.836c0,3.957,3.213,7.168,7.169,7.168h105.938
 					c3.958,0,7.168-3.211,7.168-7.168C120.275,159.602,108.218,135.726,89.452,123.229z M14.692,178.667
@@ -328,13 +321,13 @@ var MemberCount = (() => {
 					c0,7.575-3.712,14.72-9.931,19.112c-2.126,1.5-3.272,4.042-2.992,6.632c0.282,2.585,1.941,4.823,4.345,5.831
 					c16.874,7.113,28.766,25.585,30.936,47.208H14.692z`.split(/\s+/g).join('').trim()
 				}),
-				React.createElement('path', {
+				createElement('path', {
 					d: `M176.705,102.872c-2.801-2.8-7.337-2.8-10.137,0l-14.57,14.566l-14.562-14.566c-2.801-2.8-7.339-2.8-10.14,0
 					c-2.8,2.8-2.8,7.337,0,10.137l14.563,14.566l-14.563,14.563c-2.8,2.8-2.8,7.337,0,10.137c1.4,1.4,3.234,2.101,5.071,2.101
 					c1.834,0,3.668-0.7,5.068-2.101l14.57-14.562l14.562,14.562c1.4,1.4,3.238,2.101,5.073,2.101c1.834,0,3.673-0.7,5.073-2.101
 					c2.8-2.8,2.8-7.337,0-10.137l-14.571-14.563l14.571-14.566C179.505,110.208,179.505,105.672,176.705,102.872z`.split(/\s+/g).join('').trim()
 				}),
-				React.createElement('path', {
+				createElement('path', {
 					d: `M228.01,119.603c-3.593,0-6.646,0.467-9.143,1.396c-1.498,0.565-3.574,1.715-6.249,3.461l3.15-19.231h35.927V90.546
 					h-48.402l-6.174,48.596l15.499,0.728c1.372-2.627,3.412-4.429,6.109-5.399c1.54-0.527,3.351-0.789,5.456-0.789
 					c4.438,0,7.705,1.55,9.805,4.64c2.096,3.099,3.146,6.889,3.146,11.378c0,4.574-1.12,8.363-3.36,11.379
@@ -396,27 +389,48 @@ var MemberCount = (() => {
 
 			patchMemberList(state) {
 				if (!Lists || state.cancelled) return;
+
+				const isThread = (props) => {
+					return !props['data-list-id'] && props.className.startsWith('members');
+				};
 				
 				Patcher.after(Lists.ListThin, 'render', (that, args, value) => {
 					const val = Array.isArray(value)
 						? value.find((item) => item && !item.key)
 						: value;
 					const props = this.getProps(val, 'props');
-					if (!props || !props['data-list-id'] || !props['data-list-id'].startsWith('members')) return value;
-					
+					if (!props || props.id === 'channels' || !props.className.startsWith('members')) return value;
+
 					const guildId = SelectedGuildStore.getGuildId();
 					const list = document.querySelector(`${DiscordSelectors.MemberList.membersWrap}`);
-					if (this.settings.blacklist.includes(guildId) || !guildId) {
-						if (list && list.classList.contains('hasCounter')) list.classList.remove('hasCounter');
-						return value;
-					}
-
-					const counter = React.createElement(WrapBoundary(MemberCounter), {
+					const fn = (item) => item && item.key && item.key.startsWith('MemberCount');
+					const counter = createElement(WrapBoundary(MemberCounter), {
 						key: `MemberCount-${guildId}`,
 						online: this.settings.online,
 						displayType: this.settings.displayType
 					});
-					const fn = (item) => item && item.key && item.key.startsWith('MemberCount');
+
+					if (this.settings.blacklist.includes(guildId) || !guildId) {
+						if (list && (list.classList.contains('hasCounter') || list.classList.contains('hasCounter_thread'))) list.classList.remove('hasCounter', 'hasCounter_thread');
+						return value;
+					}
+
+					if (isThread(props)) {
+						const memberlist = this.getProps(props, 'children.0.props.children.props');
+						if (!memberlist || !memberlist.children) return value;
+
+						if (!Array.isArray(memberlist.children)) memberlist.children = [memberlist.children];
+						if (!memberlist.children.some(fn)) {
+							memberlist.children.unshift(counter);
+							if (list && !list.classList.contains('hasCounter_thread')) list.classList.add('hasCounter_thread');
+						}
+
+						return value;
+					}
+
+					
+					const valProps = this.getProps(val, 'props');
+					if (!valProps['data-list-id']?.startsWith('members')) return value;
 
 					if (!Array.isArray(value)) value = [value];
 					if (!value.some(fn)) {
@@ -456,9 +470,9 @@ var MemberCount = (() => {
 					if (!orig || !id) return;
 
 					const data = this.parseId(id);
-					const bottomSeparator = React.createElement(Menu.MenuSeparator, {});
-					const item = React.createElement(Menu.MenuItem, data);
-					const group = React.createElement(Menu.MenuGroup, {
+					const bottomSeparator = createElement(Menu.MenuSeparator, {});
+					const item = createElement(Menu.MenuItem, data);
+					const group = createElement(Menu.MenuGroup, {
 						key: 'MemberCount-Group',
 						children: [
 							item,
@@ -619,14 +633,14 @@ var MemberCount = (() => {
 								setImmediate(() => this.updateMemberList());
 							});
 						}),
-						new RadioGroup('Display Style', 'Switch between the classic or newer display style.', this.settings.displayType || 0, options, (i) => {
+						new RadioGroup('Display Style', 'Switch between the classic or newer display style.', this.settings.displayType || 0, options.style, (i) => {
 							this.settings.displayType = i;
 							setImmediate(() => {
 								Dispatcher.wait(() => Dispatcher.dispatch({ type: dispatchKey }));
 								setImmediate(() => this.updateMemberList());
 							});
 						}),
-						new RadioGroup('Spacing Style', 'The amount of space left under the counters.', this.settings.marginSpacing || 0, marginOptions, (i) => {
+						new RadioGroup('Spacing Style', 'The amount of space left under the counters.', this.settings.marginSpacing || 0, options.margin, (i) => {
 							this.settings.marginSpacing = i;
 							this.clearCSS();
 							this.addCSS();
@@ -691,6 +705,14 @@ var MemberCount = (() => {
 					${DiscordSelectors.MemberList.membersWrap}.hasCounter ${DiscordSelectors.MemberList.members} {
 						margin-top: ${getSpacing(this.settings)};
 					}
+
+					${DiscordSelectors.MemberList.membersWrap}.hasCounter_thread #MemberCount {
+						position: sticky;
+					}
+
+					${DiscordSelectors.MemberList.membersWrap}.hasCounter_thread ${DiscordSelectors.MemberList.members} {
+						margin-top: 0;
+					}
 				`;
 			}
 
@@ -752,39 +774,39 @@ var MemberCount = (() => {
 			}
 
 			load() {
-				const { BdApi, BdApi: { React } } = window;
+				const { BdApi, BdApi: { React: { createElement } } } = window;
 				const title = 'Library Missing';
 				const TextElement = BdApi.findModuleByDisplayName('Text');
 				const children = [];
 				if (!TextElement) {
 					children.push(
-						React.createElement('span', {
+						createElement('span', {
 							children: [`The library plugin needed for ${config.info.name} is missing.`]
 						}),
-						React.createElement('br', {}),
-						React.createElement('a', {
+						createElement('br', {}),
+						createElement('a', {
 							target: '_blank',
-							href: 'https://betterdiscord.net/ghdl?url=https://raw.githubusercontent.com/rauenzi/BDPluginLibrary/master/release/0PluginLibrary.plugin.js',
+							href: 'https://betterdiscord.app/Download?id=9',
 							children: ['Click here to download the library!']
 						})
 					);
-					return BdApi.alert(title, React.createElement('span', { children }));
+					return BdApi.alert(title, createElement('span', { children }));
 				}
 				children.push(
-					React.createElement(TextElement, {
+					createElement(TextElement, {
 						color: TextElement.Colors.STANDARD,
 						children: [`The library plugin needed for ${config.info.name} is missing.`]
 					}),
-					React.createElement('br', {}),
-					React.createElement('a', {
+					createElement('br', {}),
+					createElement('a', {
 						target: '_blank',
-						href: 'https://betterdiscord.net/ghdl?url=https://raw.githubusercontent.com/rauenzi/BDPluginLibrary/master/release/0PluginLibrary.plugin.js',
+						href: 'https://betterdiscord.app/Download?id=9',
 						children: ['Click here to download the library!']
 					})
 				);
 				if (!BdApi.showConfirmationModal) return BdApi.alert(title, children);
 				BdApi.showConfirmationModal(title, [
-						React.createElement(TextElement, {
+						createElement(TextElement, {
 							color: TextElement.Colors.STANDARD,
 							children: [`The library plugin needed for ${config.info.name} is missing. Please click Download Now to install it.`]
 						})
@@ -795,7 +817,7 @@ var MemberCount = (() => {
 						cancelText: 'Cancel',
 						onConfirm: () => {
 							require('request').get('https://rauenzi.github.io/BDPluginLibrary/release/0PluginLibrary.plugin.js', async (error, response, body) => {
-								if (error) return require('electron').shell.openExternal('https://betterdiscord.net/ghdl?url=https://raw.githubusercontent.com/rauenzi/BDPluginLibrary/master/release/0PluginLibrary.plugin.js');
+								if (error) return require('electron').shell.openExternal('https://betterdiscord.app/Download?id=9');
 								await new Promise(r => require('fs').writeFile(require('path').join(window.ContentManager.pluginsFolder, '0PluginLibrary.plugin.js'), body, r));
 							});
 						}
