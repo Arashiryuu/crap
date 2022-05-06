@@ -2,7 +2,7 @@
 ### A plugin designed to allow hiding of individual users, channels, and or servers.
 
 ## Download
-**[Click me!](https://betterdiscord.net/ghdl?id=1169)**
+**[Click me!](https://betterdiscord.app/Download?id=17)**
 
 ## New features
 - Added context-menu compatibility; can now right-click and hide things.
