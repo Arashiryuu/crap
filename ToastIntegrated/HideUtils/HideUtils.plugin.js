@@ -1,7 +1,7 @@
 /**
  * @name HideUtils
  * @author Arashiryuu
- * @version 2.1.57
+ * @version 2.1.58
  * @description Allows you to hide users, servers, and channels individually.
  * @authorId 238108500109033472
  * @authorLink https://github.com/Arashiryuu
@@ -49,7 +49,7 @@ var HideUtils = (() => {
 					twitter_username: ''
 				}
 			],
-			version: '2.1.57',
+			version: '2.1.58',
 			description: 'Allows you to hide users, servers, and channels individually.',
 			github: 'https://github.com/Arashiryuu',
 			github_raw: 'https://raw.githubusercontent.com/Arashiryuu/crap/master/ToastIntegrated/HideUtils/HideUtils.plugin.js',
@@ -110,13 +110,15 @@ var HideUtils = (() => {
 
 	const buildPlugin = ([Plugin, Api]) => {
         const { Toasts, Logger, Patcher, Settings, Utilities, ContextMenu, Components, DOMTools, ReactTools, ReactComponents, DiscordModules, DiscordClasses, WebpackModules, DiscordSelectors, PluginUtilities } = Api;
-		const { SettingPanel, SettingField, SettingGroup, Switch } = Settings;
-		const { ComponentDispatch: Dispatcher } = WebpackModules.getByProps('ComponentDispatch');
-		const { openModal, closeModal, closeAllModals, hasAnyModalOpen } = WebpackModules.getByProps('openModal', 'closeModal');
 		const { React, ReactDOM, ModalStack, ContextMenuActions: MenuActions, RelationshipStore } = DiscordModules;
+		const { SettingPanel, SettingField, SettingGroup, Switch } = Settings;
+		const { getNestedProp: getProp } = Utilities;
+
+		const { openModal, closeModal, closeAllModals, hasAnyModalOpen } = WebpackModules.getByProps('openModal', 'closeModal');
+		const { ComponentDispatch: Dispatcher } = WebpackModules.getByProps('ComponentDispatch');
 	
-		const TextElement = WebpackModules.getByDisplayName('Text');
 		const TooltipWrapper = WebpackModules.getByPrototypes('renderTooltip');
+		const TextElement = WebpackModules.getByDisplayName('LegacyText');
 	
 		const has = Object.prototype.hasOwnProperty;
 		const slice = Array.prototype.slice;
@@ -364,7 +366,10 @@ var HideUtils = (() => {
 							id: 'HideUtils-ButtonGroup',
 							className: 'buttonGroup'
 						},
-							...buttons.map(([text, data]) => React.createElement(Button, { text, action: () => open(text, data) }))
+							...buttons.map(([text, data]) => React.createElement(Button, {
+								text,
+								action: () => open(text, data)
+							}))
 						)
 					)
 				)
@@ -661,8 +666,8 @@ var HideUtils = (() => {
 				if (!Context) return;
 				Patcher.after(Context, 'default', (that, args, value) => {
 					const [props] = args;
-					const channel = this.getProps(props, 'channel');
-					const orig = this.getProps(value, 'props.children.props');
+					const channel = getProp(props, 'channel');
+					const orig = getProp(value, 'props.children.props');
 					const itemProps = {
 						id: 'hide-channel-hide-utils',
 						label: 'Hide Channel',
@@ -699,8 +704,8 @@ var HideUtils = (() => {
 				if (!VoiceContext) return;
 				Patcher.after(VoiceContext, 'default', (that, args, value) => {
 					const [props] = args;
-					const channel = this.getProps(props, 'channel');
-					const orig = this.getProps(value, 'props.children.props');
+					const channel = getProp(props, 'channel');
+					const orig = getProp(value, 'props.children.props');
 					const itemProps = {
 						id: 'hide-channel-hide-utils',
 						label: 'Hide Channel',
@@ -738,8 +743,8 @@ var HideUtils = (() => {
 				Patcher.after(Context, 'default', (that, args, value) => {
 					const [props] = args;
 					if (!props.guild) return value;
-					const orig = this.getProps(value, 'props');
-					const id = this.getProps(props, 'guild.id');
+					const orig = getProp(value, 'props');
+					const id = getProp(props, 'guild.id');
 					const active = this.settings.servers.unhidden.includes(id);
 	
 					if (!orig || !id) return;
@@ -806,7 +811,7 @@ var HideUtils = (() => {
 					const [props] = args;
 					if (!props.folderId) return value;
 
-					const children = this.getProps(value, 'props.children');
+					const children = getProp(value, 'props.children');
 					if (!children || !Array.isArray(children)) return value;
 
 					const instance = ReactTools.getOwnerInstance(props.target);
@@ -839,8 +844,8 @@ var HideUtils = (() => {
 					if (!DiscordModules.GuildStore.getGuild(DiscordModules.SelectedGuildStore.getGuildId())) return value;
 					const [props] = args;
 					if (!props.user) return value;
-					const orig = this.getProps(value, 'props.children.props');
-					const user = this.getProps(props, 'user');
+					const orig = getProp(value, 'props.children.props');
+					const user = getProp(props, 'user');
 					if (!orig || !user) return value;
 					
 					const item = React.createElement(Menu.MenuItem, {
@@ -853,7 +858,7 @@ var HideUtils = (() => {
 						}
 					});
 	
-					const profileGroup = this.getProps(orig, 'children.1.props.children');
+					const profileGroup = getProp(orig, 'children.1.props.children');
 					const fn = (child) => child?.key === 'HideUtils-MenuItem';
 					
 					if (profileGroup.some(fn)) return value;
@@ -886,10 +891,10 @@ var HideUtils = (() => {
 			updateContextPosition(m) {
 				if (!m) return;
 	
-				let height = this.getProps(m, 'updatePosition');
-				if (!height) height = this.getProps(m, 'props.onHeightUpdate');
-				if (!height) height = this.getProps(m, '_reactInternalFiber.return.memoizedProps.onHeightUpdate');
-				if (!height) height = this.getProps(m, '_reactInternalFiber.child.child.memoizedProps.onHeightUpdate');
+				let height = getProp(m, 'updatePosition');
+				if (!height) height = getProp(m, 'props.onHeightUpdate');
+				if (!height) height = getProp(m, '_reactInternalFiber.return.memoizedProps.onHeightUpdate');
+				if (!height) height = getProp(m, '_reactInternalFiber.child.child.memoizedProps.onHeightUpdate');
 	
 				if (typeof height === 'function') height();
 			}
@@ -905,11 +910,9 @@ var HideUtils = (() => {
 				const original = memo.default.type;
 				Patcher.instead(memo.default, 'type', (that, args, value) => {
 					const render = original(...args);
-					const props = this.getProps(render, 'props.children.props');
+					const props = getProp(render, 'props.children.props');
 					props.channelStream = props.channelStream.filter(({ type, content }) => {
-						const author = Array.isArray(content)
-							? this.getProps(content, '0.content.author')
-							: this.getProps(content, 'author');
+						const author = getProp(content, `${Array.isArray(content) ? '0.content.' : ''}author`);
 						if (!author) return true;
 						if (type === 'MESSAGE_GROUP_BLOCKED' && this.settings.hideBlocked) return false;
 						if (type === 'DIVIDER') return true;
@@ -918,13 +921,13 @@ var HideUtils = (() => {
 					return render;
 					// const [props] = args;
 					// log(value);
-					// const children = this.getProps(props, 'children.props.children');
-					// const list = this.getProps(children, '1');
+					// const children = getProp(props, 'children.props.children');
+					// const list = getProp(children, '1');
 					// if (!list) return;
 					// children[1] = list.filter((message) => {
 					// 	if (!message || message.key && (message.key.includes('divider') || ['has-more', 'buffer'].some((k) => message.key === k))) return message;
-					// 	const author = this.getProps(message, 'props.message.author');
-					// 	const type = this.getProps(message, 'type.type');
+					// 	const author = getProp(message, 'props.message.author');
+					// 	const type = getProp(message, 'type.type');
 					// 	const blocked = Boolean((type && type.displayName && type.displayName === 'CollapsedMessages') && this.settings.hideBlocked);
 					// 	return !blocked && author && !has.call(this.settings.users, author.id) || !blocked && !author;
 					// });
@@ -995,9 +998,9 @@ var HideUtils = (() => {
 					const target = Array.isArray(value)
 						? value.find((i) => i && !i.key)
 						: value;
-					const childProps = this.getProps(target, 'props.children.props.children.props');
+					const childProps = getProp(target, 'props.children.props.children.props');
 					if (!childProps) return value;
-					const children = this.getProps(childProps, 'children');
+					const children = getProp(childProps, 'children');
 					if (!children || !Array.isArray(children)) return value;
 	
 					childProps.children = children.filter((user) => {
@@ -1035,16 +1038,16 @@ var HideUtils = (() => {
 					const [props] = args;
 					if (!props || !props.id || !props.id.startsWith('channels')) return value;
 					
-					const childProps = this.getProps(value, 'props.children.props.children.props');
-					const children = this.getProps(childProps, 'children');
+					const childProps = getProp(value, 'props.children.props.children.props');
+					const children = getProp(childProps, 'children');
 					if (!children || !Array.isArray(children)) return value;
 	
-					const guildId = this.getProps(children, '1.props.channel.guild_id');
+					const guildId = getProp(children, '1.props.channel.guild_id');
 					if (this.settings.servers.unhidden.includes(guildId)) return value;
 	
 					childProps.children = children.filter((channel) => {
 						if (!channel) return channel;
-						const channelProps = this.getProps(channel, 'props');
+						const channelProps = getProp(channel, 'props');
 						if (Array.isArray(channelProps.voiceStates)) {
 							channelProps.voiceStates = channelProps.voiceStates.filter((user) => {
 								if (!user) return false;
@@ -1072,13 +1075,13 @@ var HideUtils = (() => {
 				// if (!cm) return;
 				// const inst = ReactTools.getReactInstance(cm);
 				// const own = ReactTools.getOwnerInstance(cm);
-				// const props = this.getProps(inst, 'memoizedProps');
-				// const childProps = this.getProps(props, 'children.props');
+				// const props = getProp(inst, 'memoizedProps');
+				// const childProps = getProp(props, 'children.props');
 				// if (!own || !props || !Array.isArray(childProps.children)) return;
 				// if (props.id === 'user-context') return this.addUserContextItems(inst, own, cm);
 				// else if (props.id === 'channel-context') return this.addChannelContextItems(inst, own, cm);
 				// else if (props.id === 'guild-context') {
-				// 	const readItem = this.getProps(childProps, 'children.0.props.children');
+				// 	const readItem = getProp(childProps, 'children.0.props.children');
 				// 	if (!readItem || Array.isArray(readItem)) return;
 				// 	if (readItem.props.id === 'mark-folder-read') return this.addFolderContextItems(inst, own, cm);
 				//  else if (readItem.props.id === 'mark-guild-read') return this.addGuildContextItems(inst, own, cm);
@@ -1088,7 +1091,7 @@ var HideUtils = (() => {
 			addUserContextItems(instance, owner, context) {
 				if (!DiscordModules.GuildStore.getGuild(DiscordModules.SelectedGuildStore.getGuildId())) return;
 				const group = new ContextMenu.ItemGroup();
-				const props = this.getProps(instance, 'return.return.return.return.return.memoizedProps');
+				const props = getProp(instance, 'return.return.return.return.return.memoizedProps');
 				if (!props) return;
 				const item = new ContextMenu.TextItem('Hide User', {
 					callback: (e) => {
@@ -1125,7 +1128,7 @@ var HideUtils = (() => {
 				const group = new ContextMenu.ItemGroup();
 				const ref = owner.props.children({ position: owner.props.reference() }, owner.updatePosition);
 				if (!ref.props.channel || typeof ref.props.channel.type === 'undefined' || ref.props.channel.type === 4) return;
-				const channel = this.getProps(ref, 'props.channel');
+				const channel = getProp(ref, 'props.channel');
 				if (!channel) return;
 				const itemProps = {
 					label: 'Hide Channel',
@@ -1168,7 +1171,7 @@ var HideUtils = (() => {
 			addGuildContextItems(instance, owner, context) {
 				const group = new ContextMenu.ItemGroup();
 				const ref = owner.props.children({ position: owner.props.reference() }, owner.updatePosition);
-				const guild = this.getProps(ref, 'props.guild');
+				const guild = getProp(ref, 'props.guild');
 				const checked = this.settings.servers.unhidden.includes(guild.id);
 				const item = new ContextMenu.TextItem('Hide Server', {
 					callback: (e) => {
@@ -1220,7 +1223,7 @@ var HideUtils = (() => {
 			addFolderContextItems(instance, owner, context) {
 				const group = new ContextMenu.ItemGroup();
 				const ref = owner.props.children({ position: owner.props.reference() }, owner.updatePosition);
-				const target = this.getProps(ref, 'props.target');
+				const target = getProp(ref, 'props.target');
 				if (!ref || !target) return;
 				const item = new ContextMenu.TextItem('Hide Folder', {
 					callback: (e) => {
@@ -1396,14 +1399,6 @@ var HideUtils = (() => {
 			// 		}
 			// 	}
 			// }
-	
-			/**
-			 * @name safelyGetNestedProps
-			 * @author Zerebos
-			 */
-			getProps(obj, path) {
-				return path.split(/\s?\.\s?/).reduce((object, prop) => object && object[prop], obj);
-			}
 	
 			/* Settings Panel */
 	
