@@ -1,7 +1,7 @@
 /**
  * @name HideServersChannelsRedux
  * @author Arashiryuu
- * @version 1.1.12
+ * @version 1.1.13
  * @description Adds buttons to the header for hiding the servers list and channels list.
  * @authorId 238108500109033472
  * @authorLink https://github.com/Arashiryuu
@@ -50,7 +50,7 @@ var HideServersChannelsRedux = (() => {
 					twitter_username: ''
 				}
 			],
-			version: '1.1.12',
+			version: '1.1.13',
 			description: 'Adds buttons to the header for hiding the servers list and channels list.',
 			github: 'https://github.com/Arashiryuu',
 			github_raw: 'https://raw.githubusercontent.com/Arashiryuu/crap/master/ToastIntegrated/HideServersChannelsRedux/HideServersChannelsRedux.plugin.js'
@@ -105,7 +105,7 @@ var HideServersChannelsRedux = (() => {
 		const { SettingPanel, SettingGroup, Switch } = Settings;
 
 		const has = Object.prototype.hasOwnProperty;
-		const Header = WebpackModules.getByDisplayName('HeaderBarContainer');
+		const Header = WebpackModules.find((m) => m?.default?.displayName === 'HeaderBarContainer');
 		const TooltipWrapper = WebpackModules.getByPrototypes('renderTooltip');
 		const icons = WebpackModules.getByProps('iconWrapper', 'clickable');
 		const guilds = WebpackModules.getByProps('wrapper', 'unreadMentionsIndicatorTop');
@@ -411,9 +411,10 @@ var HideServersChannelsRedux = (() => {
 			patchHeader(state) {
 				if (state.cancelled || !Header) return;
 
-				Patcher.after(Header.prototype, 'render', (that, args, value) => {
-					const children = this.getProps(value, 'props.toolbar.props.children.0');
-					if (!children || !Array.isArray(children)) return value;
+				Patcher.after(Header, 'default', (that, args, value) => {
+					const props = this.getProps(value, 'props.children.props');
+					const children = this.getProps(props, 'toolbar');
+					if (!props || !children || !Array.isArray(children)) return value;
 
 					const S = DiscordModules.React.createElement(ServerButton, { key: 'servers', onClick: (e) => this.onServerButtonClick(e) });
 					const C = DiscordModules.React.createElement(ChannelButton, { key: 'channels', onClick: (e) => this.onChannelButtonClick(e) });
