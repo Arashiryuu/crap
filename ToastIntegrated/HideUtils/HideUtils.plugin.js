@@ -1,7 +1,7 @@
 /**
  * @name HideUtils
  * @author Arashiryuu
- * @version 2.2.0
+ * @version 2.2.1
  * @description Allows you to hide users, servers, and channels individually.
  * @authorId 238108500109033472
  * @authorLink https://github.com/Arashiryuu
@@ -49,7 +49,7 @@ var HideUtils = (() => {
 					twitter_username: ''
 				}
 			],
-			version: '2.2.0',
+			version: '2.2.1',
 			description: 'Allows you to hide users, servers, and channels individually.',
 			github: 'https://github.com/Arashiryuu',
 			github_raw: 'https://raw.githubusercontent.com/Arashiryuu/crap/master/ToastIntegrated/HideUtils/HideUtils.plugin.js',
@@ -159,12 +159,48 @@ var HideUtils = (() => {
 	/* Build */
 
 	const buildPlugin = ([Plugin, Api]) => {
-        const { Toasts, Logger, Patcher, Settings, Utilities, ContextMenu, Components, DOMTools, ReactTools, ReactComponents, DiscordModules, DiscordClasses, WebpackModules, DiscordSelectors, PluginUtilities } = Api;
-		const { React, ReactDOM, ModalStack, Dispatcher: FluxDispatch, DiscordConstants, ContextMenuActions: MenuActions, RelationshipStore } = DiscordModules;
-		const { SettingPanel, SettingField, SettingGroup, Switch } = Settings;
+        const {
+			Toasts,
+			Logger,
+			Patcher,
+			Settings,
+			Utilities,
+			ContextMenu,
+			Components,
+			DOMTools,
+			ReactTools,
+			ReactComponents,
+			DiscordModules,
+			DiscordClasses,
+			WebpackModules,
+			DiscordSelectors,
+			PluginUtilities
+		} = Api;
+		const {
+			React,
+			ReactDOM,
+			ModalStack,
+			Dispatcher: FluxDispatch,
+			DiscordConstants,
+			ContextMenuActions: MenuActions,
+			RelationshipStore
+		} = DiscordModules;
+		const {
+			SettingPanel,
+			SettingField,
+			SettingGroup,
+			Switch
+		} = Settings;
 		const { getNestedProp: getProp } = Utilities;
 
-		const { openModal, closeModal, hasModalOpen, useModalsStore, closeAllModals, hasAnyModalOpen } = WebpackModules.getByProps('openModal', 'closeModal');
+		const {
+			openModal,
+			closeModal,
+			hasModalOpen,
+			useModalsStore,
+			closeAllModals,
+			hasAnyModalOpen
+		} = WebpackModules.getByProps('openModal', 'closeModal');
 		const { ComponentDispatch: Dispatcher } = WebpackModules.getByProps('ComponentDispatch');
 	
 		const TooltipWrapper = WebpackModules.getByPrototypes('renderTooltip');
@@ -181,6 +217,7 @@ var HideUtils = (() => {
 		};
 		const has = Object.prototype.hasOwnProperty;
 		const slice = Array.prototype.slice;
+		
 		const LangUtils = WebpackModules.getByProps('getLocale', 'getLanguages');
 		const Menu = WebpackModules.getByProps('MenuItem', 'MenuGroup', 'MenuSeparator');
 		const ToggleMenuItem = WebpackModules.getByString('disabled', 'itemToggle');
@@ -190,7 +227,6 @@ var HideUtils = (() => {
 		const messagesWrapper = WebpackModules.getByProps('messages', 'messagesWrapper');
 		const wrapper = WebpackModules.getByProps('messagesPopoutWrap');
 		const scroller = WebpackModules.getByProps('scrollerWrap');
-		// const dividerContent = WebpackModules.getByProps('divider', 'dividerRed', 'dividerContent');
 		const MessageClasses = {
 			...WebpackModules.getByProps('messageCompact', 'headerCozy', 'username'),
 			...WebpackModules.getByProps('message', 'groupStart')
@@ -831,7 +867,6 @@ var HideUtils = (() => {
 	
 			async patchGuildContextMenu(promiseState) {
 				if (promiseState.cancelled) return;
-				const { HIDE_SERVER, UNHIDE_CHANNELS, PURGE_CHANNELS } = useStrings();
 				const Context = await ContextMenu.getDiscordMenu('GuildContextMenu');
 				if (!Context) return;
 				Patcher.after(Context, 'default', (that, args, value) => {
@@ -841,7 +876,9 @@ var HideUtils = (() => {
 					const id = getProp(props, 'guild.id');
 					const active = this.settings.servers.unhidden.includes(id);
 	
-					if (!orig || !id) return;
+					if (!orig || !id) return value;
+
+					const { HIDE_SERVER, UNHIDE_CHANNELS, PURGE_CHANNELS } = useStrings();
 	
 					const topSeparator = React.createElement(Menu.MenuSeparator, {});
 					const bottomSeparator = React.cloneElement(topSeparator);
@@ -899,7 +936,6 @@ var HideUtils = (() => {
 
 			async patchGuildFolderContextMenu(promiseState) {
 				if (promiseState.cancelled) return;
-				const { HIDE_FOLDER } = useStrings();
 				const Context = await ContextMenu.getDiscordMenu('GuildFolderContextMenu');
 				if (!Context) return;
 				Patcher.after(Context, 'default', (that, args, value) => {
@@ -908,6 +944,8 @@ var HideUtils = (() => {
 
 					const children = getProp(value, 'props.children');
 					if (!children || !Array.isArray(children)) return value;
+
+					const { HIDE_FOLDER } = useStrings();
 
 					const instance = ReactTools.getOwnerInstance(props.target);
 					const topSeparator = React.createElement(Menu.MenuSeparator, {});
