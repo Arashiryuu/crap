@@ -1,7 +1,7 @@
 /**
  * @name HideUtils
  * @author Arashiryuu
- * @version 2.2.1
+ * @version 2.2.2
  * @description Allows you to hide users, servers, and channels individually.
  * @authorId 238108500109033472
  * @authorLink https://github.com/Arashiryuu
@@ -49,7 +49,7 @@ var HideUtils = (() => {
 					twitter_username: ''
 				}
 			],
-			version: '2.2.1',
+			version: '2.2.2',
 			description: 'Allows you to hide users, servers, and channels individually.',
 			github: 'https://github.com/Arashiryuu',
 			github_raw: 'https://raw.githubusercontent.com/Arashiryuu/crap/master/ToastIntegrated/HideUtils/HideUtils.plugin.js',
@@ -104,29 +104,29 @@ var HideUtils = (() => {
 			}
 		},
 		changelog: [
-			// {
-			// 	title: 'Maintenance',
-			// 	type: 'progress',
-			// 	items: [
-			// 		'Minor logic tweaks, restored date dividers.'
-			// 	]
-			// }
 			{
-				title: 'Evolving?',
-				type: 'improved',
+				title: 'Maintenance',
+				type: 'progress',
 				items: [
-					'Added language strings support.'
-				]
-			},
-			{
-				title: 'Bugs Squashed!',
-				type: 'fixed',
-				items: [
-					'Context menu items appear in their context menu again.',
-					'Hide User option appears in the context menu again.',
-					'Hide Channel option appears in the context menu again.'
+					'Minor logic tweaks, improved consistency.'
 				]
 			}
+			// {
+			// 	title: 'Evolving?',
+			// 	type: 'improved',
+			// 	items: [
+			// 		'Added language strings support.'
+			// 	]
+			// },
+			// {
+			// 	title: 'Bugs Squashed!',
+			// 	type: 'fixed',
+			// 	items: [
+			// 		'Context menu items appear in their context menu again.',
+			// 		'Hide User option appears in the context menu again.',
+			// 		'Hide Channel option appears in the context menu again.'
+			// 	]
+			// }
 		]
 	};
 
@@ -769,12 +769,12 @@ var HideUtils = (() => {
 
 			getChannelContextData(channel) {
 				const { HIDE_CHANNEL, UNHIDE_CHANNEL } = useStrings();
-				const [guildShown, channelHid] = [
-					this.settings.servers.unhidden.includes(channel.guild_id),
-					has.call(this.settings.channels, channel.id)
-				];
+				// const [guildShown, channelHid] = [
+				// 	this.settings.servers.unhidden.includes(channel.guild_id),
+				// 	has.call(this.settings.channels, channel.id)
+				// ];
 
-				switch (channelHid) {
+				switch (has.call(this.settings.channels, channel.id)) {
 					case false: {
 						return [
 							HIDE_CHANNEL,
@@ -798,8 +798,18 @@ var HideUtils = (() => {
 	
 			async patchChannelContextMenu(promiseState) {
 				if (promiseState.cancelled) return;
+				const menuWasLoaded = await ReactComponents.getComponent('ChannelListTextChannelContextMenu', DiscordSelectors.ContextMenu.menu.value.trim(), (menu) => {
+					return Utilities.findInTree(menu, (tree) => {
+						return tree && tree.displayName === 'ChannelListTextChannelContextMenu';
+					}, {
+						walkable: [
+							'return',
+							'type'
+						]
+					});
+				});
 				const Context = WebpackModules.find((m) => m?.default?.displayName === 'useChannelMarkAsReadItem');
-				if (!Context) return;
+				if (!menuWasLoaded || !Context) return;
 				Patcher.after(Context, 'default', (that, args, value) => {
 					const val = Array.isArray(value)
 						? value.find((item) => !item.key)
@@ -969,7 +979,7 @@ var HideUtils = (() => {
 				ContextMenu.forceUpdateMenus();
 			}
 
-			getUserContextData (id) {
+			getUserContextData(id) {
 				const { HIDE_USER, UNHIDE_USER } = useStrings();
 				switch (has.call(this.settings.users, id)) {
 					case false: {
@@ -995,8 +1005,18 @@ var HideUtils = (() => {
 	
 			async patchUserContextMenu(promiseState) {
 				if (promiseState.cancelled) return;
+				const menuWasLoaded = await ReactComponents.getComponent('GuildChannelUserContextMenu', DiscordSelectors.ContextMenu.menu.value.trim(), (menu) => {
+					return Utilities.findInTree(menu, (tree) => {
+						return tree && tree.displayName === 'GuildChannelUserContextMenu';
+					}, {
+						walkable: [
+							'return',
+							'type'
+						]
+					});
+				});
 				const UserContext = WebpackModules.find((m) => m?.default?.displayName === 'useUserProfileItem');
-				if (!UserContext) return;
+				if (!menuWasLoaded || !UserContext) return;
 				Patcher.after(UserContext, 'default', (that, args, value) => {
 					const val = Array.isArray(value)
 						? value.find((item) => !item.key)
@@ -1107,6 +1127,7 @@ var HideUtils = (() => {
 				if (!msg) return;
 				const data = getProp(ReactTools.getReactInstance(msg), 'memoizedProps.children.props.childrenMessageContent.props.message');
 				if (!data) return;
+				// Dispatcher.dispatch(DiscordConstants.ComponentActionsKeyed.ANIMATE_CHAT_AVATAR, data);
 				FluxDispatch.wait(() => {
 					FluxDispatch.dispatch({
 						type: DiscordConstants.ActionTypes.MESSAGE_UPDATE,
