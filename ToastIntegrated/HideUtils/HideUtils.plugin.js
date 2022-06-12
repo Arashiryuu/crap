@@ -1,7 +1,7 @@
 /**
  * @name HideUtils
  * @author Arashiryuu
- * @version 2.1.58
+ * @version 2.2.0
  * @description Allows you to hide users, servers, and channels individually.
  * @authorId 238108500109033472
  * @authorLink https://github.com/Arashiryuu
@@ -49,11 +49,59 @@ var HideUtils = (() => {
 					twitter_username: ''
 				}
 			],
-			version: '2.1.58',
+			version: '2.2.0',
 			description: 'Allows you to hide users, servers, and channels individually.',
 			github: 'https://github.com/Arashiryuu',
 			github_raw: 'https://raw.githubusercontent.com/Arashiryuu/crap/master/ToastIntegrated/HideUtils/HideUtils.plugin.js',
 			github_source: 'https://github.com/Arashiryuu/crap/blob/master/ToastIntegrated/HideUtils/HideUtils.plugin.js'
+		},
+		strings: {
+			en: {
+				PLUGIN_SETTINGS_NAME: 'Settings Select',
+				PLUGIN_SETTINGS_BLOCK_NAME: 'Hide Blocked User Messages',
+				PLUGIN_SETTINGS_DESCRIPTION: 'Select which settings you would like to visit.',
+				PLUGIN_SETTINGS_BLOCK_DESCRIPTION: 'Whether or not to unrender messages from blocked users.',
+				HIDE_USER: 'Hide User',
+				UNHIDE_USER: 'Unhide User',
+				HIDE_CHANNEL: 'Hide Channel',
+				HIDE_SERVER: 'Hide Server',
+				HIDE_FOLDER: 'Hide Folder',
+				UNHIDE_CHANNEL: 'Unhide Channel',
+				UNHIDE_CHANNELS: 'Unhide Channels',
+				PURGE_CHANNELS: 'Purge Hidden Channels',
+				SETTINGS_INSTRUCTIONS: 'Instructions',
+				SETTINGS_CHANNELS: 'Channels',
+				SETTINGS_FOLDERS: 'Folders',
+				SETTINGS_SERVERS: 'Servers',
+				SETTINGS_USERS: 'Users',
+				INSTRUCTIONS_HOWTO: 'How to',
+				INSTRUCTIONS_HOWTO_EXT1: 'Right-click on a channel, server, or user.',
+				INSTRUCTIONS_HOWTO_EXT2: 'Left-click the hide option in the context-menu.',
+				INSTRUCTIONS_NOTE: 'Note',
+				INSTRUCTIONS_NOTE_EXT1: 'Unhiding requires use of the settings-panel, and is not handled within a context-menu.',
+				INSTRUCTIONS_NOTE_EXT2: 'Click on a hidden element in its respective settings modal to unhide it.',
+				TOASTS_PURGE_SUCCESS: 'Channel purge for {{GUILD}} was successful.',
+				TOASTS_CHANNEL_SUCCESS: 'Channel has successfully been hidden.',
+				TOASTS_CHANNEL_REMOVE_SUCCESS: 'Channel successfully removed.',
+				TOASTS_CHANNEL_NOCHANNEL: 'Unable to find channel to hide.',
+				TOASTS_CHANNEL_FAILURE: 'This channel is already being hidden.',
+				TOASTS_CHANNEL_FAILURE2: 'This channel is not being hidden.',
+				TOASTS_GUILD_SUCCESS: 'Server has successfully been hidden.',
+				TOASTS_GUILD_REMOVE_SUCCESS: 'Server successfully removed.',
+				TOASTS_GUILD_NOGUILD: 'Unable to find server to hide.',
+				TOASTS_GUILD_FAILURE: 'That server is already being hidden.',
+				TOASTS_GUILD_FAILURE2: 'That server is not being hidden.',
+				TOASTS_FOLDER_SUCCESS: 'Folder has successfully been hidden.',
+				TOASTS_FOLDER_REMOVE_SUCCESS: 'Folder successfully removed.',
+				TOASTS_FOLDER_FAILURE: 'This folder is already being hidden.',
+				TOASTS_FOLDER_FAILURE2: 'This folder is not being hidden.',
+				TOASTS_USER_SUCCESS: 'User is now being hidden!',
+				TOASTS_USER_NOUSER: 'Unable to find user to hide.',
+				TOASTS_USER_REMOVE_SUCCESS: 'User successfully removed.',
+				TOASTS_USER_FAILURE: 'This user is already being hidden.',
+				TOASTS_USER_FAILURE2: 'This user is not being hidden.',
+				TOASTS_USER_SELF_FAILURE: 'You cannot hide yourself.'
+			}
 		},
 		changelog: [
 			// {
@@ -63,18 +111,20 @@ var HideUtils = (() => {
 			// 		'Minor logic tweaks, restored date dividers.'
 			// 	]
 			// }
-			// {
-			// 	title: 'Evolving?',
-			// 	type: 'improved',
-			// 	items: [
-			// 		''
-			// 	]
-			// }
+			{
+				title: 'Evolving?',
+				type: 'improved',
+				items: [
+					'Added language strings support.'
+				]
+			},
 			{
 				title: 'Bugs Squashed!',
 				type: 'fixed',
 				items: [
-					'Fixed a crashing bug.'
+					'Context menu items appear in their context menu again.',
+					'Hide User option appears in the context menu again.',
+					'Hide Channel option appears in the context menu again.'
 				]
 			}
 		]
@@ -110,18 +160,28 @@ var HideUtils = (() => {
 
 	const buildPlugin = ([Plugin, Api]) => {
         const { Toasts, Logger, Patcher, Settings, Utilities, ContextMenu, Components, DOMTools, ReactTools, ReactComponents, DiscordModules, DiscordClasses, WebpackModules, DiscordSelectors, PluginUtilities } = Api;
-		const { React, ReactDOM, ModalStack, ContextMenuActions: MenuActions, RelationshipStore } = DiscordModules;
+		const { React, ReactDOM, ModalStack, Dispatcher: FluxDispatch, DiscordConstants, ContextMenuActions: MenuActions, RelationshipStore } = DiscordModules;
 		const { SettingPanel, SettingField, SettingGroup, Switch } = Settings;
 		const { getNestedProp: getProp } = Utilities;
 
-		const { openModal, closeModal, closeAllModals, hasAnyModalOpen } = WebpackModules.getByProps('openModal', 'closeModal');
+		const { openModal, closeModal, hasModalOpen, useModalsStore, closeAllModals, hasAnyModalOpen } = WebpackModules.getByProps('openModal', 'closeModal');
 		const { ComponentDispatch: Dispatcher } = WebpackModules.getByProps('ComponentDispatch');
 	
 		const TooltipWrapper = WebpackModules.getByPrototypes('renderTooltip');
 		const TextElement = WebpackModules.getByDisplayName('LegacyText');
 	
+		const at = Array.prototype.at ?? function at (index) {
+			if ([-Infinity, +Infinity].includes(index)) return undefined;
+			let i = Math.trunc(index) || 0;
+			i = i < 0
+				? this.length + i
+				: i;
+			if (i < 0 || i >= this.length) return undefined;
+			return this[i];
+		};
 		const has = Object.prototype.hasOwnProperty;
 		const slice = Array.prototype.slice;
+		const LangUtils = WebpackModules.getByProps('getLocale', 'getLanguages');
 		const Menu = WebpackModules.getByProps('MenuItem', 'MenuGroup', 'MenuSeparator');
 		const ToggleMenuItem = WebpackModules.getByString('disabled', 'itemToggle');
 		const guilds = WebpackModules.getByProps('wrapper', 'unreadMentionsIndicatorTop');
@@ -139,6 +199,11 @@ var HideUtils = (() => {
 		const Lists = WebpackModules.getByProps('ListThin');
 
 		const modalKey = 'HideUtils-SettingsModal';
+
+		const useStrings = () => {
+			const [lang] = LangUtils.getLocale().split('-');
+			return config.strings[lang] ?? config.strings.en;
+		};
 	
 		const Button = (props) => {
 			const style = props.style || {};
@@ -173,15 +238,28 @@ var HideUtils = (() => {
 		};
 
 		const Modal = (props) => {
+			const {
+				SETTINGS_INSTRUCTIONS,
+				SETTINGS_CHANNELS,
+				SETTINGS_FOLDERS,
+				SETTINGS_SERVERS,
+				SETTINGS_USERS,
+				INSTRUCTIONS_HOWTO,
+				INSTRUCTIONS_HOWTO_EXT1,
+				INSTRUCTIONS_HOWTO_EXT2,
+				INSTRUCTIONS_NOTE,
+				INSTRUCTIONS_NOTE_EXT1,
+				INSTRUCTIONS_NOTE_EXT2
+			} = useStrings();
 			const { 1: forceUpdate } = React.useReducer((x) => x + 1, 0);
 
+			const { name: label, isType, hasImage } = props;
 			const data = [];
-			const label = props.name;
 			const labels = {
-				'Channels': 'ID: {{id}}\nGuild: {{guild}}\nChannel: {{channel}}',
-				'Servers': 'ID: {{id}}\nGuild: {{guild}}',
-				'Folders': 'ID: {{id}}\nName: {{name}}',
-				'Users': 'ID: {{id}}\nTag: {{tag}}'
+				[SETTINGS_CHANNELS]: 'ID: {{id}}\nGuild: {{guild}}\nChannel: {{channel}}',
+				[SETTINGS_SERVERS]: 'ID: {{id}}\nGuild: {{guild}}',
+				[SETTINGS_FOLDERS]: 'ID: {{id}}\nName: {{name}}',
+				[SETTINGS_USERS]: 'ID: {{id}}\nTag: {{tag}}'
 			};
 
 			const close = () => closeModal(modalKey);
@@ -189,16 +267,16 @@ var HideUtils = (() => {
 				if (!has.call(labels, label)) return null;
 				const string = labels[label];
 
-				if (label === 'Channels') return string
+				if (label === SETTINGS_CHANNELS) return string
 					.replace(/{{id}}/, data.id)
 					.replace(/{{guild}}/, data.guild)
 					.replace(/{{channel}}/, data.name);
 	
-				if (label === 'Servers') return string
+				if (label === SETTINGS_SERVERS) return string
 					.replace(/{{id}}/, data.id)
 					.replace(/{{guild}}/, data.name);
 	
-				if (label === 'Folders') return string
+				if (label === SETTINGS_FOLDERS) return string
 					.replace(/{{id}}/, data.id)
 					.replace(/{{name}}/, data.name);
 	
@@ -215,9 +293,8 @@ var HideUtils = (() => {
 						text: replaceLabels(label, entry),
 						color: TooltipWrapper.Colors.PRIMARY,
 						position: TooltipWrapper.Positions.TOP,
-						children: (props) => {
-							const type = label.slice(0, -1);
-							const hasImage = type === 'User' || type === 'Server';
+						children: (propsc) => {
+							const type = isType.slice(0, -1);
 							const style = {};
 
 							if (hasImage) Object.assign(style, {
@@ -229,7 +306,7 @@ var HideUtils = (() => {
 
 							return React.createElement('div', Object.assign({
 								className: 'buttonWrapper'
-							}, props),
+							}, propsc),
 								React.createElement(Button, {
 									text: entry.name ? entry.name : entry.tag,
 									className: `${type.toLowerCase()}-button`,
@@ -277,12 +354,12 @@ var HideUtils = (() => {
 										marginBottom: '4px',
 										fontWeight: 'bold'
 									},
-									children: ['How to']
+									children: [INSTRUCTIONS_HOWTO]
 								}),
 								React.createElement(ReactUL, {
 									children: [
-										'Right-click on a channel, server, or user.',
-										'Left-click the hide option in the context-menu.'
+										INSTRUCTIONS_HOWTO_EXT1,
+										INSTRUCTIONS_HOWTO_EXT2
 									]
 								}),
 								React.createElement('br', {}),
@@ -295,12 +372,12 @@ var HideUtils = (() => {
 										marginBottom: '4px',
 										fontWeight: 'bold'
 									},
-									children: ['Note']
+									children: [INSTRUCTIONS_NOTE]
 								}),
 								React.createElement(ReactUL, {
 									children: [
-										'Unhiding requires use of the settings-panel, and is not handled within a context-menu.',
-										'Click on a hidden element in its respective settings modal to unhide it.'
+										INSTRUCTIONS_NOTE_EXT1,
+										INSTRUCTIONS_NOTE_EXT2
 									]
 								})
 							]
@@ -340,16 +417,17 @@ var HideUtils = (() => {
 		};
 
 		const Select = (props) => {
-			const open = (name, data) => {
+			const { SETTINGS_INSTRUCTIONS, SETTINGS_CHANNELS, SETTINGS_FOLDERS, SETTINGS_SERVERS, SETTINGS_USERS } = useStrings();
+			const open = ({ name, data, isType, hasImage }) => {
 				if (hasAnyModalOpen()) closeAllModals();
-				openModal(() => React.createElement(Modal, { name, data }), { modalKey });
+				openModal(() => React.createElement(Modal, { name, data, isType, hasImage }), { modalKey });
 			};
 			const buttons = [
-				['Folders', props.folders],
-				['Channels', props.channels],
-				['Servers', props.servers],
-				['Users', props.users],
-				['Instructions', null]
+				[SETTINGS_FOLDERS, props.folders, 'Folders'],
+				[SETTINGS_CHANNELS, props.channels, 'Channels'],
+				[SETTINGS_SERVERS, props.servers, 'Servers', true],
+				[SETTINGS_USERS, props.users, 'Users', true],
+				[SETTINGS_INSTRUCTIONS, null, 'Instructions']
 			];
 			return React.createElement('div', {
 				id: 'HideUtils-Settings',
@@ -366,9 +444,9 @@ var HideUtils = (() => {
 							id: 'HideUtils-ButtonGroup',
 							className: 'buttonGroup'
 						},
-							...buttons.map(([text, data]) => React.createElement(Button, {
+							...buttons.map(([text, data, isType, hasImage]) => React.createElement(Button, {
 								text,
-								action: () => open(text, data)
+								action: () => open({ name: text, data, isType, hasImage })
 							}))
 						)
 					)
@@ -392,7 +470,7 @@ var HideUtils = (() => {
 		const getUser = DiscordModules.UserStore.getUser;
 		const mute = WebpackModules.getByProps('setLocalVolume').setLocalVolume;
 		
-		let subscription, isBlocked;
+		let isBlocked;
 
 		return class HideUtils extends Plugin {
 			constructor() {
@@ -417,6 +495,10 @@ var HideUtils = (() => {
 					}
 					#HideUtils-Modal {
 						pointer-events: all;
+						-webkit-font-smoothing: subpixel-antialiased;
+						-webkit-backface-visibility: hidden;
+						backface-visibility: hidden;
+						text-rendering: optimizeLegibility;
 					}
 					#HideUtils-Header + div > div:first-child {
 						position: relative;
@@ -543,10 +625,6 @@ var HideUtils = (() => {
 	
 			unsubscribe() {
 				for (const [type, callback] of this.subscriptions) Dispatcher.unsubscribe(`HIDEUTILS_BUTTON_${type}`, callback);
-				if (subscription) {
-					DOMTools.observer.unsubscribe(subscription);
-					subscription = null;
-				}
 			}
 	
 			onStart() {
@@ -649,95 +727,111 @@ var HideUtils = (() => {
 				const { component: TypingUsers } = await ReactComponents.getComponentByName('TypingUsers', DiscordSelectors.Typing.typing.toString()); // WebpackModules.getByDisplayName('FluxContainer(TypingUsers)');
 				if (promiseState.cancelled) return;
 				Patcher.before(TypingUsers.prototype, 'render', ({ props: { typingUsers } }) => {
-					for (const id in typingUsers) has.call(this.settings.users, id) && delete typingUsers[id];
+					for (const id of Object.keys(typingUsers)) has.call(this.settings.users, id) && delete typingUsers[id];
 				}, { displayName: 'TypingUsers' });
+			}
+
+			getChannelContextData(channel) {
+				const { HIDE_CHANNEL, UNHIDE_CHANNEL } = useStrings();
+				const [guildShown, channelHid] = [
+					this.settings.servers.unhidden.includes(channel.guild_id),
+					has.call(this.settings.channels, channel.id)
+				];
+
+				switch (channelHid) {
+					case false: {
+						return [
+							HIDE_CHANNEL,
+							() => {
+								MenuActions.closeContextMenu();
+								this.chanPush(channel.id);
+							}
+						];
+					}
+					default: {
+						return [
+							UNHIDE_CHANNEL,
+							() => {
+								MenuActions.closeContextMenu();
+								this.chanClear(channel.id);
+							}
+						];
+					}
+				}
 			}
 	
 			async patchChannelContextMenu(promiseState) {
 				if (promiseState.cancelled) return;
-				const Context = await ContextMenu.getDiscordMenu((mod) => {
-					if (!mod) return false;
-					const name = mod?.displayName === 'ChannelListTextChannelContextMenu';
-					const string = mod?.toString();
-					const includes = string.includes('Messages.CHANNEL_ACTIONS_MENU_LABEL');
-					const starts = string.startsWith('function g(e)');
-					return name && starts && includes;
-				});
+				const Context = WebpackModules.find((m) => m?.default?.displayName === 'useChannelMarkAsReadItem');
 				if (!Context) return;
 				Patcher.after(Context, 'default', (that, args, value) => {
-					const [props] = args;
-					const channel = getProp(props, 'channel');
-					const orig = getProp(value, 'props.children.props');
-					const itemProps = {
-						id: 'hide-channel-hide-utils',
-						label: 'Hide Channel',
-						action: () => {
-							MenuActions.closeContextMenu();
-							this.chanPush(channel.id);
-						}
-					};
-	
-					if (this.settings.servers.unhidden.includes(channel.guild_id) && has.call(this.settings.channels, channel.id)) {
-						itemProps.id = 'unhide-channel-hide-utils';
-						itemProps.label = 'Unhide Channel';
-						itemProps.action = () => {
-							MenuActions.closeContextMenu();
-							this.chanClear(channel.id);
-						};
-					}
-	
-					const item = React.createElement(Menu.MenuItem, itemProps);
-					const group = React.createElement(Menu.MenuGroup, { children: item, key: 'HideUtils-MenuGroup' });
-					const fn = (item) => item?.key === 'HideUtils-MenuGroup';
-	
-					if (!Array.isArray(orig.children)) orig.children = [orig.children];
-					if (!orig.children.some(fn)) orig.children.splice(1, 0, group);
-	
-					return value;
+					const val = Array.isArray(value)
+						? value.find((item) => !item.key)
+						: value;
+
+					const [channel] = args;
+					const { props } = val;
+
+					if (!props || props.id !== 'mark-channel-read') return value;
+
+					const [label, action] = this.getChannelContextData(channel);
+					const children = [
+						React.createElement(Menu.MenuSeparator, {}),
+						React.createElement(Menu.MenuItem, {
+							id: 'hide-utils-hide-channel',
+							key: 'HideUtils-MenuItem',
+							label,
+							action
+						}),
+						React.createElement(Menu.MenuSeparator, {})
+					];
+
+					return [value, children].flat();
 				});
 				ContextMenu.forceUpdateMenus();
 			}
 
-			async patchVoiceChannelContextMenu(promiseState) {
-				if (promiseState.cancelled) return;
-				const VoiceContext = await ContextMenu.getDiscordMenu('ChannelListVoiceChannelContextMenu');
-				if (!VoiceContext) return;
-				Patcher.after(VoiceContext, 'default', (that, args, value) => {
-					const [props] = args;
-					const channel = getProp(props, 'channel');
-					const orig = getProp(value, 'props.children.props');
-					const itemProps = {
-						id: 'hide-channel-hide-utils',
-						label: 'Hide Channel',
-						action: () => {
-							MenuActions.closeContextMenu();
-							this.chanPush(channel.id);
-						}
-					};
+			// async patchVoiceChannelContextMenu(promiseState) {
+			// 	if (promiseState.cancelled) return;
+			// 	const VoiceContext = await ContextMenu.getDiscordMenu('ChannelListVoiceChannelContextMenu');
+			// 	if (!VoiceContext) return;
+			// 	Patcher.after(VoiceContext, 'default', (that, args, value) => {
+			// 		const [props] = args;
+			// 		const channel = getProp(props, 'channel');
+			// 		const orig = getProp(value, 'props.children.props');
+			// 		const itemProps = {
+			// 			id: 'hide-channel-hide-utils',
+			// 			label: 'Hide Channel',
+			// 			action: () => {
+			// 				MenuActions.closeContextMenu();
+			// 				this.chanPush(channel.id);
+			// 			}
+			// 		};
 					
-					if (this.settings.servers.unhidden.includes(channel.guild_id) && has.call(this.settings.channels, channel.id)) {
-						itemProps.id = 'unhide-channel-hide-utils';
-						itemProps.label = 'Unhide Channel';
-						itemProps.action = () => {
-							MenuActions.closeContextMenu();
-							this.chanClear(channel.id);
-						};
-					}
+			// 		if (this.settings.servers.unhidden.includes(channel.guild_id) && has.call(this.settings.channels, channel.id)) {
+			// 			itemProps.id = 'unhide-channel-hide-utils';
+			// 			itemProps.label = 'Unhide Channel';
+			// 			itemProps.action = () => {
+			// 				MenuActions.closeContextMenu();
+			// 				this.chanClear(channel.id);
+			// 			};
+			// 		}
 
-					const item = React.createElement(Menu.MenuItem, itemProps);
-					const group = React.createElement(Menu.MenuGroup, { children: item, key: 'HideUtils-MenuGroup' });
-					const fn = (item) => item?.key === 'HideUtils-MenuGroup';
+			// 		const item = React.createElement(Menu.MenuItem, itemProps);
+			// 		const group = React.createElement(Menu.MenuGroup, { children: item, key: 'HideUtils-MenuGroup' });
+			// 		const fn = (item) => item?.key === 'HideUtils-MenuGroup';
 	
-					if (!Array.isArray(orig.children)) orig.children = [orig.children];
-					if (!orig.children.some(fn)) orig.children.splice(2, 0, group);
+			// 		if (!Array.isArray(orig.children)) orig.children = [orig.children];
+			// 		if (!orig.children.some(fn)) orig.children.splice(2, 0, group);
 
-					return value;
-				});
-				ContextMenu.forceUpdateMenus();
-			}
+			// 		return value;
+			// 	});
+			// 	ContextMenu.forceUpdateMenus();
+			// }
 	
 			async patchGuildContextMenu(promiseState) {
 				if (promiseState.cancelled) return;
+				const { HIDE_SERVER, UNHIDE_CHANNELS, PURGE_CHANNELS } = useStrings();
 				const Context = await ContextMenu.getDiscordMenu('GuildContextMenu');
 				if (!Context) return;
 				Patcher.after(Context, 'default', (that, args, value) => {
@@ -754,7 +848,7 @@ var HideUtils = (() => {
 	
 					const hideItem = React.createElement(Menu.MenuItem, {
 						id: 'hide-server-hide-utils',
-						label: 'Hide Server',
+						label: HIDE_SERVER,
 						action: () => {
 							MenuActions.closeContextMenu();
 							this.servPush(id);
@@ -764,7 +858,7 @@ var HideUtils = (() => {
 	
 					const unhideItem = React.createElement(Menu.MenuCheckboxItem, {
 						id: 'unhide-channels-hide-utils',
-						label: 'Unhide Channels',
+						label: UNHIDE_CHANNELS,
 						checked: active,
 						action: () => {
 							this.servUnhideChannels(id);
@@ -774,7 +868,7 @@ var HideUtils = (() => {
 	
 					const clearItem = React.createElement(Menu.MenuItem, {
 						id: 'purge-channels-hide-utils',
-						label: 'Purge Hidden Channels',
+						label: PURGE_CHANNELS,
 						color: 'colorDanger',
 						action: () => {
 							MenuActions.closeContextMenu();
@@ -805,6 +899,7 @@ var HideUtils = (() => {
 
 			async patchGuildFolderContextMenu(promiseState) {
 				if (promiseState.cancelled) return;
+				const { HIDE_FOLDER } = useStrings();
 				const Context = await ContextMenu.getDiscordMenu('GuildFolderContextMenu');
 				if (!Context) return;
 				Patcher.after(Context, 'default', (that, args, value) => {
@@ -819,7 +914,7 @@ var HideUtils = (() => {
 					const bottomSeparator = React.cloneElement(topSeparator);
 					const folderItem = React.createElement(Menu.MenuItem, {
 						id: 'hide-folder-hide-utils',
-						label: 'Hide Folder',
+						label: HIDE_FOLDER,
 						action: () => {
 							MenuActions.closeContextMenu();
 							this.foldPush(instance);
@@ -835,36 +930,60 @@ var HideUtils = (() => {
 				});
 				ContextMenu.forceUpdateMenus();
 			}
+
+			getUserContextData (id) {
+				const { HIDE_USER, UNHIDE_USER } = useStrings();
+				switch (has.call(this.settings.users, id)) {
+					case false: {
+						return [
+							HIDE_USER,
+							() => {
+								MenuActions.closeContextMenu();
+								this.userPush(id);
+							}
+						];
+					}
+					default: {
+						return [
+							UNHIDE_USER,
+							() => {
+								MenuActions.closeContextMenu();
+								this.userClear(id);
+							}
+						];
+					}
+				}
+			}
 	
 			async patchUserContextMenu(promiseState) {
 				if (promiseState.cancelled) return;
-				const Context = await ContextMenu.getDiscordMenu('GuildChannelUserContextMenu');
-				if (!Context) return;
-				Patcher.after(Context, 'default', (that, args, value) => {
-					if (!DiscordModules.GuildStore.getGuild(DiscordModules.SelectedGuildStore.getGuildId())) return value;
-					const [props] = args;
-					if (!props.user) return value;
-					const orig = getProp(value, 'props.children.props');
-					const user = getProp(props, 'user');
-					if (!orig || !user) return value;
-					
-					const item = React.createElement(Menu.MenuItem, {
-						key: 'HideUtils-MenuItem',
-						id: 'hide-user-hide-utils',
-						label: 'Hide User',
-						action: () => {
-							MenuActions.closeContextMenu();
-							this.userPush(user.id);
-						}
-					});
-	
-					const profileGroup = getProp(orig, 'children.1.props.children');
-					const fn = (child) => child?.key === 'HideUtils-MenuItem';
-					
-					if (profileGroup.some(fn)) return value;
-					profileGroup.splice(1, 0, item);
+				const UserContext = WebpackModules.find((m) => m?.default?.displayName === 'useUserProfileItem');
+				if (!UserContext) return;
+				Patcher.after(UserContext, 'default', (that, args, value) => {
+					const val = Array.isArray(value)
+						? value.find((item) => !item.key)
+						: value;
 
-					return value;
+					if (!DiscordModules.SelectedGuildStore.getGuildId()) return value;
+
+					const [userId, channelId] = args;
+					const { props } = val;
+					if (props.id !== 'user-profile') return value;
+
+					const [label, action] = this.getUserContextData(userId);
+					
+					const children = [
+						React.createElement(Menu.MenuSeparator, {}),
+						React.createElement(Menu.MenuItem, {
+							id: 'hide-user-hide-utils',
+							key: 'HideUtils-MenuItem',
+							label,
+							action
+						}),
+						React.createElement(Menu.MenuSeparator, {})
+					];
+
+					return [value, children].flat();	
 				});
 				ContextMenu.forceUpdateMenus();
 			}
@@ -872,11 +991,13 @@ var HideUtils = (() => {
 			async patchContextMenu(promiseState) {
 				if (promiseState.cancelled) return;
 				try {
-					this.patchUserContextMenu(promiseState);
-					this.patchGuildContextMenu(promiseState);
-					this.patchChannelContextMenu(promiseState);
-					this.patchVoiceChannelContextMenu(promiseState);
-					this.patchGuildFolderContextMenu(promiseState);
+					await Promise.all([
+						this.patchUserContextMenu(promiseState),
+						this.patchGuildContextMenu(promiseState),
+						this.patchChannelContextMenu(promiseState),
+						// this.patchVoiceChannelContextMenu(promiseState),
+						this.patchGuildFolderContextMenu(promiseState)
+					]);
 				} catch (e) {
 					err(e);
 				}
@@ -905,43 +1026,55 @@ var HideUtils = (() => {
 			 */
 			async patchMessages(promiseState) {
 				if (promiseState.cancelled) return;
-				const memo = WebpackModules.find((m) => m?.default?.type?.toString().includes('showingFirstMessageBanner'));
-				if (!memo) return;
-				const original = memo.default.type;
-				Patcher.instead(memo.default, 'type', (that, args, value) => {
+				const forwardRef = WebpackModules.find((m) => {
+					return m && ['ManagedReactiveScrollerProps', 'PinToBottomScrollerAuto', 'default'].every((prop) => has.call(m, prop));
+				});
+				if (!forwardRef) return;
+				const original = forwardRef.default.render;
+				Patcher.instead(forwardRef.default, 'render', (that, args, value) => {
 					const render = original(...args);
-					const props = getProp(render, 'props.children.props');
-					props.channelStream = props.channelStream.filter(({ type, content }) => {
-						const author = getProp(content, `${Array.isArray(content) ? '0.content.' : ''}author`);
-						if (!author) return true;
-						if (type === 'MESSAGE_GROUP_BLOCKED' && this.settings.hideBlocked) return false;
-						if (type === 'DIVIDER') return true;
-						return !has.call(this.settings.users, author.id);
+					const props = getProp(render, 'props.children.props.children.props.children.1.props');
+					if (!render || !props || !props['data-list-id'] || props['data-list-id'] !== 'chat-messages') return render;
+					const children = getProp(props, 'children');
+					const list = getProp(children, '1');
+					if (!list) return render;
+					children[1] = list.filter((message) => {
+						if (!message || message.key && (message.key.includes('divider') || ['has-more', 'buffer'].some((k) => message.key === k))) return message;
+						const author = getProp(message, 'props.message.author');
+						const type = getProp(message, 'type.type');
+						const blocked = Boolean((type && type.displayName && type.displayName === 'CollapsedMessages') && this.settings.hideBlocked);
+						return !blocked && author && !has.call(this.settings.users, author.id) || !blocked && !author;
 					});
-					return render;
-					// const [props] = args;
-					// log(value);
-					// const children = getProp(props, 'children.props.children');
-					// const list = getProp(children, '1');
-					// if (!list) return;
-					// children[1] = list.filter((message) => {
-					// 	if (!message || message.key && (message.key.includes('divider') || ['has-more', 'buffer'].some((k) => message.key === k))) return message;
-					// 	const author = getProp(message, 'props.message.author');
-					// 	const type = getProp(message, 'type.type');
-					// 	const blocked = Boolean((type && type.displayName && type.displayName === 'CollapsedMessages') && this.settings.hideBlocked);
-					// 	return !blocked && author && !has.call(this.settings.users, author.id) || !blocked && !author;
+					// props.channelStream = props.channelStream.filter(({ type, content }) => {
+					// 	const author = getProp(content, `${Array.isArray(content) ? '0.content.' : ''}author`);
+					// 	if (!author) return true;
+					// 	if (type === 'MESSAGE_GROUP_BLOCKED' && this.settings.hideBlocked) return false;
+					// 	if (type === 'DIVIDER') return true;
+					// 	return !has.call(this.settings.users, author.id);
 					// });
+					return render;
 				});
 				this.updateMessages();
 			}
 	
 			/**
-			 * @name forceUpdateMessages
-			 * @author Zerebos
+			 * @alias forceUpdateMessages
 			 */
 			updateMessages() {
 				const messages = document.querySelector(`.${messagesWrapper.messagesWrapper.replace(/\s/, '.')}`);
-				if (messages) ReactTools.getOwnerInstance(messages).forceUpdate();
+				if (!messages) return;
+				const list = messages.querySelectorAll('li');
+				if (!list.length) return;
+				const msg = at.call(list, -1);
+				if (!msg) return;
+				const data = getProp(ReactTools.getReactInstance(msg), 'memoizedProps.children.props.childrenMessageContent.props.message');
+				if (!data) return;
+				FluxDispatch.wait(() => {
+					FluxDispatch.dispatch({
+						type: DiscordConstants.ActionTypes.MESSAGE_UPDATE,
+						message: data
+					});
+				});
 			}
 	
 			async patchGuilds(state) {
@@ -950,8 +1083,8 @@ var HideUtils = (() => {
 					if (!guildsWrapper) return resolve(null);
 					const instance = ReactTools.getReactInstance(guildsWrapper);
 					const forwarded = Utilities.findInTree(instance, (tree) => {
-						if (!tree) return false;
-						const forward = String(tree['$$typeof']).includes('react.forward_ref');
+						if (!tree || !has.call(tree, '$$typeof')) return false;
+						const forward = tree.$$typeof.description === 'react.forward_ref';
 						const string = tree.render?.toString().includes('ltr');
 						return forward && string;
 					}, {
@@ -998,7 +1131,7 @@ var HideUtils = (() => {
 					const target = Array.isArray(value)
 						? value.find((i) => i && !i.key)
 						: value;
-					const childProps = getProp(target, 'props.children.props.children.props');
+					const childProps = getProp(target, 'props.children.0.props.children.props');
 					if (!childProps) return value;
 					const children = getProp(childProps, 'children');
 					if (!children || !Array.isArray(children)) return value;
@@ -1038,7 +1171,7 @@ var HideUtils = (() => {
 					const [props] = args;
 					if (!props || !props.id || !props.id.startsWith('channels')) return value;
 					
-					const childProps = getProp(value, 'props.children.props.children.props');
+					const childProps = getProp(value, 'props.children.0.props.children.props');
 					const children = getProp(childProps, 'children');
 					if (!children || !Array.isArray(children)) return value;
 	
@@ -1259,27 +1392,29 @@ var HideUtils = (() => {
 			}
 	
 			userPush(id) {
+				const { TOASTS_USER_SUCCESS, TOASTS_USER_NOUSER, TOASTS_USER_FAILURE, TOASTS_USER_SELF_FAILURE } = useStrings();
 				if (!id) return;
 				const user = getUser(id);
-				if (!user) return Toasts.error('Unable to find user to hide.', { timeout: 3e3 });
-				if (has.call(this.settings.users, user.id)) return Toasts.info('This user is already being hidden.', { timeout: 3e3 });
-				if (id === DiscordModules.UserStore.getCurrentUser().id) return Toasts.info('You cannot hide yourself.', { timeout: 3e3 });
+				if (!user) return Toasts.error(TOASTS_USER_NOUSER, { timeout: 3e3 });
+				if (has.call(this.settings.users, user.id)) return Toasts.info(TOASTS_USER_FAILURE, { timeout: 3e3 });
+				if (id === DiscordModules.UserStore.getCurrentUser().id) return Toasts.info(TOASTS_USER_SELF_FAILURE, { timeout: 3e3 });
 				this.settings.users[user.id] = {
 					id: user.id,
 					tag: user.tag,
 					icon: user.getAvatarURL()
 				};
-				Toasts.info('User is now being hidden!', { timeout: 3e3 });
+				Toasts.info(TOASTS_USER_SUCCESS, { timeout: 3e3 });
 				this.saveSettings(this.settings);
 				this.updateAll();
 			}
 	
 			userClear(id) {
+				const { TOASTS_USER_REMOVE_SUCCESS, TOASTS_USER_FAILURE2 } = useStrings();
 				if (!id) return;
-				if (!has.call(this.settings.users, id)) return Toasts.info('This user is not being hidden.', { timeout: 3e3 });
+				if (!has.call(this.settings.users, id)) return Toasts.info(TOASTS_USER_FAILURE2, { timeout: 3e3 });
 				try { mute(id, 100); } catch(e) { Logger.err(e); }
 				delete this.settings.users[id];
-				Toasts.info('User has been unhidden.', { timeout: 3e3 });
+				Toasts.info(TOASTS_USER_REMOVE_SUCCESS, { timeout: 3e3 });
 				this.saveSettings(this.settings);
 				return this.updateAll();
 			}
@@ -1305,46 +1440,50 @@ var HideUtils = (() => {
 			}
 	
 			servPush(id) {
+				const { TOASTS_GUILD_SUCCESS, TOASTS_GUILD_NOGUILD, TOASTS_GUILD_FAILURE } = useStrings();
 				if (!id) return;
-				if (has.call(this.settings.servers, id)) return Toasts.info('That server is already being hidden.', { timeout: 3e3 });
+				if (has.call(this.settings.servers, id)) return Toasts.info(TOASTS_GUILD_FAILURE, { timeout: 3e3 });
 				const guild = getGuild(id);
-				if (!guild) return Toasts.info('Unable to find server to hide.');
+				if (!guild) return Toasts.info(TOASTS_GUILD_NOGUILD);
 				this.settings.servers[id] = {
 					id: guild.id,
 					name: guild.name,
 					icon: guild.getIconURL()
 				};
-				Toasts.info('Server has successfully been hidden.', { timeout: 3e3 });
+				Toasts.info(TOASTS_GUILD_SUCCESS, { timeout: 3e3 });
 				this.saveSettings(this.settings);
 				this.updateAll();
 			}
 	
 			servClear(id) {
+				const { TOASTS_GUILD_REMOVE_SUCCESS, TOASTS_GUILD_FAILURE2 } = useStrings();
 				if (!id) return;
-				if (!has.call(this.settings.servers, id)) return Toasts.info('That server is not currently being hidden.', { timeout: 3e3 });
+				if (!has.call(this.settings.servers, id)) return Toasts.info(TOASTS_GUILD_FAILURE2, { timeout: 3e3 });
 				delete this.settings.servers[id];
-				Toasts.info('Server successfully removed!', { timeout: 3e3 });
+				Toasts.info(TOASTS_GUILD_REMOVE_SUCCESS, { timeout: 3e3 });
 				this.saveSettings(this.settings);
 				this.updateAll();
 			}
 	
 			chanPush(id) {
+				const { TOASTS_CHANNEL_SUCCESS, TOASTS_CHANNEL_NOCHANNEL, TOASTS_CHANNEL_FAILURE } = useStrings();
 				if (!id) return;
-				if (has.call(this.settings.channels, id)) return Toasts.info('This channel is already being hidden.', { timeout: 3e3 });
+				if (has.call(this.settings.channels, id)) return Toasts.info(TOASTS_CHANNEL_FAILURE, { timeout: 3e3 });
 				const channel = getChannel(id);
-				if (!channel) return Toasts.info('Unable to find channel to hide.', { timeout: 3e3 });
+				if (!channel) return Toasts.info(TOASTS_CHANNEL_NOCHANNEL, { timeout: 3e3 });
 				const guild = getGuild(channel.guild_id);
 				this.settings.channels[id] = {
 					id: channel.id,
 					name: channel.name,
 					guild: guild.name
 				};
-				Toasts.info('Channel has successfully been hidden.', { timeout: 3e3 });
+				Toasts.info(TOASTS_CHANNEL_SUCCESS, { timeout: 3e3 });
 				this.saveSettings(this.settings);
 				this.updateAll();
 			}
 	
 			chanPurge(guildId) {
+				const { TOASTS_PURGE_SUCCESS } = useStrings();
 				const guild = getGuild(guildId);
 				const channels = Object.values(this.settings.channels).filter((chan) => {
 					const c = getChannel(chan.id);
@@ -1352,40 +1491,43 @@ var HideUtils = (() => {
 					return c.guild_id === guildId;
 				});
 				for (const channel of channels) delete this.settings.channels[channel.id];
-				Toasts.info(`Channel purge for ${guild.name.trim()} was successful.`, { timeout: 3e3 });
+				Toasts.info(TOASTS_PURGE_SUCCESS.replace(/{{GUILD}}/, guild.name.trim()), { timeout: 3e3 });
 				this.saveSettings(this.settings);
 				this.updateAll();
 			}
 	
 			chanClear(id) {
+				const { TOASTS_CHANNEL_REMOVE_SUCCESS, TOASTS_CHANNEL_FAILURE2 } = useStrings();
 				if (!id) return;
-				if (!has.call(this.settings.channels, id)) return Toasts.info('This channel is not currently being hidden.', { timeout: 3e3 });
+				if (!has.call(this.settings.channels, id)) return Toasts.info(TOASTS_CHANNEL_FAILURE2, { timeout: 3e3 });
 				delete this.settings.channels[id];
-				Toasts.info('Channel successfully removed.', { timeout: 3e3 });
+				Toasts.info(TOASTS_CHANNEL_REMOVE_SUCCESS, { timeout: 3e3 });
 				this.saveSettings(this.settings);
 				this.updateAll();
 			}
 	
 			foldPush(instance) {
+				const { TOASTS_FOLDER_SUCCESS, TOASTS_FOLDER_FAILURE } = useStrings();
 				if (!instance) return;
 				const props = instance.props.children.props;
 				const id = props.folderNode.id;
-				if (has.call(this.settings.folders, id)) return Toasts.info('This folder is already being hidden.', { timeout: 3e3 });
+				if (has.call(this.settings.folders, id)) return Toasts.info(TOASTS_FOLDER_FAILURE, { timeout: 3e3 });
 				this.settings.folders[id] = {
 					id: id,
 					name: props.folderNode.name || instance.props.ariaLabel,
 					servers: (props.children || []).map(({ id }) => id)
 				};
-				Toasts.info('Folder has successfully been hidden.', { timeout: 3e3 });
+				Toasts.info(TOASTS_FOLDER_SUCCESS, { timeout: 3e3 });
 				this.saveSettings(this.settings);
 				this.updateAll();
 			}
 	
 			foldClear(id) {
+				const { TOASTS_FOLDER_SUCCESS, TOASTS_FOLDER_FAILURE2 } = useStrings();
 				if (!id) return;
-				if (!has.call(this.settings.folders, id)) return Toasts.info('This folder is not currently being hidden.', { timeout: 3e3 });
+				if (!has.call(this.settings.folders, id)) return Toasts.info(TOASTS_FOLDER_FAILURE2, { timeout: 3e3 });
 				delete this.settings.folders[id];
-				Toasts.info('Folder successfully removed.', { timeout: 3e3 });
+				Toasts.info(TOASTS_FOLDER_SUCCESS, { timeout: 3e3 });
 				this.saveSettings(this.settings);
 				this.updateAll();
 			}
@@ -1403,10 +1545,16 @@ var HideUtils = (() => {
 			/* Settings Panel */
 	
 			getSettingsPanel() {
+				const {
+					PLUGIN_SETTINGS_NAME,
+					PLUGIN_SETTINGS_DESCRIPTION,
+					PLUGIN_SETTINGS_BLOCK_NAME,
+					PLUGIN_SETTINGS_BLOCK_DESCRIPTION
+				} = useStrings();
 				return SettingPanel.build(() => this.saveSettings(this.settings),
 					new SettingGroup('Plugin Settings').append(
-						new SelectionField('HideUtils Setting Select', 'Select which settings you would like to visit.', this.settings, () => {}),
-						new Switch('Hide Blocked User Messages', 'Whether or not to unrender messages from blocked users.', this.settings.hideBlocked, (i) => {
+						new SelectionField(`HideUtils ${PLUGIN_SETTINGS_NAME}`, PLUGIN_SETTINGS_DESCRIPTION, this.settings, () => {}),
+						new Switch(PLUGIN_SETTINGS_BLOCK_NAME, PLUGIN_SETTINGS_BLOCK_DESCRIPTION, this.settings.hideBlocked, (i) => {
 							this.settings.hideBlocked = i;
 							this.updateAll();
 						})
