@@ -17,6 +17,8 @@
 - Reworked how settings are handled.
 ### v2.1.0
 - Reworked settings again, settings panel now uses React and displays with modals.
+### v2.2.0
+- Added language support, currently only english is available but PRs for additional languages are welcome.
 
 ## Preview
 ### Settings hub-page:
