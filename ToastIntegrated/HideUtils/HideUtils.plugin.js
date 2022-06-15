@@ -1,7 +1,7 @@
 /**
  * @name HideUtils
  * @author Arashiryuu
- * @version 2.2.2
+ * @version 2.2.3
  * @description Allows you to hide users, servers, and channels individually.
  * @authorId 238108500109033472
  * @authorLink https://github.com/Arashiryuu
@@ -49,7 +49,7 @@ var HideUtils = (() => {
 					twitter_username: ''
 				}
 			],
-			version: '2.2.2',
+			version: '2.2.3',
 			description: 'Allows you to hide users, servers, and channels individually.',
 			github: 'https://github.com/Arashiryuu',
 			github_raw: 'https://raw.githubusercontent.com/Arashiryuu/crap/master/ToastIntegrated/HideUtils/HideUtils.plugin.js',
@@ -104,13 +104,13 @@ var HideUtils = (() => {
 			}
 		},
 		changelog: [
-			{
-				title: 'Maintenance',
-				type: 'progress',
-				items: [
-					'Minor logic tweaks, improved consistency.'
-				]
-			}
+			// {
+			// 	title: 'Maintenance',
+			// 	type: 'progress',
+			// 	items: [
+			// 		'Minor logic tweaks, improved consistency.'
+			// 	]
+			// }
 			// {
 			// 	title: 'Evolving?',
 			// 	type: 'improved',
@@ -118,15 +118,13 @@ var HideUtils = (() => {
 			// 		'Added language strings support.'
 			// 	]
 			// },
-			// {
-			// 	title: 'Bugs Squashed!',
-			// 	type: 'fixed',
-			// 	items: [
-			// 		'Context menu items appear in their context menu again.',
-			// 		'Hide User option appears in the context menu again.',
-			// 		'Hide Channel option appears in the context menu again.'
-			// 	]
-			// }
+			{
+				title: 'Bugs Squashed!',
+				type: 'fixed',
+				items: [
+					'Fix duplicate context menu items appearing.'
+				]
+			}
 		]
 	};
 
@@ -818,7 +816,7 @@ var HideUtils = (() => {
 					const [channel] = args;
 					const { props } = val;
 
-					if (!props || props.id !== 'mark-channel-read') return value;
+					if (!props || props.id !== 'mark-channel-read' || !channel.guild_id) return value;
 
 					const [label, action] = this.getChannelContextData(channel);
 					const children = [
@@ -832,7 +830,10 @@ var HideUtils = (() => {
 						React.createElement(Menu.MenuSeparator, {})
 					];
 
-					return [value, children].flat();
+					const returnValue = [value].flat();
+					if (!returnValue.some((item) => item.key === 'HideUtils-MenuItem')) returnValue.push(...children);
+
+					return returnValue;
 				});
 				ContextMenu.forceUpdateMenus();
 			}
@@ -1041,7 +1042,10 @@ var HideUtils = (() => {
 						React.createElement(Menu.MenuSeparator, {})
 					];
 
-					return [value, children].flat();	
+					const returnValue = [value].flat();
+					if (!returnValue.some((item) => item.key === 'HideUtils-MenuItem')) returnValue.push(...children);
+
+					return returnValue;
 				});
 				ContextMenu.forceUpdateMenus();
 			}
