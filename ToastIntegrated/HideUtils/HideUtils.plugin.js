@@ -1,7 +1,7 @@
 /**
  * @name HideUtils
  * @author Arashiryuu
- * @version 2.2.3
+ * @version 2.2.4
  * @description Allows you to hide users, servers, and channels individually.
  * @authorId 238108500109033472
  * @authorLink https://github.com/Arashiryuu
@@ -49,7 +49,7 @@ var HideUtils = (() => {
 					twitter_username: ''
 				}
 			],
-			version: '2.2.3',
+			version: '2.2.4',
 			description: 'Allows you to hide users, servers, and channels individually.',
 			github: 'https://github.com/Arashiryuu',
 			github_raw: 'https://raw.githubusercontent.com/Arashiryuu/crap/master/ToastIntegrated/HideUtils/HideUtils.plugin.js',
@@ -122,7 +122,7 @@ var HideUtils = (() => {
 				title: 'Bugs Squashed!',
 				type: 'fixed',
 				items: [
-					'Fix duplicate context menu items appearing.'
+					'Fix channel hiding again.'
 				]
 			}
 		]
@@ -130,29 +130,29 @@ var HideUtils = (() => {
 
 	/* Utility */
 
-	const log = function() {
-		const parts = [
+	const { log, info, warn, debug, error } = (() => {
+		const useParts = () => [
 			`%c[${config.info.name}]%c %s`,
 			'color: #3A71C1; font-weight: 700;',
 			'',
 			new Date().toUTCString()
 		];
-		console.group.apply(null, parts);
-		console.log.apply(null, arguments);
-		console.groupEnd();
-	};
 
-	const err = function() {
-		const parts = [
-			`%c[${config.info.name}]%c %s`,
-			'color: #3A71C1; font-weight: 700;',
-			'',
-			new Date().toUTCString()
-		];
-		console.group.apply(null, parts);
-		console.error.apply(null, arguments);
-		console.groupEnd();
-	};
+		return Object.fromEntries([
+			'log',
+			'info',
+			'warn',
+			'debug',
+			'error'
+		].map((type) => [
+			type,
+			function () {
+				console.groupCollapsed.apply(null, useParts());
+				console[type].apply(null, arguments);
+				console.groupEnd();
+			}
+		]));
+	})();
 	
 	/* Build */
 
@@ -205,7 +205,7 @@ var HideUtils = (() => {
 		const TextElement = WebpackModules.getByDisplayName('LegacyText');
 	
 		const at = Array.prototype.at ?? function at (index) {
-			if ([-Infinity, +Infinity].includes(index)) return undefined;
+			if (!isFinite(index)) return undefined;
 			let i = Math.trunc(index) || 0;
 			i = i < 0
 				? this.length + i
@@ -765,6 +765,10 @@ var HideUtils = (() => {
 				}, { displayName: 'TypingUsers' });
 			}
 
+			/**
+			 * @param {object} channel 
+			 * @returns {[string, () => void]}
+			 */
 			getChannelContextData(channel) {
 				const { HIDE_CHANNEL, UNHIDE_CHANNEL } = useStrings();
 				// const [guildShown, channelHid] = [
@@ -816,7 +820,7 @@ var HideUtils = (() => {
 					const [channel] = args;
 					const { props } = val;
 
-					if (!props || props.id !== 'mark-channel-read' || !channel.guild_id) return value;
+					if (!props || props.id !== 'mark-channel-read' || !channel.guild_id || channel.type === 4) return value;
 
 					const [label, action] = this.getChannelContextData(channel);
 					const children = [
@@ -980,6 +984,10 @@ var HideUtils = (() => {
 				ContextMenu.forceUpdateMenus();
 			}
 
+			/**
+			 * @param {string} id 
+			 * @returns {[string, () => void]}
+			 */
 			getUserContextData(id) {
 				const { HIDE_USER, UNHIDE_USER } = useStrings();
 				switch (has.call(this.settings.users, id)) {
@@ -1061,7 +1069,7 @@ var HideUtils = (() => {
 						this.patchGuildFolderContextMenu(promiseState)
 					]);
 				} catch (e) {
-					err(e);
+					error(e);
 				}
 			}
 	
@@ -1229,7 +1237,9 @@ var HideUtils = (() => {
 			}
 	
 			patchChannels(state) {
-				if (state.cancelled) return;	
+				if (state.cancelled) return;
+				const isTextChannel = (item) => item.type?.description === 'react.fragment';
+				const isVoiceChannel = (item) => item.type?.displayName === 'ConnectedVoiceChannel';
 				Patcher.after(Lists.ListThin, 'render', (that, args, value) => {
 					const [props] = args;
 					if (!props || !props.id || !props.id.startsWith('channels')) return value;
@@ -1243,17 +1253,24 @@ var HideUtils = (() => {
 	
 					childProps.children = children.filter((channel) => {
 						if (!channel) return channel;
-						const channelProps = getProp(channel, 'props');
-						if (Array.isArray(channelProps.voiceStates)) {
-							channelProps.voiceStates = channelProps.voiceStates.filter((user) => {
-								if (!user) return false;
-								const { voiceState: { userId } } = user;
-								if (!has.call(this.settings.users, userId)) return true;
-								mute(userId, 0);
-								return false;
-							});
+						if (isTextChannel(channel)) {
+							const chan = getProp(channel, 'props.children.0.props.channel');
+							return !has.call(this.settings.channels, chan.id);
 						}
-						return channel.key && !has.call(this.settings.channels, channel.key);
+						if (isVoiceChannel(channel)) {
+							const channelProps = getProp(channel, 'props');
+							if (Array.isArray(channelProps.voiceStates)) {
+								channelProps.voiceStates = channelProps.voiceStates.filter((user) => {
+									if (!user) return user;
+									const { voiceState: { userId } } = user;
+									if (!has.call(this.settings.users, userId)) return true;
+									mute(userId, 0);
+									return false;
+								});
+							}
+							return !has.call(this.settings.channels, channelProps.channel.id);
+						}
+						return channel;
 					});
 	
 					return value;
@@ -1284,175 +1301,175 @@ var HideUtils = (() => {
 				// }
 			// }
 	
-			addUserContextItems(instance, owner, context) {
-				if (!DiscordModules.GuildStore.getGuild(DiscordModules.SelectedGuildStore.getGuildId())) return;
-				const group = new ContextMenu.ItemGroup();
-				const props = getProp(instance, 'return.return.return.return.return.memoizedProps');
-				if (!props) return;
-				const item = new ContextMenu.TextItem('Hide User', {
-					callback: (e) => {
-						MenuActions.closeContextMenu();
-						if (!props) return;
-						const { user: { id } } = props;
-						this.userPush(id);
-					}
-				});
-				const elements = item.getElement();
-				const groupEl = group.getElement();
-				elements.className = `${ContextMenuClasses.item} ${ContextMenuClasses.labelContainer} ${ContextMenuClasses.colorDefault}`;
-				elements.setAttribute('role', 'menuitem');
-				elements.setAttribute('tabindex', '-1');
-				elements.firstChild.classList.add(ContextMenuClasses.label);
-				elements.addEventListener('mouseenter', (e) => {
-					if (elements.classList.contains(ContextMenuClasses.focused)) return;
-					elements.classList.add(ContextMenuClasses.focused);
-				});
-				elements.addEventListener('mouseleave', (e) => {
-					if (!elements.classList.contains(ContextMenuClasses.focused)) return;
-					elements.classList.remove(ContextMenuClasses.focused);
-				});
-				groupEl.removeAttribute('class');
-				groupEl.setAttribute('role', 'group');
-				// elements.classList.add(...DiscordClasses.ContextMenu.clickable.value.split(' '));
-				// elements.firstChild.classList.add(...DiscordClasses.ContextMenu.label.value.split(' '));
-				group.addItems(item);
-				context.firstChild.firstChild.firstChild.insertAdjacentElement('afterend', groupEl);
-				setImmediate(() => this.updateContextPosition(owner));
-			}
+			// addUserContextItems(instance, owner, context) {
+			// 	if (!DiscordModules.GuildStore.getGuild(DiscordModules.SelectedGuildStore.getGuildId())) return;
+			// 	const group = new ContextMenu.ItemGroup();
+			// 	const props = getProp(instance, 'return.return.return.return.return.memoizedProps');
+			// 	if (!props) return;
+			// 	const item = new ContextMenu.TextItem('Hide User', {
+			// 		callback: (e) => {
+			// 			MenuActions.closeContextMenu();
+			// 			if (!props) return;
+			// 			const { user: { id } } = props;
+			// 			this.userPush(id);
+			// 		}
+			// 	});
+			// 	const elements = item.getElement();
+			// 	const groupEl = group.getElement();
+			// 	elements.className = `${ContextMenuClasses.item} ${ContextMenuClasses.labelContainer} ${ContextMenuClasses.colorDefault}`;
+			// 	elements.setAttribute('role', 'menuitem');
+			// 	elements.setAttribute('tabindex', '-1');
+			// 	elements.firstChild.classList.add(ContextMenuClasses.label);
+			// 	elements.addEventListener('mouseenter', (e) => {
+			// 		if (elements.classList.contains(ContextMenuClasses.focused)) return;
+			// 		elements.classList.add(ContextMenuClasses.focused);
+			// 	});
+			// 	elements.addEventListener('mouseleave', (e) => {
+			// 		if (!elements.classList.contains(ContextMenuClasses.focused)) return;
+			// 		elements.classList.remove(ContextMenuClasses.focused);
+			// 	});
+			// 	groupEl.removeAttribute('class');
+			// 	groupEl.setAttribute('role', 'group');
+			// 	// elements.classList.add(...DiscordClasses.ContextMenu.clickable.value.split(' '));
+			// 	// elements.firstChild.classList.add(...DiscordClasses.ContextMenu.label.value.split(' '));
+			// 	group.addItems(item);
+			// 	context.firstChild.firstChild.firstChild.insertAdjacentElement('afterend', groupEl);
+			// 	setImmediate(() => this.updateContextPosition(owner));
+			// }
 	
-			addChannelContextItems(instance, owner, context) {
-				const group = new ContextMenu.ItemGroup();
-				const ref = owner.props.children({ position: owner.props.reference() }, owner.updatePosition);
-				if (!ref.props.channel || typeof ref.props.channel.type === 'undefined' || ref.props.channel.type === 4) return;
-				const channel = getProp(ref, 'props.channel');
-				if (!channel) return;
-				const itemProps = {
-					label: 'Hide Channel',
-					action: (e) => {
-						MenuActions.closeContextMenu();
-						this.chanPush(channel.id);
-					}
-				};
-				if (this.settings.servers.unhidden.includes(channel.guild_id) && has.call(this.settings.channels, channel.id)) {
-					itemProps.label = 'Unhide Channel';
-					itemProps.action = (e) => {
-						MenuActions.closeContextMenu();
-						this.chanClear(channel.id);
-					};
-				}
-				const item = new ContextMenu.TextItem(itemProps.label, { callback: itemProps.action });
-				const elements = item.getElement();
-				const groupEl = group.getElement();
-				elements.className = `${ContextMenuClasses.item} ${ContextMenuClasses.labelContainer} ${ContextMenuClasses.colorDefault}`;
-				elements.setAttribute('role', 'menuitem');
-				elements.setAttribute('tabindex', '-1');
-				elements.firstChild.classList.add(ContextMenuClasses.label);
-				elements.addEventListener('mouseenter', (e) => {
-					if (elements.classList.contains(ContextMenuClasses.focused)) return;
-					elements.classList.add(ContextMenuClasses.focused);
-				});
-				elements.addEventListener('mouseleave', (e) => {
-					if (!elements.classList.contains(ContextMenuClasses.focused)) return;
-					elements.classList.remove(ContextMenuClasses.focused);
-				});
-				groupEl.removeAttribute('class');
-				groupEl.setAttribute('role', 'group');
-				// elements.classList.add(...DiscordClasses.ContextMenu.clickable.value.split(' '));
-				// elements.firstChild.classList.add(...DiscordClasses.ContextMenu.label.value.split(' '));
-				group.addItems(item);
-				context.firstChild.firstChild.firstChild.insertAdjacentElement('afterend', groupEl);
-				setImmediate(() => this.updateContextPosition(owner));
-			}
+			// addChannelContextItems(instance, owner, context) {
+			// 	const group = new ContextMenu.ItemGroup();
+			// 	const ref = owner.props.children({ position: owner.props.reference() }, owner.updatePosition);
+			// 	if (!ref.props.channel || typeof ref.props.channel.type === 'undefined' || ref.props.channel.type === 4) return;
+			// 	const channel = getProp(ref, 'props.channel');
+			// 	if (!channel) return;
+			// 	const itemProps = {
+			// 		label: 'Hide Channel',
+			// 		action: (e) => {
+			// 			MenuActions.closeContextMenu();
+			// 			this.chanPush(channel.id);
+			// 		}
+			// 	};
+			// 	if (this.settings.servers.unhidden.includes(channel.guild_id) && has.call(this.settings.channels, channel.id)) {
+			// 		itemProps.label = 'Unhide Channel';
+			// 		itemProps.action = (e) => {
+			// 			MenuActions.closeContextMenu();
+			// 			this.chanClear(channel.id);
+			// 		};
+			// 	}
+			// 	const item = new ContextMenu.TextItem(itemProps.label, { callback: itemProps.action });
+			// 	const elements = item.getElement();
+			// 	const groupEl = group.getElement();
+			// 	elements.className = `${ContextMenuClasses.item} ${ContextMenuClasses.labelContainer} ${ContextMenuClasses.colorDefault}`;
+			// 	elements.setAttribute('role', 'menuitem');
+			// 	elements.setAttribute('tabindex', '-1');
+			// 	elements.firstChild.classList.add(ContextMenuClasses.label);
+			// 	elements.addEventListener('mouseenter', (e) => {
+			// 		if (elements.classList.contains(ContextMenuClasses.focused)) return;
+			// 		elements.classList.add(ContextMenuClasses.focused);
+			// 	});
+			// 	elements.addEventListener('mouseleave', (e) => {
+			// 		if (!elements.classList.contains(ContextMenuClasses.focused)) return;
+			// 		elements.classList.remove(ContextMenuClasses.focused);
+			// 	});
+			// 	groupEl.removeAttribute('class');
+			// 	groupEl.setAttribute('role', 'group');
+			// 	// elements.classList.add(...DiscordClasses.ContextMenu.clickable.value.split(' '));
+			// 	// elements.firstChild.classList.add(...DiscordClasses.ContextMenu.label.value.split(' '));
+			// 	group.addItems(item);
+			// 	context.firstChild.firstChild.firstChild.insertAdjacentElement('afterend', groupEl);
+			// 	setImmediate(() => this.updateContextPosition(owner));
+			// }
 	
-			addGuildContextItems(instance, owner, context) {
-				const group = new ContextMenu.ItemGroup();
-				const ref = owner.props.children({ position: owner.props.reference() }, owner.updatePosition);
-				const guild = getProp(ref, 'props.guild');
-				const checked = this.settings.servers.unhidden.includes(guild.id);
-				const item = new ContextMenu.TextItem('Hide Server', {
-					callback: (e) => {
-						MenuActions.closeContextMenu();
-						this.servPush(guild.id);
-						this.clearUnhiddenChannels(guild.id);
-					}
-				});
-				const toggle = new ContextMenu.ToggleItem('Unhide Channels', checked, {
-					callback: (e) => {
-						this.servUnhideChannels(guild.id);
-					}
-				});
-				const clear = new ContextMenu.TextItem('Purge Hidden Channels', {
-					danger: true,
-					callback: (e) => {
-						MenuActions.closeContextMenu();
-						this.chanPurge(guild.id);
-					}
-				});
-				const firstItem = item.getElement();
-				const secondItem = toggle.getElement();
-				const thirdItem = clear.getElement();
-				const groupEl = group.getElement();
-				const grouped = [firstItem, secondItem, thirdItem];
-				for (let i = 0; i < 3; i++) {
-					const elements = grouped[i];
-					elements.className = `${ContextMenuClasses.item} ${ContextMenuClasses.labelContainer} ${ContextMenuClasses.colorDefault}`;
-					elements.setAttribute('role', 'menuitem');
-					elements.setAttribute('tabindex', '-1');
-					elements.firstChild.classList.add(ContextMenuClasses.label);
-					if (i === 2) elements.classList.add(ContextMenuClasses.colorDanger.split(' ')[0]);
-					elements.addEventListener('mouseenter', (e) => {
-						if (elements.classList.contains(ContextMenuClasses.focused)) return;
-						elements.classList.add(ContextMenuClasses.focused);
-					});
-					elements.addEventListener('mouseleave', (e) => {
-						if (!elements.classList.contains(ContextMenuClasses.focused)) return;
-						elements.classList.remove(ContextMenuClasses.focused);
-					});
-				}
-				groupEl.removeAttribute('class');
-				groupEl.setAttribute('role', 'group');
-				group.addItems(item, toggle, clear);
-				context.firstChild.firstChild.firstChild.insertAdjacentElement('afterend', groupEl);
-				setImmediate(() => this.updateContextPosition(owner));
-			}
+			// addGuildContextItems(instance, owner, context) {
+			// 	const group = new ContextMenu.ItemGroup();
+			// 	const ref = owner.props.children({ position: owner.props.reference() }, owner.updatePosition);
+			// 	const guild = getProp(ref, 'props.guild');
+			// 	const checked = this.settings.servers.unhidden.includes(guild.id);
+			// 	const item = new ContextMenu.TextItem('Hide Server', {
+			// 		callback: (e) => {
+			// 			MenuActions.closeContextMenu();
+			// 			this.servPush(guild.id);
+			// 			this.clearUnhiddenChannels(guild.id);
+			// 		}
+			// 	});
+			// 	const toggle = new ContextMenu.ToggleItem('Unhide Channels', checked, {
+			// 		callback: (e) => {
+			// 			this.servUnhideChannels(guild.id);
+			// 		}
+			// 	});
+			// 	const clear = new ContextMenu.TextItem('Purge Hidden Channels', {
+			// 		danger: true,
+			// 		callback: (e) => {
+			// 			MenuActions.closeContextMenu();
+			// 			this.chanPurge(guild.id);
+			// 		}
+			// 	});
+			// 	const firstItem = item.getElement();
+			// 	const secondItem = toggle.getElement();
+			// 	const thirdItem = clear.getElement();
+			// 	const groupEl = group.getElement();
+			// 	const grouped = [firstItem, secondItem, thirdItem];
+			// 	for (let i = 0; i < 3; i++) {
+			// 		const elements = grouped[i];
+			// 		elements.className = `${ContextMenuClasses.item} ${ContextMenuClasses.labelContainer} ${ContextMenuClasses.colorDefault}`;
+			// 		elements.setAttribute('role', 'menuitem');
+			// 		elements.setAttribute('tabindex', '-1');
+			// 		elements.firstChild.classList.add(ContextMenuClasses.label);
+			// 		if (i === 2) elements.classList.add(ContextMenuClasses.colorDanger.split(' ')[0]);
+			// 		elements.addEventListener('mouseenter', (e) => {
+			// 			if (elements.classList.contains(ContextMenuClasses.focused)) return;
+			// 			elements.classList.add(ContextMenuClasses.focused);
+			// 		});
+			// 		elements.addEventListener('mouseleave', (e) => {
+			// 			if (!elements.classList.contains(ContextMenuClasses.focused)) return;
+			// 			elements.classList.remove(ContextMenuClasses.focused);
+			// 		});
+			// 	}
+			// 	groupEl.removeAttribute('class');
+			// 	groupEl.setAttribute('role', 'group');
+			// 	group.addItems(item, toggle, clear);
+			// 	context.firstChild.firstChild.firstChild.insertAdjacentElement('afterend', groupEl);
+			// 	setImmediate(() => this.updateContextPosition(owner));
+			// }
 	
-			addFolderContextItems(instance, owner, context) {
-				const group = new ContextMenu.ItemGroup();
-				const ref = owner.props.children({ position: owner.props.reference() }, owner.updatePosition);
-				const target = getProp(ref, 'props.target');
-				if (!ref || !target) return;
-				const item = new ContextMenu.TextItem('Hide Folder', {
-					callback: (e) => {
-						MenuActions.closeContextMenu();
-						const [p] = DOMTools.parents(target, '.wrapper-3Njo_c');
-						if (!p) return;
-						const i = ReactTools.getOwnerInstance(p);
-						if (!i) return;
-						this.foldPush(i);
-					}
-				});
-				const elements = item.getElement();
-				const groupEl = group.getElement();
-				elements.className = `${ContextMenuClasses.item} ${ContextMenuClasses.labelContainer} ${ContextMenuClasses.colorDefault}`;
-				elements.setAttribute('role', 'menuitem');
-				elements.setAttribute('tabindex', '-1');
-				elements.firstChild.classList.add(ContextMenuClasses.label);
-				elements.addEventListener('mouseenter', (e) => {
-					if (elements.classList.contains(ContextMenuClasses.focused)) return;
-					elements.classList.add(ContextMenuClasses.focused);
-				});
-				elements.addEventListener('mouseleave', (e) => {
-					if (!elements.classList.contains(ContextMenuClasses.focused)) return;
-					elements.classList.remove(ContextMenuClasses.focused);
-				});
-				groupEl.removeAttribute('class');
-				groupEl.setAttribute('role', 'group');
-				// elements.classList.add(...DiscordClasses.ContextMenu.clickable.value.split(' '));
-				// elements.firstChild.classList.add(...DiscordClasses.ContextMenu.label.value.split(' '));
-				group.addItems(item);
-				context.firstChild.firstChild.firstChild.insertAdjacentElement('afterend', groupEl);
-				setImmediate(() => this.updateContextPosition(owner));
-			}
+			// addFolderContextItems(instance, owner, context) {
+			// 	const group = new ContextMenu.ItemGroup();
+			// 	const ref = owner.props.children({ position: owner.props.reference() }, owner.updatePosition);
+			// 	const target = getProp(ref, 'props.target');
+			// 	if (!ref || !target) return;
+			// 	const item = new ContextMenu.TextItem('Hide Folder', {
+			// 		callback: (e) => {
+			// 			MenuActions.closeContextMenu();
+			// 			const [p] = DOMTools.parents(target, '.wrapper-3Njo_c');
+			// 			if (!p) return;
+			// 			const i = ReactTools.getOwnerInstance(p);
+			// 			if (!i) return;
+			// 			this.foldPush(i);
+			// 		}
+			// 	});
+			// 	const elements = item.getElement();
+			// 	const groupEl = group.getElement();
+			// 	elements.className = `${ContextMenuClasses.item} ${ContextMenuClasses.labelContainer} ${ContextMenuClasses.colorDefault}`;
+			// 	elements.setAttribute('role', 'menuitem');
+			// 	elements.setAttribute('tabindex', '-1');
+			// 	elements.firstChild.classList.add(ContextMenuClasses.label);
+			// 	elements.addEventListener('mouseenter', (e) => {
+			// 		if (elements.classList.contains(ContextMenuClasses.focused)) return;
+			// 		elements.classList.add(ContextMenuClasses.focused);
+			// 	});
+			// 	elements.addEventListener('mouseleave', (e) => {
+			// 		if (!elements.classList.contains(ContextMenuClasses.focused)) return;
+			// 		elements.classList.remove(ContextMenuClasses.focused);
+			// 	});
+			// 	groupEl.removeAttribute('class');
+			// 	groupEl.setAttribute('role', 'group');
+			// 	// elements.classList.add(...DiscordClasses.ContextMenu.clickable.value.split(' '));
+			// 	// elements.firstChild.classList.add(...DiscordClasses.ContextMenu.label.value.split(' '));
+			// 	group.addItems(item);
+			// 	context.firstChild.firstChild.firstChild.insertAdjacentElement('afterend', groupEl);
+			// 	setImmediate(() => this.updateContextPosition(owner));
+			// }
 	
 			userPush(id) {
 				const { TOASTS_USER_SUCCESS, TOASTS_USER_NOUSER, TOASTS_USER_FAILURE, TOASTS_USER_SELF_FAILURE } = useStrings();
@@ -1738,8 +1755,8 @@ var HideUtils = (() => {
 						confirmText: 'Download Now',
 						cancelText: 'Cancel',
 						onConfirm: () => {
-							require('request').get('https://rauenzi.github.io/BDPluginLibrary/release/0PluginLibrary.plugin.js', async (error, response, body) => {
-								if (error) return require('electron').shell.openExternal('https://betterdiscord.app/Download?id=9');
+							require('request').get('https://rauenzi.github.io/BDPluginLibrary/release/0PluginLibrary.plugin.js', async (err, response, body) => {
+								if (err) return require('electron').shell.openExternal('https://betterdiscord.app/Download?id=9');
 								await new Promise((r) => require('fs').writeFile(require('path').join(window.ContentManager.pluginsFolder, '0PluginLibrary.plugin.js'), body, r));
 							});
 						}
