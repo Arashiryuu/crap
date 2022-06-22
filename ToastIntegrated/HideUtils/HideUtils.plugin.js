@@ -1,7 +1,7 @@
 /**
  * @name HideUtils
  * @author Arashiryuu
- * @version 2.2.4
+ * @version 2.2.5
  * @description Allows you to hide users, servers, and channels individually.
  * @authorId 238108500109033472
  * @authorLink https://github.com/Arashiryuu
@@ -49,7 +49,7 @@ var HideUtils = (() => {
 					twitter_username: ''
 				}
 			],
-			version: '2.2.4',
+			version: '2.2.5',
 			description: 'Allows you to hide users, servers, and channels individually.',
 			github: 'https://github.com/Arashiryuu',
 			github_raw: 'https://raw.githubusercontent.com/Arashiryuu/crap/master/ToastIntegrated/HideUtils/HideUtils.plugin.js',
@@ -122,7 +122,7 @@ var HideUtils = (() => {
 				title: 'Bugs Squashed!',
 				type: 'fixed',
 				items: [
-					'Fix channel hiding again.'
+					'Fix channel hiding again; threads exist edition.'
 				]
 			}
 		]
@@ -1254,7 +1254,11 @@ var HideUtils = (() => {
 					childProps.children = children.filter((channel) => {
 						if (!channel) return channel;
 						if (isTextChannel(channel)) {
-							const chan = getProp(channel, 'props.children.0.props.channel');
+							const chans = getProp(channel, 'props.children');
+							if (chans.length > 1 && chans[1] !== null) { // threads
+								return channel;
+							}
+							const chan = getProp(chans, '0.props.channel');
 							return !has.call(this.settings.channels, chan.id);
 						}
 						if (isVoiceChannel(channel)) {
