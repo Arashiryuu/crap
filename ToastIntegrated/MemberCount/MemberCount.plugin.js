@@ -682,14 +682,14 @@ var MemberCount = (() => {
 			get css() {
 				return `
 					#MemberCount {
-						background: var(--background-secondary);
+						background: rgba(0, 0, 0, calc(var(--background-shading) * 0.6));;
 						position: absolute;
 						width: 240px;
 						padding: 0;
 						z-index: 1;
 						top: 0;
 						margin-top: 0;
-						border-bottom: 1px solid hsla(0, 0%, 100%, 0.04);
+						border-bottom: 4px solid transparent;
 					}
 
 					#MemberCount h2 {
