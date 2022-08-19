@@ -1,13 +1,22 @@
 /**
  * @name ChatUserIDsRedux
  * @author Arashiryuu
- * @version 1.0.24
+ * @version 1.0.25
  * @description Adds a user's ID next to their name in chat, makes accessing a user ID simpler. Double-click to copy the ID.
  * @authorId 238108500109033472
  * @authorLink https://github.com/Arashiryuu
  * @website https://github.com/Arashiryuu/crap
  * @source https://github.com/Arashiryuu/crap/blob/master/ToastIntegrated/ChatUserIDsRedux/ChatUserIDsRedux.plugin.js
  */
+
+// @ts-check
+/// <reference path="./ChatUserIDsRedux.d.ts" />
+
+/**
+ * @typedef MetaData
+ * @type {import('./ChatUserIDsRedux').MetaData}
+ */
+
 
 /*@cc_on
 @if (@_jscript)
@@ -33,6 +42,7 @@
 
 @else@*/
 
+/* global DiscordNative */
 var ChatUserIDsRedux = (() => {
 
 	/* Setup */
@@ -49,44 +59,57 @@ var ChatUserIDsRedux = (() => {
 					twitter_username: ''
 				}
 			],
-			version: '1.0.24',
+			version: '1.0.25',
 			description: 'Adds a user\'s ID next to their name in chat, makes accessing a user ID simpler. Double-click to copy the ID.',
 			github: 'https://github.com/Arashiryuu',
 			github_raw: 'https://raw.githubusercontent.com/Arashiryuu/crap/master/ToastIntegrated/ChatUserIDsRedux/ChatUserIDsRedux.plugin.js'
 		},
 		changelog: [
 			{
-				title: 'Bugs Squashed!',
-				type: 'fixed',
-				items: [
-					'Displays properly again.'
-				]
+				// title: 'Bugs Squashed!',
+				// type: 'fixed',
+				// items: [
+				// 	'Displays properly again.'
+				// ]
 				// title: 'Evolving?',
 				// type: 'improved',
-				// items: ['Re-enabled hover tooltip setting. We\'re back using React.']
+				// items: [
+				// 	'Re-enabled hover tooltip setting. We\'re back using React.'
+				// ]
+				title: 'Maintenance',
+				type: 'progress',
+				items: [
+					'Fixed missing library download links.'
+				]
 			}
 		]
 	};
 
 	/* Utility */
 
-	const log = function() {
-		/**
-		 * @type {Array}
-		 */
-		const args = Array.prototype.slice.call(arguments);
-		args.unshift(`%c[${config.info.name}]`, 'color: #3A71C1; font-weight: 700;');
-		return console.log.apply(this, args);
-	};
+	const { log, info, warn, debug, error } = (() => {
+		const useParts = () => [
+			`%c[${config.info.name}]%c %s`,
+			'color: #3A71C1; font-weight: 700;',
+			'',
+			new Date().toUTCString()
+		];
 
-	const err = function() {
-		/**
-		 * @type {Array}
-		 */
-		const args = Array.prototype.slice.call(arguments);
-		args.unshift(`%c[${config.info.name}]`, 'color: #3A71C1; font-weight: 700;');
-		return console.error.apply(this, args);
-	};
+		return Object.fromEntries([
+			'log',
+			'info',
+			'warn',
+			'debug',
+			'error'
+		].map((type) => [
+			type,
+			function () {
+				console.groupCollapsed.apply(null, useParts());
+				console[type].apply(null, arguments);
+				console.groupEnd();
+			}
+		]));
+	})();
 
 	/* Build */
 
@@ -94,7 +117,8 @@ var ChatUserIDsRedux = (() => {
 		const { Toasts, Logger, Patcher, Settings, Utilities, ReactTools, DOMTools, DiscordModules, WebpackModules, DiscordSelectors, PluginUtilities } = Api;
 		const { SettingPanel, SettingGroup, ColorPicker, RadioGroup, Switch } = Settings;
 		const { React, ReactDOM } = DiscordModules;
-		const { clipboard } = require('electron');
+		// @ts-ignore
+		const { clipboard } = DiscordNative;
 
 		const queryStrings = ['ANIMATE_CHAT_AVATAR', 'showUsernamePopout'];
 		const MessageHeader = WebpackModules.find((mod) => {
@@ -141,8 +165,8 @@ var ChatUserIDsRedux = (() => {
 				return { hasError: true };
 			}
 
-			componentDidCatch(error, info) {
-				err(error);
+			componentDidCatch(err, info) {
+				error(err);
 			}
 
 			render() {
@@ -194,8 +218,16 @@ var ChatUserIDsRedux = (() => {
 		};
 		
 		return class ChatUserIDsRedux extends Plugin {
-			constructor() {
+			#config;
+			#meta;
+
+			/**
+			 * @param {MetaData} meta 
+			 */
+			constructor(meta) {
 				super();
+				this.#config = config;
+				this.#meta = meta;
 				this.promises = {
 					state: { cancelled: false },
 					cancel() { this.state.cancelled = true; },
@@ -282,6 +314,7 @@ var ChatUserIDsRedux = (() => {
 			onHeader() {
 				const headers = document.querySelectorAll(`.${MessageClasses.header.split(' ')[0]}`);
 				if (!headers.length) return;
+				// @ts-ignore
 				for (const header of headers) this.processNode(header);
 			}
 
@@ -327,10 +360,10 @@ var ChatUserIDsRedux = (() => {
 
 			double(e, author) {
 				try {
-					clipboard.writeText(author.id);
+					clipboard.copy(author.id);
 					Toasts.info('Successfully copied!', { timeout: 2e3 });
-				} catch (error) {
-					err(error);
+				} catch (err) {
+					error(err);
 					Toasts.error('Failed to copy! See console for error(s)!', { timeout: 2e3 });
 				}
 				if (e.target) e.target.blur();
@@ -376,6 +409,7 @@ var ChatUserIDsRedux = (() => {
 			}
 
 			clearTags() {
+				// @ts-ignore
 				for (const node of document.querySelectorAll(`.${MessageClasses.groupStart.split(' ')[0]}`)) this.removeTag(node);
 			}
 
@@ -417,8 +451,9 @@ var ChatUserIDsRedux = (() => {
 			}
 			
 			/* Setters */
-			
+			// @ts-ignore
 			set css(styles = '') {
+				// @ts-ignore
 				return this._css = styles.split(/\s+/g).join(' ').trim();
 			}
 
@@ -431,6 +466,8 @@ var ChatUserIDsRedux = (() => {
 			get css() {
 				return this._css;
 			}
+
+			/* eslint-disable no-undef */
 
 			get name() {
 				return config.info.name;
@@ -463,8 +500,14 @@ var ChatUserIDsRedux = (() => {
 
 	/* Finalize */
 
-	return !global.ZeresPluginLibrary 
+	return !globalThis.ZeresPluginLibrary 
 		? class {
+			#config;
+
+			constructor() {
+				this.#config = config;
+			}
+			
 			getName() {
 				return this.name.replace(/\s+/g, '');
 			}
@@ -486,59 +529,59 @@ var ChatUserIDsRedux = (() => {
 			}
 
 			load() {
-				const { BdApi, BdApi: { React } } = window;
+				// @ts-ignore
+				const { BdApi, BdApi: { React: { createElement } } } = window;
 				const title = 'Library Missing';
-				const ModalStack = BdApi.findModuleByProps('push', 'update', 'pop', 'popWithKey');
-				const TextElement = BdApi.findModuleByDisplayName('Text');
-				const ConfirmationModal = BdApi.findModule((m) => m.defaultProps && m.key && m.key() === 'confirm-modal');
+				const TextElement = BdApi.findModuleByDisplayName('LegacyText');
 				const children = [];
 				if (!TextElement) {
 					children.push(
-						React.createElement('span', {
+						createElement('span', {
 							children: [`The library plugin needed for ${config.info.name} is missing.`]
 						}),
-						React.createElement('br', {}),
-						React.createElement('a', {
+						createElement('br', {}),
+						createElement('a', {
 							target: '_blank',
-							href: 'https://betterdiscord.net/ghdl?url=https://raw.githubusercontent.com/rauenzi/BDPluginLibrary/master/release/0PluginLibrary.plugin.js',
+							href: 'https://betterdiscord.app/Download?id=9',
 							children: ['Click here to download the library!']
 						})
 					);
-					return BdApi.alert(title, React.createElement('span', { children }));
+					return BdApi.alert(title, createElement('span', { children }));
 				}
 				children.push(
-					React.createElement(TextElement, {
+					createElement(TextElement, {
 						color: TextElement.Colors.STANDARD,
 						children: [`The library plugin needed for ${config.info.name} is missing.`]
 					}),
-					React.createElement('br', {}),
-					React.createElement('a', {
+					createElement('br', {}),
+					createElement('a', {
 						target: '_blank',
-						href: 'https://betterdiscord.net/ghdl?url=https://raw.githubusercontent.com/rauenzi/BDPluginLibrary/master/release/0PluginLibrary.plugin.js',
+						href: 'https://betterdiscord.app/Download?id=9',
 						children: ['Click here to download the library!']
 					})
 				);
-				if (!ModalStack || !ConfirmationModal) return BdApi.alert(title, children);
-				ModalStack.push(function(props) {
-					return React.createElement(ConfirmationModal, Object.assign({
-						header: title,
-						children: [
-							React.createElement(TextElement, {
-								color: TextElement.Colors.STANDARD,
-								children: [`The library plugin needed for ${config.info.name} is missing. Please click Download Now to install it.`]
-							})
-						],
-						red: false,
+				if (!BdApi.showConfirmationModal) return BdApi.alert(title, children);
+				BdApi.showConfirmationModal(title, [
+						createElement(TextElement, {
+							color: TextElement.Colors.STANDARD,
+							children: [`The library plugin needed for ${config.info.name} is missing. Please click Download Now to install it.`]
+						})
+					],
+					{
+						danger: false,
 						confirmText: 'Download Now',
 						cancelText: 'Cancel',
 						onConfirm: () => {
+							// @ts-ignore
 							require('request').get('https://rauenzi.github.io/BDPluginLibrary/release/0PluginLibrary.plugin.js', async (error, response, body) => {
-								if (error) return require('electron').shell.openExternal('https://betterdiscord.net/ghdl?url=https://raw.githubusercontent.com/rauenzi/BDPluginLibrary/master/release/0PluginLibrary.plugin.js');
+								// @ts-ignore
+								if (error) return require('electron').shell.openExternal('https://betterdiscord.app/Download?id=9');
+								// @ts-ignore
 								await new Promise(r => require('fs').writeFile(require('path').join(window.ContentManager.pluginsFolder, '0PluginLibrary.plugin.js'), body, r));
 							});
 						}
-					}, props));
-				});
+					}
+				);
 			}
 
 			start() {
@@ -578,7 +621,7 @@ var ChatUserIDsRedux = (() => {
 				return config.info.description;
 			}
 		}
-		: buildPlugin(global.ZeresPluginLibrary.buildPlugin(config));
+		: buildPlugin(globalThis.ZeresPluginLibrary.buildPlugin(config));
 })();
 
 module.exports = ChatUserIDsRedux;
