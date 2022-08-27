@@ -139,7 +139,7 @@ var ChatUserIDsRedux = (() => {
 			...WebpackModules.getByProps('username', 'zalgo', 'timestamp', 'header')
 		};
 
-		const TextElement = WebpackModules.getByDisplayName('Text');
+		const TextElement = WebpackModules.getByDisplayName('LegacyText');
 		const TooltipWrapper = WebpackModules.getByPrototypes('renderTooltip');
 
 		const options = [
