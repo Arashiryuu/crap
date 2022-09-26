@@ -1,12 +1,30 @@
 /**
  * @name HideUtils
  * @author Arashiryuu
- * @version 2.2.5
+ * @version 2.2.7
  * @description Allows you to hide users, servers, and channels individually.
  * @authorId 238108500109033472
  * @authorLink https://github.com/Arashiryuu
  * @website https://github.com/Arashiryuu/crap
  * @source https://github.com/Arashiryuu/crap/blob/master/ToastIntegrated/HideUtils/HideUtils.plugin.js
+ */
+
+// @ts-check
+/// <reference path="./HideUtils.d.ts" />
+
+/**
+ * @typedef i18nStrings
+ * @type {import('./HideUtils').i18nStrings}
+ */
+
+/**
+ * @typedef MetaData
+ * @type {import('./HideUtils').MetaData}
+ */
+
+/**
+ * @typedef ContextData
+ * @type {import('./HideUtils').ContextData}
  */
 
 /*@cc_on
@@ -33,100 +51,118 @@
 
 @else@*/
 
-var HideUtils = (() => {
-
-	/* Config */
-	
-	const config = {
-		main: 'index.js',
-		info: {
-			name: 'HideUtils',
-			authors: [
-				{
-					name: 'Arashiryuu',
-					discord_id: '238108500109033472',
-					github_username: 'Arashiryuu',
-					twitter_username: ''
-				}
-			],
-			version: '2.2.5',
-			description: 'Allows you to hide users, servers, and channels individually.',
-			github: 'https://github.com/Arashiryuu',
-			github_raw: 'https://raw.githubusercontent.com/Arashiryuu/crap/master/ToastIntegrated/HideUtils/HideUtils.plugin.js',
-			github_source: 'https://github.com/Arashiryuu/crap/blob/master/ToastIntegrated/HideUtils/HideUtils.plugin.js'
-		},
-		strings: {
-			en: {
-				PLUGIN_SETTINGS_NAME: 'Settings Select',
-				PLUGIN_SETTINGS_BLOCK_NAME: 'Hide Blocked User Messages',
-				PLUGIN_SETTINGS_DESCRIPTION: 'Select which settings you would like to visit.',
-				PLUGIN_SETTINGS_BLOCK_DESCRIPTION: 'Whether or not to unrender messages from blocked users.',
-				HIDE_USER: 'Hide User',
-				UNHIDE_USER: 'Unhide User',
-				HIDE_CHANNEL: 'Hide Channel',
-				HIDE_SERVER: 'Hide Server',
-				HIDE_FOLDER: 'Hide Folder',
-				UNHIDE_CHANNEL: 'Unhide Channel',
-				UNHIDE_CHANNELS: 'Unhide Channels',
-				PURGE_CHANNELS: 'Purge Hidden Channels',
-				SETTINGS_INSTRUCTIONS: 'Instructions',
-				SETTINGS_CHANNELS: 'Channels',
-				SETTINGS_FOLDERS: 'Folders',
-				SETTINGS_SERVERS: 'Servers',
-				SETTINGS_USERS: 'Users',
-				INSTRUCTIONS_HOWTO: 'How to',
-				INSTRUCTIONS_HOWTO_EXT1: 'Right-click on a channel, server, or user.',
-				INSTRUCTIONS_HOWTO_EXT2: 'Left-click the hide option in the context-menu.',
-				INSTRUCTIONS_NOTE: 'Note',
-				INSTRUCTIONS_NOTE_EXT1: 'Unhiding requires use of the settings-panel, and is not handled within a context-menu.',
-				INSTRUCTIONS_NOTE_EXT2: 'Click on a hidden element in its respective settings modal to unhide it.',
-				TOASTS_PURGE_SUCCESS: 'Channel purge for {{GUILD}} was successful.',
-				TOASTS_CHANNEL_SUCCESS: 'Channel has successfully been hidden.',
-				TOASTS_CHANNEL_REMOVE_SUCCESS: 'Channel successfully removed.',
-				TOASTS_CHANNEL_NOCHANNEL: 'Unable to find channel to hide.',
-				TOASTS_CHANNEL_FAILURE: 'This channel is already being hidden.',
-				TOASTS_CHANNEL_FAILURE2: 'This channel is not being hidden.',
-				TOASTS_GUILD_SUCCESS: 'Server has successfully been hidden.',
-				TOASTS_GUILD_REMOVE_SUCCESS: 'Server successfully removed.',
-				TOASTS_GUILD_NOGUILD: 'Unable to find server to hide.',
-				TOASTS_GUILD_FAILURE: 'That server is already being hidden.',
-				TOASTS_GUILD_FAILURE2: 'That server is not being hidden.',
-				TOASTS_FOLDER_SUCCESS: 'Folder has successfully been hidden.',
-				TOASTS_FOLDER_REMOVE_SUCCESS: 'Folder successfully removed.',
-				TOASTS_FOLDER_FAILURE: 'This folder is already being hidden.',
-				TOASTS_FOLDER_FAILURE2: 'This folder is not being hidden.',
-				TOASTS_USER_SUCCESS: 'User is now being hidden!',
-				TOASTS_USER_NOUSER: 'Unable to find user to hide.',
-				TOASTS_USER_REMOVE_SUCCESS: 'User successfully removed.',
-				TOASTS_USER_FAILURE: 'This user is already being hidden.',
-				TOASTS_USER_FAILURE2: 'This user is not being hidden.',
-				TOASTS_USER_SELF_FAILURE: 'You cannot hide yourself.'
-			}
-		},
-		changelog: [
-			// {
-			// 	title: 'Maintenance',
-			// 	type: 'progress',
-			// 	items: [
-			// 		'Minor logic tweaks, improved consistency.'
-			// 	]
-			// }
-			// {
-			// 	title: 'Evolving?',
-			// 	type: 'improved',
-			// 	items: [
-			// 		'Added language strings support.'
-			// 	]
-			// },
+/* global globalThis, BdApi */
+const config = {
+	main: 'index.js',
+	info: {
+		name: 'HideUtils',
+		authors: [
 			{
-				title: 'Bugs Squashed!',
-				type: 'fixed',
-				items: [
-					'Fix channel hiding again; threads exist edition.'
-				]
+				name: 'Arashiryuu',
+				discord_id: '238108500109033472',
+				github_username: 'Arashiryuu',
+				twitter_username: ''
 			}
-		]
-	};
+		],
+		version: '2.2.7',
+		description: 'Allows you to hide users, servers, and channels individually.',
+		github: 'https://github.com/Arashiryuu',
+		github_raw: 'https://raw.githubusercontent.com/Arashiryuu/crap/master/ToastIntegrated/HideUtils/HideUtils.plugin.js',
+		github_source: 'https://github.com/Arashiryuu/crap/blob/master/ToastIntegrated/HideUtils/HideUtils.plugin.js'
+	},
+	strings: {
+		en: {
+			PLUGIN_SETTINGS_NAME: 'Settings Select',
+			PLUGIN_SETTINGS_BLOCK_NAME: 'Hide Blocked User Messages',
+			PLUGIN_SETTINGS_DESCRIPTION: 'Select which settings you would like to visit.',
+			PLUGIN_SETTINGS_BLOCK_DESCRIPTION: 'Whether or not to unrender messages from blocked users.',
+			HIDE_USER: 'Hide User',
+			UNHIDE_USER: 'Unhide User',
+			HIDE_CHANNEL: 'Hide Channel',
+			HIDE_SERVER: 'Hide Server',
+			HIDE_FOLDER: 'Hide Folder',
+			UNHIDE_CHANNEL: 'Unhide Channel',
+			UNHIDE_CHANNELS: 'Unhide Channels',
+			PURGE_CHANNELS: 'Purge Hidden Channels',
+			SETTINGS_INSTRUCTIONS: 'Instructions',
+			SETTINGS_CHANNELS: 'Channels',
+			SETTINGS_FOLDERS: 'Folders',
+			SETTINGS_SERVERS: 'Servers',
+			SETTINGS_USERS: 'Users',
+			INSTRUCTIONS_HOWTO: 'How to',
+			INSTRUCTIONS_HOWTO_EXT1: 'Right-click on a channel, server, or user.',
+			INSTRUCTIONS_HOWTO_EXT2: 'Left-click the hide option in the context-menu.',
+			INSTRUCTIONS_NOTE: 'Note',
+			INSTRUCTIONS_NOTE_EXT1: 'Unhiding requires use of the settings-panel, and is not handled within a context-menu.',
+			INSTRUCTIONS_NOTE_EXT2: 'Click on a hidden element in its respective settings modal to unhide it.',
+			TOASTS_PURGE_SUCCESS: 'Channel purge for {{GUILD}} was successful.',
+			TOASTS_CHANNEL_SUCCESS: 'Channel has successfully been hidden.',
+			TOASTS_CHANNEL_REMOVE_SUCCESS: 'Channel successfully removed.',
+			TOASTS_CHANNEL_NOCHANNEL: 'Unable to find channel to hide.',
+			TOASTS_CHANNEL_FAILURE: 'This channel is already being hidden.',
+			TOASTS_CHANNEL_FAILURE2: 'This channel is not being hidden.',
+			TOASTS_GUILD_SUCCESS: 'Server has successfully been hidden.',
+			TOASTS_GUILD_REMOVE_SUCCESS: 'Server successfully removed.',
+			TOASTS_GUILD_NOGUILD: 'Unable to find server to hide.',
+			TOASTS_GUILD_FAILURE: 'That server is already being hidden.',
+			TOASTS_GUILD_FAILURE2: 'That server is not being hidden.',
+			TOASTS_FOLDER_SUCCESS: 'Folder has successfully been hidden.',
+			TOASTS_FOLDER_REMOVE_SUCCESS: 'Folder successfully removed.',
+			TOASTS_FOLDER_FAILURE: 'This folder is already being hidden.',
+			TOASTS_FOLDER_FAILURE2: 'This folder is not being hidden.',
+			TOASTS_USER_SUCCESS: 'User is now being hidden!',
+			TOASTS_USER_NOUSER: 'Unable to find user to hide.',
+			TOASTS_USER_REMOVE_SUCCESS: 'User successfully removed.',
+			TOASTS_USER_FAILURE: 'This user is already being hidden.',
+			TOASTS_USER_FAILURE2: 'This user is not being hidden.',
+			TOASTS_USER_SELF_FAILURE: 'You cannot hide yourself.'
+		}
+	},
+	changelog: [
+		// {
+		// 	title: 'Maintenance',
+		// 	type: 'progress',
+		// 	items: [
+		// 		'Minor logic tweak(s).'
+		// 		// 'Minor logic tweaks, improved consistency.'
+		// 	]
+		// }
+		// {
+		// 	title: 'Evolving?',
+		// 	type: 'improved',
+		// 	items: [
+		// 		'Added language strings support.'
+		// 	]
+		// },
+		{
+			title: 'Bugs Squashed!',
+			type: 'fixed',
+			items: [
+				'Fix guild context menu items not showing.'
+			]
+		}
+	]
+};
+
+if (!globalThis.ZeresPluginLibrary) {
+	// @ts-ignore
+	BdApi.showConfirmationModal('Library Missing', `The library plugin needed for ${config.info.name} is missing. Please click Download Now to install it.`, {
+		danger: false,
+		confirmText: 'Download Now',
+		cancelText: 'Cancel',
+		onConfirm: () => {
+			// @ts-ignore
+			require('request').get('https://rauenzi.github.io/BDPluginLibrary/release/0PluginLibrary.plugin.js', async (error, response, body) => {
+				// @ts-ignore
+				if (error) return require('electron').shell.openExternal('https://betterdiscord.app/Download?id=9');
+				// @ts-ignore
+				await new Promise((r) => require('fs').writeFile(require('path').join(BdApi.Plugins.folder, '0PluginLibrary.plugin.js'), body, r));
+			});
+		}
+	});
+}
+
+module.exports = (() => {
 
 	/* Utility */
 
@@ -205,7 +241,7 @@ var HideUtils = (() => {
 		const TextElement = WebpackModules.getByDisplayName('LegacyText');
 	
 		const at = Array.prototype.at ?? function at (index) {
-			if (!isFinite(index)) return undefined;
+			if ([-Infinity, +Infinity].includes(index)) return undefined;
 			let i = Math.trunc(index) || 0;
 			i = i < 0
 				? this.length + i
@@ -216,9 +252,11 @@ var HideUtils = (() => {
 		const has = Object.prototype.hasOwnProperty;
 		const slice = Array.prototype.slice;
 		
+		const Modals = WebpackModules.getByProps('ModalRoot');
 		const LangUtils = WebpackModules.getByProps('getLocale', 'getLanguages');
 		const Menu = WebpackModules.getByProps('MenuItem', 'MenuGroup', 'MenuSeparator');
 		const ToggleMenuItem = WebpackModules.getByString('disabled', 'itemToggle');
+		const ReadStateStore = WebpackModules.getByProps('ackMessageId', 'hasUnread');
 		const guilds = WebpackModules.getByProps('wrapper', 'unreadMentionsIndicatorTop');
 		const buttons = WebpackModules.getByProps('button');
 		const positionedContainer = WebpackModules.getByProps('positionedContainer');
@@ -234,6 +272,9 @@ var HideUtils = (() => {
 
 		const modalKey = 'HideUtils-SettingsModal';
 
+		/**
+		 * @returns {i18nStrings}
+		 */
 		const useStrings = () => {
 			const [lang] = LangUtils.getLocale().split('-');
 			return config.strings[lang] ?? config.strings.en;
@@ -422,11 +463,11 @@ var HideUtils = (() => {
 
 			return React.createElement('div', {
 				id: 'HideUtils-Modal',
-				className: `${wrapper.messagesPopoutWrap} ${DiscordClasses.Popouts.themedPopout}`
+				className: wrapper.messagesPopoutWrap
 			},
 				React.createElement('div', {
 					id: 'HideUtils-Header',
-					className: `${wrapper.header} ${DiscordClasses.Popouts.header}`
+					className: wrapper.header
 				},
 					React.createElement(CloseButton, {
 						onClick: close
@@ -442,7 +483,7 @@ var HideUtils = (() => {
 					className: scroller.scrollerWrap
 				},
 					React.createElement('div', {
-						className: `${scroller.scroller} ${wrapper.messagesPopout}`,
+						className: `${scroller.scroller} ${wrapper.messagesPopout} hu-pad8 hu-scrollable`,
 						scrollable: true,
 						children: data
 					})
@@ -507,9 +548,18 @@ var HideUtils = (() => {
 		let isBlocked;
 
 		return class HideUtils extends Plugin {
-			constructor() {
+			/**
+			 * @type {string}
+			 */
+			#css;
+			#meta;
+
+			/**
+			 * @param {MetaData} meta
+			 */
+			constructor(meta) {
 				super();
-				this._css;
+				this.#meta = meta;
 				this.promises = {
 					state: { cancelled: false },
 					cancel() { this.state.cancelled = true; },
@@ -635,6 +685,12 @@ var HideUtils = (() => {
 						border-radius: 50%;
 						opacity: 0.3;
 					}
+					.hu-pad8 {
+						padding: 8px;
+					}
+					.hu-scrollable {
+						overflow-y: scroll;
+					}
 					.theme-light #HideUtils-Instructions .list-element-item::before {
 						background: #72767D;
 					}
@@ -687,6 +743,7 @@ var HideUtils = (() => {
 				this.patchTypingUsers(promiseState);
 				this.patchContextMenu(promiseState);
 				this.patchIsMentioned(promiseState);
+				this.patchReadStateStore(promiseState);
 				this.patchReceiveMessages(promiseState);
 				this.patchRelationshipStore(promiseState);
 			}
@@ -697,6 +754,19 @@ var HideUtils = (() => {
 				this.updateMessages();
 				this.updateMemberList();
 				this.updateContextMenu();
+			}
+
+			patchReadStateStore(state) {
+				if (state.cancelled) return;
+				Patcher.instead(ReadStateStore, 'hasUnread', (that, args, value) => {
+					const [channelId] = args;
+					const channel = getChannel(channelId);
+					if (!channel) return value.apply(that, args);
+					const message = DiscordModules.MessageStore.getMessage(channelId, channel.lastMessageId);
+					if (!message) return value.apply(that, args);
+					if (has.call(this.settings.users, message.author.id)) return false;
+					return value.apply(that, args);
+				});
 			}
 
 			patchRelationshipStore(state) {
@@ -767,7 +837,7 @@ var HideUtils = (() => {
 
 			/**
 			 * @param {object} channel 
-			 * @returns {[string, () => void]}
+			 * @returns {ContextData}
 			 */
 			getChannelContextData(channel) {
 				const { HIDE_CHANNEL, UNHIDE_CHANNEL } = useStrings();
@@ -882,16 +952,29 @@ var HideUtils = (() => {
 	
 			async patchGuildContextMenu(promiseState) {
 				if (promiseState.cancelled) return;
-				const Context = await ContextMenu.getDiscordMenu('GuildContextMenu');
-				if (!Context) return;
-				Patcher.after(Context, 'default', (that, args, value) => {
+				const menuWasLoaded = await ReactComponents.getComponent('GuildContextMenuWrapper', DiscordSelectors.ContextMenu.menu.value.trim(), (menu) => {
+					return Utilities.findInTree(menu, (tree) => {
+						return tree && tree.displayName === 'GuildContextMenuWrapper';
+					}, {
+						walkable: [
+							'return',
+							'type'
+						]
+					});
+				});
+				const GuildContext = WebpackModules.find((m) => m?.default?.displayName === 'useGuildMarkAsReadItem');
+				if (!GuildContext) return;
+				Patcher.after(GuildContext, 'default', (that, args, value) => {
 					const [props] = args;
-					if (!props.guild) return value;
-					const orig = getProp(value, 'props');
-					const id = getProp(props, 'guild.id');
-					const active = this.settings.servers.unhidden.includes(id);
+					const val = Array.isArray(value)
+						? value.find((n) => n && !n.key)
+						: value;
+					if (!has.call(props, 'ownerId') || !has.call(props, 'mfaLevel')) return value;
+					const orig = getProp(val, 'props');
+					const id = getProp(props, 'id');
 	
 					if (!orig || !id) return value;
+					const active = this.settings.servers.unhidden.includes(id);
 
 					const { HIDE_SERVER, UNHIDE_CHANNELS, PURGE_CHANNELS } = useStrings();
 	
@@ -929,20 +1012,21 @@ var HideUtils = (() => {
 					});
 	
 					const children = [
+						topSeparator,
 						hideItem,
 						unhideItem,
 						clearItem,
 						bottomSeparator
 					];
 	
-					const group = React.createElement(Menu.MenuGroup, {
-						key: 'HideUtils-HideItemGroup',
-						children
-					});
-					const fn = (child) => child && child.key && child.key === 'HideUtils-HideItemGroup';
+					// const group = React.createElement(Menu.MenuGroup, {
+					// 	key: 'HideUtils-HideItemGroup',
+					// 	children
+					// });
+					const fn = (child) => child && child.id && !child.id.endsWith('-hide-utils');
 	
-					if (!Array.isArray(orig.children)) orig.children = [orig.children];
-					if (!orig.children.some(fn)) orig.children.splice(1, 0, group);
+					if (!Array.isArray(value)) value = [value];
+					if (!value.some(fn)) value.splice(1, 0, ...children);
 	
 					return value;
 				});
@@ -986,7 +1070,7 @@ var HideUtils = (() => {
 
 			/**
 			 * @param {string} id 
-			 * @returns {[string, () => void]}
+			 * @returns {ContextData}
 			 */
 			getUserContextData(id) {
 				const { HIDE_USER, UNHIDE_USER } = useStrings();
@@ -1131,19 +1215,15 @@ var HideUtils = (() => {
 			 * @alias forceUpdateMessages
 			 */
 			updateMessages() {
-				const messages = document.querySelector(`.${messagesWrapper.messagesWrapper.replace(/\s/, '.')}`);
-				if (!messages) return;
-				const list = messages.querySelectorAll('li');
-				if (!list.length) return;
-				const msg = at.call(list, -1);
+				const messages = DiscordModules.MessageStore.getMessages(DiscordModules.SelectedChannelStore.getChannelId());
+				if (!messages || !messages.length) return;
+				const msg = at.call(messages._array, -1);
 				if (!msg) return;
-				const data = getProp(ReactTools.getReactInstance(msg), 'memoizedProps.children.props.childrenMessageContent.props.message');
-				if (!data) return;
 				// Dispatcher.dispatch(DiscordConstants.ComponentActionsKeyed.ANIMATE_CHAT_AVATAR, data);
 				FluxDispatch.wait(() => {
 					FluxDispatch.dispatch({
-						type: DiscordConstants.ActionTypes.MESSAGE_UPDATE,
-						message: data
+						type: 'MESSAGE_UPDATE',
+						message: msg
 					});
 				});
 			}
@@ -1259,7 +1339,7 @@ var HideUtils = (() => {
 								return channel;
 							}
 							const chan = getProp(chans, '0.props.channel');
-							return !has.call(this.settings.channels, chan.id);
+							return chan && !has.call(this.settings.channels, chan.id);
 						}
 						if (isVoiceChannel(channel)) {
 							const channelProps = getProp(channel, 'props');
@@ -1648,8 +1728,9 @@ var HideUtils = (() => {
 	
 			/* Setters */
 	
-			set css(style = '') {
-				return this._css = style.split(/\s+/g).join(' ').trim();
+			set css(style) {
+				if (typeof style !== 'string') return;
+				this.#css = style.split(/\s+/g).join(' ').trim();
 			}
 	
 			/* Getters */
@@ -1659,10 +1740,8 @@ var HideUtils = (() => {
 			}
 	
 			get css() {
-				return this._css;
+				return this.#css;
 			}
-	
-			/* eslint-disable no-undef */
 	
 			get name() {
 				return config.info.name;
@@ -1692,91 +1771,66 @@ var HideUtils = (() => {
 			}
 		};
 	};
+
+	/* Dummy class */
+
+	class Dummy {
+		#config;
+		#meta;
+
+		constructor(meta) {
+			this._config = config;
+			this.#config = config;
+			this.#meta = meta;
+		}
+
+		getName() {
+			return config.info.name.replace(/\s+/g, '');
+		}
+
+		getAuthor() {
+			return config.info.authors.map((author) => author.name).join(', ');
+		}
+
+		getVersion() {
+			return config.info.version;
+		}
+
+		getDescription() {
+			return config.info.description;
+		}
+
+		stop() {
+			log('Stopped!');
+		}
+
+		start() {
+			log('Started!');
+		}
+
+		/* Getters */
+
+		get [Symbol.toStringTag]() {
+			return 'Plugin';
+		}
+
+		get short() {
+			let string = '';
+
+			for (let i = 0, len = config.info.name.length; i < len; i++) {
+				const char = config.info.name[i];
+				if (char === char.toUpperCase()) string += char;
+			}
+
+			return string;
+		}
+	}
 	
 	/* Finalize */
 
-	return !global.ZeresPluginLibrary 
-		? class {
-			constructor() {
-				this._config = config;
-			}
-			getName() {
-				return config.info.name;
-			}
-			getAuthor() {
-				return config.info.authors.map((a) => a.name).join(', ');
-			}
-			getDescription() {
-				return config.info.description;
-			}
-			getVersion() {
-				return config.info.version;
-			}
-			load() {
-				const { BdApi, BdApi: { React } } = window;
-				const title = 'Library Missing';
-				const ModalStack = BdApi.findModuleByProps('push', 'update', 'pop', 'popWithKey');
-				const TextElement = BdApi.findModuleByDisplayName('Text');
-				const ConfirmationModal = BdApi.findModule((m) => m.defaultProps && m.key && m.key() === 'confirm-modal');
-				const children = [];
-				if (!TextElement) {
-					children.push(
-						React.createElement('span', {
-							children: [`The library plugin needed for ${config.info.name} is missing.`]
-						}),
-						React.createElement('br', {}),
-						React.createElement('a', {
-							target: '_blank',
-							href: 'https://betterdiscord.app/Download?id=9',
-							children: ['Click here to download the library!']
-						})
-					);
-					return BdApi.alert(title, React.createElement('span', { children }));
-				}
-				children.push(
-					React.createElement(TextElement, {
-						color: TextElement.Colors.STANDARD,
-						children: [`The library plugin needed for ${config.info.name} is missing.`]
-					}),
-					React.createElement('br', {}),
-					React.createElement('a', {
-						target: '_blank',
-						href: 'https://betterdiscord.app/Download?id=9',
-						children: ['Click here to download the library!']
-					})
-				);
-				if (!ModalStack || !ConfirmationModal) return BdApi.alert(title, children);
-				ModalStack.push(function(props) {
-					return React.createElement(ConfirmationModal, Object.assign({
-						header: title,
-						children: [
-							React.createElement(TextElement, {
-								color: TextElement.Colors.STANDARD,
-								children: [`The library plugin needed for ${config.info.name} is missing. Please click Download Now to install it.`]
-							})
-						],
-						red: false,
-						confirmText: 'Download Now',
-						cancelText: 'Cancel',
-						onConfirm: () => {
-							require('request').get('https://rauenzi.github.io/BDPluginLibrary/release/0PluginLibrary.plugin.js', async (err, response, body) => {
-								if (err) return require('electron').shell.openExternal('https://betterdiscord.app/Download?id=9');
-								await new Promise((r) => require('fs').writeFile(require('path').join(window.ContentManager.pluginsFolder, '0PluginLibrary.plugin.js'), body, r));
-							});
-						}
-					}, props));
-				});
-			}
-			start() {
-				log('started!');
-			}
-			stop() {
-				log('stopped!');
-			}
-		}
-		: buildPlugin(global.ZeresPluginLibrary.buildPlugin(config));
+	return !globalThis.ZeresPluginLibrary
+		? Dummy
+		: buildPlugin(globalThis.ZeresPluginLibrary.buildPlugin(config));
 })();
-
-module.exports = HideUtils;
 
 /*@end@*/
