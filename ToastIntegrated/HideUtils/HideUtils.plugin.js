@@ -963,7 +963,7 @@ module.exports = (() => {
 					});
 				});
 				const GuildContext = WebpackModules.find((m) => m?.default?.displayName === 'useGuildMarkAsReadItem');
-				if (!GuildContext) return;
+				if (!menuWasLoaded || !GuildContext) return;
 				Patcher.after(GuildContext, 'default', (that, args, value) => {
 					const [props] = args;
 					const val = Array.isArray(value)
