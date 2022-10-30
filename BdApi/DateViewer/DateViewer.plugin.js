@@ -66,6 +66,10 @@ module.exports = (meta) => {
 	const { UI, DOM, Data, React, Utils, Themes, Plugins, Patcher, Webpack, ReactDOM, ReactUtils, ContextMenu } = Api;
 	const { Filters, getModule, waitForModule } = Webpack;
 
+	const raf = requestAnimationFrame;
+
+	/* Utility */
+
 	/**
 	 * @type {PromiseState}
 	 */
@@ -124,6 +128,8 @@ module.exports = (meta) => {
 		for (const method of methods) instance[method] = instance[method].bind(instance);
 	};
 
+	applyBinds(promises);
+
 	/**
 	 * @const getProp
 	 * @param {object} obj
@@ -136,6 +142,10 @@ module.exports = (meta) => {
 	 * @type {Plugin}
 	 */
 	const plugin = NullObject('Plugin');
+
+	/* Setup */
+
+	const memberListSelector = '.members-3WRCEx';
 
 	/**
 	 * A simple `document.createElement` helper function.
@@ -172,10 +182,10 @@ module.exports = (meta) => {
 	viewMain.append(time, date, weekday);
 	viewRoot.append(viewMain);
 
-	const removeRoot = () => viewRoot.remove();
+	const removeRoot = () => viewRoot.isConnected && viewRoot.remove();
 	const appendRoot = () => {
-		const list = document.querySelector('.members-3WRCEx');
-		if (!list) return;
+		const list = document.querySelector(memberListSelector);
+		if (!list || viewRoot.isConnected) return;
 		list.appendChild(viewRoot);
 	};
 
@@ -189,75 +199,86 @@ module.exports = (meta) => {
 	const ref = { current: null };
 	const teeUpdates = () => {
 		setData();
-		ref.current = requestAnimationFrame(teeUpdates);
+		ref.current = raf(teeUpdates);
 	};
 	const cancelUpdates = () => cancelAnimationFrame(ref.current);
+
+	const onStart = () => {
+		DOM.addStyle(`
+			#dv-mount {
+				background-color: #2f3136;
+				bottom: 0;
+				box-sizing: border-box;
+				display: flex;
+				height: 95px;
+				justify-content: center;
+				position: fixed;
+				width: 240px;
+				z-index: 1;
+			}
+			#dv-main {
+				--gap: 20px;
+				background-color: transparent;
+				border-top: 1px solid hsla(0, 0%, 100%, .04);
+				box-sizing: border-box;
+				color: #fff;
+				display: flex;
+				flex-direction: column;
+				height: 100%;
+				line-height: 20px;
+				justify-content: center;
+				text-align: center;
+				text-transform: uppercase;
+				width: calc(100% - var(--gap) * 2);
+			}
+			#dv-main .dv-date {
+				font-size: small;
+				opacity: .6;
+			}
+			.theme-light #dv-mount {
+				background-color: #f3f3f3;
+			}
+			.theme-light #dv-main {
+				border-top: 1px solid #e6e6e6;
+				color: #737f8d;
+			}
+			${memberListSelector} {
+				margin-bottom: 95px;
+			}
+		`.split(/\s+/g).join(' ').trim());
+		appendRoot();
+		teeUpdates();
+	};
+
+	const onStop = () => {
+		DOM.removeStyle();
+		cancelUpdates();
+		removeRoot();
+	};
+
+	/* Build */
 
 	Object.assign(plugin, {
 		start () {
 			promises.restore();
-			DOM.addStyle(`
-				#dv-mount {
-					background-color: #2f3136;
-					bottom: 0;
-					box-sizing: border-box;
-					display: flex;
-					height: 95px;
-					justify-content: center;
-					position: fixed;
-					width: 240px;
-					z-index: 1;
-				}
-				#dv-main {
-					--gap: 20px;
-					background-color: transparent;
-					border-top: 1px solid hsla(0, 0%, 100%, .04);
-					box-sizing: border-box;
-					color: #fff;
-					display: flex;
-					flex-direction: column;
-					height: 100%;
-					line-height: 20px;
-					justify-content: center;
-					text-align: center;
-					text-transform: uppercase;
-					width: calc(100% - var(--gap) * 2);
-				}
-				#dv-main .dv-date {
-					font-size: small;
-					opacity: .6;
-				}
-				.theme-light #dv-mount {
-					background-color: #f3f3f3;
-				}
-				.theme-light #dv-main {
-					border-top: 1px solid #e6e6e6;
-					color: #737f8d;
-				}
-				.members-3WRCEx {
-					margin-bottom: 95px;
-				}
-			`.split(/\s+/g).join(' ').trim());
-			appendRoot();
-			teeUpdates();
+			raf(onStart);
 		},
 		stop () {
 			promises.cancel();
-			DOM.removeStyle();
-			cancelUpdates();
-			removeRoot();
+			raf(onStop);
 		},
 		/**
 		 * Global observer provided by BD.
 		 * @param {MutationRecord[]} changes
 		 */
 		observer (changes) {
-			if (!viewRoot.isConnected) appendRoot();
+			if (!viewRoot.isConnected) raf(() => appendRoot());
 		}
 	});
 
-	applyBinds(plugin);
+	/* Finalize */
 
+	applyBinds(plugin);
 	return plugin;
 };
 
