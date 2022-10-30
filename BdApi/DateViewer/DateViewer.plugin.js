@@ -153,10 +153,53 @@ module.exports = (meta) => {
 	/**
 	 * CSS formatter helper.
 	 * @const css
-	 * @param {string} style 
+	 * @param {string} ss 
 	 * @returns {string}
 	 */
-	const css = (style = '') => style.split(/\s+/g).join(' ').trim();
+	const css = (ss = '') => ss.split(/\s+/g).join(' ').trim();
+
+	const style = css(`
+		#dv-mount {
+			background-color: #2f3136;
+			bottom: 0;
+			box-sizing: border-box;
+			display: flex;
+			height: 95px;
+			justify-content: center;
+			position: fixed;
+			width: 240px;
+			z-index: 1;
+		}
+		#dv-main {
+			--gap: 20px;
+			background-color: transparent;
+			border-top: 1px solid hsla(0, 0%, 100%, .04);
+			box-sizing: border-box;
+			color: #fff;
+			display: flex;
+			flex-direction: column;
+			height: 100%;
+			line-height: 20px;
+			justify-content: center;
+			text-align: center;
+			text-transform: uppercase;
+			width: calc(100% - var(--gap) * 2);
+		}
+		#dv-main .dv-date {
+			font-size: small;
+			opacity: .6;
+		}
+		.theme-light #dv-mount {
+			background-color: #f3f3f3;
+		}
+		.theme-light #dv-main {
+			border-top: 1px solid #e6e6e6;
+			color: #737f8d;
+		}
+		${memberListSelector} {
+			margin-bottom: 95px;
+		}
+	`);
 
 	/**
 	 * A simple `document.createElement` helper function.
@@ -215,50 +258,7 @@ module.exports = (meta) => {
 	const cancelUpdates = () => cancelAnimationFrame(ref.current);
 
 	const onStart = () => {
-		DOM.addStyle(
-			css(`
-				#dv-mount {
-					background-color: #2f3136;
-					bottom: 0;
-					box-sizing: border-box;
-					display: flex;
-					height: 95px;
-					justify-content: center;
-					position: fixed;
-					width: 240px;
-					z-index: 1;
-				}
-				#dv-main {
-					--gap: 20px;
-					background-color: transparent;
-					border-top: 1px solid hsla(0, 0%, 100%, .04);
-					box-sizing: border-box;
-					color: #fff;
-					display: flex;
-					flex-direction: column;
-					height: 100%;
-					line-height: 20px;
-					justify-content: center;
-					text-align: center;
-					text-transform: uppercase;
-					width: calc(100% - var(--gap) * 2);
-				}
-				#dv-main .dv-date {
-					font-size: small;
-					opacity: .6;
-				}
-				.theme-light #dv-mount {
-					background-color: #f3f3f3;
-				}
-				.theme-light #dv-main {
-					border-top: 1px solid #e6e6e6;
-					color: #737f8d;
-				}
-				${memberListSelector} {
-					margin-bottom: 95px;
-				}
-			`)
-		);
+		DOM.addStyle(style);
 		appendRoot();
 		teeUpdates();
 	};
