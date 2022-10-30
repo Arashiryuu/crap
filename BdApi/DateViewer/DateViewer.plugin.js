@@ -282,9 +282,9 @@ module.exports = (meta) => {
 		},
 		/**
 		 * Global observer provided by BD.
-		 * @param {MutationRecord[]} changes
+		 * @param {MutationRecord} change
 		 */
-		observer (changes) {
+		observer (change) {
 			if (!viewRoot.isConnected) raf(() => appendRoot());
 		}
 	});
