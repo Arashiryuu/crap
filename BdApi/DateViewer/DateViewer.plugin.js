@@ -146,9 +146,18 @@ module.exports = (meta) => {
 	/* Setup */
 
 	/**
-	 * Current selector for the member-list; prone to break easily.
+	 * Converts a classname string into a class selector.
+	 * @const toSelector
+	 * @param {string} className
+	 * @returns {string}
 	 */
-	const memberListSelector = '.members-3WRCEx';
+	const toSelector = (className) => '.' + className.split(' ').join('.');
+
+	const memberListClasses = Webpack.getModule(Webpack.Filters.byProps('members', 'container'));
+	/**
+	 * Current selector for the member-list.
+	 */
+	const memberListSelector = toSelector(memberListClasses.members);
 
 	/**
 	 * CSS formatter helper.
