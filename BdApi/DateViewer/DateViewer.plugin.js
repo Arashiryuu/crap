@@ -225,8 +225,6 @@ module.exports = (meta) => {
 		Object.assign(e, props);
 		return e;
 	};
-	
-	/* Setup */
 
 	const getData = () => {
 		const d = new Date();
