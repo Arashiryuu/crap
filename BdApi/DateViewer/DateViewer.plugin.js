@@ -136,7 +136,7 @@ module.exports = (meta) => {
 	 * @param {string} path
 	 * @returns {*}
 	 */
-	const getProp = (obj, path) => path.split(/\s?.\s?/g).reduce((o, prop) => o && o[prop], obj);
+	const getProp = (obj, path) => path.split(/\s?\.\s?/g).reduce((o, prop) => o && o[prop], obj);
 
 	/**
 	 * @type {Plugin}
@@ -225,6 +225,8 @@ module.exports = (meta) => {
 		Object.assign(e, props);
 		return e;
 	};
+	
+	/* Setup */
 
 	const getData = () => {
 		const d = new Date();
