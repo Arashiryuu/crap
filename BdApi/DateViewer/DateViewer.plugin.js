@@ -58,7 +58,7 @@
 
 /**
  * @param {MetaData} meta
- * @returns {Plugin}
+ * @returns {!Plugin}
  */
 module.exports = (meta) => {
 	// @ts-ignore
@@ -67,6 +67,8 @@ module.exports = (meta) => {
 	const { Filters, getModule, waitForModule } = Webpack;
 
 	const raf = requestAnimationFrame;
+	const has = Object.prototype.hasOwnProperty;
+	const toString = Object.prototype.toString;
 
 	/* Utility */
 
@@ -81,9 +83,8 @@ module.exports = (meta) => {
 
 	/**
 	 * Creates clean objects with a Symbol.toStringTag value describing the object.
-	 * @const NullObject
-	 * @param {string} value
-	 * @returns {object}
+	 * @param {!string} value
+	 * @returns {!object}
 	 */
 	const NullObject = (value = 'NullObject') => Object.create(null, {
 		[Symbol.toStringTag]: {
@@ -99,9 +100,8 @@ module.exports = (meta) => {
 	{
 		const levels = ['log', 'info', 'warn', 'debug', 'error'];
 		/**
-		 * @const useParts
-		 * @param {string} label 
-		 * @returns {string[]}
+		 * @param {!string} label 
+		 * @returns {!string[]}
 		 */
 		const useParts = (label) => [
 			`%c[${label}] \u2014%c`,
@@ -119,8 +119,8 @@ module.exports = (meta) => {
 	}
 
 	/**
-	 * @const applyBinds
-	 * @param {object} instance
+	 * 
+	 * @param {!object} instance
 	 * @returns {void}
 	 */
 	const applyBinds = (instance) => {
@@ -131,9 +131,8 @@ module.exports = (meta) => {
 	applyBinds(promises);
 
 	/**
-	 * @const getProp
-	 * @param {object} obj
-	 * @param {string} path
+	 * @param {!object} obj
+	 * @param {!string} path
 	 * @returns {*}
 	 */
 	const getProp = (obj, path) => path.split(/\s?\.\s?/g).reduce((o, prop) => o && o[prop], obj);
@@ -147,9 +146,8 @@ module.exports = (meta) => {
 
 	/**
 	 * Converts a classname string into a class selector.
-	 * @const toSelector
-	 * @param {string} className
-	 * @returns {string}
+	 * @param {!string} className
+	 * @returns {!string}
 	 */
 	const toSelector = (className) => '.' + className.split(' ').join('.');
 
@@ -161,9 +159,8 @@ module.exports = (meta) => {
 
 	/**
 	 * CSS formatter helper.
-	 * @const css
-	 * @param {string} ss 
-	 * @returns {string}
+	 * @param {!string} ss 
+	 * @returns {!string}
 	 */
 	const css = (ss = '') => ss.split(/\s+/g).join(' ').trim();
 
@@ -211,18 +208,103 @@ module.exports = (meta) => {
 	`);
 
 	/**
-	 * A simple `document.createElement` helper function.
-	 * @const create
-	 * @param {string} type 
-	 * @param {object} props 
-	 * @returns {HTMLElement}
+	 * A `document.createElement` helper function.
+	 * @param {!string} type 
+	 * @param {!object} props
+	 * @param {!(string | Node)[]} [children]
+	 * @returns {!HTMLElement}
 	 */
-	const create = (type, props = {}) => {
-		type = typeof type === 'string'
-			? type
-			: 'div';
+	const create = (type = 'div', props = {}, ...children) => {
+		if (typeof type !== 'string') type = 'div';
 		const e = document.createElement(type);
-		Object.assign(e, props);
+
+		if (toString.call(props) !== '[object Object]') {
+			if (children.length) e.append.apply(children);
+			return e;
+		}
+
+		if (!has.call(props, 'children') && children.length) {
+			e.append(...children);
+		}
+
+		/**
+		 * @param {!string} key
+		 * @returns {!string}
+		 */
+		const normalize = (key) => key === 'doubleclick'
+			? 'dblclick'
+			: key;
+
+		/**
+		 * @param {!string} key 
+		 * @returns {!boolean}
+		 */
+		const isEvent = (key) => key.slice(0, 2) === 'on' && key[2] === key[2].toUpperCase();
+
+		/**
+		 * @param {!string} key
+		 * @returns {!boolean}
+		 */
+		const isDataAttr = (key) => key.startsWith('data') && key.toLowerCase() !== key; // dataId
+
+		/**
+		 * @param {!string} key
+		 * @returns {!string} key
+		 */
+		const normalizeDataAttr = (key) => key.replace(/([A-Z]{1})/g, '-$1').toLowerCase();
+
+		for (const key of Object.keys(props)) {
+			switch (key) {
+				case 'text': {
+					e.textContent = props[key];
+					break;
+				}
+				case 'style': {
+					try {
+						Object.assign(e[key], props[key]);
+					} catch (fail) {
+						Logger.error(fail);
+					}
+					break;
+				}
+				case 'className': {
+					e.className = props[key];
+					break;
+				}
+				case 'htmlFor': {
+					e.setAttribute('for', props[key]);
+					break;
+				}
+				case 'classList':
+				case 'classes': {
+					if (!Array.isArray(props[key])) props[key] = [props[key]];
+					e.classList.add(...props[key]);
+					break;
+				}
+				case 'children': {
+					if (!Array.isArray(props[key])) props[key] = [props[key]];
+					e.append.apply(props[key]);
+					break;
+				}
+				default: {
+					if (isEvent(key)) {
+						const event = normalize(key.slice(2).toLowerCase());
+						e.addEventListener(event, props[key]);
+						break;
+					}
+					if (isDataAttr(key)) {
+						const attr = normalizeDataAttr(key);
+						e.setAttribute(attr, props[key]);
+						break;
+					}
+					e.setAttribute(key, props[key]);
+					break;
+				}
+			}
+		}
+
+		// @ts-ignore
+		e.$$props = props;
 		return e;
 	};
 
@@ -236,12 +318,71 @@ module.exports = (meta) => {
 		};
 	};
 
+	const useAnimationFrame = (callback) => {
+		const cbRef = React.useRef(callback);
+		const frame = React.useRef();
+
+		const animate = React.useCallback((now) => {
+			cbRef.current();
+			frame.current = raf(animate);
+		}, []);
+
+		React.useLayoutEffect(() => {
+			frame.current = raf(animate);
+			return () => frame.current && cancelAnimationFrame(frame.current);
+		}, []);
+	};
+
+	const ErrorBoundary = class ErrorBoundary extends React.Component {
+		state = { hasError: false };
+
+		static getDerivedStateFromError (error) {
+			return { hasError: true };
+		}
+
+		componentDidCatch (error, info) {
+			Logger.error(error, info);
+		}
+
+		render () {
+			if (this.state.hasError) return React.createElement('div', { className: `${meta.name}-error` }, 'Component Error');
+			// @ts-ignore
+			return this.props.children;
+		}
+	};
+
+	const WrapBoundary = (Original) => (props) => React.createElement(ErrorBoundary, null, React.createElement(Original, props));
+
+	/**
+	 * @returns {!React.ElementType<HTMLElement>}
+	 */
+	const Viewer = () => {
+		const [state, setState] = React.useState(getData);
+		const update = React.useCallback(() => setState(getData), []);
+		const ref = React.useRef();
+
+		useAnimationFrame(update);
+
+		return React.createElement('div', {
+			id: 'dv-main',
+			ref: ref,
+			key: 'dv_viewer_main',
+			children: [
+				React.createElement('span', { key: 'dv_viewer_time', className: 'dv-time' }, state.time),
+				React.createElement('span', { key: 'dv_viewer_date', className: 'dv-date' }, state.date),
+				React.createElement('span', { key: 'dv_viewer_weekday', className: 'dv-weekday' }, state.weekday)
+			]
+		});
+	};
+
+	const WrappedViewer = WrapBoundary(Viewer);
+
 	const dataZero = getData();
 	const viewRoot = create('div', { id: 'dv-mount' });
 	const viewMain = create('div', { id: 'dv-main' });
-	const time = create('span', { className: 'dv-time', textContent: dataZero.time });
-	const date = create('span', { className: 'dv-date', textContent: dataZero.date });
-	const weekday = create('span', { className: 'dv-weekday', textContent: dataZero.weekday });
+	const time = create('span', { class: 'dv-time' }, dataZero.time);
+	const date = create('span', { class: 'dv-date' }, dataZero.date);
+	const weekday = create('span', { class: 'dv-weekday' }, dataZero.weekday);
 	viewMain.append(time, date, weekday);
 	viewRoot.append(viewMain);
 
@@ -264,18 +405,27 @@ module.exports = (meta) => {
 		setData();
 		ref.current = raf(teeUpdates);
 	};
-	const cancelUpdates = () => cancelAnimationFrame(ref.current);
+	const cancelUpdates = () => ref.current && cancelAnimationFrame(ref.current);
+
+	const connect = () => {
+		ReactDOM.render(React.createElement(WrappedViewer, {}), viewRoot);
+	};
+
+	const disconnect = () => {
+		ReactDOM.unmountComponentAtNode(viewRoot);
+	};
 
 	const onStart = () => {
 		DOM.addStyle(style);
 		appendRoot();
-		teeUpdates();
+		connect(); // teeUpdates();
 	};
 
 	const onStop = () => {
 		DOM.removeStyle();
 		cancelUpdates();
 		removeRoot();
+		disconnect();
 	};
 
 	/* Build */
@@ -291,7 +441,7 @@ module.exports = (meta) => {
 		},
 		/**
 		 * Global observer provided by BD.
-		 * @param {MutationRecord} change
+		 * @param {!MutationRecord} change
 		 */
 		observer (change) {
 			if (!viewRoot.isConnected) raf(() => appendRoot());
