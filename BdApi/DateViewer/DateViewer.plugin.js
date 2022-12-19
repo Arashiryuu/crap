@@ -151,7 +151,7 @@ module.exports = (meta) => {
 		const e = document.createElement(type);
 
 		if (toString.call(props) !== '[object Object]') {
-			if (children.length) e.append.apply(children);
+			if (children.length) e.append(...children);
 			return e;
 		}
 
