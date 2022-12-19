@@ -1,7 +1,7 @@
 /**
  * @name DateViewer
  * @author Arashiryuu
- * @version 1.0.0
+ * @version 1.0.1
  * @description Displays the current date, weekday, and time.
  * @authorId 238108500109033472
  * @authorLink https://github.com/Arashiryuu
@@ -64,6 +64,8 @@ module.exports = (meta) => {
 	// @ts-ignore
 	const Api = new BdApi(meta.name);
 	const { UI, DOM, Data, React, Utils, Themes, Plugins, Patcher, Webpack, ReactDOM, ReactUtils, ContextMenu } = Api;
+	const { createElement: ce, useRef, useMemo, useState, useEffect, useReducer, useLayoutEffect } = React;
+	const { render, unmountComponentAtNode: unmount } = ReactDOM;
 	const { Filters, getModule, waitForModule } = Webpack;
 
 	const raf = requestAnimationFrame;
@@ -138,6 +140,111 @@ module.exports = (meta) => {
 	const getProp = (obj, path) => path.split(/\s?\.\s?/g).reduce((o, prop) => o && o[prop], obj);
 
 	/**
+	 * A `document.createElement` helper function.
+	 * @param {!string} type 
+	 * @param {!object} props
+	 * @param {!(string | Node)[]} [children]
+	 * @returns {!HTMLElement}
+	 */
+	const create = (type = 'div', props = {}, ...children) => {
+		if (typeof type !== 'string') type = 'div';
+		const e = document.createElement(type);
+
+		if (toString.call(props) !== '[object Object]') {
+			if (children.length) e.append.apply(children);
+			return e;
+		}
+
+		if (!has.call(props, 'children') && children.length) {
+			e.append(...children);
+		}
+
+		/**
+		 * @param {!string} key
+		 * @returns {!string}
+		 */
+		const normalize = (key) => key === 'doubleclick'
+			? 'dblclick'
+			: key;
+
+		/**
+		 * @param {!string} key 
+		 * @returns {!boolean}
+		 */
+		const isEvent = (key) => key.slice(0, 2) === 'on' && key[2] === key[2].toUpperCase();
+
+		/**
+		 * @param {!string} key
+		 * @returns {!boolean}
+		 */
+		const isDataAttr = (key) => key.startsWith('data') && key.toLowerCase() !== key; // dataId
+
+		/**
+		 * @param {!string} key
+		 * @returns {!string} key
+		 */
+		const normalizeDataAttr = (key) => key.replace(/([A-Z]{1})/g, '-$1').toLowerCase();
+
+		for (const key of Object.keys(props)) {
+			switch (key) {
+				case 'text': {
+					e.textContent = props[key];
+					break;
+				}
+				case 'style': {
+					if (typeof props[key] === 'string') {
+						e.setAttribute(key, props[key]);
+						break;
+					}
+					try {
+						Object.assign(e[key], props[key]);
+					} catch (fail) {
+						Logger.error(fail);
+					}
+					break;
+				}
+				case 'className': {
+					e.className = props[key];
+					break;
+				}
+				case 'htmlFor': {
+					e.setAttribute('for', props[key]);
+					break;
+				}
+				case 'classList':
+				case 'classes': {
+					if (!Array.isArray(props[key])) props[key] = [props[key]];
+					e.classList.add(...props[key]);
+					break;
+				}
+				case 'children': {
+					if (!Array.isArray(props[key])) props[key] = [props[key]];
+					e.append.apply(props[key]);
+					break;
+				}
+				default: {
+					if (isEvent(key)) {
+						const event = normalize(key.slice(2).toLowerCase());
+						e.addEventListener(event, props[key]);
+						break;
+					}
+					if (isDataAttr(key)) {
+						const attr = normalizeDataAttr(key);
+						e.setAttribute(attr, props[key]);
+						break;
+					}
+					e.setAttribute(key, props[key]);
+					break;
+				}
+			}
+		}
+
+		// @ts-ignore
+		e.$$props = props;
+		return e;
+	};
+
+	/**
 	 * @type {Plugin}
 	 */
 	const plugin = NullObject('Plugin');
@@ -151,7 +258,7 @@ module.exports = (meta) => {
 	 */
 	const toSelector = (className) => '.' + className.split(' ').join('.');
 
-	const memberListClasses = Webpack.getModule(Webpack.Filters.byProps('members', 'container'));
+	const memberListClasses = Webpack.getModule(Filters.byProps('members', 'container'));
 	/**
 	 * Current selector for the member-list.
 	 */
@@ -207,112 +314,125 @@ module.exports = (meta) => {
 		}
 	`);
 
-	/**
-	 * A `document.createElement` helper function.
-	 * @param {!string} type 
-	 * @param {!object} props
-	 * @param {!(string | Node)[]} [children]
-	 * @returns {!HTMLElement}
-	 */
-	const create = (type = 'div', props = {}, ...children) => {
-		if (typeof type !== 'string') type = 'div';
-		const e = document.createElement(type);
-
-		if (toString.call(props) !== '[object Object]') {
-			if (children.length) e.append.apply(children);
-			return e;
-		}
-
-		if (!has.call(props, 'children') && children.length) {
-			e.append(...children);
-		}
-
-		/**
-		 * @param {!string} key
-		 * @returns {!string}
-		 */
-		const normalize = (key) => key === 'doubleclick'
-			? 'dblclick'
-			: key;
-
-		/**
-		 * @param {!string} key 
-		 * @returns {!boolean}
-		 */
-		const isEvent = (key) => key.slice(0, 2) === 'on' && key[2] === key[2].toUpperCase();
-
-		/**
-		 * @param {!string} key
-		 * @returns {!boolean}
-		 */
-		const isDataAttr = (key) => key.startsWith('data') && key.toLowerCase() !== key; // dataId
-
-		/**
-		 * @param {!string} key
-		 * @returns {!string} key
-		 */
-		const normalizeDataAttr = (key) => key.replace(/([A-Z]{1})/g, '-$1').toLowerCase();
-
-		for (const key of Object.keys(props)) {
-			switch (key) {
-				case 'text': {
-					e.textContent = props[key];
-					break;
-				}
-				case 'style': {
-					try {
-						Object.assign(e[key], props[key]);
-					} catch (fail) {
-						Logger.error(fail);
-					}
-					break;
-				}
-				case 'className': {
-					e.className = props[key];
-					break;
-				}
-				case 'htmlFor': {
-					e.setAttribute('for', props[key]);
-					break;
-				}
-				case 'classList':
-				case 'classes': {
-					if (!Array.isArray(props[key])) props[key] = [props[key]];
-					e.classList.add(...props[key]);
-					break;
-				}
-				case 'children': {
-					if (!Array.isArray(props[key])) props[key] = [props[key]];
-					e.append.apply(props[key]);
-					break;
-				}
-				default: {
-					if (isEvent(key)) {
-						const event = normalize(key.slice(2).toLowerCase());
-						e.addEventListener(event, props[key]);
-						break;
-					}
-					if (isDataAttr(key)) {
-						const attr = normalizeDataAttr(key);
-						e.setAttribute(attr, props[key]);
-						break;
-					}
-					e.setAttribute(key, props[key]);
-					break;
-				}
-			}
-		}
-
-		// @ts-ignore
-		e.$$props = props;
-		return e;
+	/* Settings */
+	
+	const defaults = {
+		hour12: false
 	};
+	let settings = Utils.extend({}, defaults);
+
+	const Discord = {
+		Switch: Webpack.getModule(Filters.byStrings('.value', '.disabled', '.onChange', '.labelRow'))
+	};
+
+	/**
+	 * Fragment helper, only accepts a child elements array and sets no extra props on the fragment.
+	 * @param {React.ReactElement[]} [children]
+	 * @returns {!React.ReactFragment}
+	 */
+	const Fragment = (children = []) => ce(React.Fragment, { children });
+
+	/**
+	 * @param {!object} props
+	 * @returns {!React.ReactFragment}
+	 */
+	const Switch = (props) => {
+		const { label = 'Switch label', note = 'Switch note', checked = false, onChange = (e) => console.log(e) } = props;
+		const [state, setState] = useState(checked);
+		return ce(Discord.Switch, {
+			...props,
+			children: label,
+			value: state,
+			hideBorder: false,
+			/** @param {!Event} e */
+			onChange: (e) => {
+				onChange(e);
+				// @ts-ignore
+				setState(() => e);
+			}
+		});
+		// return Fragment([
+		// 	ce('label', {
+		// 		className: 'bd-plugin-switch__label',
+		// 		htmlFor: 'bd-plugin-switch__switch',
+		// 		style: {
+		// 			color: 'var(--header-primary)'
+		// 		}
+		// 	}, label),
+		// 	ce('input', {
+		// 		className: 'bd-plugin-switch',
+		// 		type: 'checkbox',
+		// 		name: 'bd-plugin-switch__switch',
+		// 		checked: state,
+		// 		/** @param {!Event} e */
+		// 		onChange: (e) => {
+		// 			// @ts-ignore
+		// 			const c = e.target.checked;
+		// 			onChange(c);
+		// 			setState(() => c);
+		// 		}
+		// 	}),
+		// 	ce('div', {
+		// 		className: 'bd-plugin-note',
+		// 		style: {
+		// 			color: 'var(--text-normal)'
+		// 		}
+		// 	}, note)
+		// ]);
+	};
+
+	/**
+	 * @returns {!React.ElementType<HTMLElement>}
+	 */
+	const Settings = (props) => {
+		const { 1: forceUpdate } = useReducer((x) => x + 1, 0);
+		
+		return ce('div', {
+			key: 'Plugin-Settings',
+			children: [
+				ce(Switch, {
+					label: '12 Hour Time Format',
+					note: 'Whether to use 12 hour time, or 24 hour time.',
+					checked: settings.hour12,
+					/** @param {!boolean} e */
+					onChange: (e) => {
+						settings.hour12 = e;
+					}
+				})
+			],
+			/** @param {!Event} e */
+			onChange: (e) => {
+				if (typeof props.onChange === 'function') props.onChange(e);
+				forceUpdate();
+			}
+		});
+	};
+
+	const settingRoot = create('div', { id: `__${meta.name}-react-settings-root__` });
+
+	/**
+	 * Indicates whether a node was removed.
+	 * @param {!NodeListOf<Node>} removed
+	 * @param {!Node} root
+	 * @returns {!boolean}
+	 */
+	const isCleared = (removed, root) => {
+		if (!removed.length) return false;
+		// @ts-ignore
+		for (let i = 0; i < removed.length; i++) {
+			const node = removed[i];
+			if (node.contains(root)) return true;
+		}
+		return false;
+	};
+
+	/* Setup Cont. */
 
 	const getData = () => {
 		const d = new Date();
 		const l = document.documentElement.lang;
 		return {
-			time: d.toLocaleTimeString(l, { hour12: false }),
+			time: d.toLocaleTimeString(l, { hour12: settings.hour12 }),
 			date: d.toLocaleDateString(l, { day: '2-digit', month: '2-digit', year: 'numeric' }),
 			weekday: d.toLocaleDateString(l, { weekday: 'long' })
 		};
@@ -433,17 +553,26 @@ module.exports = (meta) => {
 	Object.assign(plugin, {
 		start () {
 			promises.restore();
+			settings = Data.load('settings') ?? Utils.extend({}, defaults);
 			raf(onStart);
 		},
 		stop () {
 			promises.cancel();
 			raf(onStop);
 		},
+		getSettingsPanel () {
+			const panel = ce(Settings, {
+				onChange: () => Data.save('settings', settings)
+			});
+			render(panel, settingRoot);
+			return settingRoot;
+		},
 		/**
 		 * Global observer provided by BD.
 		 * @param {!MutationRecord} change
 		 */
 		observer (change) {
+			if (isCleared(change.removedNodes, settingRoot)) unmount(settingRoot);
 			if (!viewRoot.isConnected) raf(() => appendRoot());
 		}
 	});
