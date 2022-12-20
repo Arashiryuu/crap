@@ -64,7 +64,7 @@ module.exports = (meta) => {
 	// @ts-ignore
 	const Api = new BdApi(meta.name);
 	const { UI, DOM, Data, React, Utils, Themes, Plugins, Patcher, Webpack, ReactDOM, ReactUtils, ContextMenu } = Api;
-	const { createElement: ce, useRef, useMemo, useState, useEffect, useReducer, useLayoutEffect } = React;
+	const { createElement: ce, useRef, useMemo, useState, useEffect, useCallback, useReducer, useLayoutEffect } = React;
 	const { render, unmountComponentAtNode: unmount } = ReactDOM;
 	const { Filters, getModule, waitForModule } = Webpack;
 
@@ -177,11 +177,11 @@ module.exports = (meta) => {
 		 * @param {!string} key
 		 * @returns {!boolean}
 		 */
-		const isDataAttr = (key) => key.startsWith('data') && key.toLowerCase() !== key; // dataId
+		const isDataAttr = (key) => key.startsWith('data') && key.toLowerCase() !== key;
 
 		/**
 		 * @param {!string} key
-		 * @returns {!string} key
+		 * @returns {!string}
 		 */
 		const normalizeDataAttr = (key) => key.replace(/([A-Z]{1})/g, '-$1').toLowerCase();
 
@@ -338,47 +338,16 @@ module.exports = (meta) => {
 	 */
 	const Switch = (props) => {
 		const { label = 'Switch label', note = 'Switch note', checked = false, onChange = (e) => console.log(e) } = props;
-		const [state, setState] = useState(checked);
 		return ce(Discord.Switch, {
 			...props,
 			children: label,
-			value: state,
+			value: checked,
 			hideBorder: false,
-			/** @param {!Event} e */
+			/** @param {!boolean} e */
 			onChange: (e) => {
 				onChange(e);
-				// @ts-ignore
-				setState(() => e);
 			}
 		});
-		// return Fragment([
-		// 	ce('label', {
-		// 		className: 'bd-plugin-switch__label',
-		// 		htmlFor: 'bd-plugin-switch__switch',
-		// 		style: {
-		// 			color: 'var(--header-primary)'
-		// 		}
-		// 	}, label),
-		// 	ce('input', {
-		// 		className: 'bd-plugin-switch',
-		// 		type: 'checkbox',
-		// 		name: 'bd-plugin-switch__switch',
-		// 		checked: state,
-		// 		/** @param {!Event} e */
-		// 		onChange: (e) => {
-		// 			// @ts-ignore
-		// 			const c = e.target.checked;
-		// 			onChange(c);
-		// 			setState(() => c);
-		// 		}
-		// 	}),
-		// 	ce('div', {
-		// 		className: 'bd-plugin-note',
-		// 		style: {
-		// 			color: 'var(--text-normal)'
-		// 		}
-		// 	}, note)
-		// ]);
 	};
 
 	/**
@@ -439,15 +408,21 @@ module.exports = (meta) => {
 	};
 
 	const useAnimationFrame = (callback) => {
-		const cbRef = React.useRef(callback);
-		const frame = React.useRef();
+		/**
+		 * @type {!React.RefObject<() => void>}
+		 */
+		const cbRef = useRef(callback);
+		/**
+		 * @type {!React.MutableRefObject<number>}
+		 */
+		const frame = useRef();
 
-		const animate = React.useCallback((now) => {
+		const animate = useCallback((now) => {
 			cbRef.current();
 			frame.current = raf(animate);
 		}, []);
 
-		React.useLayoutEffect(() => {
+		useLayoutEffect(() => {
 			frame.current = raf(animate);
 			return () => frame.current && cancelAnimationFrame(frame.current);
 		}, []);
@@ -465,37 +440,39 @@ module.exports = (meta) => {
 		}
 
 		render () {
-			if (this.state.hasError) return React.createElement('div', { className: `${meta.name}-error` }, 'Component Error');
+			if (this.state.hasError) return ce('div', { className: `${meta.name}-error` }, 'Component Error');
 			// @ts-ignore
 			return this.props.children;
 		}
 	};
 
-	const WrapBoundary = (Original) => (props) => React.createElement(ErrorBoundary, null, React.createElement(Original, props));
+	const WrapBoundary = (Original) => (props) => ce(ErrorBoundary, null, ce(Original, props));
 
 	/**
-	 * @returns {!React.ElementType<HTMLElement>}
+	 * @returns {!React.ReactHTMLElement<'div'>}
 	 */
 	const Viewer = () => {
-		const [state, setState] = React.useState(getData);
-		const update = React.useCallback(() => setState(getData), []);
-		const ref = React.useRef();
+		const [state, setState] = useState(getData);
+		const update = useCallback(() => setState(getData), []);
+		/**
+		 * @type {!React.ElementRef<'div'>}
+		 */
+		const ref = useRef();
 
 		useAnimationFrame(update);
 
-		return React.createElement('div', {
+		return ce('div', {
 			id: 'dv-main',
 			ref: ref,
 			key: 'dv_viewer_main',
 			children: [
-				React.createElement('span', { key: 'dv_viewer_time', className: 'dv-time' }, state.time),
-				React.createElement('span', { key: 'dv_viewer_date', className: 'dv-date' }, state.date),
-				React.createElement('span', { key: 'dv_viewer_weekday', className: 'dv-weekday' }, state.weekday)
+				ce('span', { key: 'dv_viewer_time', className: 'dv-time' }, state.time),
+				ce('span', { key: 'dv_viewer_date', className: 'dv-date' }, state.date),
+				ce('span', { key: 'dv_viewer_weekday', className: 'dv-weekday' }, state.weekday)
 			]
 		});
 	};
-
-	const WrappedViewer = WrapBoundary(Viewer);
+	Viewer.Wrapped = WrapBoundary(Viewer);
 
 	const dataZero = getData();
 	const viewRoot = create('div', { id: 'dv-mount' });
@@ -528,11 +505,11 @@ module.exports = (meta) => {
 	const cancelUpdates = () => ref.current && cancelAnimationFrame(ref.current);
 
 	const connect = () => {
-		ReactDOM.render(React.createElement(WrappedViewer, {}), viewRoot);
+		render(ce(Viewer.Wrapped, {}), viewRoot);
 	};
 
 	const disconnect = () => {
-		ReactDOM.unmountComponentAtNode(viewRoot);
+		unmount(viewRoot);
 	};
 
 	const onStart = () => {
