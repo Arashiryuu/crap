@@ -14,22 +14,22 @@
 
 /**
  * @typedef Plugin
- * @type {import('./types').Plugin}
+ * @type {!import('./types').Plugin}
  */
 
 /**
  * @typedef MetaData
- * @type {import('./types').MetaData}
+ * @type {!import('./types').MetaData}
  */
 
 /**
  * @typedef Logger
- * @type {import('./types').Logger}
+ * @type {!import('./types').Logger}
  */
 
 /**
  * @typedef PromiseState
- * @type {import('./types').PromiseStateManager}
+ * @type {!import('./types').PromiseStateManager}
  */
 
 /*@cc_on
@@ -57,7 +57,7 @@
 @else@*/
 
 /**
- * @param {MetaData} meta
+ * @param {!MetaData} meta
  * @returns {!Plugin}
  */
 module.exports = (meta) => {
@@ -75,7 +75,7 @@ module.exports = (meta) => {
 	/* Utility */
 
 	/**
-	 * @type {PromiseState}
+	 * @type {!PromiseState}
 	 */
 	const promises = {
 		state: { cancelled: false },
@@ -95,7 +95,7 @@ module.exports = (meta) => {
 	});
 
 	/**
-	 * @type {Logger}
+	 * @type {!Logger}
 	 */
 	// @ts-ignore
 	const Logger = NullObject('Logger');
@@ -245,7 +245,7 @@ module.exports = (meta) => {
 	};
 
 	/**
-	 * @type {Plugin}
+	 * @type {!Plugin}
 	 */
 	const plugin = NullObject('Plugin');
 
@@ -312,6 +312,23 @@ module.exports = (meta) => {
 		${memberListSelector} {
 			margin-bottom: 95px;
 		}
+		/* Error Component */
+		.${meta.name}-error {
+			width: 100vmin;
+			display: flex;
+			place-content: center;
+			place-items: center;
+			flex-flow: wrap row;
+			color: red;
+			font-size: 18px;
+			font-weight: 600;
+			text-shadow: 0 0 1px black, 0 0 2px black, 0 0 3px black,
+						 0 0 1px black, 0 0 2px black, 0 0 3px black,
+						 0 0 1px black, 0 0 2px black, 0 0 3px black;
+		}
+		.${meta.name}-error span {
+			font-size: smaller;
+		}
 	`);
 
 	/* Settings */
@@ -327,7 +344,7 @@ module.exports = (meta) => {
 
 	/**
 	 * Fragment helper, only accepts a child elements array and sets no extra props on the fragment.
-	 * @param {React.ReactElement[]} [children]
+	 * @param {!React.ReactNode[]} [children]
 	 * @returns {!React.ReactFragment}
 	 */
 	const Fragment = (children = []) => ce(React.Fragment, { children });
@@ -351,7 +368,8 @@ module.exports = (meta) => {
 	};
 
 	/**
-	 * @returns {!React.ElementType<HTMLElement>}
+	 * @param {!React.ComponentProps<'div'>} props
+	 * @returns {!React.ReactHTMLElement<'div'>}
 	 */
 	const Settings = (props) => {
 		const { 1: forceUpdate } = useReducer((x) => x + 1, 0);
@@ -369,7 +387,7 @@ module.exports = (meta) => {
 					}
 				})
 			],
-			/** @param {!Event} e */
+			/** @param {!React.FormEvent<HTMLDivElement>} e */
 			onChange: (e) => {
 				if (typeof props.onChange === 'function') props.onChange(e);
 				forceUpdate();
@@ -431,16 +449,29 @@ module.exports = (meta) => {
 	const ErrorBoundary = class ErrorBoundary extends React.Component {
 		state = { hasError: false };
 
+		/**
+		 * @param {!Error} error
+		 */
 		static getDerivedStateFromError (error) {
 			return { hasError: true };
 		}
 
+		/**
+		 * @param {!Error} error
+		 * @param {!React.ErrorInfo} info
+		 */
 		componentDidCatch (error, info) {
 			Logger.error(error, info);
 		}
 
 		render () {
-			if (this.state.hasError) return ce('div', { className: `${meta.name}-error` }, 'Component Error');
+			if (this.state.hasError) return ce('div', {
+				className: `${meta.name}-error`,
+				children: [
+					'Component Error',
+					ce('span', {}, '(see console for details)')
+				]
+			});
 			// @ts-ignore
 			return this.props.children;
 		}
