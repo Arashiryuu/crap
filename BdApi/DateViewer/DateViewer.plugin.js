@@ -1,7 +1,7 @@
 /**
  * @name DateViewer
  * @author Arashiryuu
- * @version 1.0.1
+ * @version 1.0.2
  * @description Displays the current date, weekday, and time.
  * @authorId 238108500109033472
  * @authorLink https://github.com/Arashiryuu
@@ -65,12 +65,21 @@ module.exports = (meta) => {
 	const Api = new BdApi(meta.name);
 	const { UI, DOM, Data, React, Utils, Themes, Plugins, Patcher, Webpack, ReactDOM, ReactUtils, ContextMenu } = Api;
 	const { createElement: ce, useRef, useMemo, useState, useEffect, useCallback, useReducer, useLayoutEffect } = React;
-	const { render, unmountComponentAtNode: unmount } = ReactDOM;
-	const { Filters, getModule, waitForModule } = Webpack;
+	const { render, findDOMNode, unmountComponentAtNode: unmount } = ReactDOM;
+	const { getModule, waitForModule } = Webpack;
+
+	const Filters = Object.create(Webpack.Filters);
+	Object.assign(Filters, {
+		byName: (name) => Filters.byDisplayName(name),
+		byStore: (name) => (m) => m?._dispatchToken && m?.getName() === name,
+		byProtos: (...protos) => Filters.byPrototypeFields(...protos)
+	});
 
 	const raf = requestAnimationFrame;
 	const has = Object.prototype.hasOwnProperty;
 	const toString = Object.prototype.toString;
+
+	const { inspect } = getModule(Filters.byProps('inspect', 'promisify'));
 
 	/* Utility */
 
@@ -84,12 +93,13 @@ module.exports = (meta) => {
 	};
 
 	/**
-	 * Creates clean objects with a Symbol.toStringTag value describing the object.
+	 * Creates clean objects with a `Symbol.toStringTag` value describing the object.
 	 * @param {!string} value
 	 * @returns {!object}
 	 */
 	const NullObject = (value = 'NullObject') => Object.create(null, {
 		[Symbol.toStringTag]: {
+			enumerable: false,
 			value
 		}
 	});
@@ -100,7 +110,6 @@ module.exports = (meta) => {
 	// @ts-ignore
 	const Logger = NullObject('Logger');
 	{
-		const levels = ['log', 'info', 'warn', 'debug', 'error'];
 		/**
 		 * @param {!string} label 
 		 * @returns {!string[]}
@@ -111,13 +120,25 @@ module.exports = (meta) => {
 			'',
 			new Date().toUTCString()
 		];
-		for (const level of levels) {
+		for (const level of ['log', 'info', 'warn', 'debug', 'error']) {
 			Logger[level] = (function () {
-				console.groupCollapsed.apply(null, useParts(meta.name));
+				console.groupCollapsed(...useParts(meta.name));
 				console[level].apply(null, arguments);
 				console.groupEnd();
 			}).bind(Logger);
 		}
+		Logger.dir = (...n) => {
+			console.groupCollapsed(...useParts(meta.name));
+			for (const item of n) console.dir(item);
+			console.groupEnd();
+		};
+		// @ts-ignore
+		Logger.ins = (...n) => {
+			const inspected = n.map((item) => inspect(item, { colors: true }));
+			console.groupCollapsed(...useParts(meta.name));
+			for (const item of inspected) console.log(item);
+			console.groupEnd();
+		};
 	}
 
 	/**
@@ -160,14 +181,6 @@ module.exports = (meta) => {
 		}
 
 		/**
-		 * @param {!string} key
-		 * @returns {!string}
-		 */
-		const normalize = (key) => key === 'doubleclick'
-			? 'dblclick'
-			: key;
-
-		/**
 		 * @param {!string} key 
 		 * @returns {!boolean}
 		 */
@@ -178,6 +191,14 @@ module.exports = (meta) => {
 		 * @returns {!boolean}
 		 */
 		const isDataAttr = (key) => key.startsWith('data') && key.toLowerCase() !== key;
+
+		/**
+		 * @param {!string} key
+		 * @returns {!string}
+		 */
+		const normalizeEvent = (key) => key === 'doubleclick'
+			? 'dblclick'
+			: key;
 
 		/**
 		 * @param {!string} key
@@ -224,7 +245,7 @@ module.exports = (meta) => {
 				}
 				default: {
 					if (isEvent(key)) {
-						const event = normalize(key.slice(2).toLowerCase());
+						const event = normalizeEvent(key.slice(2).toLowerCase());
 						e.addEventListener(event, props[key]);
 						break;
 					}
@@ -247,7 +268,7 @@ module.exports = (meta) => {
 	/**
 	 * @type {!Plugin}
 	 */
-	const plugin = NullObject('Plugin');
+	const plugin = NullObject(meta.name);
 
 	/* Setup */
 
@@ -256,9 +277,9 @@ module.exports = (meta) => {
 	 * @param {!string} className
 	 * @returns {!string}
 	 */
-	const toSelector = (className) => '.' + className.split(' ').join('.');
+	const toSelector = (className) => `.${className.split(' ').join('.')}`;
 
-	const memberListClasses = Webpack.getModule(Filters.byProps('members', 'container'));
+	const memberListClasses = getModule(Filters.byProps('members', 'container'));
 	/**
 	 * Current selector for the member-list.
 	 */
@@ -266,12 +287,16 @@ module.exports = (meta) => {
 
 	/**
 	 * CSS formatter helper.
-	 * @param {!string} ss 
+	 * @param {!TemplateStringsArray} ss
 	 * @returns {!string}
 	 */
-	const css = (ss = '') => ss.split(/\s+/g).join(' ').trim();
+	const css = (ss, ...vars) => {
+		let string = '';
+		for (let i = 0, len = ss.length; i < len; i++) string += `${ss[i]}${vars[i] ?? ''}`;
+		return string.split(/\s+/g).join(' ').trim();
+	};
 
-	const style = css(`
+	const style = css`
 		#dv-mount {
 			background-color: #2f3136;
 			bottom: 0;
@@ -315,6 +340,7 @@ module.exports = (meta) => {
 		/* Error Component */
 		.${meta.name}-error {
 			width: 100vmin;
+			height: 100%;
 			display: flex;
 			place-content: center;
 			place-items: center;
@@ -326,10 +352,7 @@ module.exports = (meta) => {
 						 0 0 1px black, 0 0 2px black, 0 0 3px black,
 						 0 0 1px black, 0 0 2px black, 0 0 3px black;
 		}
-		.${meta.name}-error span {
-			font-size: smaller;
-		}
-	`);
+	`;
 
 	/* Settings */
 	
@@ -338,9 +361,19 @@ module.exports = (meta) => {
 	};
 	let settings = Utils.extend({}, defaults);
 
+	/**
+	 * Discord Components
+	 */
 	const Discord = {
-		Switch: Webpack.getModule(Filters.byStrings('.value', '.disabled', '.onChange', '.labelRow'))
+		Switch: getModule(Filters.byStrings('.value', '.disabled', '.onChange', '.tooltipNote'), { searchExports: true }),
+		TooltipWrapper: getModule(Filters.byProtos('renderTooltip'))
 	};
+
+	/**
+	 * Custom hook wrapper for forceUpdate functionality.
+	 * @returns {!React.DispatchWithoutAction}
+	 */
+	const useForceUpdate = () => useReducer((x) => x + 1, 0).pop();
 
 	/**
 	 * Fragment helper, only accepts a child elements array and sets no extra props on the fragment.
@@ -354,7 +387,8 @@ module.exports = (meta) => {
 	 * @returns {!React.ReactFragment}
 	 */
 	const Switch = (props) => {
-		const { label = 'Switch label', note = 'Switch note', checked = false, onChange = (e) => console.log(e) } = props;
+		const { label = 'Switch label', note = 'Switch note', checked = false, onChange = console.log } = props;
+
 		return ce(Discord.Switch, {
 			...props,
 			children: label,
@@ -372,8 +406,8 @@ module.exports = (meta) => {
 	 * @returns {!React.ReactHTMLElement<'div'>}
 	 */
 	const Settings = (props) => {
-		const { 1: forceUpdate } = useReducer((x) => x + 1, 0);
-		
+		const forceUpdate = useForceUpdate();
+
 		return ce('div', {
 			key: 'Plugin-Settings',
 			children: [
@@ -395,6 +429,9 @@ module.exports = (meta) => {
 		});
 	};
 
+	/**
+	 * Root element for plugin settings.
+	 */
 	const settingRoot = create('div', { id: `__${meta.name}-react-settings-root__` });
 
 	/**
@@ -427,7 +464,7 @@ module.exports = (meta) => {
 
 	const useAnimationFrame = (callback) => {
 		/**
-		 * @type {!React.RefObject<() => void>}
+		 * @type {!React.RefObject<VoidFunction>}
 		 */
 		const cbRef = useRef(callback);
 		/**
@@ -465,12 +502,18 @@ module.exports = (meta) => {
 		}
 
 		render () {
-			if (this.state.hasError) return ce('div', {
-				className: `${meta.name}-error`,
-				children: [
-					'Component Error',
-					ce('span', {}, '(see console for details)')
-				]
+			if (this.state.hasError) return ce(Discord.TooltipWrapper, {
+				text: 'See console for details.',
+				children: (props) => {
+					return ce('div', {
+						className: `${meta.name}-error`,
+						children: [
+							'Component Error'
+						],
+						...props
+					});
+				},
+				...Discord.TooltipWrapper.defaultProps
 			});
 			// @ts-ignore
 			return this.props.children;
@@ -536,7 +579,7 @@ module.exports = (meta) => {
 	const cancelUpdates = () => ref.current && cancelAnimationFrame(ref.current);
 
 	const connect = () => {
-		render(ce(Viewer.Wrapped, {}), viewRoot);
+		render(ce(Viewer.Wrapped, { key: `${meta.name}-Boundary` }), viewRoot);
 	};
 
 	const disconnect = () => {
@@ -581,7 +624,7 @@ module.exports = (meta) => {
 		 */
 		observer (change) {
 			if (isCleared(change.removedNodes, settingRoot)) unmount(settingRoot);
-			if (!viewRoot.isConnected) raf(() => appendRoot());
+			if (!viewRoot.isConnected) raf(appendRoot);
 		}
 	});
 
