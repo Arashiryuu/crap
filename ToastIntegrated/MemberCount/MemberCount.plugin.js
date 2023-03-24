@@ -11,7 +11,7 @@
 
 /*@cc_on
 @if (@_jscript)
-	
+
 	// Offer to self-install for clueless users that try to run this directly.
 	var shell = WScript.CreateObject('WScript.Shell');
 	var fs = new ActiveXObject('Scripting.FileSystemObject');
@@ -112,7 +112,7 @@ var MemberCount = (() => {
 			}
 		]
 	};
-	
+
 	const [log, err] = (() => {
 		const levels = ['log', 'error'];
 		const getParts = () => [
@@ -135,8 +135,6 @@ var MemberCount = (() => {
 		const { SettingPanel, SettingGroup, SettingField, Textbox, Switch, RadioGroup } = Settings;
 		const { React, ReactDOM, Dispatcher, DiscordConstants, MemberCountStore, SelectedGuildStore, ContextMenuActions: MenuActions } = DiscordModules;
 		const { PureComponent, createElement, useRef, useState, useEffect, useReducer } = React;
-		const { ActionTypes } = DiscordConstants;
-		const { useStateFromStoresArray } = WebpackModules.getByProps('Dispatcher', 'Store', 'useStateFromStores');
 
 		const has = Object.prototype.hasOwnProperty;
 		const LangUtils = WebpackModules.getByProps('getLocale', 'getLanguages');
@@ -246,7 +244,7 @@ var MemberCount = (() => {
 				)
 			]
 		});
-		
+
 		const useStrings = () => {
 			const [lang] = LangUtils.getLocale().split('-');
 			return config.strings[lang] ?? config.strings.en;
@@ -260,7 +258,7 @@ var MemberCount = (() => {
 			const strings = useStrings();
 			const id = SelectedGuildStore.getGuildId();
 
-			const [online] = useStateFromStoresArray([GuildPopoutStore], () => [
+			const [online] = useState([GuildPopoutStore], () => [
 				GuildPopoutStore.getGuild(id)?.presenceCount
 			]);
 
@@ -347,7 +345,7 @@ var MemberCount = (() => {
 					? '40px'
 					: '60px';
 		};
-		
+
 		return class MemberCount extends Plugin {
 			constructor() {
 				super();
@@ -393,7 +391,7 @@ var MemberCount = (() => {
 				const isThread = (props) => {
 					return !props['data-list-id'] && props.className.startsWith('members');
 				};
-				
+
 				Patcher.after(Lists.ListThin, 'render', (that, args, value) => {
 					const val = Array.isArray(value)
 						? value.find((item) => item && !item.key)
@@ -428,7 +426,7 @@ var MemberCount = (() => {
 						return value;
 					}
 
-					
+
 					const valProps = this.getProps(val, 'props');
 					if (!valProps['data-list-id']?.startsWith('members')) return value;
 
@@ -747,12 +745,12 @@ var MemberCount = (() => {
 
 	/* Finalize */
 
-	return !global.ZeresPluginLibrary 
+	return !global.ZeresPluginLibrary
 		? class {
 			constructor() {
 				this._config = config;
 			}
-			
+
 			getName() {
 				return this.name.replace(/\s+/g, '');
 			}
