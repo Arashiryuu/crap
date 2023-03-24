@@ -134,7 +134,7 @@ var MemberCount = (() => {
 		const { Toasts, Logger, Patcher, Settings, Utilities, DOMTools, ReactTools, ContextMenu, ReactComponents, DiscordModules, DiscordClasses, WebpackModules, DiscordSelectors, PluginUtilities } = Api;
 		const { SettingPanel, SettingGroup, SettingField, Textbox, Switch, RadioGroup } = Settings;
 		const { React, ReactDOM, Dispatcher, DiscordConstants, MemberCountStore, SelectedGuildStore, ContextMenuActions: MenuActions } = DiscordModules;
-		const { PureComponent, createElement, useRef, useState, useEffect, useReducer } = React;
+		const { PureComponent, createElement, useRef, useEffect, useReducer } = React;
 
 		const has = Object.prototype.hasOwnProperty;
 		const LangUtils = WebpackModules.getByProps('getLocale', 'getLanguages');
@@ -257,10 +257,6 @@ var MemberCount = (() => {
 			const ref = useRef();
 			const strings = useStrings();
 			const id = SelectedGuildStore.getGuildId();
-
-			const [online] = useState([GuildPopoutStore], () => [
-				GuildPopoutStore.getGuild(id)?.presenceCount
-			]);
 
 			useEffect(() => {
 				if (!online && !GuildPopoutStore.isFetchingGuild(id)) {
