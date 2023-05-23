@@ -1,7 +1,7 @@
 /**
  * @name DateViewer
  * @author Arashiryuu
- * @version 1.0.2
+ * @version 1.0.3
  * @description Displays the current date, weekday, and time.
  * @authorId 238108500109033472
  * @authorLink https://github.com/Arashiryuu
@@ -70,9 +70,10 @@ module.exports = (meta) => {
 
 	const Filters = Object.create(Webpack.Filters);
 	Object.assign(Filters, {
+		byId: (id) => (...m) => m.pop() === String(id),
 		byName: (name) => Filters.byDisplayName(name),
 		byStore: (name) => (m) => m?._dispatchToken && m?.getName() === name,
-		byProtos: (...protos) => Filters.byPrototypeFields(...protos)
+		byProtos: Filters.byPrototypeFields
 	});
 
 	const raf = requestAnimationFrame;
@@ -84,6 +85,16 @@ module.exports = (meta) => {
 	/* Utility */
 
 	/**
+	 * 
+	 * @param {!object} instance
+	 * @returns {void}
+	 */
+	const applyBinds = (instance) => {
+		const methods = Object.getOwnPropertyNames(instance).filter((name) => typeof instance[name] === 'function');
+		for (const method of methods) instance[method] = instance[method].bind(instance);
+	};
+
+	/**
 	 * @type {!PromiseState}
 	 */
 	const promises = {
@@ -91,13 +102,14 @@ module.exports = (meta) => {
 		cancel () { this.state.cancelled = true; },
 		restore () { this.state.cancelled = false; }
 	};
+	applyBinds(promises);
 
 	/**
 	 * Creates clean objects with a `Symbol.toStringTag` value describing the object.
 	 * @param {!string} value
 	 * @returns {!object}
 	 */
-	const NullObject = (value = 'NullObject') => Object.create(null, {
+	const _Object = (value = 'NullObject') => Object.create(null, {
 		[Symbol.toStringTag]: {
 			enumerable: false,
 			value
@@ -108,7 +120,7 @@ module.exports = (meta) => {
 	 * @type {!Logger}
 	 */
 	// @ts-ignore
-	const Logger = NullObject('Logger');
+	const Logger = _Object('Logger');
 	{
 		/**
 		 * @param {!string} label 
@@ -121,11 +133,11 @@ module.exports = (meta) => {
 			new Date().toUTCString()
 		];
 		for (const level of ['log', 'info', 'warn', 'debug', 'error']) {
-			Logger[level] = (function () {
+			Logger[level] = function () {
 				console.groupCollapsed(...useParts(meta.name));
 				console[level].apply(null, arguments);
 				console.groupEnd();
-			}).bind(Logger);
+			};
 		}
 		Logger.dir = (...n) => {
 			console.groupCollapsed(...useParts(meta.name));
@@ -139,19 +151,8 @@ module.exports = (meta) => {
 			for (const item of inspected) console.log(item);
 			console.groupEnd();
 		};
+		applyBinds(Logger);
 	}
-
-	/**
-	 * 
-	 * @param {!object} instance
-	 * @returns {void}
-	 */
-	const applyBinds = (instance) => {
-		const methods = Object.getOwnPropertyNames(instance).filter((name) => typeof instance[name] === 'function');
-		for (const method of methods) instance[method] = instance[method].bind(instance);
-	};
-
-	applyBinds(promises);
 
 	/**
 	 * @param {!object} obj
@@ -161,15 +162,26 @@ module.exports = (meta) => {
 	const getProp = (obj, path) => path.split(/\s?\.\s?/g).reduce((o, prop) => o && o[prop], obj);
 
 	/**
+	 * Generates a DOM element.
+	 * @param {!string} type
+	 * @returns {!(HTMLElement | SVGElement)}
+	 */
+	const getElement = (type = 'div') => {
+		const e = document.createElement(type);
+		if (e instanceof HTMLUnknownElement) return document.createElementNS('http://www.w3.org/2000/svg', type);
+		return e;
+	};
+
+	/**
 	 * A `document.createElement` helper function.
 	 * @param {!string} type 
 	 * @param {!object} props
 	 * @param {!(string | Node)[]} [children]
-	 * @returns {!HTMLElement}
+	 * @returns {!(HTMLElement | SVGElement)}
 	 */
 	const create = (type = 'div', props = {}, ...children) => {
 		if (typeof type !== 'string') type = 'div';
-		const e = document.createElement(type);
+		const e = getElement(type);
 
 		if (toString.call(props) !== '[object Object]') {
 			if (children.length) e.append(...children);
@@ -224,14 +236,11 @@ module.exports = (meta) => {
 					}
 					break;
 				}
-				case 'className': {
-					e.className = props[key];
-					break;
-				}
 				case 'htmlFor': {
 					e.setAttribute('for', props[key]);
 					break;
 				}
+				case 'className':
 				case 'classList':
 				case 'classes': {
 					if (!Array.isArray(props[key])) props[key] = [props[key]];
@@ -268,7 +277,7 @@ module.exports = (meta) => {
 	/**
 	 * @type {!Plugin}
 	 */
-	const plugin = NullObject(meta.name);
+	const plugin = _Object(meta.name);
 
 	/* Setup */
 
@@ -302,7 +311,7 @@ module.exports = (meta) => {
 			bottom: 0;
 			box-sizing: border-box;
 			display: flex;
-			height: 95px;
+			height: 95px !important;
 			justify-content: center;
 			position: fixed;
 			width: 240px;
@@ -366,7 +375,7 @@ module.exports = (meta) => {
 	 */
 	const Discord = {
 		Switch: getModule(Filters.byStrings('.value', '.disabled', '.onChange', '.tooltipNote'), { searchExports: true }),
-		TooltipWrapper: getModule(Filters.byProtos('renderTooltip'))
+		TooltipWrapper: getModule(Filters.byProtos('renderTooltip'), { searchExports: true })
 	};
 
 	/**
@@ -394,10 +403,7 @@ module.exports = (meta) => {
 			children: label,
 			value: checked,
 			hideBorder: false,
-			/** @param {!boolean} e */
-			onChange: (e) => {
-				onChange(e);
-			}
+			onChange
 		});
 	};
 
@@ -522,12 +528,16 @@ module.exports = (meta) => {
 
 	const WrapBoundary = (Original) => (props) => ce(ErrorBoundary, null, ce(Original, props));
 
+	const dataZero = getData();
 	/**
 	 * @returns {!React.ReactHTMLElement<'div'>}
 	 */
 	const Viewer = () => {
-		const [state, setState] = useState(getData);
-		const update = useCallback(() => setState(getData), []);
+		const [state, setState] = useState(dataZero);
+		const update = useCallback(() => {
+			const data = getData();
+			setState((prev) => ({ ...prev, ...data }));
+		}, []);
 		/**
 		 * @type {!React.ElementRef<'div'>}
 		 */
@@ -548,7 +558,6 @@ module.exports = (meta) => {
 	};
 	Viewer.Wrapped = WrapBoundary(Viewer);
 
-	const dataZero = getData();
 	const viewRoot = create('div', { id: 'dv-mount' });
 	const viewMain = create('div', { id: 'dv-main' });
 	const time = create('span', { class: 'dv-time' }, dataZero.time);
