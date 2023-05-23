@@ -1,7 +1,7 @@
 /**
  * @name DateViewer
  * @author Arashiryuu
- * @version 1.0.3
+ * @version 1.0.4
  * @description Displays the current date, weekday, and time.
  * @authorId 238108500109033472
  * @authorLink https://github.com/Arashiryuu
@@ -468,6 +468,27 @@ module.exports = (meta) => {
 		};
 	};
 
+	/**
+	 * Interval hook.
+	 * @param {!VoidFunction} callback
+	 * @param {!number} [time]
+	 */
+	const useInterval = (callback, time = 1000) => {
+		/**
+		 * @type {!React.RefObject<VoidFunction>}
+		 */
+		const cbRef = useRef(callback);
+
+		useEffect(() => {
+			const id = setInterval(() => cbRef.current(), time);
+			return () => clearInterval(id);
+		}, [time]);
+	};
+
+	/**
+	 * AnimationFrame hook.
+	 * @param {!VoidFunction} callback
+	 */
 	const useAnimationFrame = (callback) => {
 		/**
 		 * @type {!React.RefObject<VoidFunction>}
@@ -533,17 +554,14 @@ module.exports = (meta) => {
 	 * @returns {!React.ReactHTMLElement<'div'>}
 	 */
 	const Viewer = () => {
-		const [state, setState] = useState(dataZero);
-		const update = useCallback(() => {
-			const data = getData();
-			setState((prev) => ({ ...prev, ...data }));
-		}, []);
+		const [state, setState] = useState(getData);
+		const update = useCallback(() => setState(getData));
 		/**
 		 * @type {!React.ElementRef<'div'>}
 		 */
 		const ref = useRef();
 
-		useAnimationFrame(update);
+		useInterval(update);
 
 		return ce('div', {
 			id: 'dv-main',
