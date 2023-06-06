@@ -1,7 +1,7 @@
 /**
  * @name DateViewer
  * @author Arashiryuu
- * @version 1.0.4
+ * @version 1.0.5
  * @description Displays the current date, weekday, and time.
  * @authorId 238108500109033472
  * @authorLink https://github.com/Arashiryuu
@@ -375,7 +375,8 @@ module.exports = (meta) => {
 	 */
 	const Discord = {
 		Switch: getModule(Filters.byStrings('.value', '.disabled', '.onChange', '.tooltipNote'), { searchExports: true }),
-		TooltipWrapper: getModule(Filters.byProtos('renderTooltip'), { searchExports: true })
+		TooltipWrapper: getModule(Filters.byProtos('renderTooltip'), { searchExports: true }),
+		ThemeContext: getModule(Filters.byProps('ThemeContextProvider')).ThemeContextProvider
 	};
 
 	/**
@@ -398,12 +399,16 @@ module.exports = (meta) => {
 	const Switch = (props) => {
 		const { label = 'Switch label', note = 'Switch note', checked = false, onChange = console.log } = props;
 
-		return ce(Discord.Switch, {
-			...props,
-			children: label,
-			value: checked,
-			hideBorder: false,
-			onChange
+		return ce(Discord.ThemeContext, {
+			children: [
+				ce(Discord.Switch, {
+					...props,
+					children: label,
+					value: checked,
+					hideBorder: false,
+					onChange
+				})
+			]
 		});
 	};
 
