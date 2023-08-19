@@ -235,7 +235,7 @@ module.exports = (() => {
 			closeAllModals,
 			hasAnyModalOpen
 		} = WebpackModules.getByProps('openModal', 'closeModal');
-		const { ComponentDispatch: Dispatcher } = WebpackModules.getByProps('ComponentDispatch');
+		const { ComponentDispatch: Dispatcher } = BdApi.Webpack.getModule(e => e.dispatch && !e.emitter && !e.commands);
 	
 		const TooltipWrapper = WebpackModules.getByPrototypes('renderTooltip');
 		const TextElement = WebpackModules.getByDisplayName('LegacyText');
