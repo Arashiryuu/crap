@@ -658,9 +658,21 @@ module.exports = (meta) => {
 	 * @param {!PromiseState['state']} state
 	 */
 	const patchMemberList = (state) => {
-		if (!BulkModule.ListThin || state.cancelled) return;
+		if (!BulkModule.ListThin || !BulkModule.ScrollerThin || state.cancelled) return;
 		Patcher.after(BulkModule.ListThin, 'render', (that, args, value) => {
-			if (!value.props['data-list-id']) return value;
+			const type = value.props?.['data-list-id']?.split('-')[0];
+			if (type !== 'members') return value;
+			const ret = Array.isArray(value) ? value : [value];
+			if (!ret.length) return ret;
+			if (ret.find((fiber) => fiber?.key === `${meta.name}-Boundary`)) return ret;
+			ret.push(ce(Viewer.Wrapped, { key: `${meta.name}-Boundary` }));
+			return ret;
+		});
+		
+		// Group DMs
+		Patcher.after(BulkModule.ScrollerThin, 'render', (that, args, value) => {
+			const type = value.props?.className?.split('-')[0];
+			if (type !== 'members') return value;
 			const ret = Array.isArray(value) ? value : [value];
 			if (!ret.length) return ret;
 			if (ret.find((fiber) => fiber?.key === `${meta.name}-Boundary`)) return ret;
