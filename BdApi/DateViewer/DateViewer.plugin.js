@@ -440,7 +440,7 @@ module.exports = (meta) => {
 				ce(Switch, {
 					label: 'Display Seconds',
 					note: 'Toggle for enabling/disabling the seconds on the viewer.',
-					checked: settings.displaySeconds ?? true,
+					checked: settings.displaySeconds,
 					/** @param {!boolean} e */
 					onChange: (e) => {
 						settings.displaySeconds = e;
@@ -479,10 +479,26 @@ module.exports = (meta) => {
 	/* Setup Cont. */
 
 	const getData = () => {
+		const { hour12, displaySeconds } = settings;
 		const d = new Date();
 		const l = document.documentElement.lang;
+		const timeStyle = displaySeconds
+			? 'long'
+			: 'short';
+		let time = (new Intl.DateTimeFormat(l, { timeStyle, hour12 })).format();
+		if (displaySeconds) {
+			time = time.replace(/(GMT|BST|UTC)(\+\d{1,2})?/ig, '');
+		}
+		// let t = d.toLocaleTimeString(l, { hour12: settings.hour12 });
+		// if (!settings.displaySeconds) {
+		// 	if (settings.hour12) {
+		// 		t = `${t.slice(0, -3)}`; //${t.slice(-2)}`;
+		// 	} else {
+		// 		t = t.slice(0, -3);
+		// 	}
+		// }
 		return {
-			time: d.toLocaleTimeString(l, { hour12: settings.hour12 }),
+			time,
 			date: d.toLocaleDateString(l, { day: '2-digit', month: '2-digit', year: 'numeric' }),
 			weekday: d.toLocaleDateString(l, { weekday: 'long' })
 		};
@@ -591,7 +607,7 @@ module.exports = (meta) => {
 					ref: ref,
 					key: 'dv_viewer_main',
 					children: [
-						ce('span', { key: 'date_viewer_time', className: 'dv-time' }, settings.displaySeconds ? state.time : state.time.slice(0, -3)),
+						ce('span', { key: 'date_viewer_time', className: 'dv-time' }, state.time),
 						ce('span', { key: 'date_viewer_date', className: 'dv-date' }, state.date),
 						ce('span', { key: 'date_viewer_weekday', className: 'dv-weekday' }, state.weekday)
 					]
@@ -603,7 +619,7 @@ module.exports = (meta) => {
 
 	const viewRoot = create('div', { id: 'dv-mount' });
 	const viewMain = create('div', { id: 'dv-main' });
-	const time = create('span', { class: 'dv-time' }, settings.displaySeconds ? dataZero.time : dataZero.time.slice(0, -3));
+	const time = create('span', { class: 'dv-time' }, dataZero.time);
 	const date = create('span', { class: 'dv-date' }, dataZero.date);
 	const weekday = create('span', { class: 'dv-weekday' }, dataZero.weekday);
 	viewMain.append(time, date, weekday);
@@ -618,7 +634,7 @@ module.exports = (meta) => {
 
 	const setData = () => {
 		const { time: t, date: d, weekday: w } = getData();
-		if (time.textContent !== t) time.textContent = settings.displaySeconds ? t : t.slice(0, -3);
+		if (time.textContent !== t) time.textContent = t;
 		if (date.textContent !== d) date.textContent = d;
 		if (weekday.textContent !== w) weekday.textContent = w;
 	};
@@ -638,13 +654,16 @@ module.exports = (meta) => {
 		unmount(viewRoot);
 	};
 
+	/**
+	 * @param {!PromiseState['state']} state
+	 */
 	const patchMemberList = (state) => {
 		if (!BulkModule.ListThin || state.cancelled) return;
 		Patcher.after(BulkModule.ListThin, 'render', (that, args, value) => {
 			if (!value.props['data-list-id']) return value;
 			const ret = Array.isArray(value) ? value : [value];
-			if (!ret) return [value];
-			if (ret.find((fiber) => fiber?.key === `${meta.name}-Boundary`)) return [value];
+			if (!ret.length) return ret;
+			if (ret.find((fiber) => fiber?.key === `${meta.name}-Boundary`)) return ret;
 			ret.push(ce(Viewer.Wrapped, { key: `${meta.name}-Boundary` }));
 			return ret;
 		});
@@ -665,12 +684,21 @@ module.exports = (meta) => {
 		Patcher.unpatchAll();
 	};
 
+	const loadSettings = () => {
+		settings = Data.load('settings') ?? Utils.extend({}, defaults);
+		settings = Utils.extend({}, defaults, settings);
+	};
+
+	const saveSettings = () => {
+		Data.save('settings', settings);
+	};
+
 	/* Build */
 
 	Object.assign(plugin, {
 		start () {
 			promises.restore();
-			settings = Data.load('settings') ?? Utils.extend({}, defaults);
+			loadSettings();
 			raf(onStart);
 		},
 		stop () {
@@ -679,7 +707,7 @@ module.exports = (meta) => {
 		},
 		getSettingsPanel () {
 			const panel = ce(Settings, {
-				onChange: () => Data.save('settings', settings)
+				onChange: saveSettings
 			});
 			render(panel, settingRoot);
 			return settingRoot;
