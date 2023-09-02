@@ -489,14 +489,6 @@ module.exports = (meta) => {
 		if (displaySeconds) {
 			time = time.replace(/(GMT|BST|UTC)(\+\d{1,2})?/ig, '');
 		}
-		// let t = d.toLocaleTimeString(l, { hour12: settings.hour12 });
-		// if (!settings.displaySeconds) {
-		// 	if (settings.hour12) {
-		// 		t = `${t.slice(0, -3)}`; //${t.slice(-2)}`;
-		// 	} else {
-		// 		t = t.slice(0, -3);
-		// 	}
-		// }
 		return {
 			time,
 			date: d.toLocaleDateString(l, { day: '2-digit', month: '2-digit', year: 'numeric' }),
@@ -668,7 +660,7 @@ module.exports = (meta) => {
 			ret.push(ce(Viewer.Wrapped, { key: `${meta.name}-Boundary` }));
 			return ret;
 		});
-		
+
 		// Group DMs
 		Patcher.after(BulkModule.ScrollerThin, 'render', (that, args, value) => {
 			const type = value.props?.className?.split('-')[0];
@@ -697,8 +689,7 @@ module.exports = (meta) => {
 	};
 
 	const loadSettings = () => {
-		settings = Data.load('settings') ?? Utils.extend({}, defaults);
-		settings = Utils.extend({}, defaults, settings);
+		settings = Utils.extend({}, defaults, Data.load('settings'));
 	};
 
 	const saveSettings = () => {
