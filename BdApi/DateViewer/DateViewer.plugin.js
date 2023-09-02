@@ -1,7 +1,7 @@
 /**
  * @name DateViewer
  * @author Arashiryuu
- * @version 1.0.5
+ * @version 1.0.6
  * @description Displays the current date, weekday, and time.
  * @authorId 238108500109033472
  * @authorLink https://github.com/Arashiryuu
@@ -64,7 +64,7 @@ module.exports = (meta) => {
 	// @ts-ignore
 	const Api = new BdApi(meta.name);
 	const { UI, DOM, Data, React, Utils, Themes, Plugins, Patcher, Webpack, ReactDOM, ReactUtils, ContextMenu } = Api;
-	const { createElement: ce, useRef, useMemo, useState, useEffect, useCallback, useReducer, useLayoutEffect } = React;
+	const { createElement: ce, useRef, useMemo, useState, useEffect, useReducer, useCallback, useLayoutEffect } = React;
 	const { render, findDOMNode, unmountComponentAtNode: unmount } = ReactDOM;
 	const { getModule, waitForModule } = Webpack;
 
@@ -85,7 +85,6 @@ module.exports = (meta) => {
 	/* Utility */
 
 	/**
-	 * 
 	 * @param {!object} instance
 	 * @returns {void}
 	 */
@@ -173,6 +172,32 @@ module.exports = (meta) => {
 	};
 
 	/**
+	 * @param {!string} key 
+	 * @returns {!boolean}
+	 */
+	const isEvent = (key) => key.slice(0, 2) === 'on' && key[2] === key[2].toUpperCase();
+
+	/**
+	 * @param {!string} key
+	 * @returns {!boolean}
+	 */
+	const isDataAttr = (key) => key.startsWith('data') && key.toLowerCase() !== key;
+
+	/**
+	 * @param {!string} key
+	 * @returns {!string}
+	 */
+	const normalizeEvent = (key) => key === 'doubleclick'
+		? 'dblclick'
+		: key;
+
+	/**
+	 * @param {!string} key
+	 * @returns {!string}
+	 */
+	const normalizeDataAttr = (key) => key.replace(/([A-Z]{1})/g, '-$1').toLowerCase();
+
+	/**
 	 * A `document.createElement` helper function.
 	 * @param {!string} type 
 	 * @param {!object} props
@@ -191,32 +216,6 @@ module.exports = (meta) => {
 		if (!has.call(props, 'children') && children.length) {
 			e.append(...children);
 		}
-
-		/**
-		 * @param {!string} key 
-		 * @returns {!boolean}
-		 */
-		const isEvent = (key) => key.slice(0, 2) === 'on' && key[2] === key[2].toUpperCase();
-
-		/**
-		 * @param {!string} key
-		 * @returns {!boolean}
-		 */
-		const isDataAttr = (key) => key.startsWith('data') && key.toLowerCase() !== key;
-
-		/**
-		 * @param {!string} key
-		 * @returns {!string}
-		 */
-		const normalizeEvent = (key) => key === 'doubleclick'
-			? 'dblclick'
-			: key;
-
-		/**
-		 * @param {!string} key
-		 * @returns {!string}
-		 */
-		const normalizeDataAttr = (key) => key.replace(/([A-Z]{1})/g, '-$1').toLowerCase();
 
 		for (const key of Object.keys(props)) {
 			switch (key) {
@@ -240,7 +239,10 @@ module.exports = (meta) => {
 					e.setAttribute('for', props[key]);
 					break;
 				}
-				case 'className':
+				case 'className': {
+					e.classList.add(...props[key].split(' '));
+					break;
+				}
 				case 'classList':
 				case 'classes': {
 					if (!Array.isArray(props[key])) props[key] = [props[key]];
@@ -348,12 +350,14 @@ module.exports = (meta) => {
 		}
 		/* Error Component */
 		.${meta.name}-error {
-			width: 100vmin;
+			/* width: 100vmin;
 			height: 100%;
 			display: flex;
 			place-content: center;
 			place-items: center;
-			flex-flow: wrap row;
+			flex-flow: wrap row; */
+			position: fixed;
+			bottom: 3dvh;
 			color: red;
 			font-size: 18px;
 			font-weight: 600;
@@ -366,17 +370,19 @@ module.exports = (meta) => {
 	/* Settings */
 	
 	const defaults = {
-		hour12: false
+		hour12: false,
+		displaySeconds: true
 	};
 	let settings = Utils.extend({}, defaults);
 
 	/**
 	 * Discord Components
 	 */
+	const BulkModule = getModule((m) => m?.Tooltip && m?.Text);
 	const Discord = {
 		Switch: getModule(Filters.byStrings('.value', '.disabled', '.onChange', '.tooltipNote'), { searchExports: true }),
-		TooltipWrapper: getModule(Filters.byProtos('renderTooltip'), { searchExports: true }),
-		ThemeContext: getModule(Filters.byProps('ThemeContextProvider')).ThemeContextProvider
+		TooltipWrapper: BulkModule.Tooltip,
+		ThemeContext: BulkModule.ThemeContextProvider
 	};
 
 	/**
@@ -429,6 +435,15 @@ module.exports = (meta) => {
 					/** @param {!boolean} e */
 					onChange: (e) => {
 						settings.hour12 = e;
+					}
+				}),
+				ce(Switch, {
+					label: 'Display Seconds',
+					note: 'Toggle for enabling/disabling the seconds on the viewer.',
+					checked: settings.displaySeconds ?? true,
+					/** @param {!boolean} e */
+					onChange: (e) => {
+						settings.displaySeconds = e;
 					}
 				})
 			],
@@ -569,13 +584,18 @@ module.exports = (meta) => {
 		useInterval(update);
 
 		return ce('div', {
-			id: 'dv-main',
-			ref: ref,
-			key: 'dv_viewer_main',
+			id: 'dv-mount',
 			children: [
-				ce('span', { key: 'dv_viewer_time', className: 'dv-time' }, state.time),
-				ce('span', { key: 'dv_viewer_date', className: 'dv-date' }, state.date),
-				ce('span', { key: 'dv_viewer_weekday', className: 'dv-weekday' }, state.weekday)
+				ce('div', {
+					id: 'dv-main',
+					ref: ref,
+					key: 'dv_viewer_main',
+					children: [
+						ce('span', { key: 'date_viewer_time', className: 'dv-time' }, settings.displaySeconds ? state.time : state.time.slice(0, -3)),
+						ce('span', { key: 'date_viewer_date', className: 'dv-date' }, state.date),
+						ce('span', { key: 'date_viewer_weekday', className: 'dv-weekday' }, state.weekday)
+					]
+				})
 			]
 		});
 	};
@@ -583,7 +603,7 @@ module.exports = (meta) => {
 
 	const viewRoot = create('div', { id: 'dv-mount' });
 	const viewMain = create('div', { id: 'dv-main' });
-	const time = create('span', { class: 'dv-time' }, dataZero.time);
+	const time = create('span', { class: 'dv-time' }, settings.displaySeconds ? dataZero.time : dataZero.time.slice(0, -3));
 	const date = create('span', { class: 'dv-date' }, dataZero.date);
 	const weekday = create('span', { class: 'dv-weekday' }, dataZero.weekday);
 	viewMain.append(time, date, weekday);
@@ -598,7 +618,7 @@ module.exports = (meta) => {
 
 	const setData = () => {
 		const { time: t, date: d, weekday: w } = getData();
-		if (time.textContent !== t) time.textContent = t;
+		if (time.textContent !== t) time.textContent = settings.displaySeconds ? t : t.slice(0, -3);
 		if (date.textContent !== d) date.textContent = d;
 		if (weekday.textContent !== w) weekday.textContent = w;
 	};
@@ -618,17 +638,31 @@ module.exports = (meta) => {
 		unmount(viewRoot);
 	};
 
+	const patchMemberList = (state) => {
+		if (!BulkModule.ListThin || state.cancelled) return;
+		Patcher.after(BulkModule.ListThin, 'render', (that, args, value) => {
+			if (!value.props['data-list-id']) return value;
+			const ret = Array.isArray(value) ? value : [value];
+			if (!ret) return [value];
+			if (ret.find((fiber) => fiber?.key === `${meta.name}-Boundary`)) return [value];
+			ret.push(ce(Viewer.Wrapped, { key: `${meta.name}-Boundary` }));
+			return ret;
+		});
+	};
+
 	const onStart = () => {
 		DOM.addStyle(style);
-		appendRoot();
-		connect(); // teeUpdates();
+		// appendRoot();
+		// connect(); // teeUpdates();
+		patchMemberList(promises.state);
 	};
 
 	const onStop = () => {
 		DOM.removeStyle();
-		cancelUpdates();
-		removeRoot();
-		disconnect();
+		// cancelUpdates();
+		// removeRoot();
+		// disconnect();
+		Patcher.unpatchAll();
 	};
 
 	/* Build */
@@ -656,7 +690,7 @@ module.exports = (meta) => {
 		 */
 		observer (change) {
 			if (isCleared(change.removedNodes, settingRoot)) unmount(settingRoot);
-			if (!viewRoot.isConnected) raf(appendRoot);
+			// if (!viewRoot.isConnected) raf(appendRoot);
 		}
 	});
 
