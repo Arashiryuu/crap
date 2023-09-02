@@ -651,25 +651,24 @@ module.exports = (meta) => {
 	 */
 	const patchMemberList = (state) => {
 		if (!BulkModule.ListThin || !BulkModule.ScrollerThin || state.cancelled) return;
-		Patcher.after(BulkModule.ListThin, 'render', (that, args, value) => {
-			const type = value.props?.['data-list-id']?.split('-')[0];
+		const validateAndPush = (type, value) => {
 			if (type !== 'members') return value;
 			const ret = Array.isArray(value) ? value : [value];
 			if (!ret.length) return ret;
 			if (ret.find((fiber) => fiber?.key === `${meta.name}-Boundary`)) return ret;
 			ret.push(ce(Viewer.Wrapped, { key: `${meta.name}-Boundary` }));
 			return ret;
+		};
+		
+		Patcher.after(BulkModule.ListThin, 'render', (that, args, value) => {
+			const type = value.props?.['data-list-id']?.split('-')[0];
+			return validateAndPush(type, value);
 		});
 
 		// Group DMs
 		Patcher.after(BulkModule.ScrollerThin, 'render', (that, args, value) => {
 			const type = value.props?.className?.split('-')[0];
-			if (type !== 'members') return value;
-			const ret = Array.isArray(value) ? value : [value];
-			if (!ret.length) return ret;
-			if (ret.find((fiber) => fiber?.key === `${meta.name}-Boundary`)) return ret;
-			ret.push(ce(Viewer.Wrapped, { key: `${meta.name}-Boundary` }));
-			return ret;
+			return validateAndPush(type, value);
 		});
 	};
 
