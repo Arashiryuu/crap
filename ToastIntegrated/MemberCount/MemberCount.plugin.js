@@ -1,12 +1,25 @@
 /**
  * @name MemberCount
  * @author Arashiryuu
- * @version 2.2.17
+ * @version 2.2.18
  * @description Displays a server's member-count at the top of the member-list, can be styled with the #MemberCount selector.
  * @authorId 238108500109033472
  * @authorLink https://github.com/Arashiryuu
  * @website https://github.com/Arashiryuu/crap
  * @source https://github.com/Arashiryuu/crap/blob/master/ToastIntegrated/MemberCount/MemberCount.plugin.js
+ */
+
+// @ts-check
+/// <reference path="../types.d.ts" />
+
+/**
+ * @typedef i18nStrings
+ * @type {import('./MemberCount').i18nStrings}
+ */
+
+/**
+ * @typedef MetaData
+ * @type {import('../types').MetaData}
  */
 
 /*@cc_on
@@ -33,97 +46,116 @@
 
 @else@*/
 
-var MemberCount = (() => {
+/* global globalThis, BdApi */
+const config = {
+	main: 'index.js',
+	info: {
+		name: 'MemberCount',
+		authors: [
+			{
+				name: 'Arashiryuu',
+				discord_id: '238108500109033472',
+				github_username: 'Arashiryuu',
+				twitter_username: ''
+			}
+		],
+		version: '2.2.17',
+		description: 'Displays a server\'s member-count at the top of the member-list, can be styled with the #MemberCount selector.',
+		github: 'https://github.com/Arashiryuu',
+		github_raw: 'https://raw.githubusercontent.com/Arashiryuu/crap/master/ToastIntegrated/MemberCount/MemberCount.plugin.js'
+	},
+	strings: {
+		pl: {
+			INCLUDE: 'Dołącz serwer',
+			EXCLUDE: 'Wyklucz serwer',
+			MEMBERS: 'Członkowie',
+			ONLINE: 'Online'
+		},
+		ru: {
+			INCLUDE: 'Включить отображение участников',
+			EXCLUDE: 'Отключить отображение участников',
+			MEMBERS: 'Участники',
+			ONLINE: 'онлайн'
+		},
+		fr: {
+			INCLUDE: 'Inclure le serveur',
+			EXCLUDE: 'Exclure le serveur',
+			MEMBERS: 'Membres',
+			ONLINE: 'En ligne'
+		},
+		de: {
+			INCLUDE: 'Server einschließen',
+			EXCLUDE: 'Server ausschließen',
+			MEMBERS: 'Mitglieder',
+			ONLINE: 'Online'
+		},
+		en: {
+			INCLUDE: 'Include Server',
+			EXCLUDE: 'Exclude Server',
+			MEMBERS: 'Members',
+			ONLINE: 'Online'
+		}
+	},
+	changelog: [
+		// {
+		// 	title: 'Maintenance',
+		// 	type: 'progress',
+		// 	items: [
+		// 		'General maintenance.'
+		// 	]
+		// }
+		// {
+		// 	title: 'Evolving?',
+		// 	type: 'improved',
+		// 	items: [
+		// 		'Added setting to toggle online count displaying.',
+		// 		'Added new display style setting.',
+		// 		'Added setting for the extra spacing below the counter in the list.'
+		// 	]
+		// }
+		{
+			title: 'Bugs Squashed!',
+			type: 'fixed',
+			items: [
+				'Fix library missing links.'
+			]
+		}
+	]
+};
+
+if (!globalThis.ZeresPluginLibrary) {
+	// @ts-ignore
+	BdApi.showConfirmationModal('Library Missing', `The library plugin needed for ${config.info.name} is missing. Please click Download Now to install it.`, {
+		danger: false,
+		confirmText: 'Download Now',
+		cancelText: 'Cancel',
+		onConfirm: () => {
+			// @ts-ignore
+			require('request').get('https://rauenzi.github.io/BDPluginLibrary/release/0PluginLibrary.plugin.js', async (error, response, body) => {
+				// @ts-ignore
+				if (error) return require('electron').shell.openExternal('https://betterdiscord.app/Download?id=9');
+				// @ts-ignore
+				await new Promise((r) => require('fs').writeFile(require('path').join(BdApi.Plugins.folder, '0PluginLibrary.plugin.js'), body, r));
+			});
+		}
+	});
+}
+
+module.exports = (() => {
 
 	/* Setup */
-
-	const config = {
-		main: 'index.js',
-		info: {
-			name: 'MemberCount',
-			authors: [
-				{
-					name: 'Arashiryuu',
-					discord_id: '238108500109033472',
-					github_username: 'Arashiryuu',
-					twitter_username: ''
-				}
-			],
-			version: '2.2.17',
-			description: 'Displays a server\'s member-count at the top of the member-list, can be styled with the #MemberCount selector.',
-			github: 'https://github.com/Arashiryuu',
-			github_raw: 'https://raw.githubusercontent.com/Arashiryuu/crap/master/ToastIntegrated/MemberCount/MemberCount.plugin.js'
-		},
-		strings: {
-			pl: {
-				INCLUDE: 'Dołącz serwer',
-				EXCLUDE: 'Wyklucz serwer',
-				MEMBERS: 'Członkowie',
-				ONLINE: 'Online'
-			},
-			ru: {
-				INCLUDE: 'Включить отображение участников',
-				EXCLUDE: 'Отключить отображение участников',
-				MEMBERS: 'Участники',
-				ONLINE: 'онлайн'
-			},
-			fr: {
-				INCLUDE: 'Inclure le serveur',
-				EXCLUDE: 'Exclure le serveur',
-				MEMBERS: 'Membres',
-				ONLINE: 'En ligne'
-			},
-			de: {
-				INCLUDE: 'Server einschließen',
-				EXCLUDE: 'Server ausschließen',
-				MEMBERS: 'Mitglieder',
-				ONLINE: 'Online'
-			},
-			en: {
-				INCLUDE: 'Include Server',
-				EXCLUDE: 'Exclude Server',
-				MEMBERS: 'Members',
-				ONLINE: 'Online'
-			}
-		},
-		changelog: [
-			// {
-			// 	title: 'Maintenance',
-			// 	type: 'progress',
-			// 	items: [
-			// 		'General maintenance.'
-			// 	]
-			// }
-			// {
-			// 	title: 'Evolving?',
-			// 	type: 'improved',
-			// 	items: [
-			// 		'Added setting to toggle online count displaying.',
-			// 		'Added new display style setting.',
-			// 		'Added setting for the extra spacing below the counter in the list.'
-			// 	]
-			// }
-			{
-				title: 'Bugs Squashed!',
-				type: 'fixed',
-				items: [
-					'Fix library missing links.'
-				]
-			}
-		]
-	};
 	
-	const [log, err] = (() => {
-		const levels = ['log', 'error'];
+	const [log, info, warn, debug, error] = (() => {
+		const levels = ['log', 'info', 'warn', 'debug', 'error'];
 		const getParts = () => [
 			`%c[${config.info.name}]%c \u2014 %s`,
 			'color: #3A71C1; font-weight: 700;',
 			'',
 			new Date().toUTCString()
 		];
-		return Array.from(levels, (_, i) => (function () {
-			console.group.apply(null, getParts());
-			console[levels[i]].apply(null, arguments);
+		return levels.map((type) => (function () {
+			console.groupCollapsed(...getParts());
+			console[type](...arguments);
 			console.groupEnd();
 		}));
 	})();
@@ -133,10 +165,9 @@ var MemberCount = (() => {
 	const buildPlugin = ([Plugin, Api]) => {
 		const { Toasts, Logger, Patcher, Settings, Utilities, DOMTools, ReactTools, ContextMenu, ReactComponents, DiscordModules, DiscordClasses, WebpackModules, DiscordSelectors, PluginUtilities } = Api;
 		const { SettingPanel, SettingGroup, SettingField, Textbox, Switch, RadioGroup } = Settings;
-		const { React, ReactDOM, Dispatcher, DiscordConstants, MemberCountStore, SelectedGuildStore, ContextMenuActions: MenuActions } = DiscordModules;
-		const { PureComponent, createElement, useRef, useState, useEffect, useReducer } = React;
-		const { ActionTypes } = DiscordConstants;
-		const { useStateFromStoresArray } = WebpackModules.getByProps('Dispatcher', 'Store', 'useStateFromStores');
+		const { React, ReactDOM, Dispatcher, UserStore, DiscordConstants, GuildMemberStore, MemberCountStore, SelectedGuildStore, ContextMenuActions: MenuActions } = DiscordModules;
+		const { PureComponent, createElement, useRef, useMemo, useState, useEffect, useCallback, useReducer } = React;
+		const { useStateFromStores, useStateFromStoresArray } = WebpackModules.getByProps('Dispatcher', 'Store', 'useStateFromStores');
 
 		const has = Object.prototype.hasOwnProperty;
 		const LangUtils = WebpackModules.getByProps('getLocale', 'getLanguages');
@@ -145,6 +176,7 @@ var MemberCount = (() => {
 		const Menu = WebpackModules.getByProps('MenuItem', 'MenuGroup', 'MenuSeparator');
 		const GuildPopoutActions = WebpackModules.getByProps('fetchGuildForPopout');
 		const GuildPopoutStore = WebpackModules.getByProps('getGuild', 'isFetchingGuild');
+		const TextElement = WebpackModules.getByDisplayName('LegacyText');
 
 		const ctxMenuClasses = WebpackModules.getByProps('menu', 'scroller');
 		const dispatchKey = 'MEMBERCOUNT_COUNTER_UPDATE';
@@ -182,22 +214,27 @@ var MemberCount = (() => {
 				this.state = { hasError: false };
 			}
 
-			static getDerivedStateFromError(error) {
+			static getDerivedStateFromError() {
 				return { hasError: true };
 			}
 
-			componentDidCatch(error, info) {
-				console.group(`%c[${config.info.name}]`, 'color: #3A71C1; font-weight: 700;');
-				console.error(error);
-				console.groupEnd();
+			componentDidCatch(e) {
+				error(e);
 			}
 
 			render() {
 				if (this.state.hasError) return createElement('div', {
 					className: `${config.info.name}-error`,
 					children: [
-						`${config.info.name} Component Error`
-					]
+						createElement(TextElement, {
+							color: TextElement.Colors.ERROR,
+							size: TextElement.Sizes.SIZE_14
+						}, `${config.info.name} Error`)
+					],
+					style: {
+						position: 'absolute',
+						top: '2vh'
+					}
 				});
 				return this.props.children;
 			}
@@ -247,37 +284,59 @@ var MemberCount = (() => {
 			]
 		});
 		
+		/**
+		 * @returns {i18nStrings}
+		 */
 		const useStrings = () => {
 			const [lang] = LangUtils.getLocale().split('-');
 			return config.strings[lang] ?? config.strings.en;
 		};
 
+		/**
+		 * @returns {React.DispatchWithoutAction}
+		 */
+		const useForceUpdate = () => useReducer((x) => x + 1, 0).pop();
+
+		// const useStateFromStores = (stores, updater) => {
+		// 	const [value, setValue] = useState(updater, stores);
+		// 	const listener = useCallback(() => setValue(updater), []);
+
+		// 	useEffect(() => {
+		// 		for (const store of stores) {
+		// 			store.addChangeListener(listener);
+		// 		}
+		// 		return () => {
+		// 			for (const store of stores) {
+		// 				store.removeChangeListener(listener);
+		// 			}
+		// 		};
+		// 	}, stores);
+
+		// 	return value;
+		// };
+
 		const Counter = (props) => {
-			const { 1: forceUpdate } = useReducer((x) => x + 1, 0);
-			const listener = () => forceUpdate();
+			const forceUpdate = useForceUpdate();
+			const listener = useCallback(() => forceUpdate(), []);
 
 			const ref = useRef();
 			const strings = useStrings();
-			const id = SelectedGuildStore.getGuildId();
-
-			const [online] = useStateFromStoresArray([GuildPopoutStore], () => [
-				GuildPopoutStore.getGuild(id)?.presenceCount
-			]);
+			const online = useStateFromStores([GuildPopoutStore], () => GuildPopoutStore.getGuild(props.id)?.presenceCount);
 
 			useEffect(() => {
-				if (!online && !GuildPopoutStore.isFetchingGuild(id)) {
-					GuildPopoutActions.fetchGuildForPopout(id);
+				if (!/*props.*/online && !GuildPopoutStore.isFetchingGuild(props.id)) {
+					GuildPopoutActions.fetchGuildForPopout(props.id);
 				}
 				Dispatcher.subscribe(dispatchKey, listener);
 				return () => Dispatcher.unsubscribe(dispatchKey, listener);
-			}, [online]);
+			}, [/*props.*/online]);
 
 			return createElement('div', {
 				id: 'MemberCount',
 				role: 'listitem',
 				ref: ref,
 				children: [
-					createElement('h2', {
+					createElement('h3', {
 						className: `${DiscordClasses.MemberList.membersGroup} container-q97qHp`,
 						children: [
 							createElement(Row, {
@@ -288,7 +347,7 @@ var MemberCount = (() => {
 							props.online && createElement(Row, {
 								fill: 'hsl(139, calc(var(--saturation-factor, 1) * 47.3%), 43.9%)',
 								string: strings.ONLINE,
-								count: online ?? 'Loading',
+								count: /*props.*/online ?? 'Loading',
 								displayType: props.displayType
 							})
 						]
@@ -297,8 +356,9 @@ var MemberCount = (() => {
 			});
 		};
 
-		const MemberCounter = Flux.connectStores([MemberCountStore], () => ({
-			count: MemberCountStore.getMemberCount(SelectedGuildStore.getGuildId())
+		const MemberCounter = Flux.connectStores([MemberCountStore, GuildPopoutStore], () => ({
+			count: MemberCountStore.getMemberCount(SelectedGuildStore.getGuildId()),
+			online: GuildPopoutStore.getGuild(SelectedGuildStore.getGuildId())?.presenceCount
 		}))(Counter);
 
 		const getHintSVG = () => createElement('svg', {
@@ -339,20 +399,33 @@ var MemberCount = (() => {
 		});
 
 		const getSpacing = (settings) => {
-			return settings.marginSpacing === 0
-				? !settings.online
-					? '30px'
-					: '40px'
-				: !settings.online
-					? '40px'
-					: '60px';
+			let min = 30;
+			let max = 40;
+			
+			if (settings.marginSpacing === 0) {
+				min = 30;
+				max = 40;
+			} else {
+				min = 40;
+				max = 60;
+			}
+
+			return !settings.online
+				? `${min}px`
+				: `${max}px`;
 		};
 		
 		return class MemberCount extends Plugin {
-			constructor() {
+			#config;
+			#meta;
+
+			/**
+			 * @param {MetaData} meta 
+			 */
+			constructor(meta) {
 				super();
-				this._css;
-				this._optIn;
+				this.#config = config;
+				this.#meta = meta;
 				this.default = { blacklist: [], online: false, displayType: 0, marginSpacing: 0 };
 				this.settings = Utilities.deepclone(this.default);
 				this.promises = {
@@ -369,7 +442,7 @@ var MemberCount = (() => {
 				this.loadSettings();
 				this.addCSS();
 				this.patchMemberList(this.promises.state);
-				this.patchGuildContextMenu(this.promises.state).catch(err);
+				this.patchGuildContextMenu(this.promises.state).catch(error);
 			}
 
 			onStop() {
@@ -402,15 +475,18 @@ var MemberCount = (() => {
 					if (!props || props.id === 'channels' || !props.className.startsWith('members')) return value;
 
 					const guildId = SelectedGuildStore.getGuildId();
+					if (!guildId) return value;
+
 					const list = document.querySelector(`${DiscordSelectors.MemberList.membersWrap}`);
 					const fn = (item) => item && item.key && item.key.startsWith('MemberCount');
 					const counter = createElement(WrapBoundary(MemberCounter), {
+						id: guildId,
 						key: `MemberCount-${guildId}`,
 						online: this.settings.online,
 						displayType: this.settings.displayType
 					});
 
-					if (this.settings.blacklist.includes(guildId) || !guildId) {
+					if (this.settings.blacklist.includes(guildId)) {
 						if (list && (list.classList.contains('hasCounter') || list.classList.contains('hasCounter_thread'))) list.classList.remove('hasCounter', 'hasCounter_thread');
 						return value;
 					}
@@ -501,50 +577,51 @@ var MemberCount = (() => {
 			updateContextMenus() {
 				const menus = document.querySelectorAll(`.${ctxMenuClasses.menu}`);
 				if (!menus.length) return;
+				// @ts-ignore
 				for (const menu of menus) ReactTools.getOwnerInstance(menu).forceUpdate();
 			}
 
-			processContextMenu(cm) {
-				if (!cm) return;
-				const inst = ReactTools.getReactInstance(cm);
-				const own = ReactTools.getOwnerInstance(cm);
-				const props = this.getProps(inst, 'memoizedProps');
-				const childProps = this.getProps(props, 'children.props');
-				if (!own || !props || !Array.isArray(childProps.children)) return;
-				const readItem = this.getProps(childProps, 'children.0.props.children');
-				if (!readItem || Array.isArray(readItem) || readItem.props.id === 'mark-folder-read') return;
-				if (readItem.props.id === 'mark-guild-read') return this.addGuildContextItems(inst, own, cm);
-			}
+			// processContextMenu(cm) {
+			// 	if (!cm) return;
+			// 	const inst = ReactTools.getReactInstance(cm);
+			// 	const own = ReactTools.getOwnerInstance(cm);
+			// 	const props = this.getProps(inst, 'memoizedProps');
+			// 	const childProps = this.getProps(props, 'children.props');
+			// 	if (!own || !props || !Array.isArray(childProps.children)) return;
+			// 	const readItem = this.getProps(childProps, 'children.0.props.children');
+			// 	if (!readItem || Array.isArray(readItem) || readItem.props.id === 'mark-folder-read') return;
+			// 	if (readItem.props.id === 'mark-guild-read') return this.addGuildContextItems(inst, own, cm);
+			// }
 
-			addGuildContextItems(instance, owner, context) {
-				const group = new ContextMenu.ItemGroup();
-				const ref = owner.props.children({ position: owner.props.reference() }, owner.updatePosition);
-				const guild = this.getProps(ref, 'props.guild');
-				const data = this.parseId(guild.id);
-				const item = new ContextMenu.TextItem(data.label, {
-					hint: data.hint,
-					callback: data.action
-				});
-				const elements = item.getElement();
-				const groupEl = group.getElement();
-				elements.className = `${ctxMenuClasses.item} ${ctxMenuClasses.labelContainer} ${ctxMenuClasses.colorDefault}`;
-				elements.setAttribute('role', 'menuitem');
-				elements.setAttribute('tabindex', '-1');
-				elements.firstChild.classList.add(ctxMenuClasses.label);
-				elements.addEventListener('mouseenter', (e) => {
-					if (elements.classList.contains(ctxMenuClasses.focused)) return;
-					elements.classList.add(ctxMenuClasses.focused);
-				});
-				elements.addEventListener('mouseleave', (e) => {
-					if (!elements.classList.contains(ctxMenuClasses.focused)) return;
-					elements.classList.remove(ctxMenuClasses.focused);
-				});
-				groupEl.removeAttribute('class');
-				groupEl.setAttribute('role', 'group');
-				group.addItems(item);
-				context.firstChild.firstChild.firstChild.insertAdjacentElement('afterend', groupEl);
-				setImmediate(() => this.updateContextPosition(owner));
-			}
+			// addGuildContextItems(instance, owner, context) {
+			// 	const group = new ContextMenu.ItemGroup();
+			// 	const ref = owner.props.children({ position: owner.props.reference() }, owner.updatePosition);
+			// 	const guild = this.getProps(ref, 'props.guild');
+			// 	const data = this.parseId(guild.id);
+			// 	const item = new ContextMenu.TextItem(data.label, {
+			// 		hint: data.hint,
+			// 		callback: data.action
+			// 	});
+			// 	const elements = item.getElement();
+			// 	const groupEl = group.getElement();
+			// 	elements.className = `${ctxMenuClasses.item} ${ctxMenuClasses.labelContainer} ${ctxMenuClasses.colorDefault}`;
+			// 	elements.setAttribute('role', 'menuitem');
+			// 	elements.setAttribute('tabindex', '-1');
+			// 	elements.firstChild.classList.add(ctxMenuClasses.label);
+			// 	elements.addEventListener('mouseenter', (e) => {
+			// 		if (elements.classList.contains(ctxMenuClasses.focused)) return;
+			// 		elements.classList.add(ctxMenuClasses.focused);
+			// 	});
+			// 	elements.addEventListener('mouseleave', (e) => {
+			// 		if (!elements.classList.contains(ctxMenuClasses.focused)) return;
+			// 		elements.classList.remove(ctxMenuClasses.focused);
+			// 	});
+			// 	groupEl.removeAttribute('class');
+			// 	groupEl.setAttribute('role', 'group');
+			// 	group.addItems(item);
+			// 	context.firstChild.firstChild.firstChild.insertAdjacentElement('afterend', groupEl);
+			// 	setImmediate(() => this.updateContextPosition(owner));
+			// }
 
 			parseId(id) {
 				const blacklisted = this.settings.blacklist.includes(id);
@@ -669,8 +746,8 @@ var MemberCount = (() => {
 
 			/* Setters */
 
-			set css(style = '') {
-				return this._css = style.split(/\s+/g).join(' ').trim();
+			set css(style) {
+				return;
 			}
 
 			/* Getters */
@@ -683,6 +760,7 @@ var MemberCount = (() => {
 				return `
 					#MemberCount {
 						background: var(--background-secondary);
+						color: var(--channels-default, var(--text-secondary, --text-primary));
 						position: absolute;
 						width: 240px;
 						padding: 0;
@@ -692,7 +770,7 @@ var MemberCount = (() => {
 						border-bottom: 1px solid hsla(0, 0%, 100%, 0.04);
 					}
 
-					#MemberCount h2 {
+					#MemberCount h3 {
 						padding: 12px 8px;
 						height: auto;
 					}
@@ -713,7 +791,7 @@ var MemberCount = (() => {
 					${DiscordSelectors.MemberList.membersWrap}.hasCounter_thread ${DiscordSelectors.MemberList.members} {
 						margin-top: 0;
 					}
-				`;
+				`.split(/\s+/g).join(' ').trim();
 			}
 
 			get name() {
@@ -745,126 +823,65 @@ var MemberCount = (() => {
 		};
 	};
 
+	/* Dummy class */
+
+	class Dummy {
+		#config;
+		#meta;
+
+		constructor(meta) {
+			this._config = config;
+			this.#config = config;
+			this.#meta = meta;
+		}
+
+		getName() {
+			return config.info.name.replace(/\s+/g, '');
+		}
+
+		getAuthor() {
+			return config.info.authors.map((author) => author.name).join(', ');
+		}
+
+		getVersion() {
+			return config.info.version;
+		}
+
+		getDescription() {
+			return config.info.description;
+		}
+
+		stop() {
+			log('Stopped!');
+		}
+
+		start() {
+			log('Started!');
+		}
+
+		/* Getters */
+
+		get [Symbol.toStringTag]() {
+			return 'Plugin';
+		}
+
+		get short() {
+			let string = '';
+
+			for (let i = 0, len = config.info.name.length; i < len; i++) {
+				const char = config.info.name[i];
+				if (char === char.toUpperCase()) string += char;
+			}
+
+			return string;
+		}
+	}
+
 	/* Finalize */
 
-	return !global.ZeresPluginLibrary 
-		? class {
-			constructor() {
-				this._config = config;
-			}
-			
-			getName() {
-				return this.name.replace(/\s+/g, '');
-			}
-
-			getAuthor() {
-				return this.author;
-			}
-
-			getVersion() {
-				return this.version;
-			}
-
-			getDescription() {
-				return this.description;
-			}
-
-			stop() {
-				log('Stopped!');
-			}
-
-			load() {
-				const { BdApi, BdApi: { React: { createElement } } } = window;
-				const title = 'Library Missing';
-				const TextElement = BdApi.findModuleByDisplayName('Text');
-				const children = [];
-				if (!TextElement) {
-					children.push(
-						createElement('span', {
-							children: [`The library plugin needed for ${config.info.name} is missing.`]
-						}),
-						createElement('br', {}),
-						createElement('a', {
-							target: '_blank',
-							href: 'https://betterdiscord.app/Download?id=9',
-							children: ['Click here to download the library!']
-						})
-					);
-					return BdApi.alert(title, createElement('span', { children }));
-				}
-				children.push(
-					createElement(TextElement, {
-						color: TextElement.Colors.STANDARD,
-						children: [`The library plugin needed for ${config.info.name} is missing.`]
-					}),
-					createElement('br', {}),
-					createElement('a', {
-						target: '_blank',
-						href: 'https://betterdiscord.app/Download?id=9',
-						children: ['Click here to download the library!']
-					})
-				);
-				if (!BdApi.showConfirmationModal) return BdApi.alert(title, children);
-				BdApi.showConfirmationModal(title, [
-						createElement(TextElement, {
-							color: TextElement.Colors.STANDARD,
-							children: [`The library plugin needed for ${config.info.name} is missing. Please click Download Now to install it.`]
-						})
-					],
-					{
-						danger: false,
-						confirmText: 'Download Now',
-						cancelText: 'Cancel',
-						onConfirm: () => {
-							require('request').get('https://rauenzi.github.io/BDPluginLibrary/release/0PluginLibrary.plugin.js', async (error, response, body) => {
-								if (error) return require('electron').shell.openExternal('https://betterdiscord.app/Download?id=9');
-								await new Promise(r => require('fs').writeFile(require('path').join(window.ContentManager.pluginsFolder, '0PluginLibrary.plugin.js'), body, r));
-							});
-						}
-					}
-				);
-			}
-
-			start() {
-				log('Started!');
-			}
-
-			/* Getters */
-
-			get [Symbol.toStringTag]() {
-				return 'Plugin';
-			}
-
-			get name() {
-				return config.info.name;
-			}
-
-			get short() {
-				let string = '';
-
-				for (let i = 0, len = config.info.name.length; i < len; i++) {
-					const char = config.info.name[i];
-					if (char === char.toUpperCase()) string += char;
-				}
-
-				return string;
-			}
-
-			get author() {
-				return config.info.authors.map((author) => author.name).join(', ');
-			}
-
-			get version() {
-				return config.info.version;
-			}
-
-			get description() {
-				return config.info.description;
-			}
-		}
-		: buildPlugin(global.ZeresPluginLibrary.buildPlugin(config));
+	return !globalThis.ZeresPluginLibrary 
+		? Dummy
+		: buildPlugin(globalThis.ZeresPluginLibrary.buildPlugin(config));
 })();
-
-module.exports = MemberCount;
 
 /*@end@*/
