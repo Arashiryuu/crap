@@ -59,7 +59,7 @@ const config = {
 				twitter_username: ''
 			}
 		],
-		version: '2.2.17',
+		version: '2.2.18',
 		description: 'Displays a server\'s member-count at the top of the member-list, can be styled with the #MemberCount selector.',
 		github: 'https://github.com/Arashiryuu',
 		github_raw: 'https://raw.githubusercontent.com/Arashiryuu/crap/master/ToastIntegrated/MemberCount/MemberCount.plugin.js'
