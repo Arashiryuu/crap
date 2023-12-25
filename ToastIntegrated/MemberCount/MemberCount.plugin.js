@@ -759,7 +759,7 @@ module.exports = (() => {
 			get css() {
 				return `
 					#MemberCount {
-						background: var(--background-secondary);
+						background: rgba(var(--background-secondary),0.25);
 						color: var(--channels-default, var(--text-secondary, --text-primary));
 						position: absolute;
 						width: 240px;
@@ -771,6 +771,7 @@ module.exports = (() => {
 					}
 
 					#MemberCount h3 {
+						flex-direction: column;
 						padding: 12px 8px;
 						height: auto;
 					}
