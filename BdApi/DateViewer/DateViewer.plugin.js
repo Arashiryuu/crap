@@ -9,28 +9,9 @@
  * @source https://github.com/Arashiryuu/crap/blob/master/BdApi/DateViewer/DateViewer.plugin.js
  */
 
+/// <reference path="./bdtypes.ts" />
 // @ts-check
 /* global BdApi */
-
-/**
- * @typedef Plugin
- * @type {!import('./types').Plugin}
- */
-
-/**
- * @typedef MetaData
- * @type {!import('./types').MetaData}
- */
-
-/**
- * @typedef Logger
- * @type {!import('./types').Logger}
- */
-
-/**
- * @typedef PromiseState
- * @type {!import('./types').PromiseStateManager}
- */
 
 /*@cc_on
 @if (@_jscript)
@@ -57,16 +38,17 @@
 @else@*/
 
 /**
- * @param {!MetaData} meta
- * @returns {!Plugin}
+ * @param {!BD.MetaData} meta
+ * @returns {!BD.Plugin}
  */
 module.exports = (meta) => {
 	// @ts-ignore
 	const Api = new BdApi(meta.name);
-	const { UI, DOM, Data, React, Utils, Themes, Plugins, Patcher, Webpack, ReactDOM, ReactUtils, ContextMenu } = Api;
+	const { UI, Data, React, Utils, Themes, Plugins, Patcher, Webpack, ReactDOM, ReactUtils, ContextMenu } = Api;
 	const { createElement: ce, useRef, useMemo, useState, useEffect, useReducer, useCallback, useLayoutEffect } = React;
 	const { render, findDOMNode, unmountComponentAtNode: unmount } = ReactDOM;
-	const { getModule, waitForModule } = Webpack;
+	const { getModule, getWithKey, waitForModule } = Webpack;
+	const DOM = new Api.DOM.constructor(`${meta.name}-stylesheet`);
 
 	const Filters = Object.create(Webpack.Filters);
 	Object.assign(Filters, {
@@ -77,10 +59,55 @@ module.exports = (meta) => {
 	});
 
 	const raf = requestAnimationFrame;
-	const has = Object.prototype.hasOwnProperty;
 	const toString = Object.prototype.toString;
 
-	const { inspect } = getModule(Filters.byProps('inspect', 'promisify'));
+	const LangUtils = Webpack.getModule((m) => Array.isArray(m?._events?.locale));
+	const { inspect } = Webpack.getByKeys('inspect', 'promisify');
+
+	/* Language Strings */
+
+	const strings = {
+		en: {
+			HOUR12_LABEL: '12 Hour Time Format',
+			HOUR12_NOTE: 'Whether to use 12 hour time, or 24 hour time.',
+			SECONDS_LABEL: 'Display Seconds',
+			SECONDS_NOTE: 'Toggle for enabling/disabling the seconds on the viewer.'
+		},
+		fr: {
+			HOUR12_LABEL: 'Format d\'heure de 12 heures',
+			HOUR12_NOTE: 'Que ce soit pour utiliser l\'heure de 12 heures ou celle de 24 heures.',
+			SECONDS_LABEL: 'Afficher les secondes',
+			SECONDS_NOTE: 'Basculez pour activer/désactiver les secondes sur la visionneuse.'
+		}
+		//,
+		// de: {
+		// 	HOUR12_LABEL: '12 Stunden Zeitformat',
+		// 	HOUR12_NOTE: '',
+		// 	SECONDS_LABEL: '',
+		// 	SECONDS_NOTE: ''
+		// },
+		// pl: {
+		// 	HOUR12_LABEL: '',
+		// 	HOUR12_NOTE: '',
+		// 	SECONDS_LABEL: '',
+		// 	SECONDS_NOTE: ''
+		// },
+		// ru: {
+		// 	HOUR12_LABEL: '',
+		// 	HOUR12_NOTE: '',
+		// 	SECONDS_LABEL: '',
+		// 	SECONDS_NOTE: ''
+		// }
+	};
+
+	/**
+	 * @returns {!BD.i18nStrings<typeof strings['en']>}
+	 */
+	const useStrings = () => {
+		/** @type {!string} */
+		const [lang] = LangUtils.getLocale().split('-');
+		return strings[lang] ?? strings.en;
+	};
 
 	/* Utility */
 
@@ -94,7 +121,7 @@ module.exports = (meta) => {
 	};
 
 	/**
-	 * @type {!PromiseState}
+	 * @type {!BD.PromiseStateManager}
 	 */
 	const promises = {
 		state: { cancelled: false },
@@ -163,7 +190,7 @@ module.exports = (meta) => {
 	/**
 	 * Generates a DOM element.
 	 * @param {!string} type
-	 * @returns {!(HTMLElement | SVGElement)}
+	 * @returns {!BD.DOMElement}
 	 */
 	const getElement = (type = 'div') => {
 		const e = document.createElement(type);
@@ -202,7 +229,7 @@ module.exports = (meta) => {
 	 * @param {!string} type 
 	 * @param {!object} props
 	 * @param {!(string | Node)[]} [children]
-	 * @returns {!(HTMLElement | SVGElement)}
+	 * @returns {!BD.DOMElement}
 	 */
 	const create = (type = 'div', props = {}, ...children) => {
 		if (typeof type !== 'string') type = 'div';
@@ -213,7 +240,7 @@ module.exports = (meta) => {
 			return e;
 		}
 
-		if (!has.call(props, 'children') && children.length) {
+		if (!Object.hasOwn(props, 'children') && children.length) {
 			e.append(...children);
 		}
 
@@ -251,7 +278,7 @@ module.exports = (meta) => {
 				}
 				case 'children': {
 					if (!Array.isArray(props[key])) props[key] = [props[key]];
-					e.append.apply(props[key]);
+					e.append(...props[key]);
 					break;
 				}
 				default: {
@@ -277,7 +304,7 @@ module.exports = (meta) => {
 	};
 
 	/**
-	 * @type {!Plugin}
+	 * @type {!BD.Plugin}
 	 */
 	const plugin = _Object(meta.name);
 
@@ -290,16 +317,27 @@ module.exports = (meta) => {
 	 */
 	const toSelector = (className) => `.${className.split(' ').join('.')}`;
 
-	const memberListClasses = getModule(Filters.byProps('members', 'container'));
+	const memberListClasses = Webpack.getByKeys('members', 'container');
 	/**
 	 * Current selector for the member-list.
 	 */
 	const memberListSelector = toSelector(memberListClasses.members);
 
 	/**
-	 * CSS formatter helper.
+	 * Converts a template literal interpolated string from a human-readable format into a one-liner for use in stylesheets.
 	 * @param {!TemplateStringsArray} ss
 	 * @returns {!string}
+	 * @example
+	 * ```js
+	 * const bgCol = '#FF00FF';
+	 * css`
+	 *   .this {
+	 *     color: red;
+	 *     background: ${bgCol};
+	 *   }
+	 * `
+	 * // .this { color: red; background: #FF00FF; }
+	 * ```
 	 */
 	const css = (ss, ...vars) => {
 		let string = '';
@@ -309,7 +347,7 @@ module.exports = (meta) => {
 
 	const style = css`
 		#dv-mount {
-			background-color: #2f3136;
+			background-color: var(--background-secondary);
 			bottom: 0;
 			box-sizing: border-box;
 			display: flex;
@@ -321,10 +359,11 @@ module.exports = (meta) => {
 		}
 		#dv-main {
 			--gap: 20px;
+			--_hsla: 0, 0%, 100%, 0.04;
 			background-color: transparent;
-			border-top: 1px solid hsla(0, 0%, 100%, .04);
+			border-top: 1px solid hsla(var(--_hsla));
 			box-sizing: border-box;
-			color: #fff;
+			color: var(--text-primary);
 			display: flex;
 			flex-direction: column;
 			height: 100%;
@@ -336,26 +375,16 @@ module.exports = (meta) => {
 		}
 		#dv-main .dv-date {
 			font-size: small;
-			opacity: .6;
-		}
-		.theme-light #dv-mount {
-			background-color: #f3f3f3;
+			opacity: 0.6;
 		}
 		.theme-light #dv-main {
-			border-top: 1px solid #e6e6e6;
-			color: #737f8d;
+			--_hsla: 0, 0%, 0%, 0.04;
 		}
 		${memberListSelector} {
 			margin-bottom: 95px;
 		}
 		/* Error Component */
 		.${meta.name}-error {
-			/* width: 100vmin;
-			height: 100%;
-			display: flex;
-			place-content: center;
-			place-items: center;
-			flex-flow: wrap row; */
 			position: fixed;
 			bottom: 3dvh;
 			color: red;
@@ -373,6 +402,9 @@ module.exports = (meta) => {
 		hour12: false,
 		displaySeconds: true
 	};
+	/**
+	 * @type {!typeof defaults}
+	 */
 	let settings = Utils.extend({}, defaults);
 
 	/**
@@ -380,7 +412,7 @@ module.exports = (meta) => {
 	 */
 	const BulkModule = getModule((m) => m?.Tooltip && m?.Text);
 	const Discord = {
-		Switch: getModule(Filters.byStrings('.value', '.disabled', '.onChange', '.tooltipNote'), { searchExports: true }),
+		Switch: BulkModule.FormSwitch,
 		TooltipWrapper: BulkModule.Tooltip,
 		ThemeContext: BulkModule.ThemeContextProvider
 	};
@@ -392,31 +424,84 @@ module.exports = (meta) => {
 	const useForceUpdate = () => useReducer((x) => x + 1, 0).pop();
 
 	/**
+	 * HOC for using an ErrorBoundary.
+	 * @param {!React.FC} Original
+	 * @returns {!React.FC}
+	 */
+	const withErrorBoundary = (Original) => {
+		return (props) => {
+			return ce(ErrorBoundary, null, ce(Original, props));
+		};
+	};
+
+	/**
+	 * HOC for wrapping elements in Discord's theme context.
+	 * @param {!React.FC} Original
+	 * @returns {!React.FC}
+	 */
+	const withThemeContext = (Original) => {
+		return (props) => {
+			return ce(Discord.ThemeContext, null, ce(Original, props));
+		};
+	};
+
+	const ErrorBoundary = class ErrorBoundary extends React.Component {
+		state = { hasError: false };
+
+		/**
+		 * @param {!Error} error
+		 */
+		static getDerivedStateFromError (error) {
+			return { hasError: true };
+		}
+
+		/**
+		 * @param {!Error} error
+		 * @param {!React.ErrorInfo} info
+		 */
+		componentDidCatch (error, info) {
+			Logger.error(error, info);
+		}
+
+		render () {
+			if (this.state.hasError) return ce(Discord.TooltipWrapper, {
+				text: 'See console for details.',
+				children: (props) => {
+					return ce('div', {
+						className: `${meta.name}-error`,
+						children: [
+							'Component Error'
+						],
+						...props
+					});
+				},
+				...Discord.TooltipWrapper.defaultProps
+			});
+			// @ts-ignore
+			return this.props.children;
+		}
+	};
+
+	/**
 	 * Fragment helper, only accepts a child elements array and sets no extra props on the fragment.
 	 * @param {!React.ReactNode[]} [children]
 	 * @returns {!React.ReactFragment}
 	 */
 	const Fragment = (children = []) => ce(React.Fragment, { children });
 
-	/**
-	 * @param {!object} props
-	 * @returns {!React.ReactFragment}
-	 */
-	const Switch = (props) => {
-		const { label = 'Switch label', note = 'Switch note', checked = false, onChange = console.log } = props;
+	const Switch = withThemeContext((props) => {
+		// @ts-ignore
+		const { label = 'Switch label', note = 'Switch note', checked = false, disabled = false, onChange = console.log } = props;
 
-		return ce(Discord.ThemeContext, {
-			children: [
-				ce(Discord.Switch, {
-					...props,
-					children: label,
-					value: checked,
-					hideBorder: false,
-					onChange
-				})
-			]
+		return ce(Discord.Switch, {
+			...props,
+			children: label,
+			value: checked,
+			hideBorder: false,
+			disabled: Boolean(disabled),
+			onChange
 		});
-	};
+	});
 
 	/**
 	 * @param {!React.ComponentProps<'div'>} props
@@ -424,13 +509,19 @@ module.exports = (meta) => {
 	 */
 	const Settings = (props) => {
 		const forceUpdate = useForceUpdate();
+		const {
+			HOUR12_LABEL,
+			HOUR12_NOTE,
+			SECONDS_LABEL,
+			SECONDS_NOTE
+		} = useStrings();
 
 		return ce('div', {
 			key: 'Plugin-Settings',
 			children: [
 				ce(Switch, {
-					label: '12 Hour Time Format',
-					note: 'Whether to use 12 hour time, or 24 hour time.',
+					label: HOUR12_LABEL,
+					note:  HOUR12_NOTE,
 					checked: settings.hour12,
 					/** @param {!boolean} e */
 					onChange: (e) => {
@@ -438,8 +529,8 @@ module.exports = (meta) => {
 					}
 				}),
 				ce(Switch, {
-					label: 'Display Seconds',
-					note: 'Toggle for enabling/disabling the seconds on the viewer.',
+					label: SECONDS_LABEL,
+					note: SECONDS_NOTE,
 					checked: settings.displaySeconds,
 					/** @param {!boolean} e */
 					onChange: (e) => {
@@ -485,9 +576,9 @@ module.exports = (meta) => {
 		const timeStyle = displaySeconds
 			? 'long'
 			: 'short';
-		let time = (new Intl.DateTimeFormat(l, { timeStyle, hour12 })).format();
+		let time = (new Intl.DateTimeFormat(l, { timeStyle, hour12 })).format(d);
 		if (displaySeconds) {
-			time = time.replace(/(GMT|BST|UTC)(\+\d{1,2})?/ig, '');
+			time = time.replace(/(GMT|BST|UTC)(\+\d{1,2})?/ig, '').trim();
 		}
 		return {
 			time,
@@ -499,7 +590,7 @@ module.exports = (meta) => {
 	/**
 	 * Interval hook.
 	 * @param {!VoidFunction} callback
-	 * @param {!number} [time]
+	 * @param {!number} [time=1000]
 	 */
 	const useInterval = (callback, time = 1000) => {
 		/**
@@ -513,79 +604,15 @@ module.exports = (meta) => {
 		}, [time]);
 	};
 
-	/**
-	 * AnimationFrame hook.
-	 * @param {!VoidFunction} callback
-	 */
-	const useAnimationFrame = (callback) => {
-		/**
-		 * @type {!React.RefObject<VoidFunction>}
-		 */
-		const cbRef = useRef(callback);
-		/**
-		 * @type {!React.MutableRefObject<number>}
-		 */
-		const frame = useRef();
-
-		const animate = useCallback((now) => {
-			cbRef.current();
-			frame.current = raf(animate);
-		}, []);
-
-		useLayoutEffect(() => {
-			frame.current = raf(animate);
-			return () => frame.current && cancelAnimationFrame(frame.current);
-		}, []);
-	};
-
-	const ErrorBoundary = class ErrorBoundary extends React.Component {
-		state = { hasError: false };
-
-		/**
-		 * @param {!Error} error
-		 */
-		static getDerivedStateFromError (error) {
-			return { hasError: true };
-		}
-
-		/**
-		 * @param {!Error} error
-		 * @param {!React.ErrorInfo} info
-		 */
-		componentDidCatch (error, info) {
-			Logger.error(error, info);
-		}
-
-		render () {
-			if (this.state.hasError) return ce(Discord.TooltipWrapper, {
-				text: 'See console for details.',
-				children: (props) => {
-					return ce('div', {
-						className: `${meta.name}-error`,
-						children: [
-							'Component Error'
-						],
-						...props
-					});
-				},
-				...Discord.TooltipWrapper.defaultProps
-			});
-			// @ts-ignore
-			return this.props.children;
-		}
-	};
-
-	const WrapBoundary = (Original) => (props) => ce(ErrorBoundary, null, ce(Original, props));
-
 	const dataZero = getData();
 	/**
-	 * @returns {!React.ReactHTMLElement<'div'>}
+	 * @returns {!React.ReactHTMLElement<HTMLDivElement>}
 	 */
 	const Viewer = () => {
 		const [state, setState] = useState(getData);
 		const update = useCallback(() => setState(getData));
 		/**
-		 * @type {!React.ElementRef<'div'>}
+		 * @type {!React.RefObject<HTMLDivElement>}
 		 */
 		const ref = useRef();
 
@@ -599,15 +626,15 @@ module.exports = (meta) => {
 					ref: ref,
 					key: 'dv_viewer_main',
 					children: [
-						ce('span', { key: 'date_viewer_time', className: 'dv-time' }, state.time),
-						ce('span', { key: 'date_viewer_date', className: 'dv-date' }, state.date),
-						ce('span', { key: 'date_viewer_weekday', className: 'dv-weekday' }, state.weekday)
+						ce('span', { key: 'dv_viewer_time', className: 'dv-time' }, state.time),
+						ce('span', { key: 'dv_viewer_date', className: 'dv-date' }, state.date),
+						ce('span', { key: 'dv_viewer_weekday', className: 'dv-weekday' }, state.weekday)
 					]
 				})
 			]
 		});
 	};
-	Viewer.Wrapped = WrapBoundary(Viewer);
+	Viewer.Wrapped = withErrorBoundary(Viewer);
 
 	const viewRoot = create('div', { id: 'dv-mount' });
 	const viewMain = create('div', { id: 'dv-main' });
@@ -638,8 +665,9 @@ module.exports = (meta) => {
 	};
 	const cancelUpdates = () => ref.current && cancelAnimationFrame(ref.current);
 
+	const instanceKey = `${meta.name}-Boundary`;
 	const connect = () => {
-		render(ce(Viewer.Wrapped, { key: `${meta.name}-Boundary` }), viewRoot);
+		render(ce(Viewer.Wrapped, { key: instanceKey }), viewRoot);
 	};
 
 	const disconnect = () => {
@@ -647,27 +675,46 @@ module.exports = (meta) => {
 	};
 
 	/**
-	 * @param {!PromiseState['state']} state
+	 * @param {!typeof promises['state']} state
 	 */
 	const patchMemberList = (state) => {
 		if (!BulkModule.ListThin || !BulkModule.ScrollerThin || state.cancelled) return;
+
+		const isThread = (props) => {
+			return !props['data-list-id'] && props.className.startsWith('members');
+		};
+
 		const validateAndPush = (type, value) => {
 			if (type !== 'members') return value;
-			const ret = Array.isArray(value) ? value : [value];
+			const ret = Array.isArray(value)
+				? value
+				: Array.of(value);
 			if (!ret.length) return ret;
-			if (ret.find((fiber) => fiber?.key === `${meta.name}-Boundary`)) return ret;
-			ret.push(ce(Viewer.Wrapped, { key: `${meta.name}-Boundary` }));
+			if (ret.find((fiber) => fiber?.key === instanceKey)) return ret;
+			ret.push(ce(Viewer.Wrapped, { key: instanceKey }));
 			return ret;
 		};
 		
 		Patcher.after(BulkModule.ListThin, 'render', (that, args, value) => {
-			const type = value.props?.['data-list-id']?.split('-')[0];
+			const val = Array.isArray(value)
+				? value.find((item) => item && !item.key)
+				: value;
+			const props = val.props;
+			const type = props?.['data-list-id']?.split('-')[0] ?? props?.className?.split('_')[0];
+			if (isThread(props)) {
+				const mlist = getProp(props, 'children.0.props.children.props');
+				validateAndPush(type, mlist.children);
+				return value;
+			}
 			return validateAndPush(type, value);
 		});
 
 		// Group DMs
 		Patcher.after(BulkModule.ScrollerThin, 'render', (that, args, value) => {
-			const type = value.props?.className?.split('-')[0];
+			const val = Array.isArray(value)
+				? value.find((item) => item && !item.key)
+				: value;
+			const type = val.props?.['data-list-id']?.split('-')[0] ?? val.props?.className?.split('_')[0];
 			return validateAndPush(type, value);
 		});
 	};
