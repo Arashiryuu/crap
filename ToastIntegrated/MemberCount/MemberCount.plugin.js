@@ -771,6 +771,7 @@ module.exports = (() => {
 					}
 
 					#MemberCount h3 {
+						flex-direction: column;
 						padding: 12px 8px;
 						height: auto;
 					}
