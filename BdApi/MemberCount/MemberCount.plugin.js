@@ -366,7 +366,7 @@ module.exports = (meta) => {
 
 	const memberListClasses = {
 		...Webpack.getByKeys('members', 'container'),
-		...getModule((m) => Filters.byProps('container')(m) && m.container.endsWith('98d'))//getByKeys('container', { first: false }).find((m) => m.container.endsWith('98d'))
+		...getModule((m) => m?.container?.endsWith('43554'/*'98d'*/))
 	};
 	/**
 	 * Current selectors for the member-list.
@@ -502,7 +502,7 @@ module.exports = (meta) => {
 	/**
 	 * Discord Components
 	 */
-	const BulkModule = getModule((m) => m?.Tooltip && m?.Text);
+	const BulkModule = getModule((m) => m !== window && m?.Tooltip && m?.Text);
 	const Discord = {
 		Switch: BulkModule.FormSwitch,
 		TooltipWrapper: BulkModule.Tooltip,
@@ -759,7 +759,9 @@ module.exports = (meta) => {
 	 * @param {!number} count
 	 * @returns {!(string | number | 'Loading')}
 	 */
-	const getCount = (count) => count || 'Loading';
+	const getCount = (count) => isNil(count) || Number.isNaN(count)
+		? 'Loading'
+		: count;
 
 	/**
 	 * @param {!(React.ComponentProps<'div'> & { count: number, online: number, displayType: number })} props
@@ -995,6 +997,9 @@ module.exports = (meta) => {
 				});
 				updateMemberList();
 			},
+			/**
+			 * @this {typeof Patches}
+			 */
 			ContextMenu (state) {
 				if (state.cancelled) return;
 				const fn = (item) => item?.key?.startsWith(meta.name);
