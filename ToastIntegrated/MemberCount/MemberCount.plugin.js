@@ -1,7 +1,7 @@
 /**
  * @name MemberCount
  * @author Arashiryuu
- * @version 2.2.18
+ * @version 2.2.20
  * @description Displays a server's member-count at the top of the member-list, can be styled with the #MemberCount selector.
  * @authorId 238108500109033472
  * @authorLink https://github.com/Arashiryuu
@@ -59,7 +59,7 @@ const config = {
 				twitter_username: ''
 			}
 		],
-		version: '2.2.18',
+		version: '2.2.20',
 		description: 'Displays a server\'s member-count at the top of the member-list, can be styled with the #MemberCount selector.',
 		github: 'https://github.com/Arashiryuu',
 		github_raw: 'https://raw.githubusercontent.com/Arashiryuu/crap/master/ToastIntegrated/MemberCount/MemberCount.plugin.js'
@@ -117,7 +117,7 @@ const config = {
 			title: 'Bugs Squashed!',
 			type: 'fixed',
 			items: [
-				'Fix library missing links.'
+				'Reflect most recent Discord class reroll.'
 			]
 		}
 	]
@@ -337,7 +337,7 @@ module.exports = (() => {
 				ref: ref,
 				children: [
 					createElement('h3', {
-						className: `${DiscordClasses.MemberList.membersGroup} container-q97qHp`,
+						className: `${DiscordClasses.MemberList.membersGroup} container-43554`,
 						children: [
 							createElement(Row, {
 								string: strings.MEMBERS,
