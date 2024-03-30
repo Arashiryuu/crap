@@ -414,68 +414,87 @@ module.exports = (meta) => {
 			: `${max}px`;
 	};
 
-	const getCss = () => css`
-		.theme-light #MemberCount {
-			--_hsla: 0, 0%, 0%, 0.04;
-		}
+	const getCss = () => {
+		const menuIconSvg = css`
+			M89.452,123.229c5.185-6.581,8.109-14.79,8.109-23.34c0-20.808-16.932-37.735-37.74-37.735S22.08,79.082,22.08,99.889
+			c0,8.688,3.006,17.009,8.331,23.627C11.887,136.099,0,159.854,0,185.836c0,3.957,3.213,7.168,7.169,7.168h105.938
+			c3.958,0,7.168-3.211,7.168-7.168C120.275,159.602,108.218,135.726,89.452,123.229z M14.692,178.667
+			c2.166-21.436,13.917-39.843,30.6-47.059c2.389-1.036,4.03-3.278,4.287-5.869c0.259-2.597-0.913-5.12-3.052-6.606
+			c-6.338-4.387-10.118-11.584-10.118-19.25c0-12.905,10.501-23.398,23.403-23.398c12.905,0,23.403,10.494,23.403,23.398
+			c0,7.575-3.712,14.72-9.931,19.112c-2.126,1.5-3.272,4.042-2.992,6.632c0.282,2.585,1.941,4.823,4.345,5.831
+			c16.874,7.113,28.766,25.585,30.936,47.208H14.692z
+		`;
 
-		#MemberCount {
-			--_hsla: 0, 0%, 100%, 0.04;
-			display: flex;
-			background: var(--background-secondary);
-			position: absolute;
-			color: var(--channels-default, var(--text-secondary, --text-primary));
-			width: 240px;
-			padding: 0;
-			z-index: 1;
-			top: 0;
-			margin-top: 0;
-			border-bottom: 1px solid hsla(var(--_hsla));
-		}
+		return css`
+			.theme-light #MemberCount {
+				--_hsla: 0, 0%, 0%, 0.04;
+			}
 
-		#MemberCount h3 {
-			display: flex;
-			padding: 12px 8px;
-			height: auto;
-			flex-direction: column;
-		}
+			#MemberCount {
+				--_hsla: 0, 0%, 100%, 0.04;
+				display: flex;
+				background: var(--background-secondary);
+				position: absolute;
+				color: var(--channels-default, var(--text-secondary, --text-primary));
+				width: 240px;
+				padding: 0;
+				z-index: 1;
+				top: 0;
+				margin-top: 0;
+				border-bottom: 1px solid hsla(var(--_hsla));
+			}
 
-		#MemberCount .membercount-row {
-			display: flex;
-			justify-content: center;
-		}
+			#MemberCount h3 {
+				display: flex;
+				padding: 12px 8px;
+				height: auto;
+				flex-direction: column;
+			}
 
-		#MemberCount .membercount-icon {
-			margin-top: 1px;
-			margin-right: 1px;
-		}
+			#MemberCount .membercount-row {
+				display: flex;
+				justify-content: center;
+			}
 
-		${memberWrap}.hasCounter ${memberListSelector} {
-			margin-top: ${getSpacing(settings)};
-		}
+			#MemberCount .membercount-icon {
+				margin-top: 1px;
+				margin-right: 1px;
+			}
 
-		${memberWrap}.hasCounter_thread #MemberCount {
-			position: sticky;
-		}
+			${memberWrap}.hasCounter ${memberListSelector} {
+				margin-top: ${getSpacing(settings)};
+			}
 
-		${memberWrap}.hasCounter_thread ${memberListSelector} {
-			margin-top: 0;
-		}
+			${memberWrap}.hasCounter_thread #MemberCount {
+				position: sticky;
+			}
 
-		/* Error Component */
-		#MemberCount.${meta.name}-error {
-			display: flex;
-			justify-content: center;
-			padding: 12px 0;
-			height: auto;
-			color: red;
-			font-size: 18px;
-			font-weight: 600;
-			text-shadow: 0 0 1px black, 0 0 2px black, 0 0 3px black,
-						 0 0 1px black, 0 0 2px black, 0 0 3px black,
-						 0 0 1px black, 0 0 2px black, 0 0 3px black;
-		}
-	`;
+			${memberWrap}.hasCounter_thread ${memberListSelector} {
+				margin-top: 0;
+			}
+
+			/* Context Menu Item */
+			.membercount-menu-icon::before {
+				content: '';
+				-webkit-mask-image: url('data:image/svg+xml;utf-8,<svg viewBox="-20 40 180 180" xmlns="http://www.w3.org/2000/svg"><path d="${menuIconSvg}"/></svg>');
+				mask-image: url('data:image/svg+xml;utf-8,<svg viewBox="-20 40 180 180" xmlns="http://www.w3.org/2000/svg"><path d="${menuIconSvg}"/></svg>');
+			}
+
+			/* Error Component */
+			#MemberCount.${meta.name}-error {
+				display: flex;
+				justify-content: center;
+				padding: 12px 0;
+				height: auto;
+				color: red;
+				font-size: 18px;
+				font-weight: 600;
+				text-shadow: 0 0 1px black, 0 0 2px black, 0 0 3px black,
+							0 0 1px black, 0 0 2px black, 0 0 3px black,
+							0 0 1px black, 0 0 2px black, 0 0 3px black;
+			}
+		`;
+	};
 
 	const updateStyle = () => {
 		DOM.removeStyle();
@@ -715,8 +734,8 @@ module.exports = (meta) => {
 	const Person = (props) => ce('svg', {
 		className: 'membercount-icon',
 		xmlns: 'http://www.w3.org/2000/svg',
-		width: '12px',
-		height: '12px',
+		width: '12',
+		height: '12',
 		viewBox: '0 0 20 20',
 		fill: props.fill ?? 'currentColor',
 		children: [
@@ -888,8 +907,8 @@ module.exports = (meta) => {
 	 */
 	const getHintSVG = () => ce('svg', {
 		xmlns: 'http://www.w3.org/2000/svg',
-		width: '24px',
-		height: '24px',
+		width: '24',
+		height: '24',
 		viewBox: '0 0 300 300',
 		fill: 'currentColor',
 		style: {
@@ -930,7 +949,7 @@ module.exports = (meta) => {
 		const blacklisted = settings.blacklisted.includes(id);
 		return {
 			id: 'membercount-toggle',
-			hint: getHintSVG(),
+			// hint: getHintSVG(),
 			label: getLabel(blacklisted),
 			action: getAction(id, blacklisted)
 		};
@@ -998,21 +1017,31 @@ module.exports = (meta) => {
 				updateMemberList();
 			},
 			/**
-			 * @this {typeof Patches}
+			 * @this {!typeof Patches}
 			 */
 			ContextMenu (state) {
 				if (state.cancelled) return;
 				const fn = (item) => item?.key?.startsWith(meta.name);
+				/**
+				 * Context menu helper function.
+				 * - Lazily checks that the context menu is rendering only the `Hide Muted Channels` option.
+				 * - Appending our item behind that leaves us as the last item in the context menu.
+				 * @param {!React.ReactNode[]} children
+				 * @returns {boolean}
+				 */
+				const isLastItem = (children) => {
+					return children.length === 2;
+				};
 				const patch = ContextMenu.patch('guild-context', (fiber, props) => {
 					const { navId } = fiber.props;
 					const { guild } = props;
-					if (navId !== 'guild-context') return fiber;
+					if (navId !== 'guild-context' || !guild) return fiber;
 					const data = parseId(guild.id);
 					const group = ce(BulkModule.MenuGroup, {
 						key: `${meta.name}-MenuGroup`,
 						children: [
-							ce(BulkModule.MenuItem, data),
-							ce(BulkModule.MenuSeparator, {})
+							ce(BulkModule.MenuItem, { className: 'membercount-menu-icon', ...data }),
+							!isLastItem(fiber.props.children) && ce(BulkModule.MenuSeparator, {})
 						]
 					});
 					if (!Array.isArray(fiber.props.children)) fiber.props.children = [fiber.props.children];
