@@ -1,7 +1,7 @@
 /**
  * @name DateViewer
  * @author Arashiryuu
- * @version 1.0.6
+ * @version 1.0.7
  * @description Displays the current date, weekday, and time.
  * @authorId 238108500109033472
  * @authorLink https://github.com/Arashiryuu
@@ -143,7 +143,7 @@ module.exports = (meta) => {
 	});
 
 	/**
-	 * @type {!Logger}
+	 * @type {!BD.Logger}
 	 */
 	// @ts-ignore
 	const Logger = _Object('Logger');
@@ -410,7 +410,7 @@ module.exports = (meta) => {
 	/**
 	 * Discord Components
 	 */
-	const BulkModule = getModule((m) => m?.Tooltip && m?.Text);
+	const BulkModule = getModule((m) => m !== window && m?.Tooltip && m?.Text);
 	const Discord = {
 		Switch: BulkModule.FormSwitch,
 		TooltipWrapper: BulkModule.Tooltip,
@@ -675,7 +675,7 @@ module.exports = (meta) => {
 	};
 
 	/**
-	 * @param {!typeof promises['state']} state
+	 * @type {!BD.PatchFunction}
 	 */
 	const patchMemberList = (state) => {
 		if (!BulkModule.ListThin || !BulkModule.ScrollerThin || state.cancelled) return;
