@@ -1,7 +1,7 @@
 /**
  * @name MemberCount
  * @author Arashiryuu
- * @version 2.2.20
+ * @version 2.2.21
  * @description Displays a server's member-count at the top of the member-list, can be styled with the #MemberCount selector.
  * @authorId 238108500109033472
  * @authorLink https://github.com/Arashiryuu
@@ -59,7 +59,7 @@ const config = {
 				twitter_username: ''
 			}
 		],
-		version: '2.2.20',
+		version: '2.2.21',
 		description: 'Displays a server\'s member-count at the top of the member-list, can be styled with the #MemberCount selector.',
 		github: 'https://github.com/Arashiryuu',
 		github_raw: 'https://raw.githubusercontent.com/Arashiryuu/crap/master/ToastIntegrated/MemberCount/MemberCount.plugin.js'
@@ -117,7 +117,8 @@ const config = {
 			title: 'Bugs Squashed!',
 			type: 'fixed',
 			items: [
-				'Reflect most recent Discord class reroll.'
+				'Reflect most recent Discord class reroll.',
+				'Fix plugin compilation/startup issues.'
 			]
 		}
 	]
@@ -167,14 +168,14 @@ module.exports = (() => {
 		const { SettingPanel, SettingGroup, SettingField, Textbox, Switch, RadioGroup } = Settings;
 		const { React, ReactDOM, Dispatcher, UserStore, DiscordConstants, GuildMemberStore, MemberCountStore, SelectedGuildStore, ContextMenuActions: MenuActions } = DiscordModules;
 		const { PureComponent, createElement, useRef, useMemo, useState, useEffect, useCallback, useReducer } = React;
-		const { useStateFromStores, useStateFromStoresArray } = WebpackModules.getByProps('Dispatcher', 'Store', 'useStateFromStores');
+		// const { useStateFromStores, useStateFromStoresArray } = WebpackModules.getByProps('Dispatcher', 'Store', 'useStateFromStores');
 
 		const has = Object.prototype.hasOwnProperty;
 		const LangUtils = WebpackModules.getByProps('getLocale', 'getLanguages');
 		const Flux = WebpackModules.getByProps('connectStores');
 		const Lists = WebpackModules.getByProps('ListThin');
 		const Menu = WebpackModules.getByProps('MenuItem', 'MenuGroup', 'MenuSeparator');
-		const GuildPopoutActions = WebpackModules.getByProps('fetchGuildForPopout');
+		// const GuildPopoutActions = WebpackModules.getByProps('fetchGuildForPopout');
 		const GuildPopoutStore = WebpackModules.getByProps('getGuild', 'isFetchingGuild');
 		const TextElement = WebpackModules.getByDisplayName('LegacyText');
 
@@ -316,28 +317,28 @@ module.exports = (() => {
 		// };
 
 		const Counter = (props) => {
-			const forceUpdate = useForceUpdate();
-			const listener = useCallback(() => forceUpdate(), []);
+			const listener = useCallback(() => useForceUpdate(), []);
 
 			const ref = useRef();
 			const strings = useStrings();
-			const online = useStateFromStores([GuildPopoutStore], () => GuildPopoutStore.getGuild(props.id)?.presenceCount);
+			// const online = useStateFromStores([GuildPopoutStore], () => GuildPopoutStore.getGuild(props.id)?.presenceCount);
 
-			useEffect(() => {
-				if (!/*props.*/online && !GuildPopoutStore.isFetchingGuild(props.id)) {
-					GuildPopoutActions.fetchGuildForPopout(props.id);
-				}
-				Dispatcher.subscribe(dispatchKey, listener);
-				return () => Dispatcher.unsubscribe(dispatchKey, listener);
-			}, [/*props.*/online]);
+			// useEffect(() => {
+			// 	if (!/*props.*/online && !GuildPopoutStore.isFetchingGuild(props.id)) {
+			// 		GuildPopoutActions.fetchGuildForPopout(props.id);
+			// 	}
+			// 	Dispatcher.subscribe(dispatchKey, listener);
+			// 	return () => Dispatcher.unsubscribe(dispatchKey, listener);
+			// }, [props.online]);
 
 			return createElement('div', {
 				id: 'MemberCount',
 				role: 'listitem',
 				ref: ref,
+				key: 'MemberCount__MAIN',
 				children: [
 					createElement('h3', {
-						className: `${DiscordClasses.MemberList.membersGroup} container-43554`,
+						className: `${DiscordClasses.MemberList.membersGroup} container_cc72c1`,
 						children: [
 							createElement(Row, {
 								string: strings.MEMBERS,
@@ -347,7 +348,7 @@ module.exports = (() => {
 							props.online && createElement(Row, {
 								fill: 'hsl(139, calc(var(--saturation-factor, 1) * 47.3%), 43.9%)',
 								string: strings.ONLINE,
-								count: /*props.*/online ?? 'Loading',
+								count: props.online ?? 'Loading',
 								displayType: props.displayType
 							})
 						]
@@ -358,7 +359,7 @@ module.exports = (() => {
 
 		const MemberCounter = Flux.connectStores([MemberCountStore, GuildPopoutStore], () => ({
 			count: MemberCountStore.getMemberCount(SelectedGuildStore.getGuildId()),
-			online: GuildPopoutStore.getGuild(SelectedGuildStore.getGuildId())?.presenceCount
+			online: MemberCountStore.getOnlineCount(SelectedGuildStore.getGuildId()) // GuildPopoutStore.getGuild(SelectedGuildStore.getGuildId())?.presenceCount
 		}))(Counter);
 
 		const getHintSVG = () => createElement('svg', {
@@ -759,6 +760,7 @@ module.exports = (() => {
 			get css() {
 				return `
 					#MemberCount {
+						display: flex;
 						background: var(--background-secondary);
 						color: var(--channels-default, var(--text-secondary, --text-primary));
 						position: absolute;
@@ -771,6 +773,8 @@ module.exports = (() => {
 					}
 
 					#MemberCount h3 {
+						display: flex;
+						flex-direction: column;
 						padding: 12px 8px;
 						height: auto;
 					}
