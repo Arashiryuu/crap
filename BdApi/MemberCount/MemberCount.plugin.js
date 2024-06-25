@@ -53,24 +53,24 @@ module.exports = (meta) => {
 	const Filters = Object.create(Webpack.Filters);
 	Object.assign(Filters, {
 		byId: (id = '1') => (...m) => m.pop() === String(id),
-		byName: (name = '') => Filters.byDisplayName(name),
+		byName: Filters.byDisplayName,
 		byStore: (name = '') => (m) => m?._dispatchToken && m?.getName() === name,
 		byProtos: Filters.byPrototypeFields
 	});
 
 	const Flux = Webpack.getByKeys('connectStores');
-	const GuildPopoutActions = Webpack.getByKeys('fetchGuildForPopout');
+	// const GuildPopoutActions = Webpack.getByKeys('fetchGuildForPopout');
 	const GuildPopoutStore = Webpack.getStore('GuildPopoutStore');
 	const MemberCountStores = Webpack.getStore('GuildMemberCountStore');
 	const SelectedGuildStore = Webpack.getStore('SelectedGuildStore');
 	const LangUtils = getModule((m) => Array.isArray(m?._events?.locale));
 
-	const { ComponentDispatcher } = Webpack.getByKeys('ComponentDispatch');
-	const { useStateFromStores } = Webpack.getByKeys('useStateFromStores');
+	const { EventEmitter } = Webpack.getByKeys('EventEmitter');
+	// const { useStateFromStores } = Webpack.getByKeys('useStateFromStores');
 	const { inspect } = Webpack.getByKeys('inspect', 'promisify');
 
 	const formClasses = Webpack.getByKeys('dividerDefault');
-	const CDispatch = new ComponentDispatcher();
+	const _emitter = new EventEmitter();
 
 	const options = {
 		style: [
@@ -135,7 +135,7 @@ module.exports = (meta) => {
 	};
 
 	/**
-	 * @returns {!BD.i18nStrings<typeof strings['en']>}
+	 * @returns {!Readonly<typeof strings['en']>}
 	 */
 	const useStrings = () => {
 		/** @type {!string} */
@@ -165,16 +165,16 @@ module.exports = (meta) => {
 	applyBinds(promises);
 
 	/**
-	 * Creates clean objects with a `Symbol.toStringTag` value describing the object.
+	 * Creates clean objects with a `Symbol.toStringTag` value describing the object as the only inherited data.
 	 * @param {!(string | symbol)} value
 	 * @returns {!object}
 	 */
-	const _Object = (value = 'NullObject') => Object.create(null, {
+	const _Object = (value = 'NullObject') => Object.create(Object.create(null, {
 		[Symbol.toStringTag]: {
 			enumerable: false,
 			value
 		}
-	});
+	}));
 
 	/**
 	 * Determines if something is null or undefined.
@@ -366,7 +366,7 @@ module.exports = (meta) => {
 
 	const memberListClasses = {
 		...Webpack.getByKeys('members', 'container'),
-		...getModule((m) => m?.container?.endsWith('43554'/*'98d'*/))
+		...getModule((m) => m?.container?.endsWith('cc72c1'/*'98d'*/))
 	};
 	/**
 	 * Current selectors for the member-list.
@@ -377,6 +377,7 @@ module.exports = (meta) => {
 	/**
 	 * Converts a template literal interpolated string from a human-readable format into a one-liner for use in stylesheets.
 	 * @param {!TemplateStringsArray} ss
+	 * @param {!any[]} [vars=[]]
 	 * @returns {!string}
 	 * @example
 	 * ```js
@@ -397,7 +398,13 @@ module.exports = (meta) => {
 	};
 
 	/**
-	 * @param {{ marginSpacing: number, online: boolean }} props
+	 * @typedef SpacingProps
+	 * @property {!boolean} online
+	 * @property {!number} marginSpacing
+	 */
+
+	/**
+	 * @param {!SpacingProps} props
 	 * @returns {!string}
 	 */
 	const getSpacing = ({ marginSpacing, online }) => {
@@ -416,6 +423,9 @@ module.exports = (meta) => {
 
 	const getCss = () => {
 		const menuIconSvg = css`
+			M12 5.9c1.16 0 2.1.94 2.1 2.1s-.94 2.1-2.1 2.1S9.9 9.16 9.9 8s.94-2.1 2.1-2.1m0 9c2.97 0 6.1 1.46 6.1 2.1v1.1H5.9V17c0-.64
+			3.13-2.1 6.1-2.1M12 4C9.79 4 8 5.79 8 8s1.79 4 4 4 4-1.79 4-4-1.79-4-4-4m0 9c-2.67 0-8 1.34-8 4v3h16v-3c0-2.66-5.33-4-8-4
+		`;/* css`
 			M89.452,123.229c5.185-6.581,8.109-14.79,8.109-23.34c0-20.808-16.932-37.735-37.74-37.735S22.08,79.082,22.08,99.889
 			c0,8.688,3.006,17.009,8.331,23.627C11.887,136.099,0,159.854,0,185.836c0,3.957,3.213,7.168,7.169,7.168h105.938
 			c3.958,0,7.168-3.211,7.168-7.168C120.275,159.602,108.218,135.726,89.452,123.229z M14.692,178.667
@@ -423,7 +433,7 @@ module.exports = (meta) => {
 			c-6.338-4.387-10.118-11.584-10.118-19.25c0-12.905,10.501-23.398,23.403-23.398c12.905,0,23.403,10.494,23.403,23.398
 			c0,7.575-3.712,14.72-9.931,19.112c-2.126,1.5-3.272,4.042-2.992,6.632c0.282,2.585,1.941,4.823,4.345,5.831
 			c16.874,7.113,28.766,25.585,30.936,47.208H14.692z
-		`;
+		`; */
 
 		return css`
 			.theme-light #MemberCount {
@@ -476,8 +486,8 @@ module.exports = (meta) => {
 			/* Context Menu Item */
 			.membercount-menu-icon::before {
 				content: '';
-				-webkit-mask-image: url('data:image/svg+xml;utf-8,<svg viewBox="-20 40 180 180" xmlns="http://www.w3.org/2000/svg"><path d="${menuIconSvg}"/></svg>');
-				mask-image: url('data:image/svg+xml;utf-8,<svg viewBox="-20 40 180 180" xmlns="http://www.w3.org/2000/svg"><path d="${menuIconSvg}"/></svg>');
+				-webkit-mask-image: url('data:image/svg+xml;utf-8,<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="${menuIconSvg}"/></svg>');
+				mask-image: url('data:image/svg+xml;utf-8,<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="${menuIconSvg}"/></svg>');
 			}
 
 			/* Error Component */
@@ -647,7 +657,7 @@ module.exports = (meta) => {
 					disabled: Boolean(disabled),
 					onChange: (e) => {
 						onChange(e.value);
-						CDispatch.dispatch('SETTINGS_UPDATE');
+						_emitter.emit('SETTINGS_UPDATE');
 					}
 				}),
 				ce(BulkModule.FormDivider, {
@@ -678,8 +688,8 @@ module.exports = (meta) => {
 		}, []);
 
 		useEffect(() => {
-			CDispatch.subscribe('SETTINGS_UPDATE', onChange);
-			return () => CDispatch.unsubscribe('SETTINGS_UPDATE', onChange);
+			_emitter.on('SETTINGS_UPDATE', onChange);
+			return () => _emitter.off('SETTINGS_UPDATE', onChange);
 		}, []);
 		
 		return ce('div', {
@@ -750,7 +760,15 @@ module.exports = (meta) => {
 	});
 
 	/**
-	 * @param {{ fill: string, count: number, string: string, displayType: number }} props
+	 * @typedef RowProps
+	 * @property {!string} fill
+	 * @property {!number} count
+	 * @property {!string} string
+	 * @property {!number} displayType
+	 */
+
+	/**
+	 * @param {!RowProps} props
 	 * @returns {!React.ReactChildren[]}
 	 */
 	const getRowChildren = (props) => props.displayType === 1
@@ -783,7 +801,14 @@ module.exports = (meta) => {
 		: count;
 
 	/**
-	 * @param {!(React.ComponentProps<'div'> & { count: number, online: number, displayType: number })} props
+	 * @typedef CounterProps
+	 * @property {!number} count
+	 * @property {!number} online
+	 * @property {!number} displayType
+	 */
+
+	/**
+	 * @param {!(React.ComponentProps<'div'> & CounterProps)} props
 	 * @returns {!React.ReactHTMLElement<'div'>}
 	 */
 	const MemberCount = (props) => {
@@ -791,11 +816,11 @@ module.exports = (meta) => {
 		const strings = useStrings();
 		const { id, count, online, displayType } = props;
 
-		useEffect(() => {
-			if (!online && !GuildPopoutStore.isFetchingGuild(id)) {
-				GuildPopoutActions.fetchGuildForPopout(id);
-			}
-		}, [online]);
+		// useEffect(() => {
+		// 	if (!online && !GuildPopoutStore.isFetchingGuild(id)) {
+		// 		// GuildPopoutActions.fetchGuildForPopout(id);
+		// 	}
+		// }, [online]);
 
 		return ce('div', {
 			id: 'MemberCount',
@@ -825,14 +850,18 @@ module.exports = (meta) => {
 		});
 	};
 
-	const Counter = Flux.connectStores([MemberCountStores, GuildPopoutStore], () => ({
-		count: MemberCountStores.getMemberCount(SelectedGuildStore.getGuildId()),
-		/**
-		 * We can tally all the non-invisible accounts on a server via `MemberCountStores.getOnlineCount(SelectedGuildStore.getGuildId())`.
-		 * However, we want to include invisibles.
-		 */
-		online: GuildPopoutStore.getGuild(SelectedGuildStore.getGuildId())?.presenceCount
-	}))(MemberCount);
+	const Counter = Flux.connectStores([MemberCountStores, GuildPopoutStore], () => {
+		const gid = SelectedGuildStore.getGuildId();
+		return {
+			count: MemberCountStores.getMemberCount(gid),
+			/**
+			 * We can tally all the non-invisible accounts on a server via `MemberCountStores.getOnlineCount(gid)`.
+			 * However, we want to include invisibles.
+			 */
+			// band-aid quick fix
+			online: MemberCountStores.getOnlineCount(gid) // GuildPopoutStore.getGuild(SelectedGuildStore.getGuildId())?.presenceCount
+		};
+	})(MemberCount);
 	Counter.Wrapped = withErrorBoundary(Counter);
 
 	/**
@@ -964,7 +993,7 @@ module.exports = (meta) => {
 		 */
 		static #cache = [];
 		/**
-		 * @type {!Readonly<Record<string, BD.PatchFunction>>}
+		 * @type {!BD.Patches<typeof Patches>}
 		 */
 		static #patches = {
 			MemberList (state) {
@@ -972,6 +1001,11 @@ module.exports = (meta) => {
 				const isThread = (props) => {
 					return !props['data-list-id'] && props.className.startsWith('members');
 				};
+				/**
+				 * Duplicate protection predicate function.
+				 * @param {{ key?: string }} fiber
+				 * @returns {!boolean}
+				 */
 				const fn = (fiber) => fiber?.key?.startsWith(meta.name);
 				Patcher.after(BulkModule.ListThin, 'render', (that, args, value) => {
 					const val = Array.isArray(value)
@@ -1016,22 +1050,27 @@ module.exports = (meta) => {
 				});
 				updateMemberList();
 			},
-			/**
-			 * @this {!typeof Patches}
-			 */
 			ContextMenu (state) {
 				if (state.cancelled) return;
+				/**
+				 * Duplicate protection predicate function.
+				 * @param {{ key?: string }} item
+				 * @returns {!boolean}
+				 */
 				const fn = (item) => item?.key?.startsWith(meta.name);
 				/**
 				 * Context menu helper function.
 				 * - Lazily checks that the context menu is rendering only the `Hide Muted Channels` option.
 				 * - Appending our item behind that leaves us as the last item in the context menu.
 				 * @param {!React.ReactNode[]} children
-				 * @returns {boolean}
+				 * @returns {!boolean}
 				 */
 				const isLastItem = (children) => {
 					return children.length === 2;
 				};
+				/**
+				 * @type {!VoidFunction}
+				 */
 				const patch = ContextMenu.patch('guild-context', (fiber, props) => {
 					const { navId } = fiber.props;
 					const { guild } = props;
@@ -1048,7 +1087,6 @@ module.exports = (meta) => {
 					if (!fiber.props.children.some(fn)) fiber.props.children.splice(1, 0, group);
 					return fiber;
 				});
-				// @ts-ignore
 				this.#cache.push(patch);
 			}
 		};
