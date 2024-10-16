@@ -117,7 +117,7 @@ const config = {
 			title: 'Bugs Squashed!',
 			type: 'fixed',
 			items: [
-				'Reflect most recent Discord class reroll.'
+				'Reflect most recent Discord internal change.'
 			]
 		}
 	]
