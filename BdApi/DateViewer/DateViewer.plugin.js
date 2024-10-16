@@ -1,7 +1,7 @@
 /**
  * @name DateViewer
  * @author Arashiryuu
- * @version 1.0.7
+ * @version 1.0.8
  * @description Displays the current date, weekday, and time.
  * @authorId 238108500109033472
  * @authorLink https://github.com/Arashiryuu
@@ -61,7 +61,7 @@ module.exports = (meta) => {
 	const raf = requestAnimationFrame;
 	const toString = Object.prototype.toString;
 
-	const LangUtils = Webpack.getModule((m) => Array.isArray(m?._events?.locale));
+	const LangUtils = Webpack.getModule((m) => m?._eventsCount === 1);
 	const { inspect } = Webpack.getByKeys('inspect', 'promisify');
 
 	/* Language Strings */
