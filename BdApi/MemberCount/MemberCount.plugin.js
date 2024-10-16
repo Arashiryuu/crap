@@ -63,7 +63,7 @@ module.exports = (meta) => {
 	const GuildPopoutStore = Webpack.getStore('GuildPopoutStore');
 	const MemberCountStores = Webpack.getStore('GuildMemberCountStore');
 	const SelectedGuildStore = Webpack.getStore('SelectedGuildStore');
-	const LangUtils = getModule((m) => Array.isArray(m?._events?.locale));
+	const LangUtils = getModule((m) => m?._eventsCount === 1);
 
 	const { EventEmitter } = Webpack.getByKeys('EventEmitter');
 	// const { useStateFromStores } = Webpack.getByKeys('useStateFromStores');
