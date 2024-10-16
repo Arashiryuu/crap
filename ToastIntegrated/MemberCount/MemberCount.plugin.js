@@ -1,7 +1,7 @@
 /**
  * @name MemberCount
  * @author Arashiryuu
- * @version 2.2.22
+ * @version 2.2.23
  * @description Displays a server's member-count at the top of the member-list, can be styled with the #MemberCount selector.
  * @authorId 238108500109033472
  * @authorLink https://github.com/Arashiryuu
@@ -170,13 +170,12 @@ module.exports = (() => {
 		// const { useStateFromStores, useStateFromStoresArray } = WebpackModules.getByProps('Dispatcher', 'Store', 'useStateFromStores');
 
 		const has = Object.prototype.hasOwnProperty;
-		const LangUtils = WebpackModules.getByProps('getLocale', 'getLanguages');
+		const LangUtils = WebpackModules.getModule((m) => m?._eventsCount === 1);
 		const Flux = WebpackModules.getByProps('connectStores');
 		const Lists = WebpackModules.getByProps('ListThin');
 		const Menu = WebpackModules.getByProps('MenuItem', 'MenuGroup', 'MenuSeparator');
 		// const GuildPopoutActions = WebpackModules.getByProps('fetchGuildForPopout');
 		const GuildPopoutStore = WebpackModules.getByProps('getGuild', 'isFetchingGuild');
-		const TextElement = WebpackModules.getByDisplayName('LegacyText');
 
 		const ctxMenuClasses = WebpackModules.getByProps('menu', 'scroller');
 		const dispatchKey = 'MEMBERCOUNT_COUNTER_UPDATE';
@@ -226,9 +225,9 @@ module.exports = (() => {
 				if (this.state.hasError) return createElement('div', {
 					className: `${config.info.name}-error`,
 					children: [
-						createElement(TextElement, {
-							color: TextElement.Colors.ERROR,
-							size: TextElement.Sizes.SIZE_14
+						createElement('span', {
+							color: 'red',
+							fontSize: '14px'
 						}, `${config.info.name} Error`)
 					],
 					style: {
