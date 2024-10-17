@@ -1,7 +1,7 @@
 /**
  * @name MemberCount
  * @author Arashiryuu
- * @version 2.2.23
+ * @version 2.2.24
  * @description Displays a server's member-count at the top of the member-list, can be styled with the #MemberCount selector.
  * @authorId 238108500109033472
  * @authorLink https://github.com/Arashiryuu
@@ -117,7 +117,7 @@ const config = {
 			title: 'Bugs Squashed!',
 			type: 'fixed',
 			items: [
-				'Reflect most recent Discord internal change.'
+				'Reflect most recent Discord class change.'
 			]
 		}
 	]
@@ -336,7 +336,7 @@ module.exports = (() => {
 				key: 'MemberCount__MAIN',
 				children: [
 					createElement('h3', {
-						className: `${DiscordClasses.MemberList.membersGroup} container_a5ad5c`,
+						className: `${DiscordClasses.MemberList.membersGroup} container_a5ad5c text_a5ad5c`,
 						children: [
 							createElement(Row, {
 								string: strings.MEMBERS,
