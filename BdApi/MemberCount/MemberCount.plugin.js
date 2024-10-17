@@ -70,7 +70,12 @@ module.exports = (meta) => {
 	const { inspect } = Webpack.getByKeys('inspect', 'promisify');
 
 	const formClasses = Webpack.getByKeys('dividerDefault');
+	/**
+	 * @type {!NodeJS.EventEmitter}
+	 */
 	const _emitter = new EventEmitter();
+
+	const toString = Object.prototype.toString;
 
 	const options = {
 		style: [
@@ -166,7 +171,7 @@ module.exports = (meta) => {
 
 	/**
 	 * Creates clean objects with a `Symbol.toStringTag` value describing the object as the only inherited data.
-	 * @param {!(string | symbol)} value
+	 * @param {!Exclude<PropertyKey, number>} value
 	 * @returns {!object}
 	 */
 	const _Object = (value = 'NullObject') => Object.create(Object.create(null, {
@@ -421,90 +426,79 @@ module.exports = (meta) => {
 			: `${max}px`;
 	};
 
-	const getCss = () => {
-		const menuIconSvg = css`
-			M12 5.9c1.16 0 2.1.94 2.1 2.1s-.94 2.1-2.1 2.1S9.9 9.16 9.9 8s.94-2.1 2.1-2.1m0 9c2.97 0 6.1 1.46 6.1 2.1v1.1H5.9V17c0-.64
-			3.13-2.1 6.1-2.1M12 4C9.79 4 8 5.79 8 8s1.79 4 4 4 4-1.79 4-4-1.79-4-4-4m0 9c-2.67 0-8 1.34-8 4v3h16v-3c0-2.66-5.33-4-8-4
-		`;/* css`
-			M89.452,123.229c5.185-6.581,8.109-14.79,8.109-23.34c0-20.808-16.932-37.735-37.74-37.735S22.08,79.082,22.08,99.889
-			c0,8.688,3.006,17.009,8.331,23.627C11.887,136.099,0,159.854,0,185.836c0,3.957,3.213,7.168,7.169,7.168h105.938
-			c3.958,0,7.168-3.211,7.168-7.168C120.275,159.602,108.218,135.726,89.452,123.229z M14.692,178.667
-			c2.166-21.436,13.917-39.843,30.6-47.059c2.389-1.036,4.03-3.278,4.287-5.869c0.259-2.597-0.913-5.12-3.052-6.606
-			c-6.338-4.387-10.118-11.584-10.118-19.25c0-12.905,10.501-23.398,23.403-23.398c12.905,0,23.403,10.494,23.403,23.398
-			c0,7.575-3.712,14.72-9.931,19.112c-2.126,1.5-3.272,4.042-2.992,6.632c0.282,2.585,1.941,4.823,4.345,5.831
-			c16.874,7.113,28.766,25.585,30.936,47.208H14.692z
-		`; */
+	const menuIconSvg = css`
+		M12 5.9c1.16 0 2.1.94 2.1 2.1s-.94 2.1-2.1 2.1S9.9 9.16 9.9 8s.94-2.1 2.1-2.1m0 9c2.97 0 6.1 1.46 6.1 2.1v1.1H5.9V17c0-.64
+		3.13-2.1 6.1-2.1M12 4C9.79 4 8 5.79 8 8s1.79 4 4 4 4-1.79 4-4-1.79-4-4-4m0 9c-2.67 0-8 1.34-8 4v3h16v-3c0-2.66-5.33-4-8-4
+	`;
+	const getCss = () => css`
+		.theme-light #MemberCount {
+			--_hsla: 0, 0%, 0%, 0.04;
+		}
 
-		return css`
-			.theme-light #MemberCount {
-				--_hsla: 0, 0%, 0%, 0.04;
-			}
+		#MemberCount {
+			--_hsla: 0, 0%, 100%, 0.04;
+			display: flex;
+			background: var(--background-secondary);
+			position: absolute;
+			color: var(--channels-default, var(--text-secondary, --text-primary));
+			width: 240px;
+			padding: 0;
+			z-index: 1;
+			top: 0;
+			margin-top: 0;
+			border-bottom: 1px solid hsla(var(--_hsla));
+		}
 
-			#MemberCount {
-				--_hsla: 0, 0%, 100%, 0.04;
-				display: flex;
-				background: var(--background-secondary);
-				position: absolute;
-				color: var(--channels-default, var(--text-secondary, --text-primary));
-				width: 240px;
-				padding: 0;
-				z-index: 1;
-				top: 0;
-				margin-top: 0;
-				border-bottom: 1px solid hsla(var(--_hsla));
-			}
+		#MemberCount h3 {
+			display: flex;
+			padding: 12px 8px;
+			height: auto;
+			flex-direction: column;
+		}
 
-			#MemberCount h3 {
-				display: flex;
-				padding: 12px 8px;
-				height: auto;
-				flex-direction: column;
-			}
+		#MemberCount .membercount-row {
+			display: flex;
+			justify-content: center;
+		}
 
-			#MemberCount .membercount-row {
-				display: flex;
-				justify-content: center;
-			}
+		#MemberCount .membercount-icon {
+			margin-top: 1px;
+			margin-right: 1px;
+		}
 
-			#MemberCount .membercount-icon {
-				margin-top: 1px;
-				margin-right: 1px;
-			}
+		${memberWrap}.hasCounter ${memberListSelector} {
+			margin-top: ${getSpacing(settings)};
+		}
 
-			${memberWrap}.hasCounter ${memberListSelector} {
-				margin-top: ${getSpacing(settings)};
-			}
+		${memberWrap}.hasCounter_thread #MemberCount {
+			position: sticky;
+		}
 
-			${memberWrap}.hasCounter_thread #MemberCount {
-				position: sticky;
-			}
+		${memberWrap}.hasCounter_thread ${memberListSelector} {
+			margin-top: 0;
+		}
 
-			${memberWrap}.hasCounter_thread ${memberListSelector} {
-				margin-top: 0;
-			}
+		/* Context Menu Item 
+		.membercount-menu-icon::before {
+			content: '';
+			-webkit-mask-image: url('data:image/svg+xml;utf-8,<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="${menuIconSvg}"/></svg>');
+			mask-image: url('data:image/svg+xml;utf-8,<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="${menuIconSvg}"/></svg>');
+		}*/
 
-			/* Context Menu Item */
-			.membercount-menu-icon::before {
-				content: '';
-				-webkit-mask-image: url('data:image/svg+xml;utf-8,<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="${menuIconSvg}"/></svg>');
-				mask-image: url('data:image/svg+xml;utf-8,<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="${menuIconSvg}"/></svg>');
-			}
-
-			/* Error Component */
-			#MemberCount.${meta.name}-error {
-				display: flex;
-				justify-content: center;
-				padding: 12px 0;
-				height: auto;
-				color: red;
-				font-size: 18px;
-				font-weight: 600;
-				text-shadow: 0 0 1px black, 0 0 2px black, 0 0 3px black,
-							0 0 1px black, 0 0 2px black, 0 0 3px black,
-							0 0 1px black, 0 0 2px black, 0 0 3px black;
-			}
-		`;
-	};
+		/* Error Component */
+		#MemberCount.${meta.name}-error {
+			display: flex;
+			justify-content: center;
+			padding: 12px 0;
+			height: auto;
+			color: red;
+			font-size: 18px;
+			font-weight: 600;
+			text-shadow: 0 0 1px black, 0 0 2px black, 0 0 3px black,
+						 0 0 1px black, 0 0 2px black, 0 0 3px black,
+						 0 0 1px black, 0 0 2px black, 0 0 3px black;
+		}
+	`;
 
 	const updateStyle = () => {
 		DOM.removeStyle();
@@ -617,6 +611,7 @@ module.exports = (meta) => {
 
 		return ce(Discord.Switch, {
 			...props,
+			note,
 			children: label,
 			value: checked,
 			hideBorder: false,
@@ -775,16 +770,17 @@ module.exports = (meta) => {
 		? [
 			ce(Person, { fill: props.fill ?? null }),
 			String.fromCodePoint(160),
-			props.count,
+			ce('span', { className: 'membercount-count' }, props.count),
 			String.fromCodePoint(160),
-			props.string
+			ce('span', { className: 'membercount-label' }, props.string)
 		]
 		: [
-			props.string,
+			ce('span', { className: 'membercount-label' }, props.string),
 			' — ',
-			props.count
+			ce('span', { className: 'membercount-count' }, props.count)
 		];
 	/**
+	 * @param {!RowProps} props
 	 * @returns {!React.ReactHTMLElement<'span'>}
 	 */
 	const Row = (props) => ce('span', {
@@ -794,7 +790,7 @@ module.exports = (meta) => {
 
 	/**
 	 * @param {!number} count
-	 * @returns {!(string | number | 'Loading')}
+	 * @returns {!(number | 'Loading')}
 	 */
 	const getCount = (count) => isNil(count) || Number.isNaN(count)
 		? 'Loading'
@@ -830,7 +826,8 @@ module.exports = (meta) => {
 				ce('h3', {
 					className: Utils.className({
 						[memberListClasses.membersGroup]: true,
-						[memberListClasses.container]: true
+						[memberListClasses.container]: true,
+						[memberListClasses.text]: true
 					}),
 					children: [
 						ce(Row, {
@@ -859,7 +856,7 @@ module.exports = (meta) => {
 			 * However, we want to include invisibles.
 			 */
 			// band-aid quick fix
-			online: MemberCountStores.getOnlineCount(gid) // GuildPopoutStore.getGuild(SelectedGuildStore.getGuildId())?.presenceCount
+			online: GuildPopoutStore.getGuild(gid)?.presenceCount ?? MemberCountStores.getOnlineCount(gid)
 		};
 	})(MemberCount);
 	Counter.Wrapped = withErrorBoundary(Counter);
@@ -936,38 +933,16 @@ module.exports = (meta) => {
 	 */
 	const getHintSVG = () => ce('svg', {
 		xmlns: 'http://www.w3.org/2000/svg',
-		width: '24',
-		height: '24',
-		viewBox: '0 0 300 300',
+		width: '20',
+		height: '20',
+		viewBox: '0 0 24 24',
 		fill: 'currentColor',
 		style: {
 			position: 'relative',
 			top: '-1px'
 		},
 		children: [
-			ce('path', {
-				d: css`M89.452,123.229c5.185-6.581,8.109-14.79,8.109-23.34c0-20.808-16.932-37.735-37.74-37.735S22.08,79.082,22.08,99.889
-				c0,8.688,3.006,17.009,8.331,23.627C11.887,136.099,0,159.854,0,185.836c0,3.957,3.213,7.168,7.169,7.168h105.938
-				c3.958,0,7.168-3.211,7.168-7.168C120.275,159.602,108.218,135.726,89.452,123.229z M14.692,178.667
-				c2.166-21.436,13.917-39.843,30.6-47.059c2.389-1.036,4.03-3.278,4.287-5.869c0.259-2.597-0.913-5.12-3.052-6.606
-				c-6.338-4.387-10.118-11.584-10.118-19.25c0-12.905,10.501-23.398,23.403-23.398c12.905,0,23.403,10.494,23.403,23.398
-				c0,7.575-3.712,14.72-9.931,19.112c-2.126,1.5-3.272,4.042-2.992,6.632c0.282,2.585,1.941,4.823,4.345,5.831
-				c16.874,7.113,28.766,25.585,30.936,47.208H14.692z`
-			}),
-			ce('path', {
-				d: css`M176.705,102.872c-2.801-2.8-7.337-2.8-10.137,0l-14.57,14.566l-14.562-14.566c-2.801-2.8-7.339-2.8-10.14,0
-				c-2.8,2.8-2.8,7.337,0,10.137l14.563,14.566l-14.563,14.563c-2.8,2.8-2.8,7.337,0,10.137c1.4,1.4,3.234,2.101,5.071,2.101
-				c1.834,0,3.668-0.7,5.068-2.101l14.57-14.562l14.562,14.562c1.4,1.4,3.238,2.101,5.073,2.101c1.834,0,3.673-0.7,5.073-2.101
-				c2.8-2.8,2.8-7.337,0-10.137l-14.571-14.563l14.571-14.566C179.505,110.208,179.505,105.672,176.705,102.872z`
-			}),
-			ce('path', {
-				d: css`M228.01,119.603c-3.593,0-6.646,0.467-9.143,1.396c-1.498,0.565-3.574,1.715-6.249,3.461l3.15-19.231h35.927V90.546
-				h-48.402l-6.174,48.596l15.499,0.728c1.372-2.627,3.412-4.429,6.109-5.399c1.54-0.527,3.351-0.789,5.456-0.789
-				c4.438,0,7.705,1.55,9.805,4.64c2.096,3.099,3.146,6.889,3.146,11.378c0,4.574-1.12,8.363-3.36,11.379
-				c-2.24,3.015-5.498,4.518-9.773,4.518c-3.715,0-6.534-1.018-8.476-3.062c-1.932-2.045-3.248-4.947-3.93-8.709h-17.23
-				c0.606,8.251,3.594,14.617,8.971,19.116c5.376,4.485,12.246,6.729,20.609,6.729c10.384,0,18.183-3.196,23.4-9.586
-				c5.209-6.389,7.812-13.646,7.812-21.786c0-9.343-2.702-16.456-8.115-21.354C241.624,122.044,235.286,119.603,228.01,119.603z`
-			})
+			ce('path', { d: menuIconSvg })
 		]
 	});
 
@@ -978,7 +953,7 @@ module.exports = (meta) => {
 		const blacklisted = settings.blacklisted.includes(id);
 		return {
 			id: 'membercount-toggle',
-			// hint: getHintSVG(),
+			hint: getHintSVG(),
 			label: getLabel(blacklisted),
 			action: getAction(id, blacklisted)
 		};
@@ -1014,7 +989,7 @@ module.exports = (meta) => {
 					const props = getProp(val, 'props');
 					const type = props?.['data-list-id']?.split('-')[0] ?? props.className.split('_')[0];
 					if (!props || type !== 'members') return value;
-	
+
 					const id = SelectedGuildStore.getGuildId();
 					const list = document.querySelector(memberWrap);
 					if (settings.blacklisted.includes(id)) {
@@ -1024,26 +999,26 @@ module.exports = (meta) => {
 					
 					if (!Array.isArray(value)) value = [value];
 					if (value.some(fn)) return value;
-	
+
 					const element = ce(Counter.Wrapped, {
 						id,
 						key: `${meta.name}-${id}`,
 						displayType: settings.displayType
 					});
-	
+
 					if (isThread(props)) {
 						const mlist = getProp(props, 'children.0.props.children.props');
 						if (!mlist || !mlist.children) return value;
-	
+
 						if (!Array.isArray(mlist.children)) mlist.children = [mlist.children];
 						if (!mlist.children.some(fn)) {
 							if (list && !list.classList.contains('hasCounter_thread')) list.classList.add('hasCounter_thread');
 							mlist.children.unshift(element);
 						}
-	
+
 						return value;
 					}
-	
+
 					if (list && !list.classList.contains('hasCounter')) list.classList.add('hasCounter');
 					value.unshift(element);
 					return value;
