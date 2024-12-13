@@ -371,7 +371,7 @@ module.exports = (meta) => {
 
 	const memberListClasses = {
 		...Webpack.getByKeys('members', 'container'),
-		...getModule((m) => m?.container?.endsWith('ad5c'))
+		...getModule((m) => m?.container?.endsWith('d271'))
 	};
 	/**
 	 * Current selectors for the member-list.
