@@ -371,6 +371,7 @@ module.exports = (meta) => {
 
 	const memberListClasses = {
 		...Webpack.getByKeys('members', 'container'),
+		...getModule((m) => m?.container?.endsWith('ad5c')),
 		...getModule((m) => m?.container?.endsWith('d271'))
 	};
 	/**
@@ -825,9 +826,9 @@ module.exports = (meta) => {
 			children: [
 				ce('h3', {
 					className: Utils.className({
-						[memberListClasses.membersGroup]: true,
-						[memberListClasses.container]: true,
-						[memberListClasses.text]: true
+						[memberListClasses.membersGroup]: typeof memberListClasses.membersGroup !== 'undefined',
+						[memberListClasses.container]: typeof memberListClasses.container !== 'undefined',
+						[memberListClasses.text]: typeof memberListClasses.text !== 'undefined'
 					}),
 					children: [
 						ce(Row, {
