@@ -65,15 +65,10 @@ module.exports = (meta) => {
 	const SelectedGuildStore = Webpack.getStore('SelectedGuildStore');
 	const LangUtils = getModule((m) => m?._eventsCount === 1);
 
-	const { EventEmitter } = Webpack.getByKeys('EventEmitter');
 	// const { useStateFromStores } = Webpack.getByKeys('useStateFromStores');
 	const { inspect } = Webpack.getByKeys('inspect', 'promisify');
 
 	const formClasses = Webpack.getByKeys('dividerDefault');
-	/**
-	 * @type {!NodeJS.EventEmitter}
-	 */
-	const _emitter = new EventEmitter();
 
 	const toString = Object.prototype.toString;
 
@@ -106,7 +101,7 @@ module.exports = (meta) => {
 
 	/* Language Strings */
 
-	const strings = {
+	const strings = /** @type {const} */ ({
 		pl: {
 			INCLUDE: 'Dołącz serwer',
 			EXCLUDE: 'Wyklucz serwer',
@@ -137,10 +132,10 @@ module.exports = (meta) => {
 			MEMBERS: 'Members',
 			ONLINE: 'Online'
 		}
-	};
+	});
 
 	/**
-	 * @returns {!Readonly<typeof strings['en']>}
+	 * @returns {!Readonly<Values<typeof strings>>}
 	 */
 	const useStrings = () => {
 		/** @type {!string} */
@@ -171,15 +166,17 @@ module.exports = (meta) => {
 
 	/**
 	 * Creates clean objects with a `Symbol.toStringTag` value describing the object as the only inherited data.
-	 * @param {!Exclude<PropertyKey, number>} value
+	 * @param {!DictKey} value
 	 * @returns {!object}
 	 */
-	const _Object = (value = 'NullObject') => Object.create(Object.create(null, {
-		[Symbol.toStringTag]: {
-			enumerable: false,
-			value
-		}
-	}));
+	const _Object = (value = 'NullObject') => Object.create(
+		Object.create(null, {
+			[Symbol.toStringTag]: {
+				enumerable: false,
+				value
+			}
+		})
+	);
 
 	/**
 	 * Determines if something is null or undefined.
@@ -272,7 +269,7 @@ module.exports = (meta) => {
 	 * A `document.createElement` helper function.
 	 * @param {!string} type
 	 * @param {?object} props
-	 * @param {!(string | Node)[]} [children]
+	 * @param {!BD.ChildNode[]} [children]
 	 * @returns {!BD.DOMElement}
 	 */
 	const create = (type = 'div', props = {}, ...children) => {
@@ -346,7 +343,7 @@ module.exports = (meta) => {
 	};
 
 	/**
-	 * @param {!(string | Node)[]} [children] 
+	 * @param {!BD.ChildNode[]} [children] 
 	 * @returns {!DocumentFragment}
 	 */
 	const fragment = (children = []) => {
@@ -534,33 +531,8 @@ module.exports = (meta) => {
 	};
 
 	/**
-	 * Custom hook for forceUpdate functionality.
-	 * @returns {!React.DispatchWithoutAction}
+	 * ErrorBoundary Component Definition
 	 */
-	const useForceUpdate = () => useReducer((x) => x + 1, 0).pop();
-
-	/**
-	 * HOC for using an ErrorBoundary.
-	 * @param {!React.FC} Original
-	 * @returns {!React.FC}
-	 */
-	const withErrorBoundary = (Original) => {
-		return (props) => {
-			return ce(ErrorBoundary, null, ce(Original, props));
-		};
-	};
-
-	/**
-	 * HOC for wrapping elements in Discord's theme context.
-	 * @param {!React.FC} Original
-	 * @returns {!React.FC}
-	 */
-	const withThemeContext = (Original) => {
-		return (props) => {
-			return ce(Discord.ThemeContext, null, ce(Original, props));
-		};
-	};
-
 	const ErrorBoundary = class ErrorBoundary extends React.Component {
 		state = { hasError: false };
 
@@ -597,6 +569,34 @@ module.exports = (meta) => {
 			// @ts-ignore
 			return this.props.children;
 		}
+	};
+
+	/**
+	 * Custom hook for forceUpdate functionality.
+	 * @returns {!React.DispatchWithoutAction}
+	 */
+	const useForceUpdate = () => useReducer((x) => x + 1, 0).pop();
+
+	/**
+	 * HOC for using an ErrorBoundary.
+	 * @param {!React.FC} Original
+	 * @returns {!React.FC}
+	 */
+	const withErrorBoundary = (Original) => {
+		return (props) => {
+			return ce(ErrorBoundary, null, ce(Original, props));
+		};
+	};
+
+	/**
+	 * HOC for wrapping elements in Discord's theme context.
+	 * @param {!React.FC} Original
+	 * @returns {!React.FC}
+	 */
+	const withThemeContext = (Original) => {
+		return (props) => {
+			return ce(Discord.ThemeContext, null, ce(Original, props));
+		};
 	};
 
 	/**
@@ -648,13 +648,10 @@ module.exports = (meta) => {
 				ce(BulkModule.RadioGroup, {
 					className: formClasses.dividerDefault,
 					noteOnTop: true,
-					options: options,
-					value: defaultValue,
 					disabled: Boolean(disabled),
-					onChange: (e) => {
-						onChange(e.value);
-						_emitter.emit('SETTINGS_UPDATE');
-					}
+					options,
+					value: defaultValue,
+					onChange
 				}),
 				ce(BulkModule.FormDivider, {
 					className: formClasses.dividerDefault
@@ -678,15 +675,11 @@ module.exports = (meta) => {
 	 */
 	const Settings = (props) => {
 		const forceUpdate = useForceUpdate();
-		const onChange = useCallback((e) => {
-			if (typeof props.onChange === 'function') props.onChange(e);
+		const onChange = () => {
+			// @ts-ignore
+			if (typeof props.onChange === 'function') props.onChange();
 			forceUpdate();
-		}, []);
-
-		useEffect(() => {
-			_emitter.on('SETTINGS_UPDATE', onChange);
-			return () => _emitter.off('SETTINGS_UPDATE', onChange);
-		}, []);
+		};
 		
 		return ce('div', {
 			key: 'Plugin-Settings',
@@ -700,6 +693,7 @@ module.exports = (meta) => {
 						settings.online = e;
 						updateStyle();
 						updateMemberList();
+						onChange();
 					}
 				}),
 				ce(Radio, {
@@ -708,8 +702,9 @@ module.exports = (meta) => {
 					options: options.style,
 					defaultValue: settings.displayType ?? 0,
 					onChange: (e) => {
-						settings.displayType = e;
+						settings.displayType = e.value;
 						updateMemberList();
+						onChange();
 					}
 				}),
 				ce(Radio, {
@@ -718,13 +713,13 @@ module.exports = (meta) => {
 					options: options.margin,
 					defaultValue: settings.marginSpacing ?? 0,
 					onChange: (e) => {
-						settings.marginSpacing = e;
+						settings.marginSpacing = e.value;
 						updateStyle();
 						updateMemberList();
+						onChange();
 					}
 				})
-			],
-			onChange
+			]
 		});
 	};
 
@@ -765,7 +760,7 @@ module.exports = (meta) => {
 
 	/**
 	 * @param {!RowProps} props
-	 * @returns {!React.ReactChildren[]}
+	 * @returns {!React.ReactNode[]}
 	 */
 	const getRowChildren = (props) => props.displayType === 1
 		? [
