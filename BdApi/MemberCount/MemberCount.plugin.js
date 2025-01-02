@@ -670,13 +670,22 @@ module.exports = (meta) => {
 	};
 
 	/**
-	 * @param {!React.ComponentProps<'div'>} props
+	 * @typedef GenProps
+	 * @property {() => void} onChange
+	 */
+
+	/**
+	 * @typedef SettingsProps
+	 * @type {!Omit<React.ComponentProps<'div'>, 'onChange'> & GenProps}
+	 */
+
+	/**
+	 * @param {!SettingsProps} props
 	 * @returns {!React.ReactHTMLElement<'div'>}
 	 */
 	const Settings = (props) => {
 		const forceUpdate = useForceUpdate();
 		const onChange = () => {
-			// @ts-ignore
 			if (typeof props.onChange === 'function') props.onChange();
 			forceUpdate();
 		};
@@ -685,39 +694,48 @@ module.exports = (meta) => {
 			key: 'Plugin-Settings',
 			className: 'plugin-settings',
 			children: [
-				ce(Switch, {
-					label: 'Online Counter',
-					note: 'Toggles the online members counter.',
-					checked: settings.online ?? false,
-					onChange: (e) => {
-						settings.online = e;
-						updateStyle();
-						updateMemberList();
-						onChange();
-					}
-				}),
-				ce(Radio, {
-					label: 'Display Style',
-					note: 'Switch between the classic or newer display style.',
-					options: options.style,
-					defaultValue: settings.displayType ?? 0,
-					onChange: (e) => {
-						settings.displayType = e.value;
-						updateMemberList();
-						onChange();
-					}
-				}),
-				ce(Radio, {
-					label: 'Spacing Style',
-					note: 'The amount of space left under the counters.',
-					options: options.margin,
-					defaultValue: settings.marginSpacing ?? 0,
-					onChange: (e) => {
-						settings.marginSpacing = e.value;
-						updateStyle();
-						updateMemberList();
-						onChange();
-					}
+				ce(Api.Components.SettingGroup, {
+					id: 'main',
+					name: 'Plugin-Settings',
+					shown: true,
+					collapsible: true,
+					settings: [],
+					children: [
+						ce(Switch, {
+							label: 'Online Counter',
+							note: 'Toggles the online members counter.',
+							checked: settings.online ?? false,
+							onChange: (e) => {
+								settings.online = e;
+								updateStyle();
+								updateMemberList();
+								onChange();
+							}
+						}),
+						ce(Radio, {
+							label: 'Display Style',
+							note: 'Switch between the classic or newer display style.',
+							options: options.style,
+							defaultValue: settings.displayType ?? 0,
+							onChange: (e) => {
+								settings.displayType = e.value;
+								updateMemberList();
+								onChange();
+							}
+						}),
+						ce(Radio, {
+							label: 'Spacing Style',
+							note: 'The amount of space left under the counters.',
+							options: options.margin,
+							defaultValue: settings.marginSpacing ?? 0,
+							onChange: (e) => {
+								settings.marginSpacing = e.value;
+								updateStyle();
+								updateMemberList();
+								onChange();
+							}
+						})
+					]
 				})
 			]
 		});
@@ -1076,6 +1094,82 @@ module.exports = (meta) => {
 		}
 	};
 
+	/* Changelog */
+
+	const ChangeLogTypes = /** @type {const} */ ({
+		Added: {
+			TYPE: 'added',
+			TITLE: '[ What\'s New ]'
+		},
+		Fixed: {
+			TYPE: 'fixed',
+			TITLE: '[ Bugs Squashed ]'
+		},
+		Progress: {
+			TYPE: 'progress',
+			TITLE: '[ Maintenance ]'
+		},
+		Improved: {
+			TYPE: 'improved',
+			TITLE: '[ Evolving ]'
+		}
+	});
+
+	const CHANGES = [
+		{
+			title: ChangeLogTypes.Added.TITLE,
+			type: ChangeLogTypes.Added.TYPE,
+			items: [
+				'Implements new BdApi features -- like this changelog!'
+			]
+		},
+		{
+			title: ChangeLogTypes.Improved.TITLE,
+			type: ChangeLogTypes.Improved.TYPE,
+			items: [
+				'If you immediately know the candlelight is fire, then the meal was cooked long ago.'
+			]
+		}
+	];
+
+	/**
+	 * @typedef VersionData
+	 * @property {!string} version
+	 * @property {!boolean} hasShownChangelog
+	 */
+
+	const ChangeLogs = class ChangeLogs {
+		static versionKey = 'currentVersionInfo';
+		static data = {
+			title: `${meta.name} Changelog`,
+			subtitle: `v${meta.version}`,
+			changes: CHANGES
+		};
+		/**
+		 * @returns {!number}
+		 */
+		static hasShown () {
+			/**
+			 * @type {!VersionData}
+			 */
+			const ver = Data.load(this.versionKey);
+			if (!ver || !ver.version) return 0;
+			if (ver.hasShownChangelog && ver.version === meta.version) return 0;
+			/**
+			 * -1, left side is bigger
+			 * 0, both sides are equal
+			 * 1, right side is bigger
+			 */
+			return Utils.semverCompare(ver.version, meta.version);
+		}
+
+		static show () {
+			if (this.hasShown() !== 1) return;
+			UI.showChangelogModal(this.data);
+			Data.save(this.versionKey, { version: meta.version, hasShownChangelog: true });
+		}
+	};
+
 	/* Build */
 
 	Object.assign(plugin, {
@@ -1084,6 +1178,7 @@ module.exports = (meta) => {
 			loadSettings();
 			DOM.addStyle(getCss());
 			Patches.apply();
+			ChangeLogs.show();
 		},
 		stop () {
 			promises.cancel();
