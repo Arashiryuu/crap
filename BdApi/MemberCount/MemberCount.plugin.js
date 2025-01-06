@@ -1096,7 +1096,7 @@ module.exports = (meta) => {
 
 	/* Changelog */
 
-	const ChangeLogTypes = /** @type {const} */ ({
+	const ChangelogTypes = /** @type {const} */ ({
 		Added: {
 			TYPE: 'added',
 			TITLE: '[ What\'s New ]'
@@ -1115,22 +1115,28 @@ module.exports = (meta) => {
 		}
 	});
 
-	const CHANGES = [
+	const ChangelogChanges = [
 		{
-			title: ChangeLogTypes.Added.TITLE,
-			type: ChangeLogTypes.Added.TYPE,
+			title: ChangelogTypes.Added.TITLE,
+			type: ChangelogTypes.Added.TYPE,
 			items: [
 				'Implements new BdApi features -- like this changelog!'
 			]
 		},
 		{
-			title: ChangeLogTypes.Improved.TITLE,
-			type: ChangeLogTypes.Improved.TYPE,
+			title: ChangelogTypes.Improved.TITLE,
+			type: ChangelogTypes.Improved.TYPE,
 			items: [
 				'If you immediately know the candlelight is fire, then the meal was cooked long ago.'
 			]
 		}
 	];
+
+	const ChangelogSigns = /** @type {const} */ ({
+		LEFT: -1,
+		SAME: 0,
+		RIGHT: 1 
+	});
 
 	/**
 	 * @typedef VersionData
@@ -1138,34 +1144,47 @@ module.exports = (meta) => {
 	 * @property {!boolean} hasShownChangelog
 	 */
 
-	const ChangeLogs = class ChangeLogs {
-		static versionKey = 'currentVersionInfo';
+	/**
+	 * A balanced ternary numeral, representing a signed value.
+	 * @typedef SemverComparison
+	 * @type {!Values<typeof ChangelogSigns>}
+	 */
+
+	/**
+	 * @typedef VersionTuple
+	 * @type {![SemverComparison, VersionData]}
+	 */
+
+	const Changelogs = class Changelogs {
+		static versionKey = /** @type {const} */ ('currentVersionInfo');
 		static data = {
 			title: `${meta.name} Changelog`,
 			subtitle: `v${meta.version}`,
-			changes: CHANGES
+			changes: ChangelogChanges
 		};
 		/**
-		 * @returns {!number}
+		 * @returns {!VersionTuple}
 		 */
-		static hasShown () {
+		static versionInfo () {
 			/**
 			 * @type {!VersionData}
 			 */
-			const ver = Data.load(this.versionKey);
-			if (!ver || !ver.version) return 0;
-			if (ver.hasShownChangelog && ver.version === meta.version) return 0;
+			const local = Data.load(this.versionKey);
 			/**
-			 * -1, left side is bigger
-			 * 0, both sides are equal
-			 * 1, right side is bigger
+			 * @type {!VersionTuple}
 			 */
-			return Utils.semverCompare(ver.version, meta.version);
+			const ret = [0, local];
+			if (!local || !local.version) return ret;
+			if (local.hasShownChangelog && local.version === meta.version) return ret;
+			ret[0] = Utils.semverCompare(local.version, meta.version);
+			return ret;
 		}
 
 		static show () {
-			if (this.hasShown() !== 1) return;
-			UI.showChangelogModal(this.data);
+			const [sign, local] = this.versionInfo();
+			if (sign === ChangelogSigns.LEFT) return;
+			if (sign === ChangelogSigns.SAME && local && local.hasShownChangelog) return;
+			if (ChangelogChanges.length) UI.showChangelogModal(this.data);
 			Data.save(this.versionKey, { version: meta.version, hasShownChangelog: true });
 		}
 	};
@@ -1178,7 +1197,7 @@ module.exports = (meta) => {
 			loadSettings();
 			DOM.addStyle(getCss());
 			Patches.apply();
-			ChangeLogs.show();
+			Changelogs.show();
 		},
 		stop () {
 			promises.cancel();
