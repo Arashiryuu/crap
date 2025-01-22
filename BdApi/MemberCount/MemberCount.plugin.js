@@ -1,7 +1,7 @@
 /**
  * @name MemberCount
  * @author Arashiryuu
- * @version 1.0.0
+ * @version 3.0.0
  * @description Displays a server's member-count at the top of the member-list, can be styled with the #MemberCount selector.
  * @authorId 238108500109033472
  * @authorLink https://github.com/Arashiryuu
@@ -38,7 +38,7 @@
 @else@*/
 
 /**
- * @param {!BD.MetaData} meta
+ * @param {!Prettify<BD.MetaData>} meta
  * @returns {!BD.Plugin}
  */
 module.exports = (meta) => {
@@ -52,24 +52,34 @@ module.exports = (meta) => {
 
 	const Filters = Object.create(Webpack.Filters);
 	Object.assign(Filters, {
+		/**
+		 * @param {!string} id
+		 * @returns {!FilterFunction}
+		 */
 		byId: (id = '1') => (...m) => m.pop() === String(id),
+		/**
+		 * @type {!FilterFunction}
+		 */
 		byName: Filters.byDisplayName,
+		/**
+		 * @param {!string} name
+		 * @returns {!FilterFunction}
+		 */
 		byStore: (name = '') => (m) => m?._dispatchToken && m?.getName() === name,
+		/**
+		 * @type {!FilterFunction}
+		 */
 		byProtos: Filters.byPrototypeFields
 	});
 
 	const Flux = Webpack.getByKeys('connectStores');
-	// const GuildPopoutActions = Webpack.getByKeys('fetchGuildForPopout');
 	const GuildPopoutStore = Webpack.getStore('GuildPopoutStore');
 	const MemberCountStores = Webpack.getStore('GuildMemberCountStore');
 	const SelectedGuildStore = Webpack.getStore('SelectedGuildStore');
 	const LangUtils = getModule((m) => m?._eventsCount === 1);
 
-	// const { useStateFromStores } = Webpack.getByKeys('useStateFromStores');
 	const { inspect } = Webpack.getByKeys('inspect', 'promisify');
-
 	const formClasses = Webpack.getByKeys('dividerDefault');
-
 	const toString = Object.prototype.toString;
 
 	const options = {
@@ -155,7 +165,7 @@ module.exports = (meta) => {
 	};
 
 	/**
-	 * @type {!BD.PromiseStateManager}
+	 * @type {!Prettify<BD.PromiseStateManager>}
 	 */
 	const promises = {
 		state: { cancelled: false },
@@ -186,7 +196,7 @@ module.exports = (meta) => {
 	const isNil = (anything) => anything === null || anything === undefined;
 
 	/**
-	 * @type {!BD.Logger}
+	 * @type {!Prettify<BD.Logger>}
 	 */
 	const Logger = _Object('Logger');
 	{
@@ -353,7 +363,7 @@ module.exports = (meta) => {
 	};
 
 	/**
-	 * @type {!BD.Plugin}
+	 * @type {!Prettify<BD.Plugin>}
 	 */
 	const plugin = _Object(meta.name);
 
@@ -826,12 +836,6 @@ module.exports = (meta) => {
 		const strings = useStrings();
 		const { id, count, online, displayType } = props;
 
-		// useEffect(() => {
-		// 	if (!online && !GuildPopoutStore.isFetchingGuild(id)) {
-		// 		// GuildPopoutActions.fetchGuildForPopout(id);
-		// 	}
-		// }, [online]);
-
 		return ce('div', {
 			id: 'MemberCount',
 			role: 'listitem',
@@ -865,11 +869,6 @@ module.exports = (meta) => {
 		const gid = SelectedGuildStore.getGuildId();
 		return {
 			count: MemberCountStores.getMemberCount(gid),
-			/**
-			 * We can tally all the non-invisible accounts on a server via `MemberCountStores.getOnlineCount(gid)`.
-			 * However, we want to include invisibles.
-			 */
-			// band-aid quick fix
 			online: GuildPopoutStore.getGuild(gid)?.presenceCount ?? MemberCountStores.getOnlineCount(gid)
 		};
 	})(MemberCount);
@@ -1096,48 +1095,6 @@ module.exports = (meta) => {
 
 	/* Changelog */
 
-	const ChangelogTypes = /** @type {const} */ ({
-		Added: {
-			TYPE: 'added',
-			TITLE: '[ What\'s New ]'
-		},
-		Fixed: {
-			TYPE: 'fixed',
-			TITLE: '[ Bugs Squashed ]'
-		},
-		Progress: {
-			TYPE: 'progress',
-			TITLE: '[ Maintenance ]'
-		},
-		Improved: {
-			TYPE: 'improved',
-			TITLE: '[ Evolving ]'
-		}
-	});
-
-	const ChangelogChanges = [
-		{
-			title: ChangelogTypes.Added.TITLE,
-			type: ChangelogTypes.Added.TYPE,
-			items: [
-				'Implements new BdApi features -- like this changelog!'
-			]
-		},
-		{
-			title: ChangelogTypes.Improved.TITLE,
-			type: ChangelogTypes.Improved.TYPE,
-			items: [
-				'If you immediately know the candlelight is fire, then the meal was cooked long ago.'
-			]
-		}
-	];
-
-	const ChangelogSigns = /** @type {const} */ ({
-		LEFT: -1,
-		SAME: 0,
-		RIGHT: 1 
-	});
-
 	/**
 	 * @typedef VersionData
 	 * @property {!string} version
@@ -1146,46 +1103,91 @@ module.exports = (meta) => {
 
 	/**
 	 * A balanced ternary numeral, representing a signed value.
-	 * @typedef SemverComparison
-	 * @type {!Values<typeof ChangelogSigns>}
+	 * @typedef VersionNumeral
+	 * @type {!Values<typeof Versions.Signs>}
 	 */
 
 	/**
 	 * @typedef VersionTuple
-	 * @type {![SemverComparison, VersionData]}
+	 * @type {![VersionNumeral, VersionData]}
 	 */
 
-	const Changelogs = class Changelogs {
-		static versionKey = /** @type {const} */ ('currentVersionInfo');
-		static data = {
-			title: `${meta.name} Changelog`,
-			subtitle: `v${meta.version}`,
-			changes: ChangelogChanges
-		};
+	const Versions = class Versions {
+		static key = /** @type {const} */ ('currentVersionInfo');
+
+		static Signs = /** @type {const} */ ({
+			LEFT: -1,
+			SAME: 0,
+			RIGHT: 1
+		});
+
 		/**
 		 * @returns {!VersionTuple}
 		 */
-		static versionInfo () {
+		static getInfo () {
 			/**
 			 * @type {!VersionData}
 			 */
-			const local = Data.load(this.versionKey);
+			const local = Data.load(Versions.key);
 			/**
 			 * @type {!VersionTuple}
 			 */
-			const ret = [0, local];
+			const ret = [Versions.Signs.SAME, local];
 			if (!local || !local.version) return ret;
 			if (local.hasShownChangelog && local.version === meta.version) return ret;
 			ret[0] = Utils.semverCompare(local.version, meta.version);
 			return ret;
 		}
+	};
+
+	const Changelogs = class Changelogs {
+		static Types = /** @type {const} */ ({
+			Added: {
+				TYPE: 'added',
+				TITLE: '[ What\'s New ]'
+			},
+			Fixed: {
+				TYPE: 'fixed',
+				TITLE: '[ Bugs Squashed ]'
+			},
+			Progress: {
+				TYPE: 'progress',
+				TITLE: '[ Maintenance ]'
+			},
+			Improved: {
+				TYPE: 'improved',
+				TITLE: '[ Evolving ]'
+			}
+		});
+
+		/**
+		 * @type {!Prettify<BD.Changes>[]}
+		 */
+		static Changes = [
+			{
+				title: Changelogs.Types.Added.TITLE,
+				type: Changelogs.Types.Added.TYPE,
+				items: [
+					'Fully migrated away from ZeresPluginLibrary.'
+				]
+			}
+		];
+
+		/**
+		 * @type {!Prettify<BD.ModalData>}
+		 */
+		static ModalData = {
+			title: `${meta.name} Changelog`,
+			subtitle: `v${meta.version}`,
+			changes: Changelogs.Changes
+		};
 
 		static show () {
-			const [sign, local] = this.versionInfo();
-			if (sign === ChangelogSigns.LEFT) return;
-			if (sign === ChangelogSigns.SAME && local && local.hasShownChangelog) return;
-			if (ChangelogChanges.length) UI.showChangelogModal(this.data);
-			Data.save(this.versionKey, { version: meta.version, hasShownChangelog: true });
+			const [sign, local] = Versions.getInfo();
+			if (sign === Versions.Signs.LEFT) return;
+			if (sign === Versions.Signs.SAME && local && local.hasShownChangelog) return;
+			if (Changelogs.Changes.length) UI.showChangelogModal(Changelogs.ModalData);
+			Data.save(Versions.key, { version: meta.version, hasShownChangelog: true });
 		}
 	};
 
