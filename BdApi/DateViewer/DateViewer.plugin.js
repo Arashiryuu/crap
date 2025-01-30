@@ -1,7 +1,7 @@
 /**
  * @name DateViewer
  * @author Arashiryuu
- * @version 1.0.8
+ * @version 1.0.9
  * @description Displays the current date, weekday, and time.
  * @authorId 238108500109033472
  * @authorLink https://github.com/Arashiryuu
@@ -34,11 +34,11 @@
 		shell.Popup('I\'m installed!\nJust reload Discord with Ctrl+R.', 0, 'Successfully installed', 0x40);
 	}
 	WScript.Quit();
-
+	
 @else@*/
 
 /**
- * @param {!BD.MetaData} meta
+ * @param {!Prettify<BD.MetaData>} meta
  * @returns {!BD.Plugin}
  */
 module.exports = (meta) => {
@@ -52,9 +52,23 @@ module.exports = (meta) => {
 
 	const Filters = Object.create(Webpack.Filters);
 	Object.assign(Filters, {
-		byId: (id) => (...m) => m.pop() === String(id),
-		byName: (name) => Filters.byDisplayName(name),
-		byStore: (name) => (m) => m?._dispatchToken && m?.getName() === name,
+		/**
+		 * @param {!string} id
+		 * @returns {!FilterFunction}
+		 */
+		byId: (id = '1') => (...m) => m.pop() === String(id),
+		/**
+		 * @type {!FilterFunction}
+		 */
+		byName: Filters.byDisplayName,
+		/**
+		 * @param {!string} name 
+		 * @returns {!FilterFunction}
+		 */
+		byStore: (name = '') => (m) => m?._dispatchToken && m?.getName() === name,
+		/**
+		 * @type {!FilterFunction}
+		 */
 		byProtos: Filters.byPrototypeFields
 	});
 
@@ -66,7 +80,7 @@ module.exports = (meta) => {
 
 	/* Language Strings */
 
-	const strings = {
+	const strings = /** @type {const} */ ({
 		en: {
 			HOUR12_LABEL: '12 Hour Time Format',
 			HOUR12_NOTE: 'Whether to use 12 hour time, or 24 hour time.',
@@ -98,10 +112,10 @@ module.exports = (meta) => {
 		// 	SECONDS_LABEL: '',
 		// 	SECONDS_NOTE: ''
 		// }
-	};
+	});
 
 	/**
-	 * @returns {!BD.i18nStrings<typeof strings['en']>}
+	 * @returns {!Readonly<Values<typeof strings>>}
 	 */
 	const useStrings = () => {
 		/** @type {!string} */
@@ -121,7 +135,7 @@ module.exports = (meta) => {
 	};
 
 	/**
-	 * @type {!BD.PromiseStateManager}
+	 * @type {!Prettify<BD.PromiseStateManager>}
 	 */
 	const promises = {
 		state: { cancelled: false },
@@ -131,21 +145,22 @@ module.exports = (meta) => {
 	applyBinds(promises);
 
 	/**
-	 * Creates clean objects with a `Symbol.toStringTag` value describing the object.
+	 * Creates clean objects with a `Symbol.toStringTag` value describing the object as its only inherited data.
 	 * @param {!string} value
 	 * @returns {!object}
 	 */
-	const _Object = (value = 'NullObject') => Object.create(null, {
-		[Symbol.toStringTag]: {
-			enumerable: false,
-			value
-		}
-	});
+	const _Object = (value = 'NullObject') => Object.create(
+		Object.create(null, {
+			[Symbol.toStringTag]: {
+				enumerable: false,
+				value
+			}
+		})
+	);
 
 	/**
-	 * @type {!BD.Logger}
+	 * @type {!Prettify<BD.Logger>}
 	 */
-	// @ts-ignore
 	const Logger = _Object('Logger');
 	{
 		/**
@@ -304,7 +319,7 @@ module.exports = (meta) => {
 	};
 
 	/**
-	 * @type {!BD.Plugin}
+	 * @type {!Prettify<BD.Plugin>}
 	 */
 	const plugin = _Object(meta.name);
 
@@ -326,6 +341,7 @@ module.exports = (meta) => {
 	/**
 	 * Converts a template literal interpolated string from a human-readable format into a one-liner for use in stylesheets.
 	 * @param {!TemplateStringsArray} ss
+	 * @param {!any[]} vars
 	 * @returns {!string}
 	 * @example
 	 * ```js
@@ -410,41 +426,16 @@ module.exports = (meta) => {
 	/**
 	 * Discord Components
 	 */
-	const BulkModule = getModule((m) => m !== window && m?.Tooltip && m?.Text);
+	const BulkModule = {};
 	const Discord = {
-		Switch: BulkModule.FormSwitch,
-		TooltipWrapper: BulkModule.Tooltip,
-		ThemeContext: BulkModule.ThemeContextProvider
+		Switch: Webpack.getByStrings('checked:', 'tooltipNote:', { searchExports: true }),
+		TooltipWrapper: Webpack.getByPrototypeKeys('shouldShowTooltip', { searchExports: true }),
+		ThemeContext: Webpack.getByStrings('theme:', 'flags:', '.useContext', { searchExports: true })
 	};
 
 	/**
-	 * Custom hook wrapper for forceUpdate functionality.
-	 * @returns {!React.DispatchWithoutAction}
+	 * ErrorBoundary Component Definition
 	 */
-	const useForceUpdate = () => useReducer((x) => x + 1, 0).pop();
-
-	/**
-	 * HOC for using an ErrorBoundary.
-	 * @param {!React.FC} Original
-	 * @returns {!React.FC}
-	 */
-	const withErrorBoundary = (Original) => {
-		return (props) => {
-			return ce(ErrorBoundary, null, ce(Original, props));
-		};
-	};
-
-	/**
-	 * HOC for wrapping elements in Discord's theme context.
-	 * @param {!React.FC} Original
-	 * @returns {!React.FC}
-	 */
-	const withThemeContext = (Original) => {
-		return (props) => {
-			return ce(Discord.ThemeContext, null, ce(Original, props));
-		};
-	};
-
 	const ErrorBoundary = class ErrorBoundary extends React.Component {
 		state = { hasError: false };
 
@@ -483,6 +474,34 @@ module.exports = (meta) => {
 	};
 
 	/**
+	 * Custom hook wrapper for forceUpdate functionality.
+	 * @returns {!React.DispatchWithoutAction}
+	 */
+	const useForceUpdate = () => useReducer((x) => x + 1, 0).pop();
+
+	/**
+	 * HOC for using an ErrorBoundary.
+	 * @param {!React.FC} Original
+	 * @returns {!React.FC}
+	 */
+	const withErrorBoundary = (Original) => {
+		return (props) => {
+			return ce(ErrorBoundary, null, ce(Original, props));
+		};
+	};
+
+	/**
+	 * HOC for wrapping elements in Discord's theme context.
+	 * @param {!React.FC} Original
+	 * @returns {!React.FC}
+	 */
+	const withThemeContext = (Original) => {
+		return (props) => {
+			return ce(Discord.ThemeContext, null, ce(Original, props));
+		};
+	};
+
+	/**
 	 * Fragment helper, only accepts a child elements array and sets no extra props on the fragment.
 	 * @param {!React.ReactNode[]} [children]
 	 * @returns {!React.ReactFragment}
@@ -499,16 +518,26 @@ module.exports = (meta) => {
 			value: checked,
 			hideBorder: false,
 			disabled: Boolean(disabled),
+			note,
 			onChange
 		});
 	});
 
 	/**
-	 * @param {!React.ComponentProps<'div'>} props
+	 * @typedef SettingsProps
+	 * @property {() => void} onChange
+	 */
+
+	/**
+	 * @param {!SettingsProps} props
 	 * @returns {!React.ReactHTMLElement<'div'>}
 	 */
 	const Settings = (props) => {
 		const forceUpdate = useForceUpdate();
+		const onChange = () => {
+			if (typeof props.onChange === 'function') props.onChange();
+			forceUpdate();
+		};
 		const {
 			HOUR12_LABEL,
 			HOUR12_NOTE,
@@ -519,30 +548,36 @@ module.exports = (meta) => {
 		return ce('div', {
 			key: 'Plugin-Settings',
 			children: [
-				ce(Switch, {
-					label: HOUR12_LABEL,
-					note:  HOUR12_NOTE,
-					checked: settings.hour12,
-					/** @param {!boolean} e */
-					onChange: (e) => {
-						settings.hour12 = e;
-					}
-				}),
-				ce(Switch, {
-					label: SECONDS_LABEL,
-					note: SECONDS_NOTE,
-					checked: settings.displaySeconds,
-					/** @param {!boolean} e */
-					onChange: (e) => {
-						settings.displaySeconds = e;
-					}
+				ce(Api.Components.SettingGroup, {
+					id: 'main',
+					name: 'Plugin-Settings',
+					shown: true,
+					collapsible: true,
+					settings: [],
+					children: [
+						ce(Switch, {
+							label: HOUR12_LABEL,
+							note:  HOUR12_NOTE,
+							checked: settings.hour12,
+							/** @param {!boolean} e */
+							onChange: (e) => {
+								settings.hour12 = e;
+								onChange();
+							}
+						}),
+						ce(Switch, {
+							label: SECONDS_LABEL,
+							note: SECONDS_NOTE,
+							checked: settings.displaySeconds,
+							/** @param {!boolean} e */
+							onChange: (e) => {
+								settings.displaySeconds = e;
+								onChange();
+							}
+						})
+					]
 				})
-			],
-			/** @param {!React.FormEvent<HTMLDivElement>} e */
-			onChange: (e) => {
-				if (typeof props.onChange === 'function') props.onChange(e);
-				forceUpdate();
-			}
+			]
 		});
 	};
 
@@ -572,7 +607,7 @@ module.exports = (meta) => {
 	const getData = () => {
 		const { hour12, displaySeconds } = settings;
 		const d = new Date();
-		const l = document.documentElement.lang;
+		const l = document.documentElement.lang ?? 'en-gb';
 		const timeStyle = displaySeconds
 			? 'long'
 			: 'short';
@@ -604,6 +639,50 @@ module.exports = (meta) => {
 		}, [time]);
 	};
 
+	const delta = 1 / 60;
+	/**
+	 * AnimationFrame hook.
+	 * @param {!VoidFunction} callback
+	 */
+	const useAnimationFrame = (callback) => {
+		/**
+		 * @type {!React.RefObject<FrameRequestCallback>}
+		 */
+		const cbRef = useRef(callback);
+		/**
+		 * @type {!React.MutableRefObject<number>}
+		 */
+		const frame = useRef();
+		/**
+		 * @type {!React.MutableRefObject<number>}
+		 */
+		const last = useRef(0);
+		/**
+		 * @type {!React.MutableRefObject<number>}
+		 */
+		const accu = useRef(0);
+
+		/**
+		 * @type {!FrameRequestCallback}
+		 */
+		const animate = useCallback((now) => {
+			accu.current += (now - last.current) / 1000;
+			if (accu.current > 1) accu.current = 1;
+			accu.current = Math.max(0, accu.current);
+			while (accu.current > delta) {
+				cbRef.current(delta);
+				accu.current -= delta;
+			}
+			last.current = now;
+			frame.current = raf(animate);
+		}, []);
+
+		useLayoutEffect(() => {
+			frame.current = raf(animate);
+			return () => frame.current && cancelAnimationFrame(frame.current);
+		}, []);
+	};
+
 	const dataZero = getData();
 	/**
 	 * @returns {!React.ReactHTMLElement<HTMLDivElement>}
@@ -616,6 +695,7 @@ module.exports = (meta) => {
 		 */
 		const ref = useRef();
 
+		// useAnimationFrame(update);
 		useInterval(update);
 
 		return ce('div', {
@@ -675,7 +755,7 @@ module.exports = (meta) => {
 	};
 
 	/**
-	 * @type {!BD.PatchFunction}
+	 * @type {!BD.PatchFunction<void>}
 	 */
 	const patchMemberList = (state) => {
 		if (!BulkModule.ListThin || !BulkModule.ScrollerThin || state.cancelled) return;
@@ -721,16 +801,17 @@ module.exports = (meta) => {
 
 	const onStart = () => {
 		DOM.addStyle(style);
-		// appendRoot();
-		// connect(); // teeUpdates();
-		patchMemberList(promises.state);
+		appendRoot();
+		connect();
+		teeUpdates();
+		// patchMemberList(promises.state);
 	};
 
 	const onStop = () => {
 		DOM.removeStyle();
-		// cancelUpdates();
-		// removeRoot();
-		// disconnect();
+		cancelUpdates();
+		removeRoot();
+		disconnect();
 		Patcher.unpatchAll();
 	};
 
@@ -742,6 +823,111 @@ module.exports = (meta) => {
 		Data.save('settings', settings);
 	};
 
+	/* Changelog */
+
+	/**
+	 * @typedef VersionData
+	 * @property {!string} version
+	 * @property {!boolean} hasShownChangelog
+	 */
+
+	/**
+	 * A balanced ternary numeral, representing a signed value.
+	 * @typedef VersionNumeral
+	 * @type {!Values<typeof Versions.Signs>}
+	 */
+
+	/**
+	 * @typedef VersionTuple
+	 * @type {![VersionNumeral, VersionData]}
+	 */
+
+	const Versions = class Versions {
+		static key = /** @type {const} */ ('currentVersionInfo');
+
+		static Signs = /** @type {const} */ ({
+			LEFT: -1,
+			SAME: 0,
+			RIGHT: 1
+		});
+
+		/**
+		 * @returns {!VersionTuple}
+		 */
+		static getInfo () {
+			/**
+			 * @type {!VersionData}
+			 */
+			const local = Data.load(Versions.key);
+			/**
+			 * @type {!VersionTuple}
+			 */
+			const ret = [0, local];
+			if (!local || !local.version) return ret;
+			if (local.hasShownChangelog && local.version === meta.version) return ret;
+			ret[0] = Utils.semverCompare(local.version, meta.version);
+			return ret;
+		}
+	};
+
+	const Changelogs = class Changelogs {
+		static Types = /** @type {const} */ ({
+			Added: {
+				TYPE: 'added',
+				TITLE: '[ What\'s New ]'
+			},
+			Fixed: {
+				TYPE: 'fixed',
+				TITLE: '[ Bugs Squashed ]'
+			},
+			Progress: {
+				TYPE: 'progress',
+				TITLE: '[ Maintenance ]'
+			},
+			Improved: {
+				TYPE: 'improved',
+				TITLE: '[ Evolving ]'
+			}
+		});
+
+		/**
+		 * @type {!Prettify<BD.Changes>[]}
+		 */
+		static Changes = [
+			{
+				type: Changelogs.Types.Fixed.TYPE,
+				title: Changelogs.Types.Fixed.TITLE,
+				items: [
+					'We\'re back! Internals became mangled, making components harder to scan for and grab - made some quick corrections and concessions addressing that.'
+				]
+			},
+			{
+				type: Changelogs.Types.Progress.TYPE,
+				title: Changelogs.Types.Progress.TITLE,
+				items: [
+					'Moved back to DOM rendering.'
+				]
+			}
+		];
+
+		/**
+		 * @type {!Prettify<BD.ModalData>}
+		 */
+		static ModalData = {
+			title: `${meta.name} Changelog`,
+			subtitle: `v${meta.version}`,
+			changes: Changelogs.Changes
+		};
+
+		static show () {
+			const [sign, local] = Versions.getInfo();
+			if (sign === Versions.Signs.LEFT) return;
+			if (sign === Versions.Signs.SAME && local && local.hasShownChangelog) return;
+			if (Changelogs.Changes.length) UI.showChangelogModal(Changelogs.ModalData);
+			Data.save(Versions.key, { version: meta.version, hasShownChangelog: true });
+		}
+	};
+
 	/* Build */
 
 	Object.assign(plugin, {
@@ -749,6 +935,7 @@ module.exports = (meta) => {
 			promises.restore();
 			loadSettings();
 			raf(onStart);
+			Changelogs.show();
 		},
 		stop () {
 			promises.cancel();
@@ -767,7 +954,7 @@ module.exports = (meta) => {
 		 */
 		observer (change) {
 			if (isCleared(change.removedNodes, settingRoot)) unmount(settingRoot);
-			// if (!viewRoot.isConnected) raf(appendRoot);
+			if (!viewRoot.isConnected) raf(appendRoot);
 		}
 	});
 
