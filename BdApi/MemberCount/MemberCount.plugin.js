@@ -1,7 +1,7 @@
 /**
  * @name MemberCount
  * @author Arashiryuu
- * @version 3.0.0
+ * @version 3.0.1
  * @description Displays a server's member-count at the top of the member-list, can be styled with the #MemberCount selector.
  * @authorId 238108500109033472
  * @authorLink https://github.com/Arashiryuu
@@ -378,8 +378,7 @@ module.exports = (meta) => {
 
 	const memberListClasses = {
 		...Webpack.getByKeys('members', 'container'),
-		...getModule((m) => m?.container?.endsWith('ad5c')),
-		...getModule((m) => m?.container?.endsWith('d271'))
+		...getModule((m) => m?.container?.endsWith('13cf1'))
 	};
 	/**
 	 * Current selectors for the member-list.
