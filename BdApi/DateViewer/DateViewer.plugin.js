@@ -337,6 +337,7 @@ module.exports = (meta) => {
 	 * Current selector for the member-list.
 	 */
 	const memberListSelector = toSelector(memberListClasses.members);
+	const memberWrap = toSelector(memberListClasses.membersWrap);
 
 	/**
 	 * Converts a template literal interpolated string from a human-readable format into a one-liner for use in stylesheets.
@@ -726,7 +727,7 @@ module.exports = (meta) => {
 
 	const removeRoot = () => viewRoot.isConnected && viewRoot.remove();
 	const appendRoot = () => {
-		const list = document.querySelector(memberListSelector);
+		const list = document.querySelector(memberWrap);
 		if (!list || viewRoot.isConnected) return;
 		list.appendChild(viewRoot);
 	};
