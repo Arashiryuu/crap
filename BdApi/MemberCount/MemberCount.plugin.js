@@ -533,11 +533,13 @@ module.exports = (meta) => {
 	/**
 	 * Discord Components
 	 */
-	const BulkModule = getModule((m) => m !== window && m?.Tooltip && m?.Text);
+	const BulkModule = {
+		ListThin: null//Webpack.getByStrings('channel:', 'className:', '.useDeferredValue', { defaultExport: false })
+	};
 	const Discord = {
-		Switch: BulkModule.FormSwitch,
-		TooltipWrapper: BulkModule.Tooltip,
-		ThemeContext: BulkModule.ThemeContextProvider
+		Switch: Webpack.getByStrings('checked:', 'tooltipNote:', { searchExports: true }),
+		TooltipWrapper: Webpack.getByPrototypeKeys('shouldShowTooltip', { searchExports: true }),
+		ThemeContext: Webpack.getByStrings('theme:', 'flags:', '.useContext', { searchExports: true })
 	};
 
 	/**
@@ -631,11 +633,50 @@ module.exports = (meta) => {
 		});
 	});
 
+	// @ts-ignore
 	const Radio = withThemeContext((props) => {
 		// @ts-ignore
 		const { label = 'Radio label', note = 'Radio note', options = [], defaultValue = 0, disabled = false, onChange = console.log } = props;
 
-		return ce('div', {
+		return Fragment([
+			ce('div', {
+				className: formClasses.labelRow,
+				children: ce('label', {
+					className: formClasses.title,
+					children: label,
+					style: { pointerEvents: 'none' }
+				})
+			}),
+			ce('div', {
+				className: formClasses.note,
+				children: ce(Api.Components.Text, {
+					color: Api.Components.Text.Colors.HEADER_SECONDARY,
+					children: note
+				})
+			}),
+			ce('div', {
+				className: Utils.className({
+					[formClasses.divider]: typeof formClasses.divider !== 'undefined',
+					[formClasses.dividerDefault]: typeof formClasses.dividerDefault !== 'undefined'
+				})
+			}),
+			ce(Api.Components.RadioInput, {
+				name: label,
+				note,
+				value: defaultValue,
+				disabled: Boolean(disabled),
+				options,
+				onChange
+			}),
+			ce('div', {
+				className: Utils.className({
+					[formClasses.divider]: typeof formClasses.divider !== 'undefined',
+					[formClasses.dividerDefault]: typeof formClasses.dividerDefault !== 'undefined'
+				})
+			})
+		]);
+
+		/* return ce('div', {
 			className: formClasses.container,
 			children: [
 				ce('div', {
@@ -667,7 +708,7 @@ module.exports = (meta) => {
 					className: formClasses.dividerDefault
 				})
 			]
-		});
+		}); */
 	});
 
 	const updateMemberList = () => {
@@ -728,7 +769,7 @@ module.exports = (meta) => {
 							options: options.style,
 							defaultValue: settings.displayType ?? 0,
 							onChange: (e) => {
-								settings.displayType = e.value;
+								settings.displayType = e;
 								updateMemberList();
 								onChange();
 							}
@@ -739,7 +780,7 @@ module.exports = (meta) => {
 							options: options.margin,
 							defaultValue: settings.marginSpacing ?? 0,
 							onChange: (e) => {
-								settings.marginSpacing = e.value;
+								settings.marginSpacing = e;
 								updateStyle();
 								updateMemberList();
 								onChange();
@@ -889,6 +930,25 @@ module.exports = (meta) => {
 		return false;
 	};
 
+	const counter = create('span', {
+		id : '--MemberCounterRoot'
+	});
+	const removeCounter = () => counter.isConnected && counter.remove();
+	const appendCounter = () => {
+		const wrap = document.querySelector(memberWrap);
+		// const list = document.querySelector(memberListSelector);
+		if (!wrap || counter.isConnected) return;
+		wrap.prepend(counter);
+		wrap.classList.add('hasCounter');
+	};
+	const connect = () => {
+		const id = SelectedGuildStore.getGuildId();
+		render(ce(Counter.Wrapped, { id, key: `${meta.name}-${id}`, displayType: settings.displayType }), counter);
+	};
+	const disconnect = () => {
+		unmount(counter);
+	};
+
 	const loadSettings = () => {
 		settings = Utils.extend({}, defaults, Data.load('settings'));
 		// Ad-hoc fix for `BdApi.Utils.extend` converting array data into a plain object.
@@ -995,12 +1055,12 @@ module.exports = (meta) => {
 				 * @returns {!boolean}
 				 */
 				const fn = (fiber) => fiber?.key?.startsWith(meta.name);
-				Patcher.after(BulkModule.ListThin, 'render', (that, args, value) => {
-					const val = Array.isArray(value)
+				Patcher.after(BulkModule.ListThin, 'Z', (that, args, value) => {
+					/* const val = Array.isArray(value)
 						? value.find((item) => item && !item.key)
 						: value;
 					const props = getProp(val, 'props');
-					const type = props?.['data-list-id']?.split('-')[0] ?? props.className.split('_')[0];
+					const type = props?.['data-list-id']?.split('-')[0] ?? props.className?.split('_')[0];
 					if (!props || type !== 'members') return value;
 
 					const id = SelectedGuildStore.getGuildId();
@@ -1033,7 +1093,7 @@ module.exports = (meta) => {
 					}
 
 					if (list && !list.classList.contains('hasCounter')) list.classList.add('hasCounter');
-					value.unshift(element);
+					value.unshift(element); */
 					return value;
 				});
 				updateMemberList();
@@ -1165,10 +1225,18 @@ module.exports = (meta) => {
 		 */
 		static Changes = [
 			{
-				title: Changelogs.Types.Added.TITLE,
 				type: Changelogs.Types.Added.TYPE,
+				title: Changelogs.Types.Added.TITLE,
 				items: [
-					'Fully migrated away from ZeresPluginLibrary.'
+					'Fully migrated away from ZeresPluginLibrary.',
+					'Implements new BdApi features -- like this changelog!'
+				]
+			},
+			{
+				type: Changelogs.Types.Improved.TYPE,
+				title: Changelogs.Types.Improved.TITLE,
+				items: [
+					'If you immediately know the candlelight is fire, then the meal was cooked long ago.'
 				]
 			}
 		];
@@ -1198,17 +1266,25 @@ module.exports = (meta) => {
 			promises.restore();
 			loadSettings();
 			DOM.addStyle(getCss());
-			Patches.apply();
+			appendCounter();
+			connect();
+			// Patches.apply();
 			Changelogs.show();
 		},
 		stop () {
 			promises.cancel();
 			Patches.clear();
+			removeCounter();
+			disconnect();
 			DOM.removeStyle();
 		},
 		getSettingsPanel () {
 			const panel = ce(Settings, {
-				onChange: saveSettings
+				onChange: () => {
+					saveSettings();
+					disconnect();
+					connect();
+				}
 			});
 			render(panel, settingRoot);
 			return settingRoot;
@@ -1219,6 +1295,11 @@ module.exports = (meta) => {
 		 */
 		observer (change) {
 			if (isCleared(change.removedNodes, settingRoot)) unmount(settingRoot);
+			if (!counter.isConnected) {
+				disconnect();
+				connect();
+				appendCounter();
+			}
 		}
 	});
 
