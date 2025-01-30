@@ -803,7 +803,7 @@ module.exports = (meta) => {
 		DOM.addStyle(style);
 		appendRoot();
 		connect();
-		teeUpdates();
+		// teeUpdates();
 		// patchMemberList(promises.state);
 	};
 
