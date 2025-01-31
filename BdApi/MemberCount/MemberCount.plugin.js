@@ -1,7 +1,7 @@
 /**
  * @name MemberCount
  * @author Arashiryuu
- * @version 3.0.1
+ * @version 3.0.2
  * @description Displays a server's member-count at the top of the member-list, can be styled with the #MemberCount selector.
  * @authorId 238108500109033472
  * @authorLink https://github.com/Arashiryuu
@@ -377,7 +377,7 @@ module.exports = (meta) => {
 	const toSelector = (className) => `.${className.split(' ').join('.')}`;
 
 	const memberListClasses = {
-		...Webpack.getByKeys('members', 'container'),
+		...Webpack.getByKeys('members', 'container', 'membersWrap'),
 		...getModule((m) => m?.container?.endsWith('13cf1'))
 	};
 	/**
@@ -1224,18 +1224,10 @@ module.exports = (meta) => {
 		 */
 		static Changes = [
 			{
-				type: Changelogs.Types.Added.TYPE,
-				title: Changelogs.Types.Added.TITLE,
+				type: Changelogs.Types.Fixed.TYPE,
+				title: Changelogs.Types.Fixed.TITLE,
 				items: [
-					'Fully migrated away from ZeresPluginLibrary.',
-					'Implements new BdApi features -- like this changelog!'
-				]
-			},
-			{
-				type: Changelogs.Types.Improved.TYPE,
-				title: Changelogs.Types.Improved.TITLE,
-				items: [
-					'If you immediately know the candlelight is fire, then the meal was cooked long ago.'
+					'Grab the correct class module after Discord changed it.'
 				]
 			}
 		];
