@@ -1,7 +1,7 @@
 /**
  * @name DateViewer
  * @author Arashiryuu
- * @version 1.0.9
+ * @version 1.0.10
  * @description Displays the current date, weekday, and time.
  * @authorId 238108500109033472
  * @authorLink https://github.com/Arashiryuu
@@ -332,7 +332,7 @@ module.exports = (meta) => {
 	 */
 	const toSelector = (className) => `.${className.split(' ').join('.')}`;
 
-	const memberListClasses = Webpack.getByKeys('members', 'container');
+	const memberListClasses = Webpack.getByKeys('members', 'container', 'membersWrap');
 	/**
 	 * Current selector for the member-list.
 	 */
@@ -899,14 +899,7 @@ module.exports = (meta) => {
 				type: Changelogs.Types.Fixed.TYPE,
 				title: Changelogs.Types.Fixed.TITLE,
 				items: [
-					'We\'re back! Internals became mangled, making components harder to scan for and grab - made some quick corrections and concessions addressing that.'
-				]
-			},
-			{
-				type: Changelogs.Types.Progress.TYPE,
-				title: Changelogs.Types.Progress.TITLE,
-				items: [
-					'Moved back to DOM rendering.'
+					'Grab correct class module after most recent change.'
 				]
 			}
 		];
