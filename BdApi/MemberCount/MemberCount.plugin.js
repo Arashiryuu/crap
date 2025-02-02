@@ -1,7 +1,7 @@
 /**
  * @name MemberCount
  * @author Arashiryuu
- * @version 3.0.2
+ * @version 3.0.3
  * @description Displays a server's member-count at the top of the member-list, can be styled with the #MemberCount selector.
  * @authorId 238108500109033472
  * @authorLink https://github.com/Arashiryuu
@@ -630,6 +630,13 @@ module.exports = (meta) => {
 			disabled: Boolean(disabled),
 			onChange
 		});
+		/* return ce(Api.Components.SwitchInput, {
+			id: props.id,
+			value: checked,
+			disabled: Boolean(disabled),
+			onChange,
+			internalState: false
+		}); */
 	});
 
 	// @ts-ignore
@@ -637,43 +644,46 @@ module.exports = (meta) => {
 		// @ts-ignore
 		const { label = 'Radio label', note = 'Radio note', options = [], defaultValue = 0, disabled = false, onChange = console.log } = props;
 
-		return Fragment([
-			ce('div', {
-				className: formClasses.labelRow,
-				children: ce('label', {
-					className: formClasses.title,
-					children: label,
-					style: { pointerEvents: 'none' }
+		return ce('div', {
+			className: formClasses.container,
+			children: [
+				ce('div', {
+					className: formClasses.labelRow,
+					children: ce('label', {
+						className: formClasses.title,
+						children: label,
+						style: { pointerEvents: 'none' }
+					})
+				}),
+				ce('div', {
+					className: formClasses.note,
+					children: ce(Api.Components.Text, {
+						color: Api.Components.Text.Colors.HEADER_SECONDARY,
+						children: note
+					})
+				}),
+				ce('div', {
+					className: Utils.className({
+						[formClasses.divider]: typeof formClasses.divider !== 'undefined',
+						[formClasses.dividerDefault]: typeof formClasses.dividerDefault !== 'undefined'
+					})
+				}),
+				ce(Api.Components.RadioInput, {
+					name: label,
+					note,
+					value: defaultValue,
+					disabled: Boolean(disabled),
+					options,
+					onChange
+				}),
+				ce('div', {
+					className: Utils.className({
+						[formClasses.divider]: typeof formClasses.divider !== 'undefined',
+						[formClasses.dividerDefault]: typeof formClasses.dividerDefault !== 'undefined'
+					})
 				})
-			}),
-			ce('div', {
-				className: formClasses.note,
-				children: ce(Api.Components.Text, {
-					color: Api.Components.Text.Colors.HEADER_SECONDARY,
-					children: note
-				})
-			}),
-			ce('div', {
-				className: Utils.className({
-					[formClasses.divider]: typeof formClasses.divider !== 'undefined',
-					[formClasses.dividerDefault]: typeof formClasses.dividerDefault !== 'undefined'
-				})
-			}),
-			ce(Api.Components.RadioInput, {
-				name: label,
-				note,
-				value: defaultValue,
-				disabled: Boolean(disabled),
-				options,
-				onChange
-			}),
-			ce('div', {
-				className: Utils.className({
-					[formClasses.divider]: typeof formClasses.divider !== 'undefined',
-					[formClasses.dividerDefault]: typeof formClasses.dividerDefault !== 'undefined'
-				})
-			})
-		]);
+			]
+		});
 
 		/* return ce('div', {
 			className: formClasses.container,
@@ -749,7 +759,57 @@ module.exports = (meta) => {
 					name: 'Plugin-Settings',
 					shown: true,
 					collapsible: true,
-					settings: [],
+					settings: [
+						{
+							id: 'online',
+							type: 'switch',
+							name: 'Online Counter',
+							note: 'Toggles the online members counter.',
+							value: settings.online ?? false,
+							/**
+							 * @param {!boolean} e
+							 */
+							onChange (e) {
+								settings.online = e;
+								updateStyle();
+								updateMemberList();
+								onChange();
+							}
+						},
+						{
+							id: 'display',
+							type: 'radio',
+							name: 'Display Style',
+							note: 'Switch between the classic or new display styles.',
+							options: options.style,
+							value: settings.displayType ?? 0,
+							/**
+							 * @param {!number} e
+							 */
+							onChange (e) {
+								settings.displayType = e;
+								updateMemberList();
+								onChange();
+							}
+						},
+						{
+							id: 'spacing',
+							type: 'radio',
+							name: 'Spacing Style',
+							note: 'The amount of space left under the counters.',
+							options: options.margin,
+							value: settings.marginSpacing ?? 0,
+							/**
+							 * @param {!number} e
+							 */
+							onChange (e) {
+								settings.marginSpacing = e;
+								updateStyle();
+								updateMemberList();
+								onChange();
+							}
+						}
+					]/* ,
 					children: [
 						ce(Switch, {
 							label: 'Online Counter',
@@ -785,7 +845,7 @@ module.exports = (meta) => {
 								onChange();
 							}
 						})
-					]
+					] */
 				})
 			]
 		});
@@ -876,6 +936,12 @@ module.exports = (meta) => {
 		const strings = useStrings();
 		const { id, count, online, displayType } = props;
 
+		// useEffect(() => {
+		// 	if (!online && !GuildPopoutStore.isFetchingGuild(id)) {
+		// 		// GuildPopoutActions.fetchGuildForPopout(id);
+		// 	}
+		// }, [online]);
+
 		return ce('div', {
 			id: 'MemberCount',
 			role: 'listitem',
@@ -909,6 +975,10 @@ module.exports = (meta) => {
 		const gid = SelectedGuildStore.getGuildId();
 		return {
 			count: MemberCountStores.getMemberCount(gid),
+			/**
+			 * We can tally all the non-invisible accounts on a server via `MemberCountStores.getOnlineCount(gid)`.
+			 * However, we want to include invisibles.
+			 */
 			online: GuildPopoutStore.getGuild(gid)?.presenceCount ?? MemberCountStores.getOnlineCount(gid)
 		};
 	})(MemberCount);
@@ -929,16 +999,34 @@ module.exports = (meta) => {
 		return false;
 	};
 
+	/**
+	 * Root DOM element to make use of the inherited `isConnected` property.
+	 */
 	const counter = create('span', {
-		id : '--MemberCounterRoot'
+		id: '--MemberCounterRoot'
 	});
+
+	/**
+	 * DOM rendering fallbacks toggle.
+	 */
+	const DOM_MODE = true;
+
 	const removeCounter = () => counter.isConnected && counter.remove();
 	const appendCounter = () => {
 		const wrap = document.querySelector(memberWrap);
 		// const list = document.querySelector(memberListSelector);
+		const gid = SelectedGuildStore.getGuildId();
 		if (!wrap || counter.isConnected) return;
+		if (settings.blacklisted.includes(gid)) {
+			wrap.classList.remove('hasCounter');
+			return;
+		}
 		wrap.prepend(counter);
 		wrap.classList.add('hasCounter');
+	};
+	const refitCounter = () => {
+		removeCounter();
+		appendCounter();
 	};
 	const connect = () => {
 		const id = SelectedGuildStore.getGuildId();
@@ -947,11 +1035,17 @@ module.exports = (meta) => {
 	const disconnect = () => {
 		unmount(counter);
 	};
+	const reconnect = () => {
+		disconnect();
+		connect();
+	};
 
 	const loadSettings = () => {
 		settings = Utils.extend({}, defaults, Data.load('settings'));
-		// Ad-hoc fix for `BdApi.Utils.extend` converting array data into a plain object.
-		if (typeof settings.blacklisted === 'object' && !Array.isArray(settings.blacklisted)) settings.blacklisted = Object.keys(settings.blacklisted);
+		/**
+		 * Ad-hoc fix for `BdApi.Utils.extend` converting array data into a plain object.
+		 */
+		if (settings.blacklisted instanceof Object && !Array.isArray(settings.blacklisted)) settings.blacklisted = Object.values(settings.blacklisted);
 	};
 
 	const saveSettings = () => {
@@ -967,6 +1061,10 @@ module.exports = (meta) => {
 		if (!id) return;
 		settings.blacklisted.push(id);
 		saveSettings();
+		if (DOM_MODE) {
+			refitCounter();
+			updateStyle();
+		}
 		updateMemberList();
 	};
 
@@ -977,6 +1075,10 @@ module.exports = (meta) => {
 		if (!id) return;
 		settings.blacklisted = settings.blacklisted.filter((gid) => gid !== id);
 		saveSettings();
+		if (DOM_MODE) {
+			refitCounter();
+			updateStyle();
+		}
 		updateMemberList();
 	};
 
@@ -1044,6 +1146,7 @@ module.exports = (meta) => {
 		 */
 		static #patches = {
 			MemberList (state) {
+				if (DOM_MODE) return;
 				if (!BulkModule.ListThin || state.cancelled) return;
 				const isThread = (props) => {
 					return !props['data-list-id'] && props.className.startsWith('members');
@@ -1055,7 +1158,7 @@ module.exports = (meta) => {
 				 */
 				const fn = (fiber) => fiber?.key?.startsWith(meta.name);
 				Patcher.after(BulkModule.ListThin, 'Z', (that, args, value) => {
-					/* const val = Array.isArray(value)
+					const val = Array.isArray(value)
 						? value.find((item) => item && !item.key)
 						: value;
 					const props = getProp(val, 'props');
@@ -1092,7 +1195,7 @@ module.exports = (meta) => {
 					}
 
 					if (list && !list.classList.contains('hasCounter')) list.classList.add('hasCounter');
-					value.unshift(element); */
+					value.unshift(element);
 					return value;
 				});
 				updateMemberList();
@@ -1123,11 +1226,11 @@ module.exports = (meta) => {
 					const { guild } = props;
 					if (navId !== 'guild-context' || !guild) return fiber;
 					const data = parseId(guild.id);
-					const group = ce(BulkModule.MenuGroup, {
+					const group = ce(ContextMenu.Group, {
 						key: `${meta.name}-MenuGroup`,
 						children: [
-							ce(BulkModule.MenuItem, { className: 'membercount-menu-icon', ...data }),
-							!isLastItem(fiber.props.children) && ce(BulkModule.MenuSeparator, {})
+							ce(ContextMenu.Item, { className: 'membercount-menu-icon', ...data }),
+							!isLastItem(fiber.props.children) && ce(ContextMenu.Separator, {})
 						]
 					});
 					if (!Array.isArray(fiber.props.children)) fiber.props.children = [fiber.props.children];
@@ -1224,10 +1327,17 @@ module.exports = (meta) => {
 		 */
 		static Changes = [
 			{
+				type: Changelogs.Types.Progress.TYPE,
+				title: Changelogs.Types.Progress.TITLE,
+				items: [
+					'Properly reflect blacklist changes on the memberlist when toggling via context menu.'
+				]
+			},
+			{
 				type: Changelogs.Types.Fixed.TYPE,
 				title: Changelogs.Types.Fixed.TITLE,
 				items: [
-					'Grab the correct class module after Discord changed it.'
+					'Revival of the context menu item toggle.'
 				]
 			}
 		];
@@ -1257,24 +1367,29 @@ module.exports = (meta) => {
 			promises.restore();
 			loadSettings();
 			DOM.addStyle(getCss());
-			appendCounter();
-			connect();
-			// Patches.apply();
+			if (DOM_MODE) {
+				appendCounter();
+				connect();
+			}
+			Patches.apply();
 			Changelogs.show();
 		},
 		stop () {
 			promises.cancel();
 			Patches.clear();
-			removeCounter();
-			disconnect();
+			if (DOM_MODE) {
+				removeCounter();
+				disconnect();
+			}
 			DOM.removeStyle();
 		},
 		getSettingsPanel () {
 			const panel = ce(Settings, {
 				onChange: () => {
 					saveSettings();
-					disconnect();
-					connect();
+					if (DOM_MODE) {
+						reconnect();
+					}
 				}
 			});
 			render(panel, settingRoot);
@@ -1286,10 +1401,11 @@ module.exports = (meta) => {
 		 */
 		observer (change) {
 			if (isCleared(change.removedNodes, settingRoot)) unmount(settingRoot);
-			if (!counter.isConnected) {
-				disconnect();
-				connect();
-				appendCounter();
+			if (DOM_MODE) {
+				if (!counter.isConnected) {
+					reconnect();
+					appendCounter();
+				}
 			}
 		}
 	});
