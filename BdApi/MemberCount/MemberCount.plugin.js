@@ -1,7 +1,7 @@
 /**
  * @name MemberCount
  * @author Arashiryuu
- * @version 3.0.3
+ * @version 3.0.4
  * @description Displays a server's member-count at the top of the member-list, can be styled with the #MemberCount selector.
  * @authorId 238108500109033472
  * @authorLink https://github.com/Arashiryuu
@@ -76,7 +76,7 @@ module.exports = (meta) => {
 	const GuildPopoutStore = Webpack.getStore('GuildPopoutStore');
 	const MemberCountStores = Webpack.getStore('GuildMemberCountStore');
 	const SelectedGuildStore = Webpack.getStore('SelectedGuildStore');
-	const LangUtils = getModule((m) => m?._eventsCount === 1);
+	const LangUtils = Webpack.getByKeys('Messages', '_languages');
 
 	const { inspect } = Webpack.getByKeys('inspect', 'promisify');
 	const formClasses = Webpack.getByKeys('dividerDefault');
@@ -1327,17 +1327,10 @@ module.exports = (meta) => {
 		 */
 		static Changes = [
 			{
-				type: Changelogs.Types.Progress.TYPE,
-				title: Changelogs.Types.Progress.TITLE,
-				items: [
-					'Properly reflect blacklist changes on the memberlist when toggling via context menu.'
-				]
-			},
-			{
 				type: Changelogs.Types.Fixed.TYPE,
 				title: Changelogs.Types.Fixed.TITLE,
 				items: [
-					'Revival of the context menu item toggle.'
+					'Fix language module query.'
 				]
 			}
 		];
