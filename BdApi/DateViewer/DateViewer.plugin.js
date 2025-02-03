@@ -1,7 +1,7 @@
 /**
  * @name DateViewer
  * @author Arashiryuu
- * @version 1.0.10
+ * @version 1.0.11
  * @description Displays the current date, weekday, and time.
  * @authorId 238108500109033472
  * @authorLink https://github.com/Arashiryuu
@@ -75,7 +75,7 @@ module.exports = (meta) => {
 	const raf = requestAnimationFrame;
 	const toString = Object.prototype.toString;
 
-	const LangUtils = Webpack.getModule((m) => m?._eventsCount === 1);
+	const LangUtils = Webpack.getByKeys('Messages', '_languages');
 	const { inspect } = Webpack.getByKeys('inspect', 'promisify');
 
 	/* Language Strings */
@@ -554,29 +554,58 @@ module.exports = (meta) => {
 					name: 'Plugin-Settings',
 					shown: true,
 					collapsible: true,
-					settings: [],
-					children: [
-						ce(Switch, {
-							label: HOUR12_LABEL,
-							note:  HOUR12_NOTE,
-							checked: settings.hour12,
-							/** @param {!boolean} e */
-							onChange: (e) => {
+					settings: [
+						{
+							id: 'hour12',
+							type: 'switch',
+							name: HOUR12_LABEL,
+							note: HOUR12_NOTE,
+							value: settings.hour12 ?? false,
+							/**
+							 * @param {!boolean} e
+							 */
+							onChange (e) {
 								settings.hour12 = e;
 								onChange();
 							}
-						}),
-						ce(Switch, {
-							label: SECONDS_LABEL,
+						},
+						{
+							id: 'seconds',
+							type: 'switch',
+							name: SECONDS_LABEL,
 							note: SECONDS_NOTE,
-							checked: settings.displaySeconds,
-							/** @param {!boolean} e */
-							onChange: (e) => {
+							value: settings.displaySeconds ?? false,
+							/**
+							 * @param {!boolean} e
+							 */
+							onChange (e) {
 								settings.displaySeconds = e;
 								onChange();
 							}
-						})
-					]
+						}
+					]// ,
+					// children: [
+					// 	ce(Switch, {
+					// 		label: HOUR12_LABEL,
+					// 		note:  HOUR12_NOTE,
+					// 		checked: settings.hour12,
+					// 		/** @param {!boolean} e */
+					// 		onChange: (e) => {
+					// 			settings.hour12 = e;
+					// 			onChange();
+					// 		}
+					// 	}),
+					// 	ce(Switch, {
+					// 		label: SECONDS_LABEL,
+					// 		note: SECONDS_NOTE,
+					// 		checked: settings.displaySeconds,
+					// 		/** @param {!boolean} e */
+					// 		onChange: (e) => {
+					// 			settings.displaySeconds = e;
+					// 			onChange();
+					// 		}
+					// 	})
+					// ]
 				})
 			]
 		});
@@ -863,7 +892,7 @@ module.exports = (meta) => {
 			/**
 			 * @type {!VersionTuple}
 			 */
-			const ret = [0, local];
+			const ret = [Versions.Signs.SAME, local];
 			if (!local || !local.version) return ret;
 			if (local.hasShownChangelog && local.version === meta.version) return ret;
 			ret[0] = Utils.semverCompare(local.version, meta.version);
@@ -899,7 +928,7 @@ module.exports = (meta) => {
 				type: Changelogs.Types.Fixed.TYPE,
 				title: Changelogs.Types.Fixed.TITLE,
 				items: [
-					'Grab correct class module after most recent change.'
+					'Fix language module query.'
 				]
 			}
 		];
