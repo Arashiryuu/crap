@@ -1,7 +1,7 @@
 /**
  * @name DateViewer
  * @author Arashiryuu
- * @version 1.0.11
+ * @version 1.0.12
  * @description Displays the current date, weekday, and time.
  * @authorId 238108500109033472
  * @authorLink https://github.com/Arashiryuu
@@ -173,27 +173,51 @@ module.exports = (meta) => {
 			'',
 			new Date().toUTCString()
 		];
-		for (const level of ['log', 'info', 'warn', 'debug', 'error']) {
-			Logger[level] = function () {
-				console.groupCollapsed(...useParts(meta.name));
-				console[level].apply(null, arguments);
-				console.groupEnd();
-			};
-		}
+		const levels = /** @type {const} */ ([
+			'log',
+			'info',
+			'warn',
+			'debug',
+			'error'
+		]);
 		Logger.dir = (...n) => {
 			console.groupCollapsed(...useParts(meta.name));
 			for (const item of n) console.dir(item);
 			console.groupEnd();
 		};
-		// @ts-ignore
 		Logger.ins = (...n) => {
 			const inspected = n.map((item) => inspect(item, { colors: true }));
 			console.groupCollapsed(...useParts(meta.name));
 			for (const item of inspected) console.log(item);
 			console.groupEnd();
 		};
-		applyBinds(Logger);
+		const stagger = (name = meta.name, level = 'log') => {
+			const logs = [];
+			return Object.freeze({
+				/** @param {!unknown[]} data */
+				push (...data) {
+					logs.push(data);
+				},
+				flush () {
+					logs.splice(0);
+				},
+				print () {
+					console.groupCollapsed(...useParts(name));
+					for (const out of logs) console[level](...out);
+					console.groupEnd();
+				}
+			});
+		};
+		for (const level of levels) {
+			Logger[level] = (...args) => {
+				console.groupCollapsed(...useParts(meta.name));
+				console[level](...args);
+				console.groupEnd();
+			};
+			Logger[`_${level}`] = stagger(meta.name, level);
+		}
 	}
+	applyBinds(Logger);
 
 	/**
 	 * @param {!object} obj
@@ -356,11 +380,7 @@ module.exports = (meta) => {
 	 * // .this { color: red; background: #FF00FF; }
 	 * ```
 	 */
-	const css = (ss, ...vars) => {
-		let string = '';
-		for (let i = 0, len = ss.length; i < len; i++) string += `${ss[i]}${vars[i] ?? ''}`;
-		return string.split(/\s+/g).join(' ').trim();
-	};
+	const css = (ss, ...vars) => String.raw(ss, ...vars).split(/\s+/g).join(' ').trim();
 
 	const style = css`
 		#dv-mount {
@@ -371,7 +391,7 @@ module.exports = (meta) => {
 			height: 95px !important;
 			justify-content: center;
 			position: fixed;
-			width: 240px;
+			width: var(--custom-member-list-width);
 			z-index: 1;
 		}
 		#dv-main {
@@ -634,10 +654,13 @@ module.exports = (meta) => {
 
 	/* Setup Cont. */
 
+	const lang = () => (
+		LangUtils?.getLocale() ?? document.documentElement.lang
+	) ?? 'en-gb';
 	const getData = () => {
 		const { hour12, displaySeconds } = settings;
 		const d = new Date();
-		const l = document.documentElement.lang ?? 'en-gb';
+		const l = lang();
 		const timeStyle = displaySeconds
 			? 'long'
 			: 'short';
@@ -924,11 +947,18 @@ module.exports = (meta) => {
 		 * @type {!Prettify<BD.Changes>[]}
 		 */
 		static Changes = [
+			// {
+			// 	type: Changelogs.Types.Fixed.TYPE,
+			// 	title: Changelogs.Types.Fixed.TITLE,
+			// 	items: [
+			// 		'Fix language module query.'
+			// 	]
+			// }
 			{
-				type: Changelogs.Types.Fixed.TYPE,
-				title: Changelogs.Types.Fixed.TITLE,
+				type: Changelogs.Types.Progress.TYPE,
+				title: Changelogs.Types.Progress.TITLE,
 				items: [
-					'Fix language module query.'
+					'Visual refresh update.'
 				]
 			}
 		];
