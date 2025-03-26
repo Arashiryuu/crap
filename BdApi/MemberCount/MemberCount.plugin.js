@@ -1,7 +1,7 @@
 /**
  * @name MemberCount
  * @author Arashiryuu
- * @version 3.0.4
+ * @version 3.0.5
  * @description Displays a server's member-count at the top of the member-list, can be styled with the #MemberCount selector.
  * @authorId 238108500109033472
  * @authorLink https://github.com/Arashiryuu
@@ -206,28 +206,53 @@ module.exports = (meta) => {
 		 */
 		const useParts = (label) => [
 			`%c[${label}] \u2014%c`,
-			'color: #59f;',
+			'color: #59f;', // #a4e5ab for console 92 green
 			'',
 			new Date().toUTCString()
 		];
-		for (const level of ['log', 'info', 'warn', 'debug', 'error']) {
-			Logger[level] = function () {
-				console.groupCollapsed(...useParts(meta.name));
-				console[level].apply(null, arguments);
-				console.groupEnd();
-			};
-		}
-		Logger.ins = function ins () {
-			const output = Array.from(arguments, (arg) => inspect(arg, { colors: true }));
+		const levels = /** @type {const} */ ([
+			'log',
+			'info',
+			'warn',
+			'debug',
+			'error'
+		]);
+		Logger.ins = (...args) => {
+			const output = args.map((arg) => inspect(arg, { colors: true }));
 			console.groupCollapsed(...useParts(meta.name));
 			for (const out of output) console.log(out);
 			console.groupEnd();
 		};
-		Logger.dir = function dir () {
+		Logger.dir = (...args) => {
 			console.groupCollapsed(...useParts(meta.name));
-			for (const out of [...arguments]) console.dir(out);
+			for (const out of args) console.dir(out);
 			console.groupEnd();
 		};
+		const stagger = (name = meta.name, level = 'log') => {
+			const logs = [];
+			return Object.freeze({
+				/** @param {!unknown[]} data */
+				push (...data) {
+					logs.push(data);
+				},
+				flush () {
+					logs.splice(0);
+				},
+				print () {
+					console.groupCollapsed(...useParts(name));
+					for (const out of logs) console[level](...out);
+					console.groupEnd();
+				}
+			});
+		};
+		for (const level of levels) {
+			Logger[level] = (...args) => {
+				console.groupCollapsed(...useParts(meta.name));
+				console[level](...args);
+				console.groupEnd();
+			};
+			Logger[`_${level}`] = stagger(meta.name, level);
+		}
 	}
 	applyBinds(Logger);
 
@@ -253,7 +278,7 @@ module.exports = (meta) => {
 	 * @param {!string} key
 	 * @returns {!string}
 	 */
-	const normalizeEventName = (key) => key === 'doubleclick'
+	const toEventName = (key) => key === 'doubleclick'
 		? 'dblclick'
 		: key;
 
@@ -261,7 +286,7 @@ module.exports = (meta) => {
 	 * @param {!string} key
 	 * @returns {!string}
 	 */
-	const normalizeDataAttr = (key) => key.replace(/([A-Z]{1})/g, '-$1').toLowerCase();
+	const toDataAttr = (key) => key.replace(/([A-Z]{1})/g, '-$1').toLowerCase();
 
 	/**
 	 * @param {!string} key 
@@ -332,12 +357,12 @@ module.exports = (meta) => {
 				}
 				default: {
 					if (isEvent(key)) {
-						const event = normalizeEventName(key.slice(2).toLowerCase());
+						const event = toEventName(key.slice(2).toLowerCase());
 						e.addEventListener(event, props[key]);
 						break;
 					}
 					if (isDataAttr(key)) {
-						const attr = normalizeDataAttr(key);
+						const attr = toDataAttr(key);
 						e.setAttribute(attr, props[key]);
 						break;
 					}
@@ -403,11 +428,7 @@ module.exports = (meta) => {
 	 * // .this { color: red; background: #FF00FF; }
 	 * ```
 	 */
-	const css = (ss, ...vars) => {
-		let string = '';
-		for (let i = 0, len = ss.length; i < len; i++) string += `${ss[i]}${vars[i] ?? ''}`;
-		return string.split(/\s+/g).join(' ').trim();
-	};
+	const css = (ss, ...vars) => String.raw(ss, ...vars).split(/\s+/g).join(' ').trim();
 
 	/**
 	 * @typedef SpacingProps
@@ -448,7 +469,7 @@ module.exports = (meta) => {
 			background: var(--background-secondary);
 			position: absolute;
 			color: var(--channels-default, var(--text-secondary, --text-primary));
-			width: 240px;
+			width: var(--custom-member-list-width);
 			padding: 0;
 			z-index: 1;
 			top: 0;
@@ -473,8 +494,16 @@ module.exports = (meta) => {
 			margin-right: 1px;
 		}
 
-		${memberWrap}.hasCounter ${memberListSelector} {
-			margin-top: ${getSpacing(settings)};
+		${memberWrap}.hasCounter.space-30 ${memberListSelector} {
+			margin-top: 30px;
+		}
+
+		${memberWrap}.hasCounter.space-40 ${memberListSelector} {
+			margin-top: 40px;
+		}
+
+		${memberWrap}.hasCounter.space-60 ${memberListSelector} {
+			margin-top: 60px;
 		}
 
 		${memberWrap}.hasCounter_thread #MemberCount {
@@ -771,7 +800,8 @@ module.exports = (meta) => {
 							 */
 							onChange (e) {
 								settings.online = e;
-								updateStyle();
+								// updateStyle();
+								if (DOM_MODE) refitCounter();
 								updateMemberList();
 								onChange();
 							}
@@ -788,6 +818,7 @@ module.exports = (meta) => {
 							 */
 							onChange (e) {
 								settings.displayType = e;
+								if (DOM_MODE) reconnect();
 								updateMemberList();
 								onChange();
 							}
@@ -804,7 +835,8 @@ module.exports = (meta) => {
 							 */
 							onChange (e) {
 								settings.marginSpacing = e;
-								updateStyle();
+								// updateStyle();
+								if (DOM_MODE) refitCounter();
 								updateMemberList();
 								onChange();
 							}
@@ -1011,18 +1043,25 @@ module.exports = (meta) => {
 	 */
 	const DOM_MODE = true;
 
-	const removeCounter = () => counter.isConnected && counter.remove();
+	const removeCounter = () => {
+		const wrap = document.querySelector(memberWrap);
+		if (wrap) {
+			wrap.classList.remove('hasCounter', 'space-30', 'space-40', 'space-60');
+		}
+		counter.isConnected && counter.remove();
+	};
 	const appendCounter = () => {
 		const wrap = document.querySelector(memberWrap);
 		// const list = document.querySelector(memberListSelector);
 		const gid = SelectedGuildStore.getGuildId();
+		const space = `space-${getSpacing(settings).slice(0, -2)}`;
 		if (!wrap || counter.isConnected) return;
 		if (settings.blacklisted.includes(gid)) {
-			wrap.classList.remove('hasCounter');
+			wrap.classList.remove('hasCounter', space);
 			return;
 		}
 		wrap.prepend(counter);
-		wrap.classList.add('hasCounter');
+		wrap.classList.add('hasCounter', space);
 	};
 	const refitCounter = () => {
 		removeCounter();
@@ -1168,7 +1207,7 @@ module.exports = (meta) => {
 					const id = SelectedGuildStore.getGuildId();
 					const list = document.querySelector(memberWrap);
 					if (settings.blacklisted.includes(id)) {
-						if (list) list.classList.remove('hasCounter', 'hasCounter_thread');
+						if (list) list.classList.remove('hasCounter', 'hasCounter_thread', 'space-30', 'space-40', 'space-60');
 						return value;
 					}
 					
@@ -1180,6 +1219,7 @@ module.exports = (meta) => {
 						key: `${meta.name}-${id}`,
 						displayType: settings.displayType
 					});
+					const space = `space-${getSpacing(settings).slice(0, -2)}`;
 
 					if (isThread(props)) {
 						const mlist = getProp(props, 'children.0.props.children.props');
@@ -1194,7 +1234,7 @@ module.exports = (meta) => {
 						return value;
 					}
 
-					if (list && !list.classList.contains('hasCounter')) list.classList.add('hasCounter');
+					if (list && !list.classList.contains('hasCounter')) list.classList.add('hasCounter', space);
 					value.unshift(element);
 					return value;
 				});
@@ -1266,12 +1306,12 @@ module.exports = (meta) => {
 	/**
 	 * A balanced ternary numeral, representing a signed value.
 	 * @typedef VersionNumeral
-	 * @type {!Values<typeof Versions.Signs>}
+	 * @type {Readonly<-1 | 0 | 1>}
 	 */
 
 	/**
 	 * @typedef VersionTuple
-	 * @type {![VersionNumeral, VersionData]}
+	 * @type {![VersionNumeral, Prettify<Readonly<VersionData>>]}
 	 */
 
 	const Versions = class Versions {
@@ -1288,9 +1328,9 @@ module.exports = (meta) => {
 		 */
 		static getInfo () {
 			/**
-			 * @type {!VersionData}
+			 * @type {!Prettify<Readonly<VersionData>>}
 			 */
-			const local = Data.load(Versions.key);
+			const local = Object.freeze(Data.load(Versions.key));
 			/**
 			 * @type {!VersionTuple}
 			 */
@@ -1326,11 +1366,18 @@ module.exports = (meta) => {
 		 * @type {!Prettify<BD.Changes>[]}
 		 */
 		static Changes = [
+			// {
+			// 	type: Changelogs.Types.Fixed.TYPE,
+			// 	title: Changelogs.Types.Fixed.TITLE,
+			// 	items: [
+			// 		'Fix language module query.'
+			// 	]
+			// }
 			{
-				type: Changelogs.Types.Fixed.TYPE,
-				title: Changelogs.Types.Fixed.TITLE,
+				type: Changelogs.Types.Progress.TYPE,
+				title: Changelogs.Types.Progress.TITLE,
 				items: [
-					'Fix language module query.'
+					'Visual refresh update.'
 				]
 			}
 		];
