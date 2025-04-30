@@ -1,8 +1,8 @@
 /**
  * @name MemberCount
  * @author Arashiryuu
- * @version 3.0.5
- * @description Displays a server's member-count at the top of the member-list, can be styled with the #MemberCount selector.
+ * @version 3.0.6
+ * @description Displays a server's member-count at the top of the member-list, can be styled with the `#MemberCount` selector.
  * @authorId 238108500109033472
  * @authorLink https://github.com/Arashiryuu
  * @website https://github.com/Arashiryuu/crap
@@ -73,12 +73,12 @@ module.exports = (meta) => {
 	});
 
 	const Flux = Webpack.getByKeys('connectStores');
-	const GuildPopoutStore = Webpack.getStore('GuildPopoutStore');
 	const MemberCountStores = Webpack.getStore('GuildMemberCountStore');
 	const SelectedGuildStore = Webpack.getStore('SelectedGuildStore');
 	const LangUtils = Webpack.getByKeys('Messages', '_languages');
 
 	const { inspect } = Webpack.getByKeys('inspect', 'promisify');
+	const useStateFromStores = Webpack.getByStrings('stores', 'getStateFromStores', 'useStateFromStores', { searchExports: true });
 	const formClasses = Webpack.getByKeys('dividerDefault');
 	const toString = Object.prototype.toString;
 
@@ -228,6 +228,11 @@ module.exports = (meta) => {
 			for (const out of args) console.dir(out);
 			console.groupEnd();
 		};
+		Logger.table = (...args) => {
+			console.groupCollapsed(...useParts(meta.name));
+			for (const out of args) console.table(out);
+			console.groupEnd();
+		};
 		const stagger = (name = meta.name, level = 'log') => {
 			const logs = [];
 			return Object.freeze({
@@ -253,6 +258,7 @@ module.exports = (meta) => {
 			};
 			Logger[`_${level}`] = stagger(meta.name, level);
 		}
+		Logger._table = stagger(meta.name, 'table');
 	}
 	applyBinds(Logger);
 
@@ -659,13 +665,6 @@ module.exports = (meta) => {
 			disabled: Boolean(disabled),
 			onChange
 		});
-		/* return ce(Api.Components.SwitchInput, {
-			id: props.id,
-			value: checked,
-			disabled: Boolean(disabled),
-			onChange,
-			internalState: false
-		}); */
 	});
 
 	// @ts-ignore
@@ -713,40 +712,6 @@ module.exports = (meta) => {
 				})
 			]
 		});
-
-		/* return ce('div', {
-			className: formClasses.container,
-			children: [
-				ce('div', {
-					className: formClasses.labelRow,
-					children: ce('label', {
-						className: formClasses.title,
-						children: label,
-						style: {
-							pointerEvents: 'none'
-						}
-					})
-				}),
-				ce('div', {
-					className: formClasses.note,
-					children: ce(BulkModule.FormText, {
-						type: BulkModule.FormTextTypes.DESCRIPTION,
-						children: note
-					})
-				}),
-				ce(BulkModule.RadioGroup, {
-					className: formClasses.dividerDefault,
-					noteOnTop: true,
-					disabled: Boolean(disabled),
-					options,
-					value: defaultValue,
-					onChange
-				}),
-				ce(BulkModule.FormDivider, {
-					className: formClasses.dividerDefault
-				})
-			]
-		}); */
 	});
 
 	const updateMemberList = () => {
@@ -769,6 +734,18 @@ module.exports = (meta) => {
 	 */
 
 	/**
+	 * @param {!object[]} data
+	 * @returns {!React.ReactNode}
+	 */
+	const buildSettings = (data) => ce(Api.Components.SettingGroup, {
+		id: 'main',
+		name: 'Plugin-Settings',
+		shown: true,
+		collapsible: true,
+		settings: data
+	});
+
+	/**
 	 * @param {!SettingsProps} props
 	 * @returns {!React.ReactHTMLElement<'div'>}
 	 */
@@ -782,104 +759,60 @@ module.exports = (meta) => {
 		return ce('div', {
 			key: 'Plugin-Settings',
 			className: 'plugin-settings',
-			children: [
-				ce(Api.Components.SettingGroup, {
-					id: 'main',
-					name: 'Plugin-Settings',
-					shown: true,
-					collapsible: true,
-					settings: [
-						{
-							id: 'online',
-							type: 'switch',
-							name: 'Online Counter',
-							note: 'Toggles the online members counter.',
-							value: settings.online ?? false,
-							/**
-							 * @param {!boolean} e
-							 */
-							onChange (e) {
-								settings.online = e;
-								// updateStyle();
-								if (DOM_MODE) refitCounter();
-								updateMemberList();
-								onChange();
-							}
-						},
-						{
-							id: 'display',
-							type: 'radio',
-							name: 'Display Style',
-							note: 'Switch between the classic or new display styles.',
-							options: options.style,
-							value: settings.displayType ?? 0,
-							/**
-							 * @param {!number} e
-							 */
-							onChange (e) {
-								settings.displayType = e;
-								if (DOM_MODE) reconnect();
-								updateMemberList();
-								onChange();
-							}
-						},
-						{
-							id: 'spacing',
-							type: 'radio',
-							name: 'Spacing Style',
-							note: 'The amount of space left under the counters.',
-							options: options.margin,
-							value: settings.marginSpacing ?? 0,
-							/**
-							 * @param {!number} e
-							 */
-							onChange (e) {
-								settings.marginSpacing = e;
-								// updateStyle();
-								if (DOM_MODE) refitCounter();
-								updateMemberList();
-								onChange();
-							}
-						}
-					]/* ,
-					children: [
-						ce(Switch, {
-							label: 'Online Counter',
-							note: 'Toggles the online members counter.',
-							checked: settings.online ?? false,
-							onChange: (e) => {
-								settings.online = e;
-								updateStyle();
-								updateMemberList();
-								onChange();
-							}
-						}),
-						ce(Radio, {
-							label: 'Display Style',
-							note: 'Switch between the classic or newer display style.',
-							options: options.style,
-							defaultValue: settings.displayType ?? 0,
-							onChange: (e) => {
-								settings.displayType = e;
-								updateMemberList();
-								onChange();
-							}
-						}),
-						ce(Radio, {
-							label: 'Spacing Style',
-							note: 'The amount of space left under the counters.',
-							options: options.margin,
-							defaultValue: settings.marginSpacing ?? 0,
-							onChange: (e) => {
-								settings.marginSpacing = e;
-								updateStyle();
-								updateMemberList();
-								onChange();
-							}
-						})
-					] */
-				})
-			]
+			children: buildSettings([
+				{
+					id: 'online',
+					type: 'switch',
+					name: 'Online Counter',
+					note: 'Toggles the online members counter.',
+					value: settings.online ?? false,
+					/**
+					 * @param {!boolean} e
+					 */
+					onChange (e) {
+						settings.online = e;
+						// updateStyle();
+						if (DOM_MODE) refitCounter();
+						updateMemberList();
+						onChange();
+					}
+				},
+				{
+					id: 'display',
+					type: 'radio',
+					name: 'Display Style',
+					note: 'Switch between the classic or new display styles.',
+					options: options.style,
+					value: settings.displayType ?? 0,
+					/**
+					 * @param {!number} e
+					 */
+					onChange (e) {
+						settings.displayType = e;
+						if (DOM_MODE) reconnect();
+						updateMemberList();
+						onChange();
+					}
+				},
+				{
+					id: 'spacing',
+					type: 'radio',
+					name: 'Spacing Style',
+					note: 'The amount of space left under the counters.',
+					options: options.margin,
+					value: settings.marginSpacing ?? 0,
+					/**
+					 * @param {!number} e
+					 */
+					onChange (e) {
+						settings.marginSpacing = e;
+						// updateStyle();
+						if (DOM_MODE) refitCounter();
+						updateMemberList();
+						onChange();
+					}
+				}
+			])
 		});
 	};
 
@@ -966,13 +899,36 @@ module.exports = (meta) => {
 	const MemberCount = (props) => {
 		const ref = useRef();
 		const strings = useStrings();
-		const { id, count, online, displayType } = props;
+		const { id, /*count, online,*/ displayType } = props;
 
-		// useEffect(() => {
-		// 	if (!online && !GuildPopoutStore.isFetchingGuild(id)) {
-		// 		// GuildPopoutActions.fetchGuildForPopout(id);
-		// 	}
-		// }, [online]);
+		const [count, online] = useStateFromStores([MemberCountStores], () => [
+			MemberCountStores.getMemberCount(id),
+			MemberCountStores.getOnlineCount(id)
+		]);
+
+		if (DOM_MODE) {
+			return ce('h3', {
+				ref: ref,
+				className: Utils.className({
+					[memberListClasses.membersGroup]: typeof memberListClasses.membersGroup !== 'undefined',
+					[memberListClasses.container]: typeof memberListClasses.container !== 'undefined',
+					[memberListClasses.text]: typeof memberListClasses.text !== 'undefined'
+				}),
+				children: [
+					ce(Row, {
+						count: getCount(count),
+						string: strings.MEMBERS,
+						displayType
+					}),
+					settings.online && ce(Row, {
+						fill: 'hsl(139, calc(var(--saturation-factor, 1) * 47.3%), 43.9%)',
+						count: getCount(online),
+						string: strings.ONLINE,
+						displayType
+					})
+				]
+			});
+		}
 
 		return ce('div', {
 			id: 'MemberCount',
@@ -1003,17 +959,19 @@ module.exports = (meta) => {
 		});
 	};
 
-	const Counter = Flux.connectStores([MemberCountStores, GuildPopoutStore], () => {
-		const gid = SelectedGuildStore.getGuildId();
-		return {
-			count: MemberCountStores.getMemberCount(gid),
-			/**
-			 * We can tally all the non-invisible accounts on a server via `MemberCountStores.getOnlineCount(gid)`.
-			 * However, we want to include invisibles.
-			 */
-			online: GuildPopoutStore.getGuild(gid)?.presenceCount ?? MemberCountStores.getOnlineCount(gid)
-		};
-	})(MemberCount);
+	/** @type {*} */
+	const Counter = MemberCount;
+	// const Counter = Flux.connectStores([MemberCountStores, GuildPopoutStore], () => {
+	// 	const gid = SelectedGuildStore.getGuildId();
+	// 	return {
+	// 		count: MemberCountStores.getMemberCount(gid),
+	// 		/**
+	// 		 * We can tally all the non-invisible accounts on a server via `MemberCountStores.getOnlineCount(gid)`.
+	// 		 * However, we want to include invisibles.
+	// 		 */
+	// 		online: GuildPopoutStore.getGuild(gid)?.presenceCount ?? MemberCountStores.getOnlineCount(gid)
+	// 	};
+	// })(MemberCount);
 	Counter.Wrapped = withErrorBoundary(Counter);
 
 	/**
@@ -1034,9 +992,7 @@ module.exports = (meta) => {
 	/**
 	 * Root DOM element to make use of the inherited `isConnected` property.
 	 */
-	const counter = create('span', {
-		id: '--MemberCounterRoot'
-	});
+	const counter = create('div', { id: 'MemberCount' });
 
 	/**
 	 * DOM rendering fallbacks toggle.
@@ -1311,7 +1267,7 @@ module.exports = (meta) => {
 
 	/**
 	 * @typedef VersionTuple
-	 * @type {![VersionNumeral, Prettify<Readonly<VersionData>>]}
+	 * @type {![VersionNumeral, Solid<VersionData>]}
 	 */
 
 	const Versions = class Versions {
@@ -1328,7 +1284,7 @@ module.exports = (meta) => {
 		 */
 		static getInfo () {
 			/**
-			 * @type {!Prettify<Readonly<VersionData>>}
+			 * @type {!Solid<VersionData>}
 			 */
 			const local = Object.freeze(Data.load(Versions.key));
 			/**
@@ -1366,18 +1322,11 @@ module.exports = (meta) => {
 		 * @type {!Prettify<BD.Changes>[]}
 		 */
 		static Changes = [
-			// {
-			// 	type: Changelogs.Types.Fixed.TYPE,
-			// 	title: Changelogs.Types.Fixed.TITLE,
-			// 	items: [
-			// 		'Fix language module query.'
-			// 	]
-			// }
 			{
 				type: Changelogs.Types.Progress.TYPE,
 				title: Changelogs.Types.Progress.TITLE,
 				items: [
-					'Visual refresh update.'
+					'Removal of the GuildPopoutStore.'
 				]
 			}
 		];
