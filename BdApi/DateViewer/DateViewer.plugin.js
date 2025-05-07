@@ -1,7 +1,7 @@
 /**
  * @name DateViewer
  * @author Arashiryuu
- * @version 1.0.12
+ * @version 1.0.14
  * @description Displays the current date, weekday, and time.
  * @authorId 238108500109033472
  * @authorLink https://github.com/Arashiryuu
@@ -44,11 +44,11 @@
 module.exports = (meta) => {
 	// @ts-ignore
 	const Api = new BdApi(meta.name);
-	const { UI, Data, React, Utils, Themes, Plugins, Patcher, Webpack, ReactDOM, ReactUtils, ContextMenu } = Api;
+	const { UI, DOM, Data, React, Utils, Themes, Plugins, Patcher, Webpack, ReactDOM, ReactUtils, ContextMenu } = Api;
 	const { createElement: ce, useRef, useMemo, useState, useEffect, useReducer, useCallback, useLayoutEffect } = React;
-	const { render, findDOMNode, unmountComponentAtNode: unmount } = ReactDOM;
+	const { createRoot } = ReactDOM;
 	const { getModule, getWithKey, waitForModule } = Webpack;
-	const DOM = new Api.DOM.constructor(`${meta.name}-stylesheet`);
+	const CSSKey = `${meta.name}-stylesheet`;
 
 	const Filters = Object.create(Webpack.Filters);
 	Object.assign(Filters, {
@@ -191,6 +191,11 @@ module.exports = (meta) => {
 			for (const item of inspected) console.log(item);
 			console.groupEnd();
 		};
+		Logger.table = (...args) => {
+			console.groupCollapsed(...useParts(meta.name));
+			for (const out of args) console.table(out);
+			console.groupEnd();
+		};
 		const stagger = (name = meta.name, level = 'log') => {
 			const logs = [];
 			return Object.freeze({
@@ -216,6 +221,7 @@ module.exports = (meta) => {
 			};
 			Logger[`_${level}`] = stagger(meta.name, level);
 		}
+		Logger._table = stagger(meta.name, 'table');
 	}
 	applyBinds(Logger);
 
@@ -444,6 +450,8 @@ module.exports = (meta) => {
 	 */
 	let settings = Utils.extend({}, defaults);
 
+	const DOM_MODE = true;
+
 	/**
 	 * Discord Components
 	 */
@@ -603,29 +611,7 @@ module.exports = (meta) => {
 								onChange();
 							}
 						}
-					]// ,
-					// children: [
-					// 	ce(Switch, {
-					// 		label: HOUR12_LABEL,
-					// 		note:  HOUR12_NOTE,
-					// 		checked: settings.hour12,
-					// 		/** @param {!boolean} e */
-					// 		onChange: (e) => {
-					// 			settings.hour12 = e;
-					// 			onChange();
-					// 		}
-					// 	}),
-					// 	ce(Switch, {
-					// 		label: SECONDS_LABEL,
-					// 		note: SECONDS_NOTE,
-					// 		checked: settings.displaySeconds,
-					// 		/** @param {!boolean} e */
-					// 		onChange: (e) => {
-					// 			settings.displaySeconds = e;
-					// 			onChange();
-					// 		}
-					// 	})
-					// ]
+					]
 				})
 			]
 		});
@@ -635,6 +621,7 @@ module.exports = (meta) => {
 	 * Root element for plugin settings.
 	 */
 	const settingRoot = create('div', { id: `__${meta.name}-react-settings-root__` });
+	let sroot = createRoot(settingRoot);
 
 	/**
 	 * Indicates whether a node was removed.
@@ -654,9 +641,13 @@ module.exports = (meta) => {
 
 	/* Setup Cont. */
 
+	/**
+	 * @returns {!string}
+	 */
 	const lang = () => (
 		LangUtils?.getLocale() ?? document.documentElement.lang
 	) ?? 'en-gb';
+
 	const getData = () => {
 		const { hour12, displaySeconds } = settings;
 		const d = new Date();
@@ -674,6 +665,8 @@ module.exports = (meta) => {
 			weekday: d.toLocaleDateString(l, { weekday: 'long' })
 		};
 	};
+	
+	const dataZero = getData();
 
 	/**
 	 * Interval hook.
@@ -736,21 +729,33 @@ module.exports = (meta) => {
 		}, []);
 	};
 
-	const dataZero = getData();
 	/**
 	 * @returns {!React.ReactHTMLElement<HTMLDivElement>}
-	 */
+	*/
 	const Viewer = () => {
 		const [state, setState] = useState(getData);
-		const update = useCallback(() => setState(getData));
+		const update = useCallback(() => setState(getData), []);
 		/**
 		 * @type {!React.RefObject<HTMLDivElement>}
-		 */
+		*/
 		const ref = useRef();
-
+		
 		// useAnimationFrame(update);
 		useInterval(update);
-
+		
+		if (DOM_MODE) {
+			return ce('div', {
+				id: 'dv-main',
+				ref: ref,
+				key: 'dv_viewer_main',
+				children: [
+					ce('span', { key: 'dv_viewer_time', className: 'dv-time' }, state.time),
+					ce('span', { key: 'dv_viewer_date', className: 'dv-date' }, state.date),
+					ce('span', { key: 'dv_viewer_weekday', className: 'dv-weekday' }, state.weekday)
+				]
+			});
+		}
+		
 		return ce('div', {
 			id: 'dv-mount',
 			children: [
@@ -777,6 +782,8 @@ module.exports = (meta) => {
 	viewMain.append(time, date, weekday);
 	viewRoot.append(viewMain);
 
+	let vroot = createRoot(viewRoot);
+
 	const removeRoot = () => viewRoot.isConnected && viewRoot.remove();
 	const appendRoot = () => {
 		const list = document.querySelector(memberWrap);
@@ -800,17 +807,23 @@ module.exports = (meta) => {
 
 	const instanceKey = `${meta.name}-Boundary`;
 	const connect = () => {
-		render(ce(Viewer.Wrapped, { key: instanceKey }), viewRoot);
+		vroot.render(ce(Viewer.Wrapped, { key: instanceKey }));
 	};
 
 	const disconnect = () => {
-		unmount(viewRoot);
+		vroot.unmount();
+	};
+
+	const reconnect = () => {
+		disconnect();
+		connect();
 	};
 
 	/**
 	 * @type {!BD.PatchFunction<void>}
 	 */
 	const patchMemberList = (state) => {
+		if (DOM_MODE) return;
 		if (!BulkModule.ListThin || !BulkModule.ScrollerThin || state.cancelled) return;
 
 		const isThread = (props) => {
@@ -853,18 +866,22 @@ module.exports = (meta) => {
 	};
 
 	const onStart = () => {
-		DOM.addStyle(style);
-		appendRoot();
-		connect();
+		DOM.addStyle(CSSKey, style);
+		if (DOM_MODE) {
+			appendRoot();
+			connect();
+		}
 		// teeUpdates();
-		// patchMemberList(promises.state);
+		patchMemberList(promises.state);
 	};
 
 	const onStop = () => {
-		DOM.removeStyle();
+		DOM.removeStyle(CSSKey);
 		cancelUpdates();
-		removeRoot();
-		disconnect();
+		if (DOM_MODE) {
+			removeRoot();
+			disconnect();
+		}
 		Patcher.unpatchAll();
 	};
 
@@ -887,12 +904,12 @@ module.exports = (meta) => {
 	/**
 	 * A balanced ternary numeral, representing a signed value.
 	 * @typedef VersionNumeral
-	 * @type {!Values<typeof Versions.Signs>}
+	 * @type {!Readonly<-1 | 0 | 1>}
 	 */
 
 	/**
 	 * @typedef VersionTuple
-	 * @type {![VersionNumeral, VersionData]}
+	 * @type {![VersionNumeral, Solid<VersionData>]}
 	 */
 
 	const Versions = class Versions {
@@ -909,7 +926,7 @@ module.exports = (meta) => {
 		 */
 		static getInfo () {
 			/**
-			 * @type {!VersionData}
+			 * @type {!Solid<VersionData>}
 			 */
 			const local = Data.load(Versions.key);
 			/**
@@ -947,20 +964,21 @@ module.exports = (meta) => {
 		 * @type {!Prettify<BD.Changes>[]}
 		 */
 		static Changes = [
-			// {
-			// 	type: Changelogs.Types.Fixed.TYPE,
-			// 	title: Changelogs.Types.Fixed.TITLE,
-			// 	items: [
-			// 		'Fix language module query.'
-			// 	]
-			// }
 			{
-				type: Changelogs.Types.Progress.TYPE,
-				title: Changelogs.Types.Progress.TITLE,
+				type: Changelogs.Types.Fixed.TYPE,
+				title: Changelogs.Types.Fixed.TITLE,
 				items: [
-					'Visual refresh update.'
+					'React version `19.0.0` update.',
+					'Fix viewer root double-rendering in DOM mode.'
 				]
 			}
+			// {
+			// 	type: Changelogs.Types.Progress.TYPE,
+			// 	title: Changelogs.Types.Progress.TITLE,
+			// 	items: [
+			// 		'Visual refresh update.'
+			// 	]
+			// }
 		];
 
 		/**
@@ -996,9 +1014,14 @@ module.exports = (meta) => {
 		},
 		getSettingsPanel () {
 			const panel = ce(Settings, {
-				onChange: saveSettings
+				onChange: () => {
+					saveSettings();
+					if (DOM_MODE) {
+						reconnect();
+					}
+				}
 			});
-			render(panel, settingRoot);
+			sroot.render(panel);
 			return settingRoot;
 		},
 		/**
@@ -1006,8 +1029,13 @@ module.exports = (meta) => {
 		 * @param {!MutationRecord} change
 		 */
 		observer (change) {
-			if (isCleared(change.removedNodes, settingRoot)) unmount(settingRoot);
-			if (!viewRoot.isConnected) raf(appendRoot);
+			if (isCleared(change.removedNodes, settingRoot)) {
+				sroot.unmount();
+				sroot = createRoot(settingRoot);
+			}
+			if (DOM_MODE) {
+				if (!viewRoot.isConnected) raf(appendRoot);
+			}
 		}
 	});
 
