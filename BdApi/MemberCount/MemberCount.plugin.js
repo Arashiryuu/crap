@@ -1,7 +1,7 @@
 /**
  * @name MemberCount
  * @author Arashiryuu
- * @version 3.0.6
+ * @version 3.0.7
  * @description Displays a server's member-count at the top of the member-list, can be styled with the `#MemberCount` selector.
  * @authorId 238108500109033472
  * @authorLink https://github.com/Arashiryuu
@@ -44,11 +44,11 @@
 module.exports = (meta) => {
 	// @ts-ignore
 	const Api = new BdApi(meta.name);
-	const { UI, Data, React, Utils, Themes, Plugins, Patcher, Webpack, ReactDOM, ReactUtils, ContextMenu } = Api;
+	const { UI, DOM, Data, React, Utils, Themes, Plugins, Patcher, Webpack, ReactDOM, ReactUtils, ContextMenu } = Api;
 	const { createElement: ce, useRef, useMemo, useState, useEffect, useReducer, useCallback, useLayoutEffect } = React;
-	const { render, findDOMNode, unmountComponentAtNode: unmount } = ReactDOM;
+	const { createRoot } = ReactDOM;
 	const { getModule, getWithKey, waitForModule } = Webpack;
-	const DOM = new Api.DOM.constructor(`${meta.name}-stylesheet`);
+	const CSSKey = `${meta.name}-stylesheet`;
 
 	const Filters = Object.create(Webpack.Filters);
 	Object.assign(Filters, {
@@ -820,6 +820,7 @@ module.exports = (meta) => {
 	 * Root container for settings rendering.
 	 */
 	const settingRoot = create('div', { id: `__${meta.name}-react-settings-root__` });
+	let sroot = createRoot(settingRoot);
 
 	/**
 	 * @param {!React.SVGProps<'svg'>} props
@@ -993,6 +994,7 @@ module.exports = (meta) => {
 	 * Root DOM element to make use of the inherited `isConnected` property.
 	 */
 	const counter = create('div', { id: 'MemberCount' });
+	let croot = createRoot(counter);
 
 	/**
 	 * DOM rendering fallbacks toggle.
@@ -1025,10 +1027,11 @@ module.exports = (meta) => {
 	};
 	const connect = () => {
 		const id = SelectedGuildStore.getGuildId();
-		render(ce(Counter.Wrapped, { id, key: `${meta.name}-${id}`, displayType: settings.displayType }), counter);
+		croot.render(ce(Counter.Wrapped, { id, key: `${meta.name}-${id}`, displayType: settings.displayType }));
 	};
 	const disconnect = () => {
-		unmount(counter);
+		croot.unmount();
+		croot = createRoot(counter);
 	};
 	const reconnect = () => {
 		disconnect();
@@ -1323,10 +1326,10 @@ module.exports = (meta) => {
 		 */
 		static Changes = [
 			{
-				type: Changelogs.Types.Progress.TYPE,
-				title: Changelogs.Types.Progress.TITLE,
+				type: Changelogs.Types.Fixed.TYPE,
+				title: Changelogs.Types.Fixed.TITLE,
 				items: [
-					'Removal of the GuildPopoutStore.'
+					'React version `19.0.0` update.'
 				]
 			}
 		];
@@ -1355,7 +1358,7 @@ module.exports = (meta) => {
 		start () {
 			promises.restore();
 			loadSettings();
-			DOM.addStyle(getCss());
+			DOM.addStyle(CSSKey, getCss());
 			if (DOM_MODE) {
 				appendCounter();
 				connect();
@@ -1370,7 +1373,7 @@ module.exports = (meta) => {
 				removeCounter();
 				disconnect();
 			}
-			DOM.removeStyle();
+			DOM.removeStyle(CSSKey);
 		},
 		getSettingsPanel () {
 			const panel = ce(Settings, {
@@ -1381,7 +1384,7 @@ module.exports = (meta) => {
 					}
 				}
 			});
-			render(panel, settingRoot);
+			sroot.render(panel);
 			return settingRoot;
 		},
 		/**
@@ -1389,7 +1392,10 @@ module.exports = (meta) => {
 		 * @param {!MutationRecord} change
 		 */
 		observer (change) {
-			if (isCleared(change.removedNodes, settingRoot)) unmount(settingRoot);
+			if (isCleared(change.removedNodes, settingRoot)) {
+				sroot.unmount();
+				sroot = createRoot(settingRoot);
+			}
 			if (DOM_MODE) {
 				if (!counter.isConnected) {
 					reconnect();
