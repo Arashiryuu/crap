@@ -1,7 +1,7 @@
 /**
  * @name MemberCount
  * @author Arashiryuu
- * @version 3.0.7
+ * @version 3.0.8
  * @description Displays a server's member-count at the top of the member-list, can be styled with the `#MemberCount` selector.
  * @authorId 238108500109033472
  * @authorLink https://github.com/Arashiryuu
@@ -69,18 +69,87 @@ module.exports = (meta) => {
 		/**
 		 * @type {!FilterFunction}
 		 */
-		byProtos: Filters.byPrototypeFields
+		byProtos: Filters.byPrototypeKeys,
+		/**
+		 * Filters for `forwardRef` elements.
+		 */
+		Forwarded: {
+			/**
+			 * @param {!string[]} strings
+			 * @returns {!FilterFunction}
+			 */
+			byStrings: (...strings) => (m) => Filters.byStrings(...strings)(m?.render)
+		}
 	});
 
-	const Flux = Webpack.getByKeys('connectStores');
-	const MemberCountStores = Webpack.getStore('GuildMemberCountStore');
-	const SelectedGuildStore = Webpack.getStore('SelectedGuildStore');
-	const LangUtils = Webpack.getByKeys('Messages', '_languages');
+	const queries = [
+		{
+			filter: Filters.byStrings('checked:', 'tooltipNote:'),
+			searchExports: true
+		},
+		{
+			filter: Filters.byStrings('theme:', 'flags:', '.useContext'),
+			searchExports: true
+		},
+		{
+			filter: Filters.byProtos('shouldShowTooltip'),
+			searchExports: true
+		},
+		{
+			filter: Filters.byStore('GuildMemberCountStore')
+		},
+		{
+			filter: Filters.byStore('SelectedGuildStore')
+		},
+		{
+			filter: Filters.byKeys('Messages', '_languages')
+		},
+		{
+			filter: Filters.Forwarded.byStrings('renderSection:', 'renderListHeader:'),
+			searchExports: true
+		},
+		{
+			filter: Filters.byKeys('inspect', 'promisify')
+		},
+		{
+			filter: Filters.byStrings('stores', 'getStateFromStores', 'useStateFromStores'),
+			searchExports: true
+		},
+		{
+			filter: Filters.byKeys('dividerDefault')
+		},
+		{
+			filter: Filters.byKeys('members', 'container', 'membersWrap')
+		},
+		{
+			/**
+			 * @type {!FilterFunction}
+			 */
+			filter: (m) => m?.container?.endsWith('13cf1')
+		}
+	];
 
-	const { inspect } = Webpack.getByKeys('inspect', 'promisify');
-	const useStateFromStores = Webpack.getByStrings('stores', 'getStateFromStores', 'useStateFromStores', { searchExports: true });
-	const formClasses = Webpack.getByKeys('dividerDefault');
-	const toString = Object.prototype.toString;
+	/**
+	 * @type {!any[]}
+	 */
+	const modules = Webpack.getBulk(...queries);
+	/**
+	 * @type {!((o: unknown) => string)}
+	 */
+	const toString = Function.call.bind(Object.prototype.toString);
+	const [
+		// Stores
+		MemberCountStores,
+		SelectedGuildStore,
+		// Modules
+		LangUtils,
+		ListThin,
+		// Functions & Data
+		{ inspect },
+		useStateFromStores,
+		formClasses,
+		...mClasses
+	] = modules.slice(3);
 
 	const options = {
 		style: [
@@ -175,9 +244,10 @@ module.exports = (meta) => {
 	applyBinds(promises);
 
 	/**
+	 * @template T
 	 * Creates clean objects with a `Symbol.toStringTag` value describing the object as the only inherited data.
 	 * @param {!DictKey} value
-	 * @returns {!object}
+	 * @returns {!T}
 	 */
 	const _Object = (value = 'NullObject') => Object.create(
 		Object.create(null, {
@@ -310,14 +380,14 @@ module.exports = (meta) => {
 	 * A `document.createElement` helper function.
 	 * @param {!string} type
 	 * @param {?object} props
-	 * @param {!BD.ChildNode[]} [children]
+	 * @param {!BD.ChildNode[]} children
 	 * @returns {!BD.DOMElement}
 	 */
 	const create = (type = 'div', props = {}, ...children) => {
 		if (typeof type !== 'string') type = 'div';
 		const e = getElement(type);
 
-		if (toString.call(props) !== '[object Object]') {
+		if (toString(props) !== '[object Object]') {
 			if (children.length) e.append(...children);
 			return e;
 		}
@@ -377,7 +447,7 @@ module.exports = (meta) => {
 				}
 			}
 		}
-	
+
 		// @ts-ignore
 		e.$$props = props;
 		return e;
@@ -407,10 +477,7 @@ module.exports = (meta) => {
 	 */
 	const toSelector = (className) => `.${className.split(' ').join('.')}`;
 
-	const memberListClasses = {
-		...Webpack.getByKeys('members', 'container', 'membersWrap'),
-		...getModule((m) => m?.container?.endsWith('13cf1'))
-	};
+	const memberListClasses = Object.assign({}, ...mClasses);
 	/**
 	 * Current selectors for the member-list.
 	 */
@@ -420,7 +487,7 @@ module.exports = (meta) => {
 	/**
 	 * Converts a template literal interpolated string from a human-readable format into a one-liner for use in stylesheets.
 	 * @param {!TemplateStringsArray} ss
-	 * @param {!any[]} [vars=[]]
+	 * @param {!any[]} vars
 	 * @returns {!string}
 	 * @example
 	 * ```js
@@ -455,9 +522,11 @@ module.exports = (meta) => {
 			max = 40;
 		}
 
-		return !online
-			? `${min}px`
-			: `${max}px`;
+		const ret = !online
+			? min
+			: max;
+
+		return `space-${ret}`;
 	};
 
 	const menuIconSvg = css`
@@ -465,14 +534,19 @@ module.exports = (meta) => {
 		3.13-2.1 6.1-2.1M12 4C9.79 4 8 5.79 8 8s1.79 4 4 4 4-1.79 4-4-1.79-4-4-4m0 9c-2.67 0-8 1.34-8 4v3h16v-3c0-2.66-5.33-4-8-4
 	`;
 	const getCss = () => css`
-		.theme-light #MemberCount {
-			--_hsla: 0, 0%, 0%, 0.04;
+		.theme-light {
+			& #MemberCount {
+				--_hsla: 0, 0%, 0%, 0.04;
+			}
 		}
 
 		#MemberCount {
 			--_hsla: 0, 0%, 100%, 0.04;
+			--background-secondary: var(--background-base-lower);
+			--_bg: var(--background-secondary, transparent);
+
 			display: flex;
-			background: var(--background-secondary);
+			background: var(--_bg);
 			position: absolute;
 			color: var(--channels-default, var(--text-secondary, --text-primary));
 			width: var(--custom-member-list-width);
@@ -481,43 +555,72 @@ module.exports = (meta) => {
 			top: 0;
 			margin-top: 0;
 			border-bottom: 1px solid hsla(var(--_hsla));
+
+			/* Error Component */
+			&.${meta.name}-error {
+				display: flex;
+				justify-content: center;
+				padding: 12px 0;
+				height: auto;
+				color: red !important;
+				font-size: 18px;
+				font-weight: 600;
+				text-shadow: 0 0 1px black, 0 0 2px black, 0 0 3px black,
+							 0 0 1px black, 0 0 2px black, 0 0 3px black,
+							 0 0 1px black, 0 0 2px black, 0 0 3px black;
+			}
+			
+			& h3 {
+				display: flex;
+				padding: 12px 8px;
+				height: auto;
+				flex-direction: column;
+			}
+
+			& .membercount-row {
+				display: flex;
+				justify-content: center;
+			}
+
+			& .membercount-icon {
+				margin-top: 1px;
+				margin-right: 1px;
+			}
 		}
 
-		#MemberCount h3 {
-			display: flex;
-			padding: 12px 8px;
-			height: auto;
-			flex-direction: column;
+		${memberWrap}.hasCounter {
+			--counter-space: 60px;
+
+			&.space-30 {
+				--counter-space: 30px;
+			}
+
+			&.space-40 {
+				--counter-space: 40px;
+			}
+
+			&.space-60 {
+				--counter-space: 60px;
+			}
+
+			& ${memberListSelector} {
+				margin-top: var(--counter-space);
+			}
 		}
 
-		#MemberCount .membercount-row {
-			display: flex;
-			justify-content: center;
+		${memberWrap}.hasCounter_thread {
+			& #MemberCount {
+				position: sticky;
+			}
+
+			& ${memberListSelector} {
+				margin-top: 0;
+			}
 		}
 
-		#MemberCount .membercount-icon {
-			margin-top: 1px;
-			margin-right: 1px;
-		}
-
-		${memberWrap}.hasCounter.space-30 ${memberListSelector} {
-			margin-top: 30px;
-		}
-
-		${memberWrap}.hasCounter.space-40 ${memberListSelector} {
-			margin-top: 40px;
-		}
-
-		${memberWrap}.hasCounter.space-60 ${memberListSelector} {
-			margin-top: 60px;
-		}
-
-		${memberWrap}.hasCounter_thread #MemberCount {
-			position: sticky;
-		}
-
-		${memberWrap}.hasCounter_thread ${memberListSelector} {
-			margin-top: 0;
+		.membercount-hint-svg {
+			position: relative;
+			top: -1px;
 		}
 
 		/* Context Menu Item 
@@ -526,25 +629,11 @@ module.exports = (meta) => {
 			-webkit-mask-image: url('data:image/svg+xml;utf-8,<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="${menuIconSvg}"/></svg>');
 			mask-image: url('data:image/svg+xml;utf-8,<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="${menuIconSvg}"/></svg>');
 		}*/
-
-		/* Error Component */
-		#MemberCount.${meta.name}-error {
-			display: flex;
-			justify-content: center;
-			padding: 12px 0;
-			height: auto;
-			color: red;
-			font-size: 18px;
-			font-weight: 600;
-			text-shadow: 0 0 1px black, 0 0 2px black, 0 0 3px black,
-						 0 0 1px black, 0 0 2px black, 0 0 3px black,
-						 0 0 1px black, 0 0 2px black, 0 0 3px black;
-		}
 	`;
 
 	const updateStyle = () => {
-		DOM.removeStyle();
-		DOM.addStyle(getCss());
+		DOM.removeStyle(CSSKey);
+		DOM.addStyle(CSSKey, getCss());
 	};
 
 	/* Settings */
@@ -565,16 +654,24 @@ module.exports = (meta) => {
 	let settings = Utils.extend({}, defaults);
 
 	/**
-	 * Discord Components
+	 * @typedef DiscordComponents
+	 * @property {!React.FC} Switch
+	 * @property {!React.FC} ThemeContext
+	 * @property {!React.FC} TooltipWrapper
 	 */
-	const BulkModule = {
-		ListThin: null//Webpack.getByStrings('channel:', 'className:', '.useDeferredValue', { defaultExport: false })
-	};
+	/**
+	 * @type {!Prettify<DiscordComponents>}
+	 */
 	const Discord = {
-		Switch: Webpack.getByStrings('checked:', 'tooltipNote:', { searchExports: true }),
-		TooltipWrapper: Webpack.getByPrototypeKeys('shouldShowTooltip', { searchExports: true }),
-		ThemeContext: Webpack.getByStrings('theme:', 'flags:', '.useContext', { searchExports: true })
+		Switch: null,
+		ThemeContext: null,
+		TooltipWrapper: null
 	};
+	[
+		Discord.Switch,
+		Discord.ThemeContext,
+		Discord.TooltipWrapper
+	] = modules;
 
 	/**
 	 * ErrorBoundary Component Definition
@@ -586,7 +683,8 @@ module.exports = (meta) => {
 		 * @param {!Error} error
 		 */
 		static getDerivedStateFromError (error) {
-			return { hasError: true };
+			const hasError = Boolean(error);
+			return { hasError };
 		}
 
 		/**
@@ -666,6 +764,13 @@ module.exports = (meta) => {
 			onChange
 		});
 	});
+	
+	const Divider = () => ce('div', {
+		className: Utils.className({
+			[formClasses.divider]: typeof formClasses.divider !== 'undefined',
+			[formClasses.dividerDefault]: typeof formClasses.dividerDefault !== 'undefined'
+		})
+	});
 
 	// @ts-ignore
 	const Radio = withThemeContext((props) => {
@@ -690,12 +795,7 @@ module.exports = (meta) => {
 						children: note
 					})
 				}),
-				ce('div', {
-					className: Utils.className({
-						[formClasses.divider]: typeof formClasses.divider !== 'undefined',
-						[formClasses.dividerDefault]: typeof formClasses.dividerDefault !== 'undefined'
-					})
-				}),
+				ce(Divider, {}),
 				ce(Api.Components.RadioInput, {
 					name: label,
 					note,
@@ -704,12 +804,7 @@ module.exports = (meta) => {
 					options,
 					onChange
 				}),
-				ce('div', {
-					className: Utils.className({
-						[formClasses.divider]: typeof formClasses.divider !== 'undefined',
-						[formClasses.dividerDefault]: typeof formClasses.dividerDefault !== 'undefined'
-					})
-				})
+				ce(Divider, {})
 			]
 		});
 	});
@@ -737,17 +832,25 @@ module.exports = (meta) => {
 	 * @param {!object[]} data
 	 * @returns {!React.ReactNode}
 	 */
-	const buildSettings = (data) => ce(Api.Components.SettingGroup, {
-		id: 'main',
-		name: 'Plugin-Settings',
-		shown: true,
-		collapsible: true,
-		settings: data
-	});
+	const buildSettings = (data, opts = {}) => {
+		const {
+			id = 'Main',
+			name = 'Plugin-Settings',
+			shown = true,
+			collapsible = true
+		} = opts;
+		return ce(Api.Components.SettingGroup, {
+			id,
+			name,
+			shown,
+			collapsible,
+			settings: data
+		});
+	};
 
 	/**
 	 * @param {!SettingsProps} props
-	 * @returns {!React.ReactHTMLElement<'div'>}
+	 * @returns {!React.ReactNode}
 	 */
 	const Settings = (props) => {
 		const forceUpdate = useForceUpdate();
@@ -756,10 +859,39 @@ module.exports = (meta) => {
 			forceUpdate();
 		};
 		
-		return ce('div', {
-			key: 'Plugin-Settings',
-			className: 'plugin-settings',
-			children: buildSettings([
+		return Fragment([
+			buildSettings([
+				{
+					id: 'logs',
+					type: 'custom',
+					name: '',
+					note: 'View changelog history.',
+					inline: false,
+					children: ce('button', {
+						className: 'bd-button bd-button-filled bd-addon-button bd-button-color-brand bd-button-grow bd-button-medium',
+						onClick () {
+							const data = Object.assign({}, Changelogs.ModalData);
+							data.subtitle = 'History';
+							data.changes = Changelogs.Old;
+							UI.showChangelogModal(data);
+						},
+						children: [
+							ce('div', {
+								className: 'bd-button-content',
+								children: [
+									'LOGS'
+								]
+							})
+						]
+					})
+				}
+			], {
+				id: 'Logs',
+				name: 'Changelogs',
+				shown: false,
+				collapsible: true
+			}),
+			buildSettings([
 				{
 					id: 'online',
 					type: 'switch',
@@ -771,7 +903,6 @@ module.exports = (meta) => {
 					 */
 					onChange (e) {
 						settings.online = e;
-						// updateStyle();
 						if (DOM_MODE) refitCounter();
 						updateMemberList();
 						onChange();
@@ -806,21 +937,44 @@ module.exports = (meta) => {
 					 */
 					onChange (e) {
 						settings.marginSpacing = e;
-						// updateStyle();
 						if (DOM_MODE) refitCounter();
 						updateMemberList();
 						onChange();
 					}
 				}
 			])
-		});
+		]);
 	};
 
 	/**
 	 * Root container for settings rendering.
 	 */
-	const settingRoot = create('div', { id: `__${meta.name}-react-settings-root__` });
-	let sroot = createRoot(settingRoot);
+	const settingRoot = create('div', { id: `&${meta.name}` });
+
+	/**
+	 * @typedef React19Wrapper
+	 * @property {(...content: unknown[]) => void} render
+	 * @property {() => void} unmount
+	 */
+
+	/**
+	 * @param {!BD.DOMElement} node
+	 * @returns {!Prettify<React19Wrapper>}
+	 */
+	const R19 = (node) => {
+		let _root = createRoot(node);
+		return {
+			render (...content) {
+				_root.render(...content);
+			},
+			unmount () {
+				_root.unmount();
+				_root = createRoot(node);
+			}
+		};
+	};
+
+	const sroot = R19(settingRoot);
 
 	/**
 	 * @param {!React.SVGProps<'svg'>} props
@@ -854,7 +1008,7 @@ module.exports = (meta) => {
 
 	/**
 	 * @param {!RowProps} props
-	 * @returns {!React.ReactNode[]}
+	 * @returns {!Readonly<React.ReactNode[]>}
 	 */
 	const getRowChildren = (props) => props.displayType === 1
 		? [
@@ -871,7 +1025,7 @@ module.exports = (meta) => {
 		];
 	/**
 	 * @param {!RowProps} props
-	 * @returns {!React.ReactHTMLElement<'span'>}
+	 * @returns {!React.ReactHTMLElement<HTMLSpanElement>}
 	 */
 	const Row = (props) => ce('span', {
 		className: 'membercount-row',
@@ -895,12 +1049,12 @@ module.exports = (meta) => {
 
 	/**
 	 * @param {!(React.ComponentProps<'div'> & CounterProps)} props
-	 * @returns {!React.ReactHTMLElement<'div'>}
+	 * @returns {!React.ReactHTMLElement<HTMLDivElement>}
 	 */
 	const MemberCount = (props) => {
 		const ref = useRef();
 		const strings = useStrings();
-		const { id, /*count, online,*/ displayType } = props;
+		const { id, displayType = 0 } = props;
 
 		const [count, online] = useStateFromStores([MemberCountStores], () => [
 			MemberCountStores.getMemberCount(id),
@@ -959,21 +1113,7 @@ module.exports = (meta) => {
 			]
 		});
 	};
-
-	/** @type {*} */
-	const Counter = MemberCount;
-	// const Counter = Flux.connectStores([MemberCountStores, GuildPopoutStore], () => {
-	// 	const gid = SelectedGuildStore.getGuildId();
-	// 	return {
-	// 		count: MemberCountStores.getMemberCount(gid),
-	// 		/**
-	// 		 * We can tally all the non-invisible accounts on a server via `MemberCountStores.getOnlineCount(gid)`.
-	// 		 * However, we want to include invisibles.
-	// 		 */
-	// 		online: GuildPopoutStore.getGuild(gid)?.presenceCount ?? MemberCountStores.getOnlineCount(gid)
-	// 	};
-	// })(MemberCount);
-	Counter.Wrapped = withErrorBoundary(Counter);
+	MemberCount.Wrapped = withErrorBoundary(MemberCount);
 
 	/**
 	 * Indicates whether a node was removed.
@@ -994,12 +1134,12 @@ module.exports = (meta) => {
 	 * Root DOM element to make use of the inherited `isConnected` property.
 	 */
 	const counter = create('div', { id: 'MemberCount' });
-	let croot = createRoot(counter);
+	const croot = R19(counter);
 
 	/**
 	 * DOM rendering fallbacks toggle.
 	 */
-	const DOM_MODE = true;
+	const DOM_MODE = false;
 
 	const removeCounter = () => {
 		const wrap = document.querySelector(memberWrap);
@@ -1012,10 +1152,10 @@ module.exports = (meta) => {
 		const wrap = document.querySelector(memberWrap);
 		// const list = document.querySelector(memberListSelector);
 		const gid = SelectedGuildStore.getGuildId();
-		const space = `space-${getSpacing(settings).slice(0, -2)}`;
+		const space = getSpacing(settings);
 		if (!wrap || counter.isConnected) return;
 		if (settings.blacklisted.includes(gid)) {
-			wrap.classList.remove('hasCounter', space);
+			wrap.classList.remove('hasCounter', 'space-30', 'space-40', 'space-60');
 			return;
 		}
 		wrap.prepend(counter);
@@ -1027,11 +1167,11 @@ module.exports = (meta) => {
 	};
 	const connect = () => {
 		const id = SelectedGuildStore.getGuildId();
-		croot.render(ce(Counter.Wrapped, { id, key: `${meta.name}-${id}`, displayType: settings.displayType }));
+		// @ts-ignore
+		croot.render(ce(MemberCount.Wrapped, { id, key: `${meta.name}-${id}`, displayType: settings.displayType }));
 	};
 	const disconnect = () => {
 		croot.unmount();
-		croot = createRoot(counter);
 	};
 	const reconnect = () => {
 		disconnect();
@@ -1104,15 +1244,12 @@ module.exports = (meta) => {
 	 * @returns {!React.ReactSVGElement}
 	 */
 	const getHintSVG = () => ce('svg', {
+		className: 'membercount-hint-svg',
 		xmlns: 'http://www.w3.org/2000/svg',
 		width: '20',
 		height: '20',
 		viewBox: '0 0 24 24',
 		fill: 'currentColor',
-		style: {
-			position: 'relative',
-			top: '-1px'
-		},
 		children: [
 			ce('path', { d: menuIconSvg })
 		]
@@ -1144,58 +1281,38 @@ module.exports = (meta) => {
 		 */
 		static #patches = {
 			MemberList (state) {
-				if (DOM_MODE) return;
-				if (!BulkModule.ListThin || state.cancelled) return;
-				const isThread = (props) => {
-					return !props['data-list-id'] && props.className.startsWith('members');
-				};
+				if (DOM_MODE || state.cancelled) return;
+				if (!ListThin) return;
 				/**
 				 * Duplicate protection predicate function.
-				 * @param {{ key?: string }} fiber
+				 * @param {{ key?: string }} item
 				 * @returns {!boolean}
 				 */
-				const fn = (fiber) => fiber?.key?.startsWith(meta.name);
-				Patcher.after(BulkModule.ListThin, 'Z', (that, args, value) => {
-					const val = Array.isArray(value)
-						? value.find((item) => item && !item.key)
-						: value;
-					const props = getProp(val, 'props');
-					const type = props?.['data-list-id']?.split('-')[0] ?? props.className?.split('_')[0];
-					if (!props || type !== 'members') return value;
-
+				const fn = (item) => item?.key?.startsWith(meta.name);
+				Patcher.after(ListThin, 'render', (that, args, value) => {
+					const [data] = args;
+					if (!data['data-list-id'] || !data['data-list-id'].startsWith('members-')) return value;
+					const ret = Array.isArray(value)
+						? value
+						: Array.of(value);
 					const id = SelectedGuildStore.getGuildId();
-					const list = document.querySelector(memberWrap);
+					const wrap = document.querySelector(memberWrap);
+					if (!wrap) return ret;
 					if (settings.blacklisted.includes(id)) {
-						if (list) list.classList.remove('hasCounter', 'hasCounter_thread', 'space-30', 'space-40', 'space-60');
-						return value;
+						wrap.classList.remove('hasCounter', 'space-30', 'space-40', 'space-60');
+						return ret;
 					}
-					
-					if (!Array.isArray(value)) value = [value];
-					if (value.some(fn)) return value;
-
-					const element = ce(Counter.Wrapped, {
+					const counter = ce(MemberCount.Wrapped, {
 						id,
 						key: `${meta.name}-${id}`,
 						displayType: settings.displayType
 					});
-					const space = `space-${getSpacing(settings).slice(0, -2)}`;
-
-					if (isThread(props)) {
-						const mlist = getProp(props, 'children.0.props.children.props');
-						if (!mlist || !mlist.children) return value;
-
-						if (!Array.isArray(mlist.children)) mlist.children = [mlist.children];
-						if (!mlist.children.some(fn)) {
-							if (list && !list.classList.contains('hasCounter_thread')) list.classList.add('hasCounter_thread');
-							mlist.children.unshift(element);
-						}
-
-						return value;
+					if (ret.some(fn)) return ret;
+					ret.unshift(counter);
+					if (!wrap.classList.contains('hasCounter')) {
+						wrap.classList.add('hasCounter', getSpacing(settings));
 					}
-
-					if (list && !list.classList.contains('hasCounter')) list.classList.add('hasCounter', space);
-					value.unshift(element);
-					return value;
+					return ret;
 				});
 				updateMemberList();
 			},
@@ -1326,6 +1443,27 @@ module.exports = (meta) => {
 		 */
 		static Changes = [
 			{
+				type: Changelogs.Types.Added.TYPE,
+				title: Changelogs.Types.Added.TITLE,
+				items: [
+					'Old changelog cache added - will now retain previous changelogs starting from version `3.0.8`. These logs may be viewed from the `LOGS` button in the settings panel.'
+				]
+			},
+			{
+				type: Changelogs.Types.Progress.TYPE,
+				title: Changelogs.Types.Progress.TITLE,
+				items: [
+					'Moved individual module queries into a single `getBulk` query.',
+					'Rendering is back to patching the memberlist instead of using `DOM_MODE` rendering.'
+				]
+			}
+		];
+
+		/**
+		 * @type {!Prettify<BD.Changes>[]}
+		 */
+		static Old = [
+			{
 				type: Changelogs.Types.Fixed.TYPE,
 				title: Changelogs.Types.Fixed.TITLE,
 				items: [
@@ -1394,7 +1532,6 @@ module.exports = (meta) => {
 		observer (change) {
 			if (isCleared(change.removedNodes, settingRoot)) {
 				sroot.unmount();
-				sroot = createRoot(settingRoot);
 			}
 			if (DOM_MODE) {
 				if (!counter.isConnected) {
