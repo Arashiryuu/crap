@@ -1,7 +1,7 @@
 /**
  * @name MemberCount
  * @author Arashiryuu
- * @version 3.0.8
+ * @version 3.0.9
  * @description Displays a server's member-count at the top of the member-list, can be styled with the `#MemberCount` selector.
  * @authorId 238108500109033472
  * @authorLink https://github.com/Arashiryuu
@@ -623,6 +623,17 @@ module.exports = (meta) => {
 			top: -1px;
 		}
 
+		.membercount-history-container {
+			display: flex;
+			flex: 1 1 0;
+			flex-flow: wrap row;
+
+			& button {
+				max-width: 80px;
+				margin: 2%;
+			}
+		}
+
 		/* Context Menu Item 
 		.membercount-menu-icon::before {
 			content: '';
@@ -864,25 +875,28 @@ module.exports = (meta) => {
 				{
 					id: 'logs',
 					type: 'custom',
-					name: '',
+					name: 'History',
 					note: 'View changelog history.',
 					inline: false,
-					children: ce('button', {
-						className: 'bd-button bd-button-filled bd-addon-button bd-button-color-brand bd-button-grow bd-button-medium',
-						onClick () {
-							const data = Object.assign({}, Changelogs.ModalData);
-							data.subtitle = 'History';
-							data.changes = Changelogs.Old;
-							UI.showChangelogModal(data);
-						},
-						children: [
-							ce('div', {
-								className: 'bd-button-content',
-								children: [
-									'LOGS'
-								]
-							})
-						]
+					children: ce('div', {
+						className: 'membercount-history-container',
+						children: Object.keys(Changelogs.Old).map((v) => ce('button', {
+							className: 'bd-button bd-button-filled bd-addon-button bd-button-color-brand bd-button-medium',
+							onClick () {
+								const data = Object.assign({}, Changelogs.ModalData);
+								data.subtitle = `v${v}`;
+								data.changes = Changelogs.Old[v];
+								UI.showChangelogModal(data);
+							},
+							children: [
+								ce('div', {
+									className: 'bd-button-content',
+									children: [
+										v
+									]
+								})
+							]
+						}))
 					})
 				}
 			], {
@@ -1443,34 +1457,45 @@ module.exports = (meta) => {
 		 */
 		static Changes = [
 			{
-				type: Changelogs.Types.Added.TYPE,
-				title: Changelogs.Types.Added.TITLE,
+				type: Changelogs.Types.Improved.TYPE,
+				title: Changelogs.Types.Improved.TITLE,
 				items: [
-					'Old changelog cache added - will now retain previous changelogs starting from version `3.0.8`. These logs may be viewed from the `LOGS` button in the settings panel.'
-				]
-			},
-			{
-				type: Changelogs.Types.Progress.TYPE,
-				title: Changelogs.Types.Progress.TITLE,
-				items: [
-					'Moved individual module queries into a single `getBulk` query.',
-					'Rendering is back to patching the memberlist instead of using `DOM_MODE` rendering.'
+					'Refactored how the plugin stores and displays changelog history.'
 				]
 			}
 		];
 
 		/**
-		 * @type {!Prettify<BD.Changes>[]}
+		 * @type {!Prettify<Record<string, BD.Changes[]>>}
 		 */
-		static Old = [
-			{
-				type: Changelogs.Types.Fixed.TYPE,
-				title: Changelogs.Types.Fixed.TITLE,
-				items: [
-					'React version `19.0.0` update.'
-				]
-			}
-		];
+		static Old = {
+			'3.0.8': [
+				{
+					type: Changelogs.Types.Added.TYPE,
+					title: Changelogs.Types.Added.TITLE,
+					items: [
+						'Changelog history - previous changelogs starting from version `3.0.7` may be viewed from the settings panel.'
+					]
+				},
+				{
+					type: Changelogs.Types.Progress.TYPE,
+					title: Changelogs.Types.Progress.TITLE,
+					items: [
+						'Moved individual module queries into a single `getBulk` query.',
+						'Rendering is back to patching the memberlist instead of using `DOM_MODE` rendering.'
+					]
+				}
+			],
+			'3.0.7': [
+				{
+					type: Changelogs.Types.Fixed.TYPE,
+					title: Changelogs.Types.Fixed.TITLE,
+					items: [
+						'React version `19.0.0` update.'
+					]
+				}
+			]
+		};
 
 		/**
 		 * @type {!Prettify<BD.ModalData>}
