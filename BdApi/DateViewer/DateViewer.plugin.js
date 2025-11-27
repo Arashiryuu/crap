@@ -1,7 +1,7 @@
 /**
  * @name DateViewer
  * @author Arashiryuu
- * @version 1.0.14
+ * @version 1.0.16
  * @description Displays the current date, weekday, and time.
  * @authorId 238108500109033472
  * @authorLink https://github.com/Arashiryuu
@@ -38,10 +38,9 @@
 @else@*/
 
 /**
- * @param {!Prettify<BD.MetaData>} meta
  * @returns {!BD.Plugin}
  */
-module.exports = (meta) => {
+module.exports = /** @param {!Prettify<BD.MetaData>} meta */ (meta) => {
 	// @ts-ignore
 	const Api = new BdApi(meta.name);
 	const { UI, DOM, Data, React, Utils, Themes, Plugins, Patcher, Webpack, ReactDOM, ReactUtils, ContextMenu } = Api;
@@ -53,10 +52,10 @@ module.exports = (meta) => {
 	const Filters = Object.create(Webpack.Filters);
 	Object.assign(Filters, {
 		/**
-		 * @param {!string} id
+		 * @param {!number} id
 		 * @returns {!FilterFunction}
 		 */
-		byId: (id = '1') => (...m) => m.pop() === String(id),
+		byId: (id = 1) => (...m) => m.pop() === Number(id),
 		/**
 		 * @type {!FilterFunction}
 		 */
@@ -69,14 +68,49 @@ module.exports = (meta) => {
 		/**
 		 * @type {!FilterFunction}
 		 */
-		byProtos: Filters.byPrototypeFields
+		byProtos: Filters.byPrototypeKeys
 	});
 
 	const raf = requestAnimationFrame;
-	const toString = Object.prototype.toString;
+	const toString = Function.call.bind(Object.prototype.toString);
 
-	const LangUtils = Webpack.getByKeys('Messages', '_languages');
-	const { inspect } = Webpack.getByKeys('inspect', 'promisify');
+	const queries = [
+		{
+			filter: Filters.byStrings('checked:', 'tooltipNote:'),
+			searchExports: true
+		},
+		{
+			filter: Filters.byStrings('theme:', 'flags:', '.useContext'),
+			searchExports: true
+		},
+		{
+			filter: Filters.byProtos('shouldShowTooltip'),
+			searchExports: true
+		},
+		{
+			filter: Filters.byKeys('Messages', '_languages')
+		},
+		{
+			/**
+			 * @type {!FilterFunction}
+			 */
+			filter: (m) => Filters.byStrings('renderSection:', 'renderListHeader:')(m?.render),
+			searchExports: true
+		},
+		{
+			filter: Filters.byKeys('inspect', 'promisify')
+		},
+		{
+			filter: Filters.byKeys('members', 'container', 'membersWrap')
+		}
+	];
+	const modules = Webpack.getBulk(...queries);
+	const [
+		LangUtils,
+		ListThin,
+		{ inspect },
+		...mClasses
+	] = modules.slice(3);
 
 	/* Language Strings */
 
@@ -146,8 +180,9 @@ module.exports = (meta) => {
 
 	/**
 	 * Creates clean objects with a `Symbol.toStringTag` value describing the object as its only inherited data.
+	 * @template T
 	 * @param {!string} value
-	 * @returns {!object}
+	 * @returns {!T}
 	 */
 	const _Object = (value = 'NullObject') => Object.create(
 		Object.create(null, {
@@ -197,6 +232,9 @@ module.exports = (meta) => {
 			console.groupEnd();
 		};
 		const stagger = (name = meta.name, level = 'log') => {
+			/**
+			 * @type {!unknown[][]}
+			 */
 			const logs = [];
 			return Object.freeze({
 				/** @param {!unknown[]} data */
@@ -273,14 +311,14 @@ module.exports = (meta) => {
 	 * A `document.createElement` helper function.
 	 * @param {!string} type 
 	 * @param {!object} props
-	 * @param {!(string | Node)[]} [children]
+	 * @param {!(string | Node)[]} children
 	 * @returns {!BD.DOMElement}
 	 */
 	const create = (type = 'div', props = {}, ...children) => {
 		if (typeof type !== 'string') type = 'div';
 		const e = getElement(type);
 
-		if (toString.call(props) !== '[object Object]') {
+		if (toString(props) !== '[object Object]') {
 			if (children.length) e.append(...children);
 			return e;
 		}
@@ -362,7 +400,7 @@ module.exports = (meta) => {
 	 */
 	const toSelector = (className) => `.${className.split(' ').join('.')}`;
 
-	const memberListClasses = Webpack.getByKeys('members', 'container', 'membersWrap');
+	const memberListClasses = Object.assign({}, ...mClasses);
 	/**
 	 * Current selector for the member-list.
 	 */
@@ -390,7 +428,7 @@ module.exports = (meta) => {
 
 	const style = css`
 		#dv-mount {
-			background-color: var(--background-secondary);
+			background-color: var(--background-base-lower, transparent);
 			bottom: 0;
 			box-sizing: border-box;
 			display: flex;
@@ -403,6 +441,7 @@ module.exports = (meta) => {
 		#dv-main {
 			--gap: 20px;
 			--_hsla: 0, 0%, 100%, 0.04;
+
 			background-color: transparent;
 			border-top: 1px solid hsla(var(--_hsla));
 			box-sizing: border-box;
@@ -415,16 +454,32 @@ module.exports = (meta) => {
 			text-align: center;
 			text-transform: uppercase;
 			width: calc(100% - var(--gap) * 2);
+
+			.dv-date {
+				font-size: small;
+				opacity: 0.6;
+			}
 		}
-		#dv-main .dv-date {
-			font-size: small;
-			opacity: 0.6;
-		}
-		.theme-light #dv-main {
-			--_hsla: 0, 0%, 0%, 0.04;
+		.theme-light {
+			#dv-main {
+				--_hsla: 0, 0%, 0%, 0.04;
+			}
 		}
 		${memberListSelector} {
 			margin-bottom: 95px;
+		}
+		.dv-history-container {
+			display: flex;
+			flex: 1 1 0;
+			flex-flow: wrap row;
+			min-height: 64px;
+			max-height: 128px;
+			overflow-y: overlay;
+
+			& button {
+				max-width: 80px;
+				margin: 1svmin;
+			}
 		}
 		/* Error Component */
 		.${meta.name}-error {
@@ -450,17 +505,27 @@ module.exports = (meta) => {
 	 */
 	let settings = Utils.extend({}, defaults);
 
-	const DOM_MODE = true;
+	const DOM_MODE = false;
 
 	/**
-	 * Discord Components
+	 * @typedef DiscordComponents
+	 * @property {!React.FC} Switch
+	 * @property {!React.FC} ThemeContext
+	 * @property {!React.ComponentClass} TooltipWrapper
 	 */
-	const BulkModule = {};
+	/**
+	 * @type {!Prettify<DiscordComponents>}
+	 */
 	const Discord = {
-		Switch: Webpack.getByStrings('checked:', 'tooltipNote:', { searchExports: true }),
-		TooltipWrapper: Webpack.getByPrototypeKeys('shouldShowTooltip', { searchExports: true }),
-		ThemeContext: Webpack.getByStrings('theme:', 'flags:', '.useContext', { searchExports: true })
+		Switch: null,
+		ThemeContext: null,
+		TooltipWrapper: null
 	};
+	[
+		Discord.Switch,
+		Discord.ThemeContext,
+		Discord.TooltipWrapper
+	] = modules;
 
 	/**
 	 * ErrorBoundary Component Definition
@@ -472,7 +537,8 @@ module.exports = (meta) => {
 		 * @param {!Error} error
 		 */
 		static getDerivedStateFromError (error) {
-			return { hasError: true };
+			const hasError = Boolean(error);
+			return { hasError };
 		}
 
 		/**
@@ -486,7 +552,7 @@ module.exports = (meta) => {
 		render () {
 			if (this.state.hasError) return ce(Discord.TooltipWrapper, {
 				text: 'See console for details.',
-				children: (props) => {
+				children: /** @param {!object} props */ (props) => {
 					return ce('div', {
 						className: `${meta.name}-error`,
 						children: [
@@ -506,7 +572,7 @@ module.exports = (meta) => {
 	 * Custom hook wrapper for forceUpdate functionality.
 	 * @returns {!React.DispatchWithoutAction}
 	 */
-	const useForceUpdate = () => useReducer((x) => x + 1, 0).pop();
+	const useForceUpdate = () => useReducer(/** @param {!number} x */ (x) => x + 1, 0).pop();
 
 	/**
 	 * HOC for using an ErrorBoundary.
@@ -558,8 +624,54 @@ module.exports = (meta) => {
 	 */
 
 	/**
+	 * @typedef SettingsOpts
+	 * @type {{
+	 *	id: string;
+	 *	type: string;
+	 *	name: string;
+	 *	note: string;
+	 *	value?: unknown;
+	 *	inline?: boolean;
+	 *	options?: object[];
+	 *	children?: React.ReactNode;
+	 *	onChange?: (e: unknown) => void;
+	 * }}
+	 */
+
+	/**
+	 * @typedef SettingsBuildOpts
+	 * @type {{
+	 *	id?: string;
+	 *	name?: string;
+	 *	shown?: boolean;
+	 *	collapsible?: boolean;
+	 * }}
+	 */
+
+	/**
+	 * @param {!Prettify<SettingsOpts>[]} data
+	 * @param {!Prettify<SettingsBuildOpts>} [opts]
+	 * @returns {!React.ReactNode}
+	 */
+	const buildSettings = (data, opts = {}) => {
+		const {
+			id = 'Main',
+			name = 'Plugin-Settings',
+			shown = true,
+			collapsible = true
+		} = opts;
+		return ce(Api.Components.SettingGroup, {
+			id,
+			name,
+			shown,
+			collapsible,
+			settings: data
+		});
+	};
+
+	/**
 	 * @param {!SettingsProps} props
-	 * @returns {!React.ReactHTMLElement<'div'>}
+	 * @returns {!React.ReactNode}
 	 */
 	const Settings = (props) => {
 		const forceUpdate = useForceUpdate();
@@ -574,54 +686,111 @@ module.exports = (meta) => {
 			SECONDS_NOTE
 		} = useStrings();
 
-		return ce('div', {
-			key: 'Plugin-Settings',
-			children: [
-				ce(Api.Components.SettingGroup, {
-					id: 'main',
-					name: 'Plugin-Settings',
-					shown: true,
-					collapsible: true,
-					settings: [
-						{
-							id: 'hour12',
-							type: 'switch',
-							name: HOUR12_LABEL,
-							note: HOUR12_NOTE,
-							value: settings.hour12 ?? false,
-							/**
-							 * @param {!boolean} e
-							 */
-							onChange (e) {
-								settings.hour12 = e;
-								onChange();
-							}
-						},
-						{
-							id: 'seconds',
-							type: 'switch',
-							name: SECONDS_LABEL,
-							note: SECONDS_NOTE,
-							value: settings.displaySeconds ?? false,
-							/**
-							 * @param {!boolean} e
-							 */
-							onChange (e) {
-								settings.displaySeconds = e;
-								onChange();
-							}
-						}
+		/**
+		 * @type {!React.ReactNode[]}
+		 */
+		const history = [];
+		for (const version in Changelogs.Old) {
+			history.push(
+				ce('button', {
+					className: 'bd-button bd-button-filled bd-addon-button bd-button-color-brand bd-button-medium',
+					onClick () {
+						const data = Object.assign({}, Changelogs.ModalData);
+						data.subtitle = `v${version}`;
+						data.changes = Changelogs.Old[version];
+						UI.showChangelogModal(data);
+					},
+					children: [
+						ce('div', {
+							className: 'bd-button-content',
+							children: [
+								version
+							]
+						})
 					]
 				})
-			]
-		});
+			);
+		}
+
+		return Fragment([
+			buildSettings([
+				{
+					id: 'logs',
+					type: 'custom',
+					name: 'History',
+					note: 'View changelog history.',
+					inline: false,
+					children: ce('div', {
+						className: 'dv-history-container',
+						children: history
+					})
+				}
+			], {
+				id: 'Logs',
+				name: 'Changelogs',
+				shown: false,
+				collapsible: true
+			}),
+			buildSettings([
+				{
+					id: 'hour12',
+					type: 'switch',
+					name: HOUR12_LABEL,
+					note: HOUR12_NOTE,
+					value: settings.hour12 ?? false,
+					/**
+					 * @param {!boolean} e
+					 */
+					onChange (e) {
+						settings.hour12 = e;
+						onChange();
+					}
+				},
+				{
+					id: 'seconds',
+					type: 'switch',
+					name: SECONDS_LABEL,
+					note: SECONDS_NOTE,
+					value: settings.displaySeconds ?? false,
+					/**
+					 * @param {!boolean} e
+					 */
+					onChange (e) {
+						settings.displaySeconds = e;
+						onChange();
+					}
+				}
+			])
+		]);
+	};
+
+	/**
+	 * @typedef React19Wrapper
+	 * @property {(...content: any[]) => void} render
+	 * @property {() => void} unmount
+	 */
+
+	/**
+	 * @param {!BD.DOMElement} node
+	 * @returns {!Prettify<React19Wrapper>}
+	 */
+	const R19 = (node) => {
+		let _root = createRoot(node);
+		return {
+			render (...content) {
+				_root.render(...content);
+			},
+			unmount () {
+				_root.unmount();
+				_root = createRoot(node);
+			}
+		};
 	};
 
 	/**
 	 * Root element for plugin settings.
 	 */
-	const settingRoot = create('div', { id: `__${meta.name}-react-settings-root__` });
-	let sroot = createRoot(settingRoot);
+	const settingRoot = create('div', { id: `&${meta.name}` });
 
 	/**
 	 * Indicates whether a node was removed.
@@ -711,7 +880,7 @@ module.exports = (meta) => {
 		/**
 		 * @type {!FrameRequestCallback}
 		 */
-		const animate = useCallback((now) => {
+		const animate = useCallback(/** @param {!number} now */ (now) => {
 			accu.current += (now - last.current) / 1000;
 			if (accu.current > 1) accu.current = 1;
 			accu.current = Math.max(0, accu.current);
@@ -731,7 +900,7 @@ module.exports = (meta) => {
 
 	/**
 	 * @returns {!React.ReactHTMLElement<HTMLDivElement>}
-	*/
+	 */
 	const Viewer = () => {
 		const [state, setState] = useState(getData);
 		const update = useCallback(() => setState(getData), []);
@@ -782,7 +951,7 @@ module.exports = (meta) => {
 	viewMain.append(time, date, weekday);
 	viewRoot.append(viewMain);
 
-	let vroot = createRoot(viewRoot);
+	const vroot = R19(viewRoot);
 
 	const removeRoot = () => viewRoot.isConnected && viewRoot.remove();
 	const appendRoot = () => {
@@ -823,13 +992,22 @@ module.exports = (meta) => {
 	 * @type {!BD.PatchFunction<void>}
 	 */
 	const patchMemberList = (state) => {
-		if (DOM_MODE) return;
-		if (!BulkModule.ListThin || !BulkModule.ScrollerThin || state.cancelled) return;
+		if (DOM_MODE || state.cancelled) return;
+		if (!ListThin) return;
 
+		/**
+		 * @param {!React.ComponentProps<'div'>} props
+		 * @returns {!boolean}
+		 */
 		const isThread = (props) => {
 			return !props['data-list-id'] && props.className.startsWith('members');
 		};
 
+		/**
+		 * @param {!string} type
+		 * @param {*} value
+		 * @returns {*}
+		 */
 		const validateAndPush = (type, value) => {
 			if (type !== 'members') return value;
 			const ret = Array.isArray(value)
@@ -840,28 +1018,18 @@ module.exports = (meta) => {
 			ret.push(ce(Viewer.Wrapped, { key: instanceKey }));
 			return ret;
 		};
-		
-		Patcher.after(BulkModule.ListThin, 'render', (that, args, value) => {
-			const val = Array.isArray(value)
-				? value.find((item) => item && !item.key)
-				: value;
-			const props = val.props;
-			const type = props?.['data-list-id']?.split('-')[0] ?? props?.className?.split('_')[0];
-			if (isThread(props)) {
-				const mlist = getProp(props, 'children.0.props.children.props');
-				validateAndPush(type, mlist.children);
-				return value;
-			}
-			return validateAndPush(type, value);
-		});
 
-		// Group DMs
-		Patcher.after(BulkModule.ScrollerThin, 'render', (that, args, value) => {
-			const val = Array.isArray(value)
-				? value.find((item) => item && !item.key)
-				: value;
-			const type = val.props?.['data-list-id']?.split('-')[0] ?? val.props?.className?.split('_')[0];
-			return validateAndPush(type, value);
+		Patcher.after(ListThin, 'render', /** @param {!object} that @param {!any[]} args @param {!unknown} value */ (that, args, value) => {
+			const [data] = args;
+			const ret = Array.isArray(value)
+				? value
+				: Array.of(value);
+			const type = data['data-list-id']?.split('-')[0] ?? data.className?.split('_')[0];
+			if (isThread(data)) {
+				Logger.log(ret);
+				return ret;
+			}
+			return validateAndPush(type, ret);
 		});
 	};
 
@@ -965,21 +1133,29 @@ module.exports = (meta) => {
 		 */
 		static Changes = [
 			{
-				type: Changelogs.Types.Fixed.TYPE,
-				title: Changelogs.Types.Fixed.TITLE,
+				type: Changelogs.Types.Added.TYPE,
+				title: Changelogs.Types.Added.TITLE,
 				items: [
-					'React version `19.0.0` update.',
-					'Fix viewer root double-rendering in DOM mode.'
+					'Added changelog history - viewable from the settings panel.'
 				]
 			}
-			// {
-			// 	type: Changelogs.Types.Progress.TYPE,
-			// 	title: Changelogs.Types.Progress.TITLE,
-			// 	items: [
-			// 		'Visual refresh update.'
-			// 	]
-			// }
 		];
+
+		/**
+		 * @type {!Record<string, Prettify<BD.Changes>[]>}
+		 */
+		static Old = {
+			'1.0.15': [
+				{
+					type: Changelogs.Types.Progress.TYPE,
+					title: Changelogs.Types.Progress.TITLE,
+					items: [
+						'Moved webpack queries into a single `getBulk` call.',
+						'Rendering uses patching again instead of `DOM_MODE` rendering.'
+					]
+				}
+			]
+		};
 
 		/**
 		 * @type {!Prettify<BD.ModalData>}
@@ -1012,27 +1188,24 @@ module.exports = (meta) => {
 			promises.cancel();
 			raf(onStop);
 		},
+		/**
+		 * @type {!BD.Plugin['getSettingsPanel']}
+		 */
 		getSettingsPanel () {
-			const panel = ce(Settings, {
-				onChange: () => {
+			return ce(Settings, {
+				onChange () {
 					saveSettings();
 					if (DOM_MODE) {
 						reconnect();
 					}
 				}
 			});
-			sroot.render(panel);
-			return settingRoot;
 		},
 		/**
 		 * Global observer provided by BD.
 		 * @param {!MutationRecord} change
 		 */
 		observer (change) {
-			if (isCleared(change.removedNodes, settingRoot)) {
-				sroot.unmount();
-				sroot = createRoot(settingRoot);
-			}
 			if (DOM_MODE) {
 				if (!viewRoot.isConnected) raf(appendRoot);
 			}
