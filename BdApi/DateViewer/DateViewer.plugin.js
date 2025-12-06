@@ -1,7 +1,7 @@
 /**
  * @name DateViewer
  * @author Arashiryuu
- * @version 1.0.16
+ * @version 1.0.17
  * @description Displays the current date, weekday, and time.
  * @authorId 238108500109033472
  * @authorLink https://github.com/Arashiryuu
@@ -41,6 +41,7 @@
  * @returns {!BD.Plugin}
  */
 module.exports = /** @param {!Prettify<BD.MetaData>} meta */ (meta) => {
+	'use strict';
 	// @ts-ignore
 	const Api = new BdApi(meta.name);
 	const { UI, DOM, Data, React, Utils, Themes, Plugins, Patcher, Webpack, ReactDOM, ReactUtils, ContextMenu } = Api;
@@ -68,7 +69,17 @@ module.exports = /** @param {!Prettify<BD.MetaData>} meta */ (meta) => {
 		/**
 		 * @type {!FilterFunction}
 		 */
-		byProtos: Filters.byPrototypeKeys
+		byProtos: Filters.byPrototypeKeys,
+		/**
+		 * Filters for `forwardRef` elements.
+		 */
+		Forwarded: {
+			/**
+			 * @param {!string[]} strings
+			 * @returns {!FilterFunction}
+			 */
+			byStrings: (...strings) => (m) => Filters.byStrings(...strings)(m?.render)
+		}
 	});
 
 	const raf = requestAnimationFrame;
@@ -94,7 +105,7 @@ module.exports = /** @param {!Prettify<BD.MetaData>} meta */ (meta) => {
 			/**
 			 * @type {!FilterFunction}
 			 */
-			filter: (m) => Filters.byStrings('renderSection:', 'renderListHeader:')(m?.render),
+			filter: Filters.Forwarded.byStrings('renderSection:', 'renderListHeader:'),
 			searchExports: true
 		},
 		{
@@ -445,7 +456,7 @@ module.exports = /** @param {!Prettify<BD.MetaData>} meta */ (meta) => {
 			background-color: transparent;
 			border-top: 1px solid hsla(var(--_hsla));
 			box-sizing: border-box;
-			color: var(--text-primary);
+			color: var(--text-default, var(--channels-default));
 			display: flex;
 			flex-direction: column;
 			height: 100%;
@@ -455,13 +466,13 @@ module.exports = /** @param {!Prettify<BD.MetaData>} meta */ (meta) => {
 			text-transform: uppercase;
 			width: calc(100% - var(--gap) * 2);
 
-			.dv-date {
+			& .dv-date {
 				font-size: small;
 				opacity: 0.6;
 			}
 		}
 		.theme-light {
-			#dv-main {
+			& #dv-main {
 				--_hsla: 0, 0%, 0%, 0.04;
 			}
 		}
@@ -689,7 +700,22 @@ module.exports = /** @param {!Prettify<BD.MetaData>} meta */ (meta) => {
 		/**
 		 * @type {!React.ReactNode[]}
 		 */
-		const history = [];
+		const history = [
+			ce('button', {
+				className: 'bd-button bd-button-filled bd-addon-button bd-button-color-brand bd-button-medium',
+				onClick () {
+					UI.showChangelogModal(Changelogs.ModalData);
+				},
+				children: [
+					ce('div', {
+						className: 'bd-button-content',
+						children: [
+							meta.version
+						]
+					})
+				]
+			})
+		];
 		for (const version in Changelogs.Old) {
 			history.push(
 				ce('button', {
@@ -1133,10 +1159,10 @@ module.exports = /** @param {!Prettify<BD.MetaData>} meta */ (meta) => {
 		 */
 		static Changes = [
 			{
-				type: Changelogs.Types.Added.TYPE,
-				title: Changelogs.Types.Added.TITLE,
+				type: Changelogs.Types.Progress.TYPE,
+				title: Changelogs.Types.Progress.TITLE,
 				items: [
-					'Added changelog history - viewable from the settings panel.'
+					'Reflect Discord\'s css variable changes.'
 				]
 			}
 		];
@@ -1145,6 +1171,15 @@ module.exports = /** @param {!Prettify<BD.MetaData>} meta */ (meta) => {
 		 * @type {!Record<string, Prettify<BD.Changes>[]>}
 		 */
 		static Old = {
+			'1.0.16': [
+				{
+					type: Changelogs.Types.Added.TYPE,
+					title: Changelogs.Types.Added.TITLE,
+					items: [
+						'Added changelog history - viewable from the settings panel.'
+					]
+				}
+			],
 			'1.0.15': [
 				{
 					type: Changelogs.Types.Progress.TYPE,
