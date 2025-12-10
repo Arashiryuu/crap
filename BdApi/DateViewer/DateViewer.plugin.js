@@ -1,7 +1,7 @@
 /**
  * @name DateViewer
  * @author Arashiryuu
- * @version 1.0.17
+ * @version 1.0.18
  * @description Displays the current date, weekday, and time.
  * @authorId 238108500109033472
  * @authorLink https://github.com/Arashiryuu
@@ -109,6 +109,9 @@ module.exports = /** @param {!Prettify<BD.MetaData>} meta */ (meta) => {
 			searchExports: true
 		},
 		{
+			filter: Filters.bySource('.thin,', '.auto,', '.fade)')
+		},
+		{
 			filter: Filters.byKeys('inspect', 'promisify')
 		},
 		{
@@ -119,6 +122,7 @@ module.exports = /** @param {!Prettify<BD.MetaData>} meta */ (meta) => {
 	const [
 		LangUtils,
 		ListThin,
+		ListGroupDM,
 		{ inspect },
 		...mClasses
 	] = modules.slice(3);
@@ -158,9 +162,14 @@ module.exports = /** @param {!Prettify<BD.MetaData>} meta */ (meta) => {
 		// 	SECONDS_NOTE: ''
 		// }
 	});
+	
+	/**
+	 * @typedef i18nStrings
+	 * @type {!Values<typeof strings>}
+	 */
 
 	/**
-	 * @returns {!Readonly<Values<typeof strings>>}
+	 * @returns {!i18nStrings}
 	 */
 	const useStrings = () => {
 		/** @type {!string} */
@@ -652,51 +661,36 @@ module.exports = /** @param {!Prettify<BD.MetaData>} meta */ (meta) => {
 	/**
 	 * @typedef SettingsBuildOpts
 	 * @type {{
-	 *	id?: string;
-	 *	name?: string;
-	 *	shown?: boolean;
-	 *	collapsible?: boolean;
+	 *	id: string;
+	 *	name: string;
+	 *	shown: boolean;
+	 *	collapsible: boolean;
+	 *	settings: SettingsOpts[];
 	 * }}
 	 */
 
 	/**
-	 * @param {!Prettify<SettingsOpts>[]} data
-	 * @param {!Prettify<SettingsBuildOpts>} [opts]
+	 * @param {!Prettify<SettingsBuildOpts>} opts
 	 * @returns {!React.ReactNode}
 	 */
-	const buildSettings = (data, opts = {}) => {
+	const buildSettings = (opts) => {
 		const {
-			id = 'Main',
-			name = 'Plugin-Settings',
-			shown = true,
-			collapsible = true
+			id, 
+			name,
+			shown,
+			collapsible,
+			settings: data
 		} = opts;
 		return ce(Api.Components.SettingGroup, {
 			id,
 			name,
 			shown,
 			collapsible,
-			settings: data
+			settings: data ?? []
 		});
 	};
 
-	/**
-	 * @param {!SettingsProps} props
-	 * @returns {!React.ReactNode}
-	 */
-	const Settings = (props) => {
-		const forceUpdate = useForceUpdate();
-		const onChange = () => {
-			if (typeof props.onChange === 'function') props.onChange();
-			forceUpdate();
-		};
-		const {
-			HOUR12_LABEL,
-			HOUR12_NOTE,
-			SECONDS_LABEL,
-			SECONDS_NOTE
-		} = useStrings();
-
+	const useChangelogHistory = () => {
 		/**
 		 * @type {!React.ReactNode[]}
 		 */
@@ -716,6 +710,7 @@ module.exports = /** @param {!Prettify<BD.MetaData>} meta */ (meta) => {
 				]
 			})
 		];
+
 		for (const version in Changelogs.Old) {
 			history.push(
 				ce('button', {
@@ -738,57 +733,102 @@ module.exports = /** @param {!Prettify<BD.MetaData>} meta */ (meta) => {
 			);
 		}
 
-		return Fragment([
-			buildSettings([
-				{
-					id: 'logs',
-					type: 'custom',
-					name: 'History',
-					note: 'View changelog history.',
-					inline: false,
-					children: ce('div', {
-						className: 'dv-history-container',
-						children: history
-					})
-				}
-			], {
+		return history;
+	};
+
+	/**
+	 * @param {!VoidFunction} onChange
+	 * @returns {!VoidFunction}
+	 */
+	const useChangeCallback = (onChange) => {
+		const forceUpdate = useForceUpdate();
+		return () => {
+			if (typeof onChange === 'function') onChange();
+			forceUpdate();
+		};
+	};
+
+	/**
+	 * @param {!VoidFunction} onChange
+	 * @returns {![React.ReactNode[], VoidFunction, i18nStrings]}
+	 */
+	const useHookData = (onChange) => [
+		useChangelogHistory(),
+		useChangeCallback(onChange),
+		useStrings()
+	];
+
+	/**
+	 * @param {![React.ReactNode[], VoidFunction, i18nStrings]} props
+	 * @returns {!React.ReactNode[]}
+	 */
+	const useSettingsPanels = ([history, onChange, i18n]) => {
+		const sections = [
+			{
 				id: 'Logs',
 				name: 'Changelogs',
 				shown: false,
-				collapsible: true
-			}),
-			buildSettings([
-				{
-					id: 'hour12',
-					type: 'switch',
-					name: HOUR12_LABEL,
-					note: HOUR12_NOTE,
-					value: settings.hour12 ?? false,
-					/**
-					 * @param {!boolean} e
-					 */
-					onChange (e) {
-						settings.hour12 = e;
-						onChange();
+				collapsible: true,
+				settings: [
+					{
+						id: 'logs',
+						type: 'custom',
+						name: 'History',
+						note: 'View changelog history.',
+						inline: false,
+						children: ce('div', {
+							className: 'membercount-history-container',
+							children: history
+						})
 					}
-				},
-				{
-					id: 'seconds',
-					type: 'switch',
-					name: SECONDS_LABEL,
-					note: SECONDS_NOTE,
-					value: settings.displaySeconds ?? false,
-					/**
-					 * @param {!boolean} e
-					 */
-					onChange (e) {
-						settings.displaySeconds = e;
-						onChange();
+				]
+			},
+			{
+				id: 'Main',
+				name: 'Plugin-Settings',
+				shown: true,
+				collapsible: true,
+				settings: [
+					{
+						id: 'hour12',
+						type: 'switch',
+						name: i18n.HOUR12_LABEL,
+						note: i18n.HOUR12_NOTE,
+						value: settings.hour12 ?? false,
+						/**
+						 * @param {!boolean} e
+						 */
+						onChange (e) {
+							settings.hour12 = e;
+							onChange();
+						}
+					},
+					{
+						id: 'seconds',
+						type: 'switch',
+						name: i18n.SECONDS_LABEL,
+						note: i18n.SECONDS_NOTE,
+						value: settings.displaySeconds ?? false,
+						/**
+						 * @param {!boolean} e
+						 */
+						onChange (e) {
+							settings.displaySeconds = e;
+							onChange();
+						}
 					}
-				}
-			])
-		]);
+				]
+			}
+		];
+
+		return sections.map(buildSettings);
 	};
+
+	/**
+	 * @param {!SettingsProps} props
+	 * @returns {!React.ReactNode[]}
+	 */
+	const Settings = ({ onChange }) => useSettingsPanels(useHookData(onChange));
 
 	/**
 	 * @typedef React19Wrapper
@@ -1045,18 +1085,29 @@ module.exports = /** @param {!Prettify<BD.MetaData>} meta */ (meta) => {
 			return ret;
 		};
 
-		Patcher.after(ListThin, 'render', /** @param {!object} that @param {!any[]} args @param {!unknown} value */ (that, args, value) => {
+		/**
+		 * @param {!object} that
+		 * @param {!any[]} args
+		 * @param {!any} value
+		 */
+		const listPatch = (that, args, value) => {
 			const [data] = args;
 			const ret = Array.isArray(value)
 				? value
 				: Array.of(value);
 			const type = data['data-list-id']?.split('-')[0] ?? data.className?.split('_')[0];
 			if (isThread(data)) {
-				Logger.log(ret);
-				return ret;
+				// I thought there'd be work to do here...
+				return validateAndPush(type, ret);
 			}
 			return validateAndPush(type, ret);
-		});
+		};
+
+		// MemberList and Threads
+		Patcher.after(ListThin, 'render', listPatch);
+		// GroupDMs
+		if (!ListGroupDM || !ListGroupDM.zJ) return;
+		Patcher.after(ListGroupDM.zJ, 'render', listPatch);
 	};
 
 	const onStart = () => {
@@ -1159,10 +1210,10 @@ module.exports = /** @param {!Prettify<BD.MetaData>} meta */ (meta) => {
 		 */
 		static Changes = [
 			{
-				type: Changelogs.Types.Progress.TYPE,
-				title: Changelogs.Types.Progress.TITLE,
+				type: Changelogs.Types.Improved.TYPE,
+				title: Changelogs.Types.Improved.TITLE,
 				items: [
-					'Reflect Discord\'s css variable changes.'
+					'Will now patch into and render for Threads and GroupDMs.'
 				]
 			}
 		];
@@ -1171,6 +1222,15 @@ module.exports = /** @param {!Prettify<BD.MetaData>} meta */ (meta) => {
 		 * @type {!Record<string, Prettify<BD.Changes>[]>}
 		 */
 		static Old = {
+			'1.0.17': [
+				{
+					type: Changelogs.Types.Progress.TYPE,
+					title: Changelogs.Types.Progress.TITLE,
+					items: [
+						'Reflect Discord\'s css variable changes.'
+					]
+				}
+			],
 			'1.0.16': [
 				{
 					type: Changelogs.Types.Added.TYPE,
