@@ -1,7 +1,7 @@
 /**
  * @name MemberCount
  * @author Arashiryuu
- * @version 3.0.9
+ * @version 3.0.10
  * @description Displays a server's member-count at the top of the member-list, can be styled with the `#MemberCount` selector.
  * @authorId 238108500109033472
  * @authorLink https://github.com/Arashiryuu
@@ -38,10 +38,10 @@
 @else@*/
 
 /**
- * @param {!Prettify<BD.MetaData>} meta
  * @returns {!BD.Plugin}
  */
-module.exports = (meta) => {
+module.exports = /** @param {!Prettify<BD.MetaData>} meta */ (meta) => {
+	'use strict';
 	// @ts-ignore
 	const Api = new BdApi(meta.name);
 	const { UI, DOM, Data, React, Utils, Themes, Plugins, Patcher, Webpack, ReactDOM, ReactUtils, ContextMenu } = Api;
@@ -53,10 +53,10 @@ module.exports = (meta) => {
 	const Filters = Object.create(Webpack.Filters);
 	Object.assign(Filters, {
 		/**
-		 * @param {!string} id
+		 * @param {!number} id
 		 * @returns {!FilterFunction}
 		 */
-		byId: (id = '1') => (...m) => m.pop() === String(id),
+		byId: (id = 1) => (...m) => m.pop() === Number(id),
 		/**
 		 * @type {!FilterFunction}
 		 */
@@ -214,7 +214,12 @@ module.exports = (meta) => {
 	});
 
 	/**
-	 * @returns {!Readonly<Values<typeof strings>>}
+	 * @typedef i18nStrings
+	 * @type {!Values<typeof strings>}
+	 */
+
+	/**
+	 * @returns {!i18nStrings}
 	 */
 	const useStrings = () => {
 		/** @type {!string} */
@@ -244,8 +249,8 @@ module.exports = (meta) => {
 	applyBinds(promises);
 
 	/**
-	 * @template T
 	 * Creates clean objects with a `Symbol.toStringTag` value describing the object as the only inherited data.
+	 * @template T
 	 * @param {!DictKey} value
 	 * @returns {!T}
 	 */
@@ -304,6 +309,9 @@ module.exports = (meta) => {
 			console.groupEnd();
 		};
 		const stagger = (name = meta.name, level = 'log') => {
+			/**
+			 * @type {!unknown[][]}
+			 */
 			const logs = [];
 			return Object.freeze({
 				/** @param {!unknown[]} data */
@@ -487,7 +495,7 @@ module.exports = (meta) => {
 	/**
 	 * Converts a template literal interpolated string from a human-readable format into a one-liner for use in stylesheets.
 	 * @param {!TemplateStringsArray} ss
-	 * @param {!any[]} vars
+	 * @param {!unknown[]} vars
 	 * @returns {!string}
 	 * @example
 	 * ```js
@@ -548,7 +556,7 @@ module.exports = (meta) => {
 			display: flex;
 			background: var(--_bg);
 			position: absolute;
-			color: var(--channels-default, var(--text-secondary, --text-primary));
+			color: var(--channels-default, var(--text-default));
 			width: var(--custom-member-list-width);
 			padding: 0;
 			z-index: 1;
@@ -627,10 +635,13 @@ module.exports = (meta) => {
 			display: flex;
 			flex: 1 1 0;
 			flex-flow: wrap row;
+			min-height: 64px;
+			max-height: 128px;
+			overflow-y: overlay;
 
 			& button {
 				max-width: 80px;
-				margin: 2%;
+				margin: 1svmin;
 			}
 		}
 
@@ -709,7 +720,7 @@ module.exports = (meta) => {
 		render () {
 			if (this.state.hasError) return ce(Discord.TooltipWrapper, {
 				text: 'See console for details.',
-				children: (props) => {
+				children: /** @param {!object} props */ (props) => {
 					return ce('div', {
 						id: 'MemberCount',
 						className: `${meta.name}-error`,
@@ -730,7 +741,7 @@ module.exports = (meta) => {
 	 * Custom hook for forceUpdate functionality.
 	 * @returns {!React.DispatchWithoutAction}
 	 */
-	const useForceUpdate = () => useReducer((x) => x + 1, 0).pop();
+	const useForceUpdate = () => useReducer(/** @param {!number} x */ (x) => x + 1, 0).pop();
 
 	/**
 	 * HOC for using an ErrorBoundary.
@@ -840,125 +851,235 @@ module.exports = (meta) => {
 	 */
 
 	/**
-	 * @param {!object[]} data
+	 * @typedef SettingsOpts
+	 * @type {{
+	 *	id: string;
+	 *	type: string;
+	 *	name: string;
+	 *	note: string;
+	 *	value?: unknown;
+	 *	inline?: boolean;
+	 *	options?: object[];
+	 *	children?: React.ReactNode;
+	 *	onChange?: (e: unknown) => void;
+	 * }}
+	 */
+
+	/**
+	 * @typedef SettingsBuildOpts
+	 * @type {{
+	 *	id: string;
+	 *	name: string;
+	 *	shown: boolean;
+	 *	collapsible: boolean;
+	 *	settings: SettingsOpts[];
+	 * }}
+	 */
+
+	/**
+	 * @param {!Prettify<SettingsBuildOpts>} opts
 	 * @returns {!React.ReactNode}
 	 */
-	const buildSettings = (data, opts = {}) => {
+	const buildSettings = (opts) => {
 		const {
-			id = 'Main',
-			name = 'Plugin-Settings',
-			shown = true,
-			collapsible = true
+			id, 
+			name,
+			shown,
+			collapsible,
+			settings: data
 		} = opts;
 		return ce(Api.Components.SettingGroup, {
 			id,
 			name,
 			shown,
 			collapsible,
-			settings: data
+			settings: data ?? []
 		});
+	};
+
+	const useChangelogHistory = () => {
+		/**
+		 * @type {!React.ReactNode[]}
+		 */
+		const history = [
+			ce('button', {
+				className: 'bd-button bd-button-filled bd-addon-button bd-button-color-brand bd-button-medium',
+				onClick () {
+					UI.showChangelogModal(Changelogs.ModalData);
+				},
+				children: [
+					ce('div', {
+						className: 'bd-button-content',
+						children: [
+							meta.version
+						]
+					})
+				]
+			})
+		];
+
+		for (const version in Changelogs.Old) {
+			history.push(
+				ce('button', {
+					className: 'bd-button bd-button-filled bd-addon-button bd-button-color-brand bd-button-medium',
+					onClick () {
+						const data = Object.assign({}, Changelogs.ModalData);
+						data.subtitle = `v${version}`;
+						data.changes = Changelogs.Old[version];
+						UI.showChangelogModal(data);
+					},
+					children: [
+						ce('div', {
+							className: 'bd-button-content',
+							children: [
+								version
+							]
+						})
+					]
+				})
+			);
+		}
+
+		return history;
+	};
+
+	/**
+	 * @param {!VoidFunction} onChange
+	 * @returns {!VoidFunction}
+	 */
+	const useChangeCallback = (onChange) => {
+		const forceUpdate = useForceUpdate();
+		return () => {
+			if (typeof onChange === 'function') onChange();
+			forceUpdate();
+		};
+	};
+
+	/**
+	 * @param {!VoidFunction} onChange
+	 * @returns {![React.ReactNode[], VoidFunction]}
+	 */
+	const useHookData = (onChange) => [
+		useChangelogHistory(),
+		useChangeCallback(onChange)
+	];
+
+	/**
+	 * @returns {!React.RefObject<HTMLDivElement>}
+	 */
+	const useMemberWrap = () => {
+		const ref = useRef();
+		useEffect(() => {
+			const node = document.querySelector(memberWrap);
+			if (ref.current !== node) ref.current = node;
+		}, []);
+		return ref;
+	};
+
+	/**
+	 * @param {![React.ReactNode[], VoidFunction]} data
+	 */
+	const useSettingsPanels = ([history, onChange]) => {
+		const wrap = useMemberWrap();
+
+		/**
+		 * @returns {!void}
+		 */
+		const updateSpacing = () => void requestAnimationFrame(() => {
+			wrap.current?.classList.remove('space-30', 'space-40', 'space-60');
+			wrap.current?.classList.add(getSpacing(settings));
+		});
+
+		const sections = [
+			{
+				id: 'Logs',
+				name: 'Changelogs',
+				shown: false,
+				collapsible: true,
+				settings: [
+					{
+						id: 'logs',
+						type: 'custom',
+						name: 'History',
+						note: 'View changelog history.',
+						inline: false,
+						children: ce('div', {
+							className: 'membercount-history-container',
+							children: history
+						})
+					}
+				]
+			},
+			{
+				id: 'Main',
+				name: 'Plugin-Settings',
+				shown: true,
+				collapsible: true,
+				settings: [
+					{
+						id: 'online',
+						type: 'switch',
+						name: 'Online Counter',
+						note: 'Toggles the online members counter.',
+						value: settings.online ?? false,
+						/**
+						 * @param {!boolean} e
+						 */
+						onChange (e) {
+							settings.online = e;
+							if (DOM_MODE) refitCounter();
+							updateMemberList();
+							updateSpacing();
+							onChange();
+						}
+					},
+					{
+						id: 'display',
+						type: 'radio',
+						name: 'Display Style',
+						note: 'Switch between the classic or new display styles.',
+						options: options.style,
+						value: settings.displayType ?? 0,
+						/**
+						 * @param {!number} e
+						 */
+						onChange (e) {
+							settings.displayType = e;
+							if (DOM_MODE) reconnect();
+							updateMemberList();
+							onChange();
+						}
+					},
+					{
+						id: 'spacing',
+						type: 'radio',
+						name: 'Spacing Style',
+						note: 'The amount of space left under the counters.',
+						options: options.margin,
+						value: settings.marginSpacing ?? 0,
+						/**
+						 * @param {!number} e
+						 */
+						onChange (e) {
+							settings.marginSpacing = e;
+							if (DOM_MODE) refitCounter();
+							updateMemberList();
+							updateSpacing();
+							onChange();
+						}
+					}
+				]
+			}
+		];
+
+		return sections.map(buildSettings);
 	};
 
 	/**
 	 * @param {!SettingsProps} props
-	 * @returns {!React.ReactNode}
+	 * @returns {!React.ReactNode[]}
 	 */
-	const Settings = (props) => {
-		const forceUpdate = useForceUpdate();
-		const onChange = () => {
-			if (typeof props.onChange === 'function') props.onChange();
-			forceUpdate();
-		};
-		
-		return Fragment([
-			buildSettings([
-				{
-					id: 'logs',
-					type: 'custom',
-					name: 'History',
-					note: 'View changelog history.',
-					inline: false,
-					children: ce('div', {
-						className: 'membercount-history-container',
-						children: Object.keys(Changelogs.Old).map((v) => ce('button', {
-							className: 'bd-button bd-button-filled bd-addon-button bd-button-color-brand bd-button-medium',
-							onClick () {
-								const data = Object.assign({}, Changelogs.ModalData);
-								data.subtitle = `v${v}`;
-								data.changes = Changelogs.Old[v];
-								UI.showChangelogModal(data);
-							},
-							children: [
-								ce('div', {
-									className: 'bd-button-content',
-									children: [
-										v
-									]
-								})
-							]
-						}))
-					})
-				}
-			], {
-				id: 'Logs',
-				name: 'Changelogs',
-				shown: false,
-				collapsible: true
-			}),
-			buildSettings([
-				{
-					id: 'online',
-					type: 'switch',
-					name: 'Online Counter',
-					note: 'Toggles the online members counter.',
-					value: settings.online ?? false,
-					/**
-					 * @param {!boolean} e
-					 */
-					onChange (e) {
-						settings.online = e;
-						if (DOM_MODE) refitCounter();
-						updateMemberList();
-						onChange();
-					}
-				},
-				{
-					id: 'display',
-					type: 'radio',
-					name: 'Display Style',
-					note: 'Switch between the classic or new display styles.',
-					options: options.style,
-					value: settings.displayType ?? 0,
-					/**
-					 * @param {!number} e
-					 */
-					onChange (e) {
-						settings.displayType = e;
-						if (DOM_MODE) reconnect();
-						updateMemberList();
-						onChange();
-					}
-				},
-				{
-					id: 'spacing',
-					type: 'radio',
-					name: 'Spacing Style',
-					note: 'The amount of space left under the counters.',
-					options: options.margin,
-					value: settings.marginSpacing ?? 0,
-					/**
-					 * @param {!number} e
-					 */
-					onChange (e) {
-						settings.marginSpacing = e;
-						if (DOM_MODE) refitCounter();
-						updateMemberList();
-						onChange();
-					}
-				}
-			])
-		]);
-	};
+	const Settings = ({ onChange }) => useSettingsPanels(useHookData(onChange));
 
 	/**
 	 * Root container for settings rendering.
@@ -987,8 +1108,6 @@ module.exports = (meta) => {
 			}
 		};
 	};
-
-	const sroot = R19(settingRoot);
 
 	/**
 	 * @param {!React.SVGProps<'svg'>} props
@@ -1067,7 +1186,7 @@ module.exports = (meta) => {
 	 */
 	const MemberCount = (props) => {
 		const ref = useRef();
-		const strings = useStrings();
+		const t = useStrings();
 		const { id, displayType = 0 } = props;
 
 		const [count, online] = useStateFromStores([MemberCountStores], () => [
@@ -1086,13 +1205,13 @@ module.exports = (meta) => {
 				children: [
 					ce(Row, {
 						count: getCount(count),
-						string: strings.MEMBERS,
+						string: t.MEMBERS,
 						displayType
 					}),
 					settings.online && ce(Row, {
 						fill: 'hsl(139, calc(var(--saturation-factor, 1) * 47.3%), 43.9%)',
 						count: getCount(online),
-						string: strings.ONLINE,
+						string: t.ONLINE,
 						displayType
 					})
 				]
@@ -1113,13 +1232,13 @@ module.exports = (meta) => {
 					children: [
 						ce(Row, {
 							count: getCount(count),
-							string: strings.MEMBERS,
+							string: t.MEMBERS,
 							displayType
 						}),
 						settings.online && ce(Row, {
 							fill: 'hsl(139, calc(var(--saturation-factor, 1) * 47.3%), 43.9%)',
 							count: getCount(online),
-							string: strings.ONLINE,
+							string: t.ONLINE,
 							displayType
 						})
 					]
@@ -1303,7 +1422,7 @@ module.exports = (meta) => {
 				 * @returns {!boolean}
 				 */
 				const fn = (item) => item?.key?.startsWith(meta.name);
-				Patcher.after(ListThin, 'render', (that, args, value) => {
+				Patcher.after(ListThin, 'render', /** @param {!object} that @param {!unknown[]} args @param {!any} value */ (that, args, value) => {
 					const [data] = args;
 					if (!data['data-list-id'] || !data['data-list-id'].startsWith('members-')) return value;
 					const ret = Array.isArray(value)
@@ -1351,7 +1470,7 @@ module.exports = (meta) => {
 				/**
 				 * @type {!VoidFunction}
 				 */
-				const patch = ContextMenu.patch('guild-context', (fiber, props) => {
+				const patch = ContextMenu.patch('guild-context', /** @param {React.ReactElement} fiber @param {{ guild: { id: string } }} props */ (fiber, props) => {
 					const { navId } = fiber.props;
 					const { guild } = props;
 					if (navId !== 'guild-context' || !guild) return fiber;
@@ -1460,15 +1579,31 @@ module.exports = (meta) => {
 				type: Changelogs.Types.Improved.TYPE,
 				title: Changelogs.Types.Improved.TITLE,
 				items: [
-					'Refactored how the plugin stores and displays changelog history.'
+					'Refactored settings code.'
+				]
+			},
+			{
+				type: Changelogs.Types.Fixed.TYPE,
+				title: Changelogs.Types.Fixed.TITLE,
+				items: [
+					'Fixed the settings-to-ui sync for spacing style related settings, e.g. online counter and spacing style. It now correctly updates the spacing upon changing the setting.'
 				]
 			}
 		];
 
 		/**
-		 * @type {!Prettify<Record<string, BD.Changes[]>>}
+		 * @type {!Record<string, Prettify<BD.Changes>[]>}
 		 */
 		static Old = {
+			'3.0.9': [
+				{
+					type: Changelogs.Types.Improved.TYPE,
+					title: Changelogs.Types.Improved.TITLE,
+					items: [
+						'Refactored how the plugin stores and displays changelog history.'
+					]
+				}
+			],
 			'3.0.8': [
 				{
 					type: Changelogs.Types.Added.TYPE,
@@ -1538,8 +1673,11 @@ module.exports = (meta) => {
 			}
 			DOM.removeStyle(CSSKey);
 		},
+		/**
+		 * @type {!BD.Plugin['getSettingsPanel']}
+		 */
 		getSettingsPanel () {
-			const panel = ce(Settings, {
+			return ce(Settings, {
 				onChange: () => {
 					saveSettings();
 					if (DOM_MODE) {
@@ -1547,17 +1685,12 @@ module.exports = (meta) => {
 					}
 				}
 			});
-			sroot.render(panel);
-			return settingRoot;
 		},
 		/**
 		 * Global observer provided by BD.
 		 * @param {!MutationRecord} change
 		 */
 		observer (change) {
-			if (isCleared(change.removedNodes, settingRoot)) {
-				sroot.unmount();
-			}
 			if (DOM_MODE) {
 				if (!counter.isConnected) {
 					reconnect();
