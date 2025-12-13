@@ -3,13 +3,13 @@
 
 ## Gallery
 ### Plugin settings available formats.
-![New](https://raw.githubusercontent.com/Arashiryuu/crap/master/BdApi/MemberCount/MemberCounter_New.png)
+![New](https://raw.githubusercontent.com/Arashiryuu/crap/master/BdApi/MemberCount/Media/MemberCounter_New.png)
 
-![Old](https://raw.githubusercontent.com/Arashiryuu/crap/master/BdApi/MemberCount/MemberCounter_Old.png)
+![Old](https://raw.githubusercontent.com/Arashiryuu/crap/master/BdApi/MemberCount/Media/MemberCounter_Old.png)
 
-![New Total Only](https://raw.githubusercontent.com/Arashiryuu/crap/master/BdApi/MemberCount/MemberCounter_NewTotalOnly.png)
+![New Total Only](https://raw.githubusercontent.com/Arashiryuu/crap/master/BdApi/MemberCount/Media/MemberCounter_NewTotalOnly.png)
 
-![Old Total Only](https://raw.githubusercontent.com/Arashiryuu/crap/master/BdApi/MemberCount/MemberCounter_OldTotalOnly.png)
+![Old Total Only](https://raw.githubusercontent.com/Arashiryuu/crap/master/BdApi/MemberCount/Media/MemberCounter_OldTotalOnly.png)
 
 ### Customized via CustomCSS.
-![My Custom Style](https://raw.githubusercontent.com/Arashiryuu/crap/master/BdApi/MemberCount/MemberCount_Mine.png)
+![My Custom Style](https://raw.githubusercontent.com/Arashiryuu/crap/master/BdApi/MemberCount/Media/MemberCount_Mine.png)
