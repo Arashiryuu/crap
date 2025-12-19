@@ -1,7 +1,7 @@
 /**
  * @name DateViewer
  * @author Arashiryuu
- * @version 1.0.18
+ * @version 1.0.19
  * @description Displays the current date, weekday, and time.
  * @authorId 238108500109033472
  * @authorLink https://github.com/Arashiryuu
@@ -38,9 +38,10 @@
 @else@*/
 
 /**
+ * @param {!Prettify<BD.MetaData>} meta
  * @returns {!BD.Plugin}
  */
-module.exports = /** @param {!Prettify<BD.MetaData>} meta */ (meta) => {
+module.exports = (meta) => {
 	'use strict';
 	// @ts-ignore
 	const Api = new BdApi(meta.name);
@@ -172,7 +173,9 @@ module.exports = /** @param {!Prettify<BD.MetaData>} meta */ (meta) => {
 	 * @returns {!i18nStrings}
 	 */
 	const useStrings = () => {
-		/** @type {!string} */
+		/**
+		 * @type {!string}
+		 */
 		const [lang] = LangUtils.getLocale().split('-');
 		return strings[lang] ?? strings.en;
 	};
@@ -257,7 +260,9 @@ module.exports = /** @param {!Prettify<BD.MetaData>} meta */ (meta) => {
 			 */
 			const logs = [];
 			return Object.freeze({
-				/** @param {!unknown[]} data */
+				/**
+				 * @param {!unknown[]} data
+				 */
 				push (...data) {
 					logs.push(data);
 				},
@@ -572,7 +577,10 @@ module.exports = /** @param {!Prettify<BD.MetaData>} meta */ (meta) => {
 		render () {
 			if (this.state.hasError) return ce(Discord.TooltipWrapper, {
 				text: 'See console for details.',
-				children: /** @param {!object} props */ (props) => {
+				/**
+				 * @param {!object} props
+				 */
+				children: (props) => {
 					return ce('div', {
 						className: `${meta.name}-error`,
 						children: [
@@ -589,10 +597,14 @@ module.exports = /** @param {!Prettify<BD.MetaData>} meta */ (meta) => {
 	};
 
 	/**
+	 * @param {!number} n
+	 */
+	const reducer = (n) => n + 1;
+	/**
 	 * Custom hook wrapper for forceUpdate functionality.
 	 * @returns {!React.DispatchWithoutAction}
 	 */
-	const useForceUpdate = () => useReducer(/** @param {!number} x */ (x) => x + 1, 0).pop();
+	const useForceUpdate = () => useReducer(reducer, 0).pop();
 
 	/**
 	 * HOC for using an ErrorBoundary.
@@ -1095,7 +1107,7 @@ module.exports = /** @param {!Prettify<BD.MetaData>} meta */ (meta) => {
 			const ret = Array.isArray(value)
 				? value
 				: Array.of(value);
-			const type = data['data-list-id']?.split('-')[0] ?? data.className?.split('_')[0];
+			const type = data['data-list-id']?.split('-')[0] ?? data.className?.split('-')[1];
 			if (isThread(data)) {
 				// I thought there'd be work to do here...
 				return validateAndPush(type, ret);
@@ -1210,10 +1222,10 @@ module.exports = /** @param {!Prettify<BD.MetaData>} meta */ (meta) => {
 		 */
 		static Changes = [
 			{
-				type: Changelogs.Types.Improved.TYPE,
-				title: Changelogs.Types.Improved.TITLE,
+				type: Changelogs.Types.Fixed.TYPE,
+				title: Changelogs.Types.Fixed.TITLE,
 				items: [
-					'Will now patch into and render for Threads and GroupDMs.'
+					'Fix thread check for Discord\'s new classname disfigurement.'
 				]
 			}
 		];
@@ -1222,6 +1234,15 @@ module.exports = /** @param {!Prettify<BD.MetaData>} meta */ (meta) => {
 		 * @type {!Record<string, Prettify<BD.Changes>[]>}
 		 */
 		static Old = {
+			'1.0.18': [
+				{
+					type: Changelogs.Types.Improved.TYPE,
+					title: Changelogs.Types.Improved.TITLE,
+					items: [
+						'Will now patch into and render for Threads and GroupDMs.'
+					]
+				}
+			],
 			'1.0.17': [
 				{
 					type: Changelogs.Types.Progress.TYPE,
