@@ -1,7 +1,7 @@
 /**
  * @name DateViewer
  * @author Arashiryuu
- * @version 1.0.19
+ * @version 1.0.20
  * @description Displays the current date, weekday, and time.
  * @authorId 238108500109033472
  * @authorLink https://github.com/Arashiryuu
@@ -452,8 +452,14 @@ module.exports = (meta) => {
 	const css = (ss, ...vars) => String.raw(ss, ...vars).split(/\s+/g).join(' ').trim();
 
 	const style = css`
+		.custom-theme-background {
+			& #dv-mount {
+				--_bg: transparent;
+			}
+		}
 		#dv-mount {
-			background-color: var(--background-base-lower, transparent);
+			--_bg: var(--background-base-lower, transparent);
+			background-color: var(--_bg);
 			bottom: 0;
 			box-sizing: border-box;
 			display: flex;
@@ -1078,7 +1084,7 @@ module.exports = (meta) => {
 		 * @returns {!boolean}
 		 */
 		const isThread = (props) => {
-			return !props['data-list-id'] && props.className.startsWith('members');
+			return !props['data-list-id'] && props.className.endsWith('members');
 		};
 
 		/**
@@ -1222,10 +1228,10 @@ module.exports = (meta) => {
 		 */
 		static Changes = [
 			{
-				type: Changelogs.Types.Fixed.TYPE,
-				title: Changelogs.Types.Fixed.TITLE,
+				type: Changelogs.Types.Improved.TYPE,
+				title: Changelogs.Types.Improved.TITLE,
 				items: [
-					'Fix thread check for Discord\'s new classname disfigurement.'
+					'Default styling now accounts for Discord\'s gradient themes.'
 				]
 			}
 		];
@@ -1234,6 +1240,15 @@ module.exports = (meta) => {
 		 * @type {!Record<string, Prettify<BD.Changes>[]>}
 		 */
 		static Old = {
+			'1.0.19': [
+				{
+					type: Changelogs.Types.Fixed.TYPE,
+					title: Changelogs.Types.Fixed.TITLE,
+					items: [
+						'Fix thread check for Discord\'s new classname disfigurement.'
+					]
+				}
+			],
 			'1.0.18': [
 				{
 					type: Changelogs.Types.Improved.TYPE,
