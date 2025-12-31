@@ -1,7 +1,7 @@
 /**
  * @name MemberCount
  * @author Arashiryuu
- * @version 3.0.10
+ * @version 3.0.11
  * @description Displays a server's member-count at the top of the member-list, can be styled with the `#MemberCount` selector.
  * @authorId 238108500109033472
  * @authorLink https://github.com/Arashiryuu
@@ -38,9 +38,10 @@
 @else@*/
 
 /**
+ * @param {!Prettify<BD.MetaData>} meta
  * @returns {!BD.Plugin}
  */
-module.exports = /** @param {!Prettify<BD.MetaData>} meta */ (meta) => {
+module.exports = (meta) => {
 	'use strict';
 	// @ts-ignore
 	const Api = new BdApi(meta.name);
@@ -548,10 +549,15 @@ module.exports = /** @param {!Prettify<BD.MetaData>} meta */ (meta) => {
 			}
 		}
 
+		.custom-theme-background {
+			& #MemberCount {
+				--_bg: transparent;
+			}
+		}
+
 		#MemberCount {
 			--_hsla: 0, 0%, 100%, 0.04;
-			--background-secondary: var(--background-base-lower);
-			--_bg: var(--background-secondary, transparent);
+			--_bg: var(--background-base-lower, transparent);
 
 			display: flex;
 			background: var(--_bg);
@@ -720,7 +726,10 @@ module.exports = /** @param {!Prettify<BD.MetaData>} meta */ (meta) => {
 		render () {
 			if (this.state.hasError) return ce(Discord.TooltipWrapper, {
 				text: 'See console for details.',
-				children: /** @param {!object} props */ (props) => {
+				/**
+				 * @param {!object} props
+				 */
+				children: (props) => {
 					return ce('div', {
 						id: 'MemberCount',
 						className: `${meta.name}-error`,
@@ -738,10 +747,14 @@ module.exports = /** @param {!Prettify<BD.MetaData>} meta */ (meta) => {
 	};
 
 	/**
+	 * @param {!number} n
+	 */
+	const reducer = (n) => n + 1;
+	/**
 	 * Custom hook for forceUpdate functionality.
 	 * @returns {!React.DispatchWithoutAction}
 	 */
-	const useForceUpdate = () => useReducer(/** @param {!number} x */ (x) => x + 1, 0).pop();
+	const useForceUpdate = () => useReducer(reducer, 0).pop();
 
 	/**
 	 * HOC for using an ErrorBoundary.
@@ -1186,7 +1199,7 @@ module.exports = /** @param {!Prettify<BD.MetaData>} meta */ (meta) => {
 	 */
 	const MemberCount = (props) => {
 		const ref = useRef();
-		const t = useStrings();
+		const { ONLINE, MEMBERS } = useStrings();
 		const { id, displayType = 0 } = props;
 
 		const [count, online] = useStateFromStores([MemberCountStores], () => [
@@ -1205,13 +1218,13 @@ module.exports = /** @param {!Prettify<BD.MetaData>} meta */ (meta) => {
 				children: [
 					ce(Row, {
 						count: getCount(count),
-						string: t.MEMBERS,
+						string: MEMBERS,
 						displayType
 					}),
 					settings.online && ce(Row, {
 						fill: 'hsl(139, calc(var(--saturation-factor, 1) * 47.3%), 43.9%)',
 						count: getCount(online),
-						string: t.ONLINE,
+						string: ONLINE,
 						displayType
 					})
 				]
@@ -1232,13 +1245,13 @@ module.exports = /** @param {!Prettify<BD.MetaData>} meta */ (meta) => {
 					children: [
 						ce(Row, {
 							count: getCount(count),
-							string: t.MEMBERS,
+							string: MEMBERS,
 							displayType
 						}),
 						settings.online && ce(Row, {
 							fill: 'hsl(139, calc(var(--saturation-factor, 1) * 47.3%), 43.9%)',
 							count: getCount(online),
-							string: t.ONLINE,
+							string: ONLINE,
 							displayType
 						})
 					]
@@ -1422,7 +1435,12 @@ module.exports = /** @param {!Prettify<BD.MetaData>} meta */ (meta) => {
 				 * @returns {!boolean}
 				 */
 				const fn = (item) => item?.key?.startsWith(meta.name);
-				Patcher.after(ListThin, 'render', /** @param {!object} that @param {!unknown[]} args @param {!any} value */ (that, args, value) => {
+				/**
+				 * @param {!object} that
+				 * @param {!unknown[]} args
+				 * @param {!any} value
+				 */
+				const onMemberList = (that, args, value) => {
 					const [data] = args;
 					if (!data['data-list-id'] || !data['data-list-id'].startsWith('members-')) return value;
 					const ret = Array.isArray(value)
@@ -1446,7 +1464,8 @@ module.exports = /** @param {!Prettify<BD.MetaData>} meta */ (meta) => {
 						wrap.classList.add('hasCounter', getSpacing(settings));
 					}
 					return ret;
-				});
+				};
+				Patcher.after(ListThin, 'render', onMemberList);
 				updateMemberList();
 			},
 			ContextMenu (state) {
@@ -1468,9 +1487,10 @@ module.exports = /** @param {!Prettify<BD.MetaData>} meta */ (meta) => {
 					return children.length === 2;
 				};
 				/**
-				 * @type {!VoidFunction}
+				 * @param {!React.ReactElement} fiber
+				 * @param {!{ guild: { id: string; } }} props
 				 */
-				const patch = ContextMenu.patch('guild-context', /** @param {React.ReactElement} fiber @param {{ guild: { id: string } }} props */ (fiber, props) => {
+				const onContextMenu = (fiber, props) => {
 					const { navId } = fiber.props;
 					const { guild } = props;
 					if (navId !== 'guild-context' || !guild) return fiber;
@@ -1485,7 +1505,11 @@ module.exports = /** @param {!Prettify<BD.MetaData>} meta */ (meta) => {
 					if (!Array.isArray(fiber.props.children)) fiber.props.children = [fiber.props.children];
 					if (!fiber.props.children.some(fn)) fiber.props.children.splice(1, 0, group);
 					return fiber;
-				});
+				};
+				/**
+				 * @type {!VoidFunction}
+				 */
+				const patch = ContextMenu.patch('guild-context', onContextMenu);
 				this.#cache.push(patch);
 			}
 		};
@@ -1579,14 +1603,7 @@ module.exports = /** @param {!Prettify<BD.MetaData>} meta */ (meta) => {
 				type: Changelogs.Types.Improved.TYPE,
 				title: Changelogs.Types.Improved.TITLE,
 				items: [
-					'Refactored settings code.'
-				]
-			},
-			{
-				type: Changelogs.Types.Fixed.TYPE,
-				title: Changelogs.Types.Fixed.TITLE,
-				items: [
-					'Fixed the settings-to-ui sync for spacing style related settings, e.g. online counter and spacing style. It now correctly updates the spacing upon changing the setting.'
+					'Default styling now accounts for Discord\'s gradient themes.'
 				]
 			}
 		];
@@ -1595,6 +1612,22 @@ module.exports = /** @param {!Prettify<BD.MetaData>} meta */ (meta) => {
 		 * @type {!Record<string, Prettify<BD.Changes>[]>}
 		 */
 		static Old = {
+			'3.0.10': [
+				{
+					type: Changelogs.Types.Improved.TYPE,
+					title: Changelogs.Types.Improved.TITLE,
+					items: [
+						'Refactored settings code.'
+					]
+				},
+				{
+					type: Changelogs.Types.Fixed.TYPE,
+					title: Changelogs.Types.Fixed.TITLE,
+					items: [
+						'Fixed the settings-to-ui sync for spacing style related settings, e.g. online counter and spacing style. It now correctly updates the spacing upon changing the setting.'
+					]
+				}
+			],
 			'3.0.9': [
 				{
 					type: Changelogs.Types.Improved.TYPE,
