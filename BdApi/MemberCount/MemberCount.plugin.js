@@ -1,7 +1,7 @@
 /**
  * @name MemberCount
  * @author Arashiryuu
- * @version 3.0.11
+ * @version 3.0.12
  * @description Displays a server's member-count at the top of the member-list, can be styled with the `#MemberCount` selector.
  * @authorId 238108500109033472
  * @authorLink https://github.com/Arashiryuu
@@ -560,6 +560,7 @@ module.exports = (meta) => {
 			--_bg: var(--background-base-lower, transparent);
 
 			display: flex;
+			justify-content: center;
 			background: var(--_bg);
 			position: absolute;
 			color: var(--channels-default, var(--text-default));
@@ -589,11 +590,13 @@ module.exports = (meta) => {
 				padding: 12px 8px;
 				height: auto;
 				flex-direction: column;
+				border: unset;
 			}
 
 			& .membercount-row {
 				display: flex;
 				justify-content: center;
+				white-space-collapse: preserve;
 			}
 
 			& .membercount-icon {
@@ -1600,10 +1603,10 @@ module.exports = (meta) => {
 		 */
 		static Changes = [
 			{
-				type: Changelogs.Types.Improved.TYPE,
-				title: Changelogs.Types.Improved.TITLE,
+				type: Changelogs.Types.Fixed.TYPE,
+				title: Changelogs.Types.Fixed.TITLE,
 				items: [
-					'Default styling now accounts for Discord\'s gradient themes.'
+					'Fix styling for the counter\'s alignment, and fix spacing in classic display style.'
 				]
 			}
 		];
@@ -1612,6 +1615,15 @@ module.exports = (meta) => {
 		 * @type {!Record<string, Prettify<BD.Changes>[]>}
 		 */
 		static Old = {
+			'3.0.11': [
+				{
+					type: Changelogs.Types.Improved.TYPE,
+					title: Changelogs.Types.Improved.TITLE,
+					items: [
+						'Default styling now accounts for Discord\'s gradient themes.'
+					]
+				}
+			],
 			'3.0.10': [
 				{
 					type: Changelogs.Types.Improved.TYPE,
