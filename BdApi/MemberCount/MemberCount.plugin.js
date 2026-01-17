@@ -1,7 +1,7 @@
 /**
  * @name MemberCount
  * @author Arashiryuu
- * @version 3.0.12
+ * @version 3.0.13
  * @description Displays a server's member-count at the top of the member-list, can be styled with the `#MemberCount` selector.
  * @authorId 238108500109033472
  * @authorLink https://github.com/Arashiryuu
@@ -1440,12 +1440,13 @@ module.exports = (meta) => {
 				const fn = (item) => item?.key?.startsWith(meta.name);
 				/**
 				 * @param {!object} that
-				 * @param {!unknown[]} args
+				 * @param {!any[]} args
 				 * @param {!any} value
 				 */
 				const onMemberList = (that, args, value) => {
 					const [data] = args;
-					if (!data['data-list-id'] || !data['data-list-id'].startsWith('members-')) return value;
+					const type = data['data-list-id']?.split('-')[0] ?? data.className?.split('-')[1];
+					if (type !== 'members') return value;
 					const ret = Array.isArray(value)
 						? value
 						: Array.of(value);
@@ -1603,10 +1604,10 @@ module.exports = (meta) => {
 		 */
 		static Changes = [
 			{
-				type: Changelogs.Types.Fixed.TYPE,
-				title: Changelogs.Types.Fixed.TITLE,
+				type: Changelogs.Types.Improved.TYPE,
+				title: Changelogs.Types.Improved.TITLE,
 				items: [
-					'Fix styling for the counter\'s alignment, and fix spacing in classic display style.'
+					'Counter will now display in threads.'
 				]
 			}
 		];
@@ -1615,6 +1616,15 @@ module.exports = (meta) => {
 		 * @type {!Record<string, Prettify<BD.Changes>[]>}
 		 */
 		static Old = {
+			'3.0.12': [
+				{
+					type: Changelogs.Types.Fixed.TYPE,
+					title: Changelogs.Types.Fixed.TITLE,
+					items: [
+						'Fix styling for the counter\'s alignment, and fix spacing in classic display style.'
+					]
+				}
+			],
 			'3.0.11': [
 				{
 					type: Changelogs.Types.Improved.TYPE,
