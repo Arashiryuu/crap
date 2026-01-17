@@ -1,7 +1,7 @@
 /**
  * @name DateViewer
  * @author Arashiryuu
- * @version 1.0.20
+ * @version 1.0.21
  * @description Displays the current date, weekday, and time.
  * @authorId 238108500109033472
  * @authorLink https://github.com/Arashiryuu
@@ -134,12 +134,16 @@ module.exports = (meta) => {
 		en: {
 			HOUR12_LABEL: '12 Hour Time Format',
 			HOUR12_NOTE: 'Whether to use 12 hour time, or 24 hour time.',
+			ACTIVE_LABEL: 'Display on "Active Now" sidebar',
+			ACTIVE_NOTE: 'Toggle for enabling/disabling the viewer in the friends "Active Now" sidebar panel.',
 			SECONDS_LABEL: 'Display Seconds',
 			SECONDS_NOTE: 'Toggle for enabling/disabling the seconds on the viewer.'
 		},
 		fr: {
 			HOUR12_LABEL: 'Format d\'heure de 12 heures',
 			HOUR12_NOTE: 'Que ce soit pour utiliser l\'heure de 12 heures ou celle de 24 heures.',
+			ACTIVE_LABEL: '',
+			ACTIVE_NOTE: '',
 			SECONDS_LABEL: 'Afficher les secondes',
 			SECONDS_NOTE: 'Basculez pour activer/désactiver les secondes sur la visionneuse.'
 		}
@@ -147,18 +151,24 @@ module.exports = (meta) => {
 		// de: {
 		// 	HOUR12_LABEL: '12 Stunden Zeitformat',
 		// 	HOUR12_NOTE: '',
+		// 	ACTIVE_LABEL: '',
+		// 	ACTIVE_NOTE: '',
 		// 	SECONDS_LABEL: '',
 		// 	SECONDS_NOTE: ''
 		// },
 		// pl: {
 		// 	HOUR12_LABEL: '',
 		// 	HOUR12_NOTE: '',
+		// 	ACTIVE_LABEL: '',
+		// 	ACTIVE_NOTE: '',
 		// 	SECONDS_LABEL: '',
 		// 	SECONDS_NOTE: ''
 		// },
 		// ru: {
 		// 	HOUR12_LABEL: '',
 		// 	HOUR12_NOTE: '',
+		// 	ACTIVE_LABEL: '',
+		// 	ACTIVE_NOTE: '',
 		// 	SECONDS_LABEL: '',
 		// 	SECONDS_NOTE: ''
 		// }
@@ -457,6 +467,9 @@ module.exports = (meta) => {
 				--_bg: transparent;
 			}
 		}
+		.refresh-active-now #dv-mount {
+			width: -webkit-fill-available;
+		}
 		#dv-mount {
 			--_bg: var(--background-base-lower, transparent);
 			background-color: var(--_bg);
@@ -529,13 +542,13 @@ module.exports = (meta) => {
 	
 	const defaults = {
 		hour12: false,
+		activeNow: false,
 		displaySeconds: true
 	};
 	/**
 	 * @type {!typeof defaults}
 	 */
 	let settings = Utils.extend({}, defaults);
-
 	const DOM_MODE = false;
 
 	/**
@@ -834,6 +847,20 @@ module.exports = (meta) => {
 							settings.displaySeconds = e;
 							onChange();
 						}
+					},
+					{
+						id: 'active',
+						type: 'switch',
+						name: i18n.ACTIVE_LABEL,
+						note: i18n.ACTIVE_NOTE,
+						value: settings.activeNow ?? false,
+						/**
+						 * @param {!boolean} e
+						 */
+						onChange (e) {
+							settings.activeNow = e;
+							onChange();
+						}
 					}
 				]
 			}
@@ -1110,15 +1137,19 @@ module.exports = (meta) => {
 		 */
 		const listPatch = (that, args, value) => {
 			const [data] = args;
-			const ret = Array.isArray(value)
-				? value
-				: Array.of(value);
 			const type = data['data-list-id']?.split('-')[0] ?? data.className?.split('-')[1];
+			if (settings.activeNow && type === 'scroller') {
+				if (data.id) return value;
+				const ret = /** @type {!any[]} */ (value.props.children.props.children);
+				if (ret.find((fiber) => fiber?.key === instanceKey)) return value;
+				ret.push(ce(Viewer.Wrapped, { key: instanceKey }));
+				return value;
+			}
 			if (isThread(data)) {
 				// I thought there'd be work to do here...
-				return validateAndPush(type, ret);
+				return validateAndPush(type, value);
 			}
-			return validateAndPush(type, ret);
+			return validateAndPush(type, value);
 		};
 
 		// MemberList and Threads
@@ -1231,7 +1262,7 @@ module.exports = (meta) => {
 				type: Changelogs.Types.Improved.TYPE,
 				title: Changelogs.Types.Improved.TITLE,
 				items: [
-					'Default styling now accounts for Discord\'s gradient themes.'
+					'Add new option to display the viewer on the "Active Now" panel of the friends tab.'
 				]
 			}
 		];
@@ -1240,6 +1271,15 @@ module.exports = (meta) => {
 		 * @type {!Record<string, Prettify<BD.Changes>[]>}
 		 */
 		static Old = {
+			'1.0.20': [
+				{
+					type: Changelogs.Types.Improved.TYPE,
+					title: Changelogs.Types.Improved.TITLE,
+					items: [
+						'Default styling now accounts for Discord\'s gradient themes.'
+					]
+				}
+			],
 			'1.0.19': [
 				{
 					type: Changelogs.Types.Fixed.TYPE,
