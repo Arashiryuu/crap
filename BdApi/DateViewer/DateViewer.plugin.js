@@ -1100,6 +1100,12 @@ module.exports = (meta) => {
 	};
 
 	/**
+	 * @param {!unknown} x
+	 * @returns {!boolean}
+	 */
+	const isNil = (x) => x === null || x === undefined;
+
+	/**
 	 * @type {!BD.PatchFunction<void>}
 	 */
 	const patchMemberList = (state) => {
@@ -1139,7 +1145,7 @@ module.exports = (meta) => {
 			const [data] = args;
 			const type = data['data-list-id']?.split('-')[0] ?? data.className?.split('-')[1];
 			if (settings.activeNow && type === 'scroller') {
-				if (data.id || data.className?.startsWith('c1')) return value;
+				if (!isNil(data.id) || !isNil(data.fade) || data.className?.startsWith('c1')) return value;
 				const ret = /** @type {!any[]} */ (value.props.children.props.children);
 				if (ret.find((fiber) => fiber?.key === instanceKey)) return value;
 				ret.push(ce(Viewer.Wrapped, { key: instanceKey }));
@@ -1269,7 +1275,8 @@ module.exports = (meta) => {
 				type: Changelogs.Types.Fixed.TYPE,
 				title: Changelogs.Types.Fixed.TITLE,
 				items: [
-					'Fix viewer appearing at bottom of app when a context-menu is opened.'
+					'Fix viewer appearing at bottom of app when a context-menu is opened.',
+					'Fix viewer appearing in a message\'s "view reactions" reactions modal.'
 				]
 			}
 		];
