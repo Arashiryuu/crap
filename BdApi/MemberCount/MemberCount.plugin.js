@@ -1,7 +1,7 @@
 /**
  * @name MemberCount
  * @author Arashiryuu
- * @version 3.0.13
+ * @version 3.0.14
  * @description Displays a server's member-count at the top of the member-list, can be styled with the `#MemberCount` selector.
  * @authorId 238108500109033472
  * @authorLink https://github.com/Arashiryuu
@@ -106,9 +106,12 @@ module.exports = (meta) => {
 			filter: Filters.byKeys('Messages', '_languages')
 		},
 		{
-			filter: Filters.Forwarded.byStrings('renderSection:', 'renderListHeader:'),
-			searchExports: true
+			filter: Filters.byKeys('createToast', 'popToast')
 		},
+		// {
+		// 	filter: Filters.Forwarded.byStrings('renderSection:', 'renderListHeader:'),
+		//	searchExports: true
+		// },
 		{
 			filter: Filters.byKeys('inspect', 'promisify')
 		},
@@ -126,7 +129,7 @@ module.exports = (meta) => {
 			/**
 			 * @type {!FilterFunction}
 			 */
-			filter: (m) => m?.container?.endsWith('13cf1')
+			filter: Filters.byKeys('header', 'container', 'text-sm/medium') //(m) => m?.container?.endsWith('13cf1')
 		}
 	];
 
@@ -144,13 +147,16 @@ module.exports = (meta) => {
 		SelectedGuildStore,
 		// Modules
 		LangUtils,
-		ListThin,
+		BulkModule,
+		// ListThin,
 		// Functions & Data
 		{ inspect },
 		useStateFromStores,
 		formClasses,
 		...mClasses
 	] = modules.slice(3);
+
+	const ListThin = Utils.findInTree(BulkModule, Filters.Forwarded.byStrings('renderSection:', 'renderListHeader:'));
 
 	const options = {
 		style: [
@@ -486,7 +492,15 @@ module.exports = (meta) => {
 	 */
 	const toSelector = (className) => `.${className.split(' ').join('.')}`;
 
-	const memberListClasses = Object.assign({}, ...mClasses);
+	const memberListClasses = mClasses.reduce((o, dict) => {
+		const descriptors = Object.getOwnPropertyDescriptors(dict);
+		for (const [key, desc] of Object.entries(descriptors)) {
+			if (desc.enumerable) continue;
+			o[key] = desc.value;
+		}
+		return o;
+	}, {});
+	// const memberListClasses = Object.assign({}, ...mClasses);
 	/**
 	 * Current selectors for the member-list.
 	 */
@@ -1445,7 +1459,7 @@ module.exports = (meta) => {
 				 */
 				const onMemberList = (that, args, value) => {
 					const [data] = args;
-					const type = data['data-list-id']?.split('-')[0] ?? data.className?.split('-')[1];
+					const type = data['data-list-id']?.split('-')[0] ?? data.className?.split('_')[0];
 					if (type !== 'members') return value;
 					const ret = Array.isArray(value)
 						? value
@@ -1604,10 +1618,10 @@ module.exports = (meta) => {
 		 */
 		static Changes = [
 			{
-				type: Changelogs.Types.Improved.TYPE,
-				title: Changelogs.Types.Improved.TITLE,
+				type: Changelogs.Types.Fixed.TYPE,
+				title: Changelogs.Types.Fixed.TITLE,
 				items: [
-					'Counter will now display in threads.'
+					'Reconcile module queries with most recent Discord update changes.'
 				]
 			}
 		];
@@ -1616,6 +1630,15 @@ module.exports = (meta) => {
 		 * @type {!Record<string, Prettify<BD.Changes>[]>}
 		 */
 		static Old = {
+			'3.0.13': [
+				{
+					type: Changelogs.Types.Improved.TYPE,
+					title: Changelogs.Types.Improved.TITLE,
+					items: [
+						'Counter will now display in threads.'
+					]
+				}
+			],
 			'3.0.12': [
 				{
 					type: Changelogs.Types.Fixed.TYPE,
