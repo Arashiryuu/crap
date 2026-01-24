@@ -1,7 +1,7 @@
 /**
  * @name DateViewer
  * @author Arashiryuu
- * @version 1.0.21
+ * @version 1.0.22
  * @description Displays the current date, weekday, and time.
  * @authorId 238108500109033472
  * @authorLink https://github.com/Arashiryuu
@@ -103,14 +103,17 @@ module.exports = (meta) => {
 			filter: Filters.byKeys('Messages', '_languages')
 		},
 		{
-			/**
-			 * @type {!FilterFunction}
-			 */
-			filter: Filters.Forwarded.byStrings('renderSection:', 'renderListHeader:'),
-			searchExports: true
+			filter: Filters.byKeys('createToast', 'popToast')
 		},
+		// {
+		// 	/**
+		// 	 * @type {!FilterFunction}
+		// 	 */
+		// 	filter: Filters.Forwarded.byStrings('renderSection:', 'renderListHeader:'),
+		// 	searchExports: true
+		// },
 		{
-			filter: Filters.bySource('.thin,', '.auto,', '.fade)')
+			filter: Filters.byId(573613)//Filters.bySource('.thin,', '.auto,', '.fade)')
 		},
 		{
 			filter: Filters.byKeys('inspect', 'promisify')
@@ -122,11 +125,14 @@ module.exports = (meta) => {
 	const modules = Webpack.getBulk(...queries);
 	const [
 		LangUtils,
-		ListThin,
+		BulkModule,
+		// ListThin,
 		ListGroupDM,
 		{ inspect },
 		...mClasses
 	] = modules.slice(3);
+	const ListThin = Utils.findInTree(BulkModule, Filters.Forwarded.byStrings('renderSection:', 'renderListHeader:'));
+	// const ListGroupDM = Utils.findInTree(BulkModule, Filters.Forwarded.byStrings('paddingFix:', 'scrollerRef:'));
 
 	/* Language Strings */
 
@@ -435,7 +441,15 @@ module.exports = (meta) => {
 	 */
 	const toSelector = (className) => `.${className.split(' ').join('.')}`;
 
-	const memberListClasses = Object.assign({}, ...mClasses);
+	const memberListClasses = {};
+	for (const classes of mClasses) {
+		const descs = Object.getOwnPropertyDescriptors(classes);
+		for (const [key, desc] of Object.entries(descs)) {
+			if (desc.enumerable) continue;
+			memberListClasses[key] = desc.value;
+		}
+	}
+	// const memberListClasses = Object.assign({}, ...mClasses);
 	/**
 	 * Current selector for the member-list.
 	 */
@@ -1143,9 +1157,9 @@ module.exports = (meta) => {
 		 */
 		const listPatch = (that, args, value) => {
 			const [data] = args;
-			const type = data['data-list-id']?.split('-')[0] ?? data.className?.split('-')[1];
+			const type = data['data-list-id']?.split('-')[0] ?? data.className?.split('_')[0];
 			if (settings.activeNow && type === 'scroller') {
-				if (!isNil(data.id) || !isNil(data.fade) || data.className?.startsWith('c1')) return value;
+				if (!isNil(data.id) || !isNil(data.fade) || data.className?.split('_')[1]?.startsWith('c1')) return value;
 				const ret = /** @type {!any[]} */ (value.props.children.props.children);
 				if (ret.find((fiber) => fiber?.key === instanceKey)) return value;
 				ret.push(ce(Viewer.Wrapped, { key: instanceKey }));
@@ -1161,8 +1175,8 @@ module.exports = (meta) => {
 		// MemberList and Threads
 		Patcher.after(ListThin, 'render', listPatch);
 		// GroupDMs
-		if (!ListGroupDM || !ListGroupDM.zJ) return;
-		Patcher.after(ListGroupDM.zJ, 'render', listPatch);
+		if (!ListGroupDM || !ListGroupDM.Ip) return;
+		Patcher.after(ListGroupDM.Ip, 'render', listPatch);
 	};
 
 	const onStart = () => {
@@ -1265,18 +1279,10 @@ module.exports = (meta) => {
 		 */
 		static Changes = [
 			{
-				type: Changelogs.Types.Improved.TYPE,
-				title: Changelogs.Types.Improved.TITLE,
-				items: [
-					'Add new option to display the viewer on the "Active Now" panel of the friends tab.'
-				]
-			},
-			{
 				type: Changelogs.Types.Fixed.TYPE,
 				title: Changelogs.Types.Fixed.TITLE,
 				items: [
-					'Fix viewer appearing at bottom of app when a context-menu is opened.',
-					'Fix viewer appearing in a message\'s "view reactions" reactions modal.'
+					'Reconcile module queries with most recent Discord update changes.'
 				]
 			}
 		];
@@ -1285,6 +1291,23 @@ module.exports = (meta) => {
 		 * @type {!Record<string, Prettify<BD.Changes>[]>}
 		 */
 		static Old = {
+			'1.0.21': [
+				{
+					type: Changelogs.Types.Improved.TYPE,
+					title: Changelogs.Types.Improved.TITLE,
+					items: [
+						'Add new option to display the viewer on the "Active Now" panel of the friends tab.'
+					]
+				},
+				{
+					type: Changelogs.Types.Fixed.TYPE,
+					title: Changelogs.Types.Fixed.TITLE,
+					items: [
+						'Fix viewer appearing at bottom of app when a context-menu is opened.',
+						'Fix viewer appearing in a message\'s "view reactions" reactions modal.'
+					]
+				}
+			],
 			'1.0.20': [
 				{
 					type: Changelogs.Types.Improved.TYPE,
