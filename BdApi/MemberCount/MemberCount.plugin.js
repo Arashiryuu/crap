@@ -1,7 +1,7 @@
 /**
  * @name MemberCount
  * @author Arashiryuu
- * @version 3.0.14
+ * @version 3.0.15
  * @description Displays a server's member-count at the top of the member-list, can be styled with the `#MemberCount` selector.
  * @authorId 238108500109033472
  * @authorLink https://github.com/Arashiryuu
@@ -15,7 +15,7 @@
 
 /*@cc_on
 @if (@_jscript)
-	
+
 	// Offer to self-install for clueless users that try to run this directly.
 	var shell = WScript.CreateObject('WScript.Shell');
 	var fs = new ActiveXObject('Scripting.FileSystemObject');
@@ -45,7 +45,7 @@ module.exports = (meta) => {
 	'use strict';
 	// @ts-ignore
 	const Api = new BdApi(meta.name);
-	const { UI, DOM, Data, React, Utils, Themes, Plugins, Patcher, Webpack, ReactDOM, ReactUtils, ContextMenu } = Api;
+	const { UI, DOM, Data, React, Utils, Themes, Plugins, Patcher, Webpack, ReactDOM, Components, ReactUtils, ContextMenu } = Api;
 	const { createElement: ce, useRef, useMemo, useState, useEffect, useReducer, useCallback, useLayoutEffect } = React;
 	const { createRoot } = ReactDOM;
 	const { getModule, getWithKey, waitForModule } = Webpack;
@@ -115,10 +115,10 @@ module.exports = (meta) => {
 		{
 			filter: Filters.byKeys('inspect', 'promisify')
 		},
-		{
-			filter: Filters.byStrings('stores', 'getStateFromStores', 'useStateFromStores'),
-			searchExports: true
-		},
+		// {
+		// 	filter: Filters.byStrings('stores', 'getStateFromStores', 'useStateFromStores'),
+		// 	searchExports: true
+		// },
 		{
 			filter: Filters.byKeys('dividerDefault')
 		},
@@ -151,12 +151,32 @@ module.exports = (meta) => {
 		// ListThin,
 		// Functions & Data
 		{ inspect },
-		useStateFromStores,
+		// useStateFromStores,
 		formClasses,
 		...mClasses
 	] = modules.slice(3);
 
 	const ListThin = Utils.findInTree(BulkModule, Filters.Forwarded.byStrings('renderSection:', 'renderListHeader:'));
+
+	/**
+	 * @template T
+	 * @param {!BD.Store[]} stores
+	 * @param {!(() => T)} updater
+	 * @returns {!T}
+	 */
+	const useStateFromStores = (stores, updater) => {
+		const [state, setState] = useState(updater);
+		const listener = () => setState(updater);
+
+		useEffect(() => {
+			for (const store of stores) store.addChangeListener(listener);
+			return () => {
+				for (const store of stores) store.removeChangeListener(listener);
+			};
+		}, [state]);
+
+		return state;
+	};
 
 	const options = {
 		style: [
@@ -283,7 +303,7 @@ module.exports = (meta) => {
 	const Logger = _Object('Logger');
 	{
 		/**
-		 * @param {!string} label 
+		 * @param {!string} label
 		 * @returns {!string[]}
 		 */
 		const useParts = (label) => [
@@ -356,7 +376,7 @@ module.exports = (meta) => {
 
 	/**
 	 * Generates an SVGElement or HTMLElement from the provided tag name.
-	 * @param {!string} tag
+	 * @param {!Keys<HTMLElementTagNameMap & SVGElementTagNameMap>} tag
 	 * @returns {!BD.DOMElement}
 	 */
 	const getElement = (tag) => {
@@ -380,7 +400,7 @@ module.exports = (meta) => {
 	const toDataAttr = (key) => key.replace(/([A-Z]{1})/g, '-$1').toLowerCase();
 
 	/**
-	 * @param {!string} key 
+	 * @param {!string} key
 	 * @returns {!boolean}
 	 */
 	const isEvent = (key) => key.slice(0, 2) === 'on' && key[2] === key[2].toUpperCase();
@@ -390,10 +410,10 @@ module.exports = (meta) => {
 	 * @returns {!boolean}
 	 */
 	const isDataAttr = (key) => key.startsWith('data') && key.toLowerCase() !== key;
-	
+
 	/**
 	 * A `document.createElement` helper function.
-	 * @param {!string} type
+	 * @param {!Keys<HTMLElementTagNameMap & SVGElementTagNameMap>} type
 	 * @param {?object} props
 	 * @param {!BD.ChildNode[]} children
 	 * @returns {!BD.DOMElement}
@@ -469,7 +489,7 @@ module.exports = (meta) => {
 	};
 
 	/**
-	 * @param {!BD.ChildNode[]} [children] 
+	 * @param {!BD.ChildNode[]} [children]
 	 * @returns {!DocumentFragment}
 	 */
 	const fragment = (children = []) => {
@@ -492,15 +512,15 @@ module.exports = (meta) => {
 	 */
 	const toSelector = (className) => `.${className.split(' ').join('.')}`;
 
-	const memberListClasses = mClasses.reduce((o, dict) => {
-		const descriptors = Object.getOwnPropertyDescriptors(dict);
-		for (const [key, desc] of Object.entries(descriptors)) {
-			if (desc.enumerable) continue;
-			o[key] = desc.value;
-		}
-		return o;
-	}, {});
-	// const memberListClasses = Object.assign({}, ...mClasses);
+	// const memberListClasses = mClasses.reduce((o, dict) => {
+	// 	const descriptors = Object.getOwnPropertyDescriptors(dict);
+	// 	for (const [key, desc] of Object.entries(descriptors)) {
+	// 		if (desc.enumerable) continue;
+	// 		o[key] = desc.value;
+	// 	}
+	// 	return o;
+	// }, {});
+	const memberListClasses = Object.assign({}, ...mClasses);
 	/**
 	 * Current selectors for the member-list.
 	 */
@@ -539,7 +559,7 @@ module.exports = (meta) => {
 	const getSpacing = ({ marginSpacing, online }) => {
 		let min = 40;
 		let max = 60;
-		
+
 		if (marginSpacing === 0) {
 			min = 30;
 			max = 40;
@@ -598,7 +618,7 @@ module.exports = (meta) => {
 							 0 0 1px black, 0 0 2px black, 0 0 3px black,
 							 0 0 1px black, 0 0 2px black, 0 0 3px black;
 			}
-			
+
 			& h3 {
 				display: flex;
 				padding: 12px 8px;
@@ -668,7 +688,7 @@ module.exports = (meta) => {
 			}
 		}
 
-		/* Context Menu Item 
+		/* Context Menu Item
 		.membercount-menu-icon::before {
 			content: '';
 			-webkit-mask-image: url('data:image/svg+xml;utf-8,<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="${menuIconSvg}"/></svg>');
@@ -682,7 +702,7 @@ module.exports = (meta) => {
 	};
 
 	/* Settings */
-	
+
 	const defaults = {
 		/**
 		 * List of server ids where the counter will not be rendered.
@@ -816,7 +836,7 @@ module.exports = (meta) => {
 			onChange
 		});
 	});
-	
+
 	const Divider = () => ce('div', {
 		className: Utils.className({
 			[formClasses.divider]: typeof formClasses.divider !== 'undefined',
@@ -842,13 +862,13 @@ module.exports = (meta) => {
 				}),
 				ce('div', {
 					className: formClasses.note,
-					children: ce(Api.Components.Text, {
-						color: Api.Components.Text.Colors.HEADER_SECONDARY,
+					children: ce(Components.Text, {
+						color: Components.Text.Colors.HEADER_SECONDARY,
 						children: note
 					})
 				}),
 				ce(Divider, {}),
-				ce(Api.Components.RadioInput, {
+				ce(Components.RadioInput, {
 					name: label,
 					note,
 					value: defaultValue,
@@ -912,13 +932,13 @@ module.exports = (meta) => {
 	 */
 	const buildSettings = (opts) => {
 		const {
-			id, 
+			id,
 			name,
 			shown,
 			collapsible,
 			settings: data
 		} = opts;
-		return ce(Api.Components.SettingGroup, {
+		return ce(Components.SettingGroup, {
 			id,
 			name,
 			shown,
@@ -1621,7 +1641,7 @@ module.exports = (meta) => {
 				type: Changelogs.Types.Fixed.TYPE,
 				title: Changelogs.Types.Fixed.TITLE,
 				items: [
-					'Reconcile module queries with most recent Discord update changes.'
+					'Reconcile handling of module classes now that BetterDiscord has inverted how it handles them.'
 				]
 			}
 		];
@@ -1630,6 +1650,15 @@ module.exports = (meta) => {
 		 * @type {!Record<string, Prettify<BD.Changes>[]>}
 		 */
 		static Old = {
+			'3.0.14': [
+				{
+					type: Changelogs.Types.Fixed.TYPE,
+					title: Changelogs.Types.Fixed.TITLE,
+					items: [
+						'Reconcile module queries with most recent Discord update changes.'
+					]
+				}
+			],
 			'3.0.13': [
 				{
 					type: Changelogs.Types.Improved.TYPE,
