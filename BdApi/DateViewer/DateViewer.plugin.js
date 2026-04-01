@@ -1,7 +1,7 @@
 /**
  * @name DateViewer
  * @author Arashiryuu
- * @version 1.0.22
+ * @version 1.0.23
  * @description Displays the current date, weekday, and time.
  * @authorId 238108500109033472
  * @authorLink https://github.com/Arashiryuu
@@ -15,7 +15,7 @@
 
 /*@cc_on
 @if (@_jscript)
-	
+
 	// Offer to self-install for clueless users that try to run this directly.
 	var shell = WScript.CreateObject('WScript.Shell');
 	var fs = new ActiveXObject('Scripting.FileSystemObject');
@@ -34,7 +34,7 @@
 		shell.Popup('I\'m installed!\nJust reload Discord with Ctrl+R.', 0, 'Successfully installed', 0x40);
 	}
 	WScript.Quit();
-	
+
 @else@*/
 
 /**
@@ -63,7 +63,7 @@ module.exports = (meta) => {
 		 */
 		byName: Filters.byDisplayName,
 		/**
-		 * @param {!string} name 
+		 * @param {!string} name
 		 * @returns {!FilterFunction}
 		 */
 		byStore: (name = '') => (m) => m?._dispatchToken && m?.getName() === name,
@@ -179,7 +179,7 @@ module.exports = (meta) => {
 		// 	SECONDS_NOTE: ''
 		// }
 	});
-	
+
 	/**
 	 * @typedef i18nStrings
 	 * @type {!Values<typeof strings>}
@@ -238,7 +238,7 @@ module.exports = (meta) => {
 	const Logger = _Object('Logger');
 	{
 		/**
-		 * @param {!string} label 
+		 * @param {!string} label
 		 * @returns {!string[]}
 		 */
 		const useParts = (label) => [
@@ -323,7 +323,7 @@ module.exports = (meta) => {
 	};
 
 	/**
-	 * @param {!string} key 
+	 * @param {!string} key
 	 * @returns {!boolean}
 	 */
 	const isEvent = (key) => key.slice(0, 2) === 'on' && key[2] === key[2].toUpperCase();
@@ -350,7 +350,7 @@ module.exports = (meta) => {
 
 	/**
 	 * A `document.createElement` helper function.
-	 * @param {!string} type 
+	 * @param {!string} type
 	 * @param {!object} props
 	 * @param {!(string | Node)[]} children
 	 * @returns {!BD.DOMElement}
@@ -441,15 +441,18 @@ module.exports = (meta) => {
 	 */
 	const toSelector = (className) => `.${className.split(' ').join('.')}`;
 
-	const memberListClasses = {};
-	for (const classes of mClasses) {
-		const descs = Object.getOwnPropertyDescriptors(classes);
-		for (const [key, desc] of Object.entries(descs)) {
-			if (desc.enumerable) continue;
-			memberListClasses[key] = desc.value;
-		}
-	}
-	// const memberListClasses = Object.assign({}, ...mClasses);
+	// const memberListClasses = {};
+	// for (const classes of mClasses) {
+	// 	/**
+	// 	 * @type {!PropertyDescriptorMap}
+	// 	 */
+	// 	const descs = Object.getOwnPropertyDescriptors(classes);
+	// 	for (const [key, desc] of Object.entries(descs)) {
+	// 		if (desc.enumerable) continue;
+	// 		memberListClasses[key] = desc.value;
+	// 	}
+	// }
+	const memberListClasses = Object.assign({}, ...mClasses);
 	/**
 	 * Current selector for the member-list.
 	 */
@@ -553,7 +556,7 @@ module.exports = (meta) => {
 	`;
 
 	/* Settings */
-	
+
 	const defaults = {
 		hour12: false,
 		activeNow: false,
@@ -563,6 +566,7 @@ module.exports = (meta) => {
 	 * @type {!typeof defaults}
 	 */
 	let settings = Utils.extend({}, defaults);
+
 	const DOM_MODE = false;
 
 	/**
@@ -720,7 +724,7 @@ module.exports = (meta) => {
 	 */
 	const buildSettings = (opts) => {
 		const {
-			id, 
+			id,
 			name,
 			shown,
 			collapsible,
@@ -959,7 +963,7 @@ module.exports = (meta) => {
 			weekday: d.toLocaleDateString(l, { weekday: 'long' })
 		};
 	};
-	
+
 	const dataZero = getData();
 
 	/**
@@ -1033,10 +1037,10 @@ module.exports = (meta) => {
 		 * @type {!React.RefObject<HTMLDivElement>}
 		*/
 		const ref = useRef();
-		
+
 		// useAnimationFrame(update);
 		useInterval(update);
-		
+
 		if (DOM_MODE) {
 			return ce('div', {
 				id: 'dv-main',
@@ -1049,7 +1053,7 @@ module.exports = (meta) => {
 				]
 			});
 		}
-		
+
 		return ce('div', {
 			id: 'dv-mount',
 			children: [
@@ -1159,8 +1163,10 @@ module.exports = (meta) => {
 			const [data] = args;
 			const type = data['data-list-id']?.split('-')[0] ?? data.className?.split('_')[0];
 			if (settings.activeNow && type === 'scroller') {
-				if (!isNil(data.id) || !isNil(data.fade) || data.className?.split('_')[1]?.startsWith('c1')) return value;
+				const cn = data.className?.split('_').pop();
+				if (!isNil(data.id) || !isNil(data.fade) || cn && (cn.startsWith('c1') || cn.startsWith('9d'))) return value;
 				const ret = /** @type {!any[]} */ (value.props.children.props.children);
+				if (Array.isArray(ret[0]) && ret[0].length && Object.hasOwn(ret[0][0].props, 'rawGame')) return value;
 				if (ret.find((fiber) => fiber?.key === instanceKey)) return value;
 				ret.push(ce(Viewer.Wrapped, { key: instanceKey }));
 				return value;
@@ -1282,7 +1288,7 @@ module.exports = (meta) => {
 				type: Changelogs.Types.Fixed.TYPE,
 				title: Changelogs.Types.Fixed.TITLE,
 				items: [
-					'Reconcile module queries with most recent Discord update changes.'
+					'Reconcile handling of module classes now that BetterDiscord has inverted how it handles them.'
 				]
 			}
 		];
@@ -1291,6 +1297,15 @@ module.exports = (meta) => {
 		 * @type {!Record<string, Prettify<BD.Changes>[]>}
 		 */
 		static Old = {
+			'1.0.22': [
+				{
+					type: Changelogs.Types.Fixed.TYPE,
+					title: Changelogs.Types.Fixed.TITLE,
+					items: [
+						'Reconcile module queries with most recent Discord update changes.'
+					]
+				}
+			],
 			'1.0.21': [
 				{
 					type: Changelogs.Types.Improved.TYPE,
