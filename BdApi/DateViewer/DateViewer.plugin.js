@@ -1,7 +1,7 @@
 /**
  * @name DateViewer
  * @author Arashiryuu
- * @version 1.0.23
+ * @version 1.0.24
  * @description Displays the current date, weekday, and time.
  * @authorId 238108500109033472
  * @authorLink https://github.com/Arashiryuu
@@ -102,16 +102,17 @@ module.exports = (meta) => {
 		{
 			filter: Filters.byKeys('Messages', '_languages')
 		},
-		{
-			filter: Filters.byKeys('createToast', 'popToast')
-		},
 		// {
-		// 	/**
-		// 	 * @type {!FilterFunction}
-		// 	 */
-		// 	filter: Filters.Forwarded.byStrings('renderSection:', 'renderListHeader:'),
-		// 	searchExports: true
+		// 	filter: Filters.byKeys('createToast', 'popToast')
 		// },
+		{
+			/**
+			 * @type {!FilterFunction}
+			 */
+			filter: Filters.Forwarded.byStrings('renderSection:', 'renderListHeader:'),
+			searchExports: true,
+			raw: true
+		},
 		{
 			filter: Filters.byId(573613)//Filters.bySource('.thin,', '.auto,', '.fade)')
 		},
@@ -125,14 +126,15 @@ module.exports = (meta) => {
 	const modules = Webpack.getBulk(...queries);
 	const [
 		LangUtils,
-		BulkModule,
-		// ListThin,
+		//BulkModule,
+		ListThin,
 		ListGroupDM,
 		{ inspect },
 		...mClasses
 	] = modules.slice(3);
-	const ListThin = Utils.findInTree(BulkModule, Filters.Forwarded.byStrings('renderSection:', 'renderListHeader:'));
+	// const ListThin = Utils.findInTree(BulkModule, Filters.Forwarded.byStrings('renderSection:', 'renderListHeader:'));
 	// const ListGroupDM = Utils.findInTree(BulkModule, Filters.Forwarded.byStrings('paddingFix:', 'scrollerRef:'));
+
 
 	/* Language Strings */
 
@@ -1179,7 +1181,7 @@ module.exports = (meta) => {
 		};
 
 		// MemberList and Threads
-		Patcher.after(ListThin, 'render', listPatch);
+		Patcher.after(ListThin.exports.OZ, 'render', listPatch);
 		// GroupDMs
 		if (!ListGroupDM || !ListGroupDM.Ip) return;
 		Patcher.after(ListGroupDM.Ip, 'render', listPatch);
@@ -1288,7 +1290,7 @@ module.exports = (meta) => {
 				type: Changelogs.Types.Fixed.TYPE,
 				title: Changelogs.Types.Fixed.TITLE,
 				items: [
-					'Reconcile handling of module classes now that BetterDiscord has inverted how it handles them.'
+					'Reconcile module acquisition with recent update.'
 				]
 			}
 		];
@@ -1297,6 +1299,15 @@ module.exports = (meta) => {
 		 * @type {!Record<string, Prettify<BD.Changes>[]>}
 		 */
 		static Old = {
+			'1.0.23': [
+				{
+					type: Changelogs.Types.Fixed.TYPE,
+					title: Changelogs.Types.Fixed.TITLE,
+					items: [
+						'Reconcile handling of module classes now that BetterDiscord has inverted how it handles them.'
+					]
+				}
+			],
 			'1.0.22': [
 				{
 					type: Changelogs.Types.Fixed.TYPE,
