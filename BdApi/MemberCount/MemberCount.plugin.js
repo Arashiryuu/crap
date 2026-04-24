@@ -1,7 +1,7 @@
 /**
  * @name MemberCount
  * @author Arashiryuu
- * @version 3.0.15
+ * @version 3.0.16
  * @description Displays a server's member-count at the top of the member-list, can be styled with the `#MemberCount` selector.
  * @authorId 238108500109033472
  * @authorLink https://github.com/Arashiryuu
@@ -84,6 +84,7 @@ module.exports = (meta) => {
 	});
 
 	const queries = [
+		// gone, reduced to atoms...
 		{
 			filter: Filters.byStrings('checked:', 'tooltipNote:'),
 			searchExports: true
@@ -97,21 +98,17 @@ module.exports = (meta) => {
 			searchExports: true
 		},
 		{
-			filter: Filters.byStore('GuildMemberCountStore')
-		},
-		{
-			filter: Filters.byStore('SelectedGuildStore')
-		},
-		{
 			filter: Filters.byKeys('Messages', '_languages')
 		},
-		{
-			filter: Filters.byKeys('createToast', 'popToast')
-		},
+		// gone, reduced to atoms...
 		// {
-		// 	filter: Filters.Forwarded.byStrings('renderSection:', 'renderListHeader:'),
-		//	searchExports: true
+		// 	filter: Filters.byKeys('createToast', 'popToast')
 		// },
+		{
+			filter: Filters.Forwarded.byStrings('renderSection:', 'renderListHeader:'),
+			searchExports: true,
+			raw: true
+		},
 		{
 			filter: Filters.byKeys('inspect', 'promisify')
 		},
@@ -142,13 +139,10 @@ module.exports = (meta) => {
 	 */
 	const toString = Function.call.bind(Object.prototype.toString);
 	const [
-		// Stores
-		MemberCountStores,
-		SelectedGuildStore,
 		// Modules
 		LangUtils,
-		BulkModule,
-		// ListThin,
+		// BulkModule,
+		ListThin,
 		// Functions & Data
 		{ inspect },
 		// useStateFromStores,
@@ -156,7 +150,12 @@ module.exports = (meta) => {
 		...mClasses
 	] = modules.slice(3);
 
-	const ListThin = Utils.findInTree(BulkModule, Filters.Forwarded.byStrings('renderSection:', 'renderListHeader:'));
+	const {
+		GuildMemberCountStore: MemberCountStores,
+		SelectedGuildStore
+	} = Webpack.Stores;
+
+	// const ListThin = Utils.findInTree(BulkModule, Filters.Forwarded.byStrings('renderSection:', 'renderListHeader:'));
 
 	/**
 	 * @template T
@@ -1503,7 +1502,7 @@ module.exports = (meta) => {
 					}
 					return ret;
 				};
-				Patcher.after(ListThin, 'render', onMemberList);
+				Patcher.after(ListThin.exports.OZ, 'render', onMemberList);
 				updateMemberList();
 			},
 			ContextMenu (state) {
@@ -1582,7 +1581,7 @@ module.exports = (meta) => {
 
 	/**
 	 * @typedef VersionTuple
-	 * @type {![VersionNumeral, Solid<VersionData>]}
+	 * @type {![VersionNumeral, VersionData['hasShownChangelog']]}
 	 */
 
 	const Versions = class Versions {
@@ -1605,7 +1604,7 @@ module.exports = (meta) => {
 			/**
 			 * @type {!VersionTuple}
 			 */
-			const ret = [Versions.Signs.SAME, local];
+			const ret = [Versions.Signs.SAME, local.hasShownChangelog];
 			if (!local || !local.version) return ret;
 			if (local.hasShownChangelog && local.version === meta.version) return ret;
 			ret[0] = Utils.semverCompare(local.version, meta.version);
@@ -1641,7 +1640,7 @@ module.exports = (meta) => {
 				type: Changelogs.Types.Fixed.TYPE,
 				title: Changelogs.Types.Fixed.TITLE,
 				items: [
-					'Reconcile handling of module classes now that BetterDiscord has inverted how it handles them.'
+					'Reconcile module acquisition with recent update.'
 				]
 			}
 		];
@@ -1650,6 +1649,15 @@ module.exports = (meta) => {
 		 * @type {!Record<string, Prettify<BD.Changes>[]>}
 		 */
 		static Old = {
+			'3.0.15': [
+				{
+					type: Changelogs.Types.Fixed.TYPE,
+					title: Changelogs.Types.Fixed.TITLE,
+					items: [
+						'Reconcile handling of module classes now that BetterDiscord has inverted how it handles them.'
+					]
+				}
+			],
 			'3.0.14': [
 				{
 					type: Changelogs.Types.Fixed.TYPE,
@@ -1749,9 +1757,9 @@ module.exports = (meta) => {
 		};
 
 		static show () {
-			const [sign, local] = Versions.getInfo();
+			const [sign, shown] = Versions.getInfo();
 			if (sign === Versions.Signs.LEFT) return;
-			if (sign === Versions.Signs.SAME && local && local.hasShownChangelog) return;
+			if (sign === Versions.Signs.SAME && shown) return;
 			if (Changelogs.Changes.length) UI.showChangelogModal(Changelogs.ModalData);
 			Data.save(Versions.key, { version: meta.version, hasShownChangelog: true });
 		}
