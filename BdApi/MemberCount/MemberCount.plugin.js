@@ -1,7 +1,7 @@
 /**
  * @name MemberCount
  * @author Arashiryuu
- * @version 3.0.16
+ * @version 3.0.17
  * @description Displays a server's member-count at the top of the member-list, can be styled with the `#MemberCount` selector.
  * @authorId 238108500109033472
  * @authorLink https://github.com/Arashiryuu
@@ -575,7 +575,7 @@ module.exports = (meta) => {
 		M12 5.9c1.16 0 2.1.94 2.1 2.1s-.94 2.1-2.1 2.1S9.9 9.16 9.9 8s.94-2.1 2.1-2.1m0 9c2.97 0 6.1 1.46 6.1 2.1v1.1H5.9V17c0-.64
 		3.13-2.1 6.1-2.1M12 4C9.79 4 8 5.79 8 8s1.79 4 4 4 4-1.79 4-4-1.79-4-4-4m0 9c-2.67 0-8 1.34-8 4v3h16v-3c0-2.66-5.33-4-8-4
 	`;
-	const getCss = () => css`
+	const _css = css`
 		.theme-light {
 			& #MemberCount {
 				--_hsla: 0, 0%, 0%, 0.04;
@@ -694,11 +694,6 @@ module.exports = (meta) => {
 			mask-image: url('data:image/svg+xml;utf-8,<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="${menuIconSvg}"/></svg>');
 		}*/
 	`;
-
-	const updateStyle = () => {
-		DOM.removeStyle(CSSKey);
-		DOM.addStyle(CSSKey, getCss());
-	};
 
 	/* Settings */
 
@@ -1383,7 +1378,6 @@ module.exports = (meta) => {
 		saveSettings();
 		if (DOM_MODE) {
 			refitCounter();
-			updateStyle();
 		}
 		updateMemberList();
 	};
@@ -1397,7 +1391,6 @@ module.exports = (meta) => {
 		saveSettings();
 		if (DOM_MODE) {
 			refitCounter();
-			updateStyle();
 		}
 		updateMemberList();
 	};
@@ -1600,7 +1593,7 @@ module.exports = (meta) => {
 			/**
 			 * @type {!Solid<VersionData>}
 			 */
-			const local = Object.freeze(Data.load(Versions.key));
+			const local = Object.freeze(Data.load(Versions.key) ?? { version: meta.version, hasShownChangelog: false });
 			/**
 			 * @type {!VersionTuple}
 			 */
@@ -1640,7 +1633,7 @@ module.exports = (meta) => {
 				type: Changelogs.Types.Fixed.TYPE,
 				title: Changelogs.Types.Fixed.TITLE,
 				items: [
-					'Reconcile module acquisition with recent update.'
+					'Introduce fallback for missing version data in config file.'
 				]
 			}
 		];
@@ -1649,6 +1642,15 @@ module.exports = (meta) => {
 		 * @type {!Record<string, Prettify<BD.Changes>[]>}
 		 */
 		static Old = {
+			'3.0.16': [
+				{
+					type: Changelogs.Types.Fixed.TYPE,
+					title: Changelogs.Types.Fixed.TITLE,
+					items: [
+						'Reconcile module acquisition with recent update.'
+					]
+				}
+			],
 			'3.0.15': [
 				{
 					type: Changelogs.Types.Fixed.TYPE,
@@ -1771,7 +1773,7 @@ module.exports = (meta) => {
 		start () {
 			promises.restore();
 			loadSettings();
-			DOM.addStyle(CSSKey, getCss());
+			DOM.addStyle(CSSKey, _css);
 			if (DOM_MODE) {
 				appendCounter();
 				connect();
