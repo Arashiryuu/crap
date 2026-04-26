@@ -1,7 +1,7 @@
 /**
  * @name DateViewer
  * @author Arashiryuu
- * @version 1.0.24
+ * @version 1.0.25
  * @description Displays the current date, weekday, and time.
  * @authorId 238108500109033472
  * @authorLink https://github.com/Arashiryuu
@@ -1231,7 +1231,7 @@ module.exports = (meta) => {
 
 	/**
 	 * @typedef VersionTuple
-	 * @type {![VersionNumeral, Solid<VersionData>]}
+	 * @type {![VersionNumeral, VersionData['hasShownChangelog']]}
 	 */
 
 	const Versions = class Versions {
@@ -1250,11 +1250,11 @@ module.exports = (meta) => {
 			/**
 			 * @type {!Solid<VersionData>}
 			 */
-			const local = Data.load(Versions.key);
+			const local = Data.load(Versions.key) ?? { version: meta.version, hasShownChangelog: false };
 			/**
 			 * @type {!VersionTuple}
 			 */
-			const ret = [Versions.Signs.SAME, local];
+			const ret = [Versions.Signs.SAME, local.hasShownChangelog];
 			if (!local || !local.version) return ret;
 			if (local.hasShownChangelog && local.version === meta.version) return ret;
 			ret[0] = Utils.semverCompare(local.version, meta.version);
@@ -1290,7 +1290,7 @@ module.exports = (meta) => {
 				type: Changelogs.Types.Fixed.TYPE,
 				title: Changelogs.Types.Fixed.TITLE,
 				items: [
-					'Reconcile module acquisition with recent update.'
+					'Introduce fallback for missing version data in config file.'
 				]
 			}
 		];
@@ -1299,6 +1299,15 @@ module.exports = (meta) => {
 		 * @type {!Record<string, Prettify<BD.Changes>[]>}
 		 */
 		static Old = {
+			'1.0.24': [
+				{
+					type: Changelogs.Types.Fixed.TYPE,
+					title: Changelogs.Types.Fixed.TITLE,
+					items: [
+						'Reconcile module acquisition with recent update.'
+					]
+				}
+			],
 			'1.0.23': [
 				{
 					type: Changelogs.Types.Fixed.TYPE,
@@ -1401,9 +1410,9 @@ module.exports = (meta) => {
 		};
 
 		static show () {
-			const [sign, local] = Versions.getInfo();
+			const [sign, shown] = Versions.getInfo();
 			if (sign === Versions.Signs.LEFT) return;
-			if (sign === Versions.Signs.SAME && local && local.hasShownChangelog) return;
+			if (sign === Versions.Signs.SAME && shown) return;
 			if (Changelogs.Changes.length) UI.showChangelogModal(Changelogs.ModalData);
 			Data.save(Versions.key, { version: meta.version, hasShownChangelog: true });
 		}
