@@ -1,7 +1,7 @@
 /**
  * @name DateViewer
  * @author Arashiryuu
- * @version 1.0.25
+ * @version 1.0.26
  * @description Displays the current date, weekday, and time.
  * @authorId 238108500109033472
  * @authorLink https://github.com/Arashiryuu
@@ -114,7 +114,7 @@ module.exports = (meta) => {
 			raw: true
 		},
 		{
-			filter: Filters.byId(573613)//Filters.bySource('.thin,', '.auto,', '.fade)')
+			filter: Filters.byId(364522)
 		},
 		{
 			filter: Filters.byKeys('inspect', 'promisify')
@@ -1290,7 +1290,7 @@ module.exports = (meta) => {
 				type: Changelogs.Types.Fixed.TYPE,
 				title: Changelogs.Types.Fixed.TITLE,
 				items: [
-					'Introduce fallback for missing version data in config file.'
+					'Reconcile module query for patching into "Active Now" sidebar.'
 				]
 			}
 		];
@@ -1299,6 +1299,15 @@ module.exports = (meta) => {
 		 * @type {!Record<string, Prettify<BD.Changes>[]>}
 		 */
 		static Old = {
+			'1.0.25': [
+				{
+					type: Changelogs.Types.Fixed.TYPE,
+					title: Changelogs.Types.Fixed.TITLE,
+					items: [
+						'Introduce fallback for missing version data in config file.'
+					]
+				}
+			],
 			'1.0.24': [
 				{
 					type: Changelogs.Types.Fixed.TYPE,
