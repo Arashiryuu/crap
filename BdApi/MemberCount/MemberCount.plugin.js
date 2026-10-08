@@ -1,7 +1,7 @@
 /**
  * @name MemberCount
  * @author Arashiryuu
- * @version 3.0.17
+ * @version 3.0.18
  * @description Displays a server's member-count at the top of the member-list, can be styled with the `#MemberCount` selector.
  * @authorId 238108500109033472
  * @authorLink https://github.com/Arashiryuu
@@ -43,6 +43,7 @@
  */
 module.exports = (meta) => {
 	'use strict';
+
 	// @ts-ignore
 	const Api = new BdApi(meta.name);
 	const { UI, DOM, Data, React, Utils, Themes, Plugins, Patcher, Webpack, ReactDOM, Components, ReactUtils, ContextMenu } = Api;
@@ -105,9 +106,9 @@ module.exports = (meta) => {
 		// 	filter: Filters.byKeys('createToast', 'popToast')
 		// },
 		{
-			filter: Filters.Forwarded.byStrings('renderSection:', 'renderListHeader:'),
-			searchExports: true,
-			raw: true
+			filter: Filters.byKeys('Ei', 'OZ'), //('renderSection:', 'renderListHeader:'),
+			searchExports: true
+			// raw: true
 		},
 		{
 			filter: Filters.byKeys('inspect', 'promisify')
@@ -126,7 +127,7 @@ module.exports = (meta) => {
 			/**
 			 * @type {!FilterFunction}
 			 */
-			filter: Filters.byKeys('header', 'container', 'text-sm/medium') //(m) => m?.container?.endsWith('13cf1')
+			filter: (m) => m?.container?.endsWith('13cf1') //Filters.byKeys('header', 'container', 'text-sm/medium')
 		}
 	];
 
@@ -137,6 +138,7 @@ module.exports = (meta) => {
 	/**
 	 * @type {!((o: unknown) => string)}
 	 */
+	// @ts-ignore
 	const toString = Function.call.bind(Object.prototype.toString);
 	const [
 		// Modules
@@ -248,7 +250,7 @@ module.exports = (meta) => {
 	 * @returns {!i18nStrings}
 	 */
 	const useStrings = () => {
-		/** @type {!string} */
+		/** @type {!Keys<typeof strings>[]} */
 		const [lang] = LangUtils.getLocale().split('-');
 		return strings[lang] ?? strings.en;
 	};
@@ -257,7 +259,7 @@ module.exports = (meta) => {
 
 	/**
 	 * Self-binds methods to their owner object.
-	 * @param {!object} instance
+	 * @param {!any} instance
 	 */
 	const applyBinds = (instance) => {
 		const methods = Object.getOwnPropertyNames(instance).filter((name) => typeof instance[name] === 'function');
@@ -349,6 +351,7 @@ module.exports = (meta) => {
 				},
 				print () {
 					console.groupCollapsed(...useParts(name));
+					// @ts-ignore
 					for (const out of logs) console[level](...out);
 					console.groupEnd();
 				}
@@ -367,7 +370,7 @@ module.exports = (meta) => {
 	applyBinds(Logger);
 
 	/**
-	 * @param {!object} obj
+	 * @param {!any} obj
 	 * @param {!string} path
 	 * @returns {*}
 	 */
@@ -375,7 +378,7 @@ module.exports = (meta) => {
 
 	/**
 	 * Generates an SVGElement or HTMLElement from the provided tag name.
-	 * @param {!Keys<HTMLElementTagNameMap & SVGElementTagNameMap>} tag
+	 * @param {!Keys<BD.DOMElementTagNameMap>} tag
 	 * @returns {!BD.DOMElement}
 	 */
 	const getElement = (tag) => {
@@ -412,8 +415,8 @@ module.exports = (meta) => {
 
 	/**
 	 * A `document.createElement` helper function.
-	 * @param {!Keys<HTMLElementTagNameMap & SVGElementTagNameMap>} type
-	 * @param {?object} props
+	 * @param {!Keys<BD.DOMElementTagNameMap>} type
+	 * @param {?any} props
 	 * @param {!BD.ChildNode[]} children
 	 * @returns {!BD.DOMElement}
 	 */
@@ -719,7 +722,7 @@ module.exports = (meta) => {
 	 * @property {!React.FC} TooltipWrapper
 	 */
 	/**
-	 * @type {!Prettify<DiscordComponents>}
+	 * @type {!Prettify<Nullable<DiscordComponents>>}
 	 */
 	const Discord = {
 		Switch: null,
@@ -760,7 +763,7 @@ module.exports = (meta) => {
 				/**
 				 * @param {!object} props
 				 */
-				children: (props) => {
+				children (props) {
 					return ce('div', {
 						id: 'MemberCount',
 						className: `${meta.name}-error`,
@@ -770,6 +773,7 @@ module.exports = (meta) => {
 						...props
 					});
 				},
+				// @ts-ignore
 				...Discord.TooltipWrapper.defaultProps
 			});
 			// @ts-ignore
@@ -1034,7 +1038,7 @@ module.exports = (meta) => {
 			wrap.current?.classList.add(getSpacing(settings));
 		});
 
-		const sections = [
+		const sections = /** @type {!SettingsBuildOpts[]} */ ([
 			{
 				id: 'Logs',
 				name: 'Changelogs',
@@ -1114,7 +1118,7 @@ module.exports = (meta) => {
 					}
 				]
 			}
-		];
+		]);
 
 		return sections.map(buildSettings);
 	};
@@ -1233,10 +1237,15 @@ module.exports = (meta) => {
 		const { ONLINE, MEMBERS } = useStrings();
 		const { id, displayType = 0 } = props;
 
-		const [count, online] = useStateFromStores([MemberCountStores], () => [
+		/**
+		 * @typedef CounterStates
+		 * @type {![number, number]}
+		 */
+
+		const [count, online] = useStateFromStores([MemberCountStores], () => /** @type {!CounterStates} */ ([
 			MemberCountStores.getMemberCount(id),
 			MemberCountStores.getOnlineCount(id)
-		]);
+		]));
 
 		if (DOM_MODE) {
 			return ce('h3', {
@@ -1290,6 +1299,7 @@ module.exports = (meta) => {
 			]
 		});
 	};
+	// @ts-ignore
 	MemberCount.Wrapped = withErrorBoundary(MemberCount);
 
 	/**
@@ -1463,7 +1473,7 @@ module.exports = (meta) => {
 				 * @param {{ key?: string }} item
 				 * @returns {!boolean}
 				 */
-				const fn = (item) => item?.key?.startsWith(meta.name);
+				const fn = (item) => Boolean(item?.key?.startsWith(meta.name));
 				/**
 				 * @param {!object} that
 				 * @param {!any[]} args
@@ -1495,7 +1505,7 @@ module.exports = (meta) => {
 					}
 					return ret;
 				};
-				Patcher.after(ListThin.exports.OZ, 'render', onMemberList);
+				Patcher.after(ListThin, 'OZ', onMemberList);
 				updateMemberList();
 			},
 			ContextMenu (state) {
@@ -1505,7 +1515,7 @@ module.exports = (meta) => {
 				 * @param {{ key?: string }} item
 				 * @returns {!boolean}
 				 */
-				const fn = (item) => item?.key?.startsWith(meta.name);
+				const fn = (item) => Boolean(item?.key?.startsWith(meta.name));
 				/**
 				 * Context menu helper function.
 				 * - Lazily checks that the context menu is rendering only the `Hide Muted Channels` option.
@@ -1551,7 +1561,7 @@ module.exports = (meta) => {
 		static clear () {
 			Patcher.unpatchAll();
 			while (this.#cache.length > 0) {
-				const cancel = this.#cache.pop();
+				const cancel = /** @type {!VoidFunction} */ (this.#cache.pop());
 				cancel();
 			}
 			updateMemberList();
@@ -1633,7 +1643,7 @@ module.exports = (meta) => {
 				type: Changelogs.Types.Fixed.TYPE,
 				title: Changelogs.Types.Fixed.TITLE,
 				items: [
-					'Introduce fallback for missing version data in config file.'
+					'Reconcile module queries with most recent Discord update changes.'
 				]
 			}
 		];
@@ -1791,11 +1801,11 @@ module.exports = (meta) => {
 			DOM.removeStyle(CSSKey);
 		},
 		/**
-		 * @type {!BD.Plugin['getSettingsPanel']}
+		 * @type {!NonNullable<BD.Plugin['getSettingsPanel']>}
 		 */
 		getSettingsPanel () {
 			return ce(Settings, {
-				onChange: () => {
+				onChange () {
 					saveSettings();
 					if (DOM_MODE) {
 						reconnect();
