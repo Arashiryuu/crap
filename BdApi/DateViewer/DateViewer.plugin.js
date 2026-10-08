@@ -1,7 +1,7 @@
 /**
  * @name DateViewer
  * @author Arashiryuu
- * @version 1.0.26
+ * @version 1.0.27
  * @description Displays the current date, weekday, and time.
  * @authorId 238108500109033472
  * @authorLink https://github.com/Arashiryuu
@@ -43,6 +43,11 @@
  */
 module.exports = (meta) => {
 	'use strict';
+
+	/**
+	 * @typedef {typeof import('react')} React
+	 */
+
 	// @ts-ignore
 	const Api = new BdApi(meta.name);
 	const { UI, DOM, Data, React, Utils, Themes, Plugins, Patcher, Webpack, ReactDOM, ReactUtils, ContextMenu } = Api;
@@ -109,9 +114,8 @@ module.exports = (meta) => {
 			/**
 			 * @type {!FilterFunction}
 			 */
-			filter: Filters.Forwarded.byStrings('renderSection:', 'renderListHeader:'),
-			searchExports: true,
-			raw: true
+			filter: Filters.byKeys('Ei', 'OZ'), //byStrings('renderSection:', 'renderListHeader:'),
+			searchExports: true
 		},
 		{
 			filter: Filters.byId(364522)
@@ -192,7 +196,7 @@ module.exports = (meta) => {
 	 */
 	const useStrings = () => {
 		/**
-		 * @type {!string}
+		 * @type {!Keys<typeof strings>[]}
 		 */
 		const [lang] = LangUtils.getLocale().split('-');
 		return strings[lang] ?? strings.en;
@@ -201,8 +205,8 @@ module.exports = (meta) => {
 	/* Utility */
 
 	/**
-	 * @param {!object} instance
-	 * @returns {void}
+	 * @param {!any} instance
+	 * @returns {!void}
 	 */
 	const applyBinds = (instance) => {
 		const methods = Object.getOwnPropertyNames(instance).filter((name) => typeof instance[name] === 'function');
@@ -289,6 +293,7 @@ module.exports = (meta) => {
 				},
 				print () {
 					console.groupCollapsed(...useParts(name));
+					// @ts-ignore
 					for (const out of logs) console[level](...out);
 					console.groupEnd();
 				}
@@ -307,7 +312,7 @@ module.exports = (meta) => {
 	applyBinds(Logger);
 
 	/**
-	 * @param {!object} obj
+	 * @param {!any} obj
 	 * @param {!string} path
 	 * @returns {*}
 	 */
@@ -353,7 +358,7 @@ module.exports = (meta) => {
 	/**
 	 * A `document.createElement` helper function.
 	 * @param {!string} type
-	 * @param {!object} props
+	 * @param {!any} props
 	 * @param {!(string | Node)[]} children
 	 * @returns {!BD.DOMElement}
 	 */
@@ -577,8 +582,9 @@ module.exports = (meta) => {
 	 * @property {!React.FC} ThemeContext
 	 * @property {!React.ComponentClass} TooltipWrapper
 	 */
+
 	/**
-	 * @type {!Prettify<DiscordComponents>}
+	 * @type {!Prettify<Nullable<DiscordComponents>>}
 	 */
 	const Discord = {
 		Switch: null,
@@ -628,6 +634,7 @@ module.exports = (meta) => {
 						...props
 					});
 				},
+				// @ts-ignore
 				...Discord.TooltipWrapper.defaultProps
 			});
 			// @ts-ignore
@@ -814,7 +821,7 @@ module.exports = (meta) => {
 	 * @returns {!React.ReactNode[]}
 	 */
 	const useSettingsPanels = ([history, onChange, i18n]) => {
-		const sections = [
+		const sections = /** @type {!SettingsBuildOpts[]} */ ([
 			{
 				id: 'Logs',
 				name: 'Changelogs',
@@ -884,7 +891,7 @@ module.exports = (meta) => {
 					}
 				]
 			}
-		];
+		]);
 
 		return sections.map(buildSettings);
 	};
@@ -971,7 +978,7 @@ module.exports = (meta) => {
 	/**
 	 * Interval hook.
 	 * @param {!VoidFunction} callback
-	 * @param {!number} [time=1000]
+	 * @param {!number} time
 	 */
 	const useInterval = (callback, time = 1000) => {
 		/**
@@ -980,19 +987,30 @@ module.exports = (meta) => {
 		const cbRef = useRef(callback);
 
 		useEffect(() => {
+			// @ts-ignore
 			const id = setInterval(() => cbRef.current(), time);
 			return () => clearInterval(id);
 		}, [time]);
 	};
 
+	/**
+	 * Fixed timestep.
+	 */
 	const delta = 1 / 60;
+	/**
+	 * @param {!number} min
+	 * @param {!number} max
+	 * @param {!number} val
+	 * @returns {!number}
+	 */
+	const clamp = (min, max, val) => Math.min(max, Math.max(min, val));
 	/**
 	 * AnimationFrame hook.
 	 * @param {!VoidFunction} callback
 	 */
 	const useAnimationFrame = (callback) => {
 		/**
-		 * @type {!React.RefObject<FrameRequestCallback>}
+		 * @type {!React.MutableRefObject<FrameRequestCallback>}
 		 */
 		const cbRef = useRef(callback);
 		/**
@@ -1012,9 +1030,8 @@ module.exports = (meta) => {
 		 * @type {!FrameRequestCallback}
 		 */
 		const animate = useCallback(/** @param {!number} now */ (now) => {
-			accu.current += (now - last.current) / 1000;
-			if (accu.current > 1) accu.current = 1;
-			accu.current = Math.max(0, accu.current);
+			accu.current += (now - last.current) * 0.001;
+			accu.current = clamp(0, 1, accu.current);
 			while (accu.current > delta) {
 				cbRef.current(delta);
 				accu.current -= delta;
@@ -1101,6 +1118,7 @@ module.exports = (meta) => {
 	const ref = { current: null };
 	const teeUpdates = () => {
 		setData();
+		// @ts-ignore
 		ref.current = raf(teeUpdates);
 	};
 	const cancelUpdates = () => ref.current && cancelAnimationFrame(ref.current);
@@ -1137,6 +1155,7 @@ module.exports = (meta) => {
 		 * @returns {!boolean}
 		 */
 		const isThread = (props) => {
+			// @ts-ignore
 			return !props['data-list-id'] && props.className.endsWith('members');
 		};
 
@@ -1181,10 +1200,10 @@ module.exports = (meta) => {
 		};
 
 		// MemberList and Threads
-		Patcher.after(ListThin.exports.OZ, 'render', listPatch);
+		Patcher.after(ListThin, 'OZ', listPatch);
 		// GroupDMs
 		if (!ListGroupDM || !ListGroupDM.Ip) return;
-		Patcher.after(ListGroupDM.Ip, 'render', listPatch);
+		Patcher.after(ListGroupDM, 'Ip', listPatch);
 	};
 
 	const onStart = () => {
@@ -1290,7 +1309,7 @@ module.exports = (meta) => {
 				type: Changelogs.Types.Fixed.TYPE,
 				title: Changelogs.Types.Fixed.TITLE,
 				items: [
-					'Reconcile module query for patching into "Active Now" sidebar.'
+					'Reconcile module acquisition with recent update.'
 				]
 			}
 		];
@@ -1441,7 +1460,7 @@ module.exports = (meta) => {
 			raf(onStop);
 		},
 		/**
-		 * @type {!BD.Plugin['getSettingsPanel']}
+		 * @type {!NonNullable<BD.Plugin['getSettingsPanel']>}
 		 */
 		getSettingsPanel () {
 			return ce(Settings, {
